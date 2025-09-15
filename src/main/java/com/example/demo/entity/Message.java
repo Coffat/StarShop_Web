@@ -29,10 +29,20 @@ public class Message {
     @Column(name = "sent_at", nullable = false)
     private LocalDateTime sentAt;
     
-    @Column(name = "created_at", insertable = false, updatable = false)
+    @Column(
+        name = "created_at", 
+        insertable = false, 
+        updatable = false,
+        columnDefinition = "TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP"
+    )
     private LocalDateTime createdAt;
     
-    @Column(name = "updated_at", insertable = false, updatable = false)
+    @Column(
+        name = "updated_at", 
+        insertable = false, 
+        updatable = false,
+        columnDefinition = "TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+    )
     private LocalDateTime updatedAt;
 
     @Column(name = "is_read", nullable = false)

@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StarShop - Đăng nhập</title>
+    
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #a5b4fc;
+            --primary-dark: #4338ca;
+            --secondary: #ec4899;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --white: #ffffff;
+            --gradient-1: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            --gradient-2: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
+            --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--gradient-bg);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            line-height: 1.6;
+            color: var(--gray-700);
+        }
+
+        /* Background decoration */
+        .bg-decoration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-decoration::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
+        }
+
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .shape:nth-child(1) {
+            width: 100px;
+            height: 100px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            width: 150px;
+            height: 150px;
+            top: 60%;
+            right: 15%;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            width: 80px;
+            height: 80px;
+            bottom: 30%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        .shape:nth-child(4) {
+            width: 120px;
+            height: 120px;
+            top: 10%;
+            right: 30%;
+            animation-delay: 6s;
+        }
+
+        @keyframes float {
+            0%, 100% { 
+                transform: translateY(0px) rotate(0deg) scale(1); 
+                opacity: 0.7;
+            }
+            50% { 
+                transform: translateY(-30px) rotate(180deg) scale(1.1); 
+                opacity: 0.9;
+            }
+        }
+
+        /* Main container */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 600px;
+            transition: all 0.3s ease;
+        }
+
+        .login-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+        }
+
+        /* Left side - Brand */
+        .brand-section {
+            background: var(--gradient-1);
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brand-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'%3E%3Cpath d='m0 40l40-40h-40z'/%3E%3Cpath d='m0 40l40-40h-40z' transform='rotate(90 20 20)'/%3E%3C/g%3E%3C/svg%3E");
+            animation: slide 30s linear infinite;
+        }
+
+        @keyframes slide {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-40px, -40px); }
+        }
+
+        .brand-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .brand-logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .brand-logo i {
+            font-size: 3.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .brand-tagline {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .brand-features {
+            list-style: none;
+            text-align: left;
+            max-width: 280px;
+        }
+
+        .brand-features li {
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .brand-features i {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            min-width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Right side - Form */
+        .form-section {
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .form-header {
+            margin-bottom: 2.5rem;
+            text-align: center;
+        }
+
+        .form-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .form-subtitle {
+            color: var(--gray-600);
+            font-size: 1.125rem;
+            font-weight: 500;
+        }
+
+        /* Form styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+            font-weight: 500;
+            border: 2px solid var(--gray-200);
+            border-radius: 16px;
+            background: var(--gray-50);
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: var(--gray-400);
+            font-weight: 400;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+            font-size: 1.125rem;
+            pointer-events: none;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            background: var(--gradient-1);
+            border: none;
+            border-radius: 16px;
+            color: var(--white);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        /* Divider */
+        .divider {
+            text-align: center;
+            margin: 2rem 0;
+            position: relative;
+            color: var(--gray-500);
+            font-weight: 500;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--gray-200);
+        }
+
+        .divider span {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0 1rem;
+            position: relative;
+        }
+
+        /* Social buttons */
+        .social-login {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn-social {
+            flex: 1;
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--gray-200);
+            border-radius: 16px;
+            background: var(--white);
+            color: var(--gray-700);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-social:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            text-decoration: none;
+        }
+
+        .btn-google:hover {
+            border-color: #db4437;
+            background: #db4437;
+            color: var(--white);
+        }
+
+        .btn-facebook:hover {
+            border-color: #1877f2;
+            background: #1877f2;
+            color: var(--white);
+        }
+
+        .forgot-password {
+            text-align: center;
+        }
+
+        .forgot-password a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s ease;
+        }
+
+        .forgot-password a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        /* Alert styles */
+        .alert {
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #991b1b;
+            border-left: 4px solid var(--danger);
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #065f46;
+            border-left: 4px solid var(--success);
+        }
+
+        /* Loading spinner */
+        .spinner {
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid var(--white);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Form validation */
+        .form-control.is-invalid {
+            border-color: var(--danger);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .invalid-feedback {
+            display: block;
+            width: 100%;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--danger);
+            font-weight: 500;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .login-card {
+                grid-template-columns: 1fr;
+                max-width: 450px;
+            }
+            
+            .brand-section {
+                order: 2;
+                padding: 2rem;
+                min-height: auto;
+            }
+            
+            .form-section {
+                order: 1;
+                padding: 2rem;
+            }
+            
+            .brand-logo {
+                font-size: 2.5rem;
+            }
+            
+            .brand-logo i {
+                font-size: 3rem;
+            }
+            
+            .form-title {
+                font-size: 2rem;
+            }
+            
+            .social-login {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 1rem;
+            }
+            
+            .brand-section, .form-section {
+                padding: 1.5rem;
+            }
+            
+            .brand-logo {
+                font-size: 2rem;
+            }
+            
+            .brand-logo i {
+                font-size: 2.5rem;
+            }
+            
+            .form-title {
+                font-size: 1.75rem;
+            }
+        }
+
+        /* Smooth transitions */
+        * {
+            transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background decoration -->
+    <div class="bg-decoration">
+        <div class="floating-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+        </div>
+    </div>
+
+    <div class="login-container">
+        <div class="login-card">
+            <!-- Brand Section -->
+            <div class="brand-section">
+                <div class="brand-content">
+                    <div class="brand-logo">
+                        <i class="bi bi-flower1"></i>
+                        StarShop
+                    </div>
+                    <p class="brand-tagline">
+                        Nơi kết nối yêu thương qua từng đóa hoa
+                    </p>
+                    <ul class="brand-features">
+                        <li>
+                            <i class="bi bi-shield-check-fill"></i>
+                            Bảo mật tuyệt đối
+                        </li>
+                        <li>
+                            <i class="bi bi-truck"></i>
+                            Giao hàng nhanh chóng
+                        </li>
+                        <li>
+                            <i class="bi bi-heart-fill"></i>
+                            Hoa tươi chất lượng
+                        </li>
+                        <li>
+                            <i class="bi bi-headset"></i>
+                            Hỗ trợ 24/7
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Form Section -->
+            <div class="form-section">
+                <div class="form-header">
+                    <h1 class="form-title">Chào mừng trở lại</h1>
+                    <p class="form-subtitle">Đăng nhập để tiếp tục hành trình</p>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${error}" class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span th:text="${error}"></span>
+                </div>
+
+                <div th:if="${success}" class="alert alert-success" role="alert">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span th:text="${success}"></span>
+                </div>
+
+                <!-- Login Form -->
+                <form id="loginForm" method="post" action="/api/auth/login">
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email</label>
+                        <div class="input-group">
+                            <input type="email" 
+                                   class="form-control" 
+                                   id="email" 
+                                   name="email" 
+                                   placeholder="Nhập email của bạn" 
+                                   required
+                                   autocomplete="email">
+                            <i class="input-icon bi bi-envelope"></i>
+                        </div>
+                        <div class="invalid-feedback" id="emailError"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="form-label">Mật khẩu</label>
+                        <div class="input-group">
+                            <input type="password" 
+                                   class="form-control" 
+                                   id="password" 
+                                   name="password" 
+                                   placeholder="Nhập mật khẩu của bạn" 
+                                   required
+                                   autocomplete="current-password">
+                            <i class="input-icon bi bi-lock"></i>
+                        </div>
+                        <div class="invalid-feedback" id="passwordError"></div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="loginBtn">
+                        <span class="btn-text">Đăng nhập</span>
+                        <div class="spinner d-none" id="loginSpinner"></div>
+                    </button>
+                </form>
+
+                <!-- Divider -->
+                <div class="divider">
+                    <span>Hoặc đăng nhập với</span>
+                </div>
+
+                <!-- Social Login -->
+                <div class="social-login">
+                    <a href="/oauth2/authorization/google" class="btn-social btn-google">
+                        <i class="bi bi-google"></i>
+                        Google
+                    </a>
+                    <a href="/oauth2/authorization/facebook" class="btn-social btn-facebook">
+                        <i class="bi bi-facebook"></i>
+                        Facebook
+                    </a>
+                </div>
+
+                <!-- Forgot Password -->
+                <div class="forgot-password">
+                    <a href="/forgot-password">Quên mật khẩu?</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5.3.3 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- SockJS and Stomp for WebSocket -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+
+    <script>
+        // Form validation and submission
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const loginBtn = document.getElementById('loginBtn');
+            const btnText = loginBtn.querySelector('.btn-text');
+            const spinner = document.getElementById('loginSpinner');
+            
+            // Clear previous errors
+            clearErrors();
+            
+            // Validate email
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailRegex.test(email)) {
+                showError('email', 'Vui lòng nhập email hợp lệ');
+                return;
+            }
+            
+            // Validate password
+            if (password.length < 8) {
+                showError('password', 'Mật khẩu phải có ít nhất 8 ký tự');
+                return;
+            }
+            
+            // Show loading state
+            loginBtn.disabled = true;
+            btnText.textContent = 'Đang đăng nhập...';
+            spinner.classList.remove('d-none');
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.data && data.data.token) {
+                    // Store token
+                    localStorage.setItem('authToken', data.data.token);
+                    localStorage.setItem('userInfo', JSON.stringify(data.data.user));
+                    
+                    // Show success message
+                    showAlert('success', 'Đăng nhập thành công! Đang chuyển hướng...');
+                    
+                    // Setup WebSocket connection for welcome message
+                    setupWebSocket(data.data.user.id);
+                    
+                    // Redirect to dashboard
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 1500);
+                } else {
+                    // Show error message
+                    const errorMessage = data.error || 'Email hoặc mật khẩu không chính xác';
+                    showAlert('danger', errorMessage);
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('danger', 'Có lỗi xảy ra. Vui lòng thử lại sau.');
+            } finally {
+                // Reset button state
+                loginBtn.disabled = false;
+                btnText.textContent = 'Đăng nhập';
+                spinner.classList.add('d-none');
+            }
+        });
+        
+        function showError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            const errorDiv = document.getElementById(fieldId + 'Error');
+            
+            field.classList.add('is-invalid');
+            errorDiv.textContent = message;
+        }
+        
+        function clearErrors() {
+            const fields = ['email', 'password'];
+            fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                const errorDiv = document.getElementById(fieldId + 'Error');
+                
+                field.classList.remove('is-invalid');
+                errorDiv.textContent = '';
+            });
+        }
+        
+        function showAlert(type, message) {
+            // Remove existing alerts
+            const existingAlert = document.querySelector('.alert');
+            if (existingAlert && !existingAlert.hasAttribute('th:if')) {
+                existingAlert.remove();
+            }
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.setAttribute('role', 'alert');
+            
+            const icon = type === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill';
+            alertDiv.innerHTML = `
+                <i class="bi bi-${icon}"></i>
+                <span>${message}</span>
+            `;
+            
+            const form = document.getElementById('loginForm');
+            form.parentNode.insertBefore(alertDiv, form);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+        
+        function setupWebSocket(userId) {
+            try {
+                const socket = new SockJS('/ws');
+                const stompClient = new StompJs.Client({
+                    webSocketFactory: () => socket,
+                    debug: (str) => console.log('STOMP: ' + str),
+                    onConnect: (frame) => {
+                        console.log('Connected: ' + frame);
+                        
+                        // Subscribe to user-specific messages
+                        stompClient.subscribe(`/topic/messages/${userId}`, (message) => {
+                            const messageData = JSON.parse(message.body);
+                            console.log('Received welcome message:', messageData);
+                        });
+                    },
+                    onStompError: (frame) => {
+                        console.error('Broker reported error: ' + frame.headers['message']);
+                        console.error('Additional details: ' + frame.body);
+                    }
+                });
+                
+                stompClient.activate();
+            } catch (error) {
+                console.error('WebSocket setup error:', error);
+            }
+        }
+        
+        // Handle OAuth2 callback
+        window.addEventListener('load', function() {
+            document.getElementById('loginForm').reset();
+            clearErrors();
+            
+            // Handle OAuth2 success callback
+            if (location.hash && location.hash.includes('token=')) {
+                const hashParams = new URLSearchParams(location.hash.substring(1));
+                const token = hashParams.get('token');
+                const userInfo = hashParams.get('user');
+                
+                if (token) {
+                    // Store token and user info
+                    localStorage.setItem('authToken', token);
+                    
+                    if (userInfo) {
+                        try {
+                            const user = JSON.parse(decodeURIComponent(userInfo));
+                            localStorage.setItem('userInfo', JSON.stringify(user));
+                        } catch (e) {
+                            console.error('Error parsing user info:', e);
+                        }
+                    }
+                    
+                    // Show success message
+                    showAlert('success', 'Đăng nhập thành công! Đang chuyển hướng...');
+                    
+                    // Redirect to dashboard
+                    setTimeout(() => {
+                        window.location.replace('/dashboard');
+                    }, 1500);
+                    
+                    return;
+                }
+            }
+            
+            // Handle OAuth2 error parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            
+            if (error) {
+                let errorMessage = 'Đăng nhập thất bại';
+                
+                switch (error) {
+                    case 'oauth2_no_email':
+                        errorMessage = 'Không thể lấy thông tin email từ tài khoản của bạn';
+                        break;
+                    case 'oauth2_user_not_found':
+                        errorMessage = 'Tài khoản chưa được đăng ký. Vui lòng đăng ký trước khi đăng nhập';
+                        break;
+                    case 'oauth2_processing':
+                        errorMessage = 'Có lỗi xảy ra khi xử lý thông tin đăng nhập';
+                        break;
+                    case 'oauth2_failed':
+                        errorMessage = 'Đăng nhập bằng mạng xã hội thất bại';
+                        break;
+                    case 'oauth2':
+                        errorMessage = 'Đăng nhập OAuth2 thất bại';
+                        break;
+                }
+                
+                showAlert('danger', errorMessage);
+                
+                // Clean URL
+                window.history.replaceState({}, document.title, '/login');
+            }
+        });
+
+        // Enhanced interactive effects
+        document.querySelectorAll('.form-control').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.parentElement.style.transform = 'translateY(-2px)';
+                this.parentElement.style.transition = 'all 0.2s ease';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.parentElement.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Add subtle animations on load
+        window.addEventListener('load', function() {
+            const loginCard = document.querySelector('.login-card');
+            loginCard.style.opacity = '0';
+            loginCard.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                loginCard.style.transition = 'all 0.6s ease';
+                loginCard.style.opacity = '1';
+                loginCard.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+</body>
+</html>

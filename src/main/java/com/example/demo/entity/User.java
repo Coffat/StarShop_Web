@@ -1,9 +1,8 @@
 package com.example.demo.entity;
 
 import com.example.demo.entity.enums.UserRole;
+import com.example.demo.entity.enums.UserRoleConverter;
 import jakarta.persistence.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +34,7 @@ public class User extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Convert(converter = UserRoleConverter.class)
     private UserRole role = UserRole.CUSTOMER;
 
     // Relationships

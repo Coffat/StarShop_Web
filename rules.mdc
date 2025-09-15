@@ -1,0 +1,537 @@
+---
+description: Rules for generating code in StarShop project - A flower-selling website using Spring Boot, Bootstrap, JPA, PostgreSQL, Sitemesh Decorator, JWT, and WebSocket. Ensures MVC, 3-tier architecture, UI consistency, and strict adherence to entity-context.json.
+---
+
+## Project Overview
+- **Project**: StarShop, a flower-selling e-commerce system for customer orders, inventory, and staff management.
+- **Technologies** (latest versions as of September 2025):
+  - Backend: Spring Boot 3.5.5, Spring Data JPA (Hibernate 6.5.2), PostgreSQL 16.4, JJWT 0.12.6 (JWT), Spring WebSocket 6.1.13 (STOMP).
+  - Frontend: Bootstrap 5.3.3, Thymeleaf 3.1.2, Sitemesh 3.2.1.
+  - Testing: JUnit 5.11.2, Mockito 5.13.0.
+  - Logging: SLF4J 2.0.16, Logback 1.5.8.
+  - Utilities: Lombok 1.18.34.
+- **Architecture**: Strictly follow MVC pattern and 3-tier architecture:
+  - **Presentation Tier**: Thymeleaf templates (`src/main/resources/templates/`), Bootstrap CSS/JS, Sitemesh decorators (`decorators/main.html`).
+  - **Business Tier**: Service classes (`service/` package), handling business logic and transactions (@Transactional).
+  - **Data Tier**: JPA entities (`model/`), repositories (`repository/`), PostgreSQL database (per `entity-context.json`).
+- **Code Style**:
+  - Java: camelCase for methods/variables, PascalCase for classes, use Lombok (@Data, @Getter, @Setter, @AllArgsConstructor).
+  - Comments: Javadoc for public methods, inline comments for complex logic.
+  - Logging: SLF4J with Logback, log errors in JSON `{ "error": "message", "timestamp": "..." }`.
+- **Error Handling**: Use @ControllerAdvice for global exceptions, return HTTP status codes (400, 401, 500) with JSON `{ "error": "message" }` for APIs.
+- **Performance**: Avoid N+1 queries in JPA (use @Query or fetch joins), optimize WebSocket messages (limit payload size to 1KB).
+- **Testing**: Generate unit tests (JUnit 5.11.2, Mockito 5.13.0) for services/controllers, integration tests (TestRestTemplate) for repositories.
+
+## Database Adherence
+- **Schema**: Strictly follow `entity-context.json`. Entities, enums, and key details:
+  - **Enums**:
+    - `UserRole`: customer, staff, admin (role-based access control).
+    - `OrderStatus`: pending, processing, shipped, completed, cancelled (workflow: pending → processing → shipped → completed).
+    - `PaymentMethod`: cash_on_delivery, credit_card, bank_transfer, wallet.
+    - `DiscountType`: percentage, fixed.
+    - `TransactionType`: payment, refund.
+    - `TransactionStatus`: success, failed.
+  - **Entities**:
+    - `User`: table `users`, fields: id (BIGSERIAL, PK), firstName (VARCHAR(100), NOT NULL), lastName (VARCHAR(100), NOT NULL), email (VARCHAR(255), UNIQUE, NOT NULL), password (VARCHAR(255), NOT NULL, min 8 chars), phone (VARCHAR(20), UNIQUE, NOT NULL), avatar (VARCHAR(255)), cover (VARCHAR(255)), role (UserRole, default 'customer'), createdAt (TIMESTAMP, auto).
+    - `Product`: table `products`, fields: id (BIGSERIAL, PK), name (VARCHAR(255), NOT NULL), description (TEXT), price (NUMERIC(10,2), NOT NULL, >= 0), image (VARCHAR(255)), createdAt (TIMESTAMP, auto), updatedAt (TIMESTAMP, auto, trigger-based).
+    - `Order`: table `orders`, fields: id (BIGSERIAL, PK), userId (BIGINT, FK, NOT NULL), totalAmount (NUMERIC(10,2), >= 0), status (OrderStatus, default 'pending'), orderDate (TIMESTAMP, auto), deliveryUnitId (BIGINT, FK), voucherId (BIGINT, FK), addressId (BIGINT, FK, NOT NULL), paymentMethod (PaymentMethod, default 'cash_on_delivery'), notes (TEXT).
+    - `Cart`: table `carts`, fields: id (BIGSERIAL, PK), userId (BIGINT, FK, UNIQUE, NOT NULL), createdAt (TIMESTAMP, auto), updatedAt (TIMESTAMP, auto).
+    - `Address`: table `addresses`, fields: id (BIGSERIAL, PK), userId (BIGINT, FK, NOT NULL), street (VARCHAR(255), NOT NULL), city (VARCHAR(100), NOT NULL), province (VARCHAR(100), NOT NULL), isDefault (BOOLEAN, default false), createdAt (TIMESTAMP, auto).
+    - `Review`: table `reviews`, fields: id (BIGSERIAL, PK), userId (BIGINT, FK, NOT NULL), productId (BIGINT, FK, NOT NULL), rating (SMALLINT, NOT NULL, 1-5), comment (TEXT), createdAt (TIMESTAMP, auto).
+    - `Voucher`: table `vouchers`, fields: id (BIGSERIAL, PK), code (VARCHAR(50), UNIQUE, NOT NULL), discountValue (NUMERIC(10,2), NOT NULL, > 0), discountType (DiscountType, NOT NULL), expiryDate (DATE, NOT NULL), minOrderValue (NUMERIC(10,2), default 0), maxUses (INTEGER), uses (INTEGER, default 0), isActive (BOOLEAN, default true).
+    - `DeliveryUnit`: table `deliveryunits`, fields: id (BIGSERIAL, PK), name (VARCHAR(100), UNIQUE, NOT NULL), fee (NUMERIC(10,2), >= 0), estimatedTime (VARCHAR(50)), isActive (BOOLEAN, default true).
+    - `Transaction`: table `transactions`, fields: id (BIGSERIAL, PK), userId (BIGINT, FK, NOT NULL), orderId (BIGINT, FK), amount (NUMERIC(10,2), NOT NULL, > 0), type (TransactionType, NOT NULL), status (TransactionStatus, default 'failed'), transactionReference (VARCHAR(255)), notes (TEXT), createdAt (TIMESTAMP, auto).
+    - `Message`: table `messages`, fields: id (BIGSERIAL, PK), senderId (BIGINT, FK, NOT NULL), receiverId (BIGINT, FK, NOT NULL), content (TEXT, NOT NULL), sentAt (TIMESTAMP, auto), isRead (BOOLEAN, default false).
+    - `TimeSheet`: table `timesheets`, fields: id (BIGSERIAL, PK), staffId (BIGINT, FK, NOT NULL), checkIn (TIMESTAMP, NOT NULL), checkOut (TIMESTAMP), date (DATE, NOT NULL), hoursWorked (NUMERIC(5,2), default 0), notes (TEXT).
+  - **Relationships**: Map one-to-many, many-to-one, one-to-one as defined in `entity-context.json` using @OneToMany, @ManyToOne, @OneToOne.
+  - **Rules**:
+    - Map entities to tables using @Entity, @Table, @Id, @GeneratedValue, @Column, @Enumerated(EnumType.STRING) for enums.
+    - Use JpaRepository for CRUD, write @Query for complex SQL (e.g., OrderSummary, ProductRatings views).
+    - Example for `User`:
+      ```java
+      package com.starshop.model;
+
+      import jakarta.persistence.*;
+      import lombok.Data;
+      import java.time.LocalDateTime;
+
+      @Entity
+      @Table(name = "users")
+      @Data
+      public class User {
+          @Id
+          @GeneratedValue(strategy = GenerationType.IDENTITY)
+          private Long id;
+
+          @Column(name = "first_name", nullable = false, length = 100)
+          private String firstName;
+
+          @Column(name = "last_name", nullable = false, length = 100)
+          private String lastName;
+
+          @Column(name = "email", nullable = false, unique = true, length = 255)
+          private String email;
+
+          @Column(name = "password", nullable = false, length = 255)
+          private String password;
+
+          @Column(name = "phone", nullable = false, unique = true, length = 20)
+          private String phone;
+
+          @Column(name = "avatar")
+          private String avatar;
+
+          @Column(name = "cover")
+          private String cover;
+
+          @Enumerated(EnumType.STRING)
+          @Column(name = "role", nullable = false)
+          private UserRole role;
+
+          @Column(name = "created_at", nullable = false)
+          private LocalDateTime createdAt;
+
+          public enum UserRole {
+              customer, staff, admin
+          }
+      }
+      ```
+    - For `Product` with `updatedAt` trigger:
+      ```java
+      package com.starshop.model;
+
+      import jakarta.persistence.*;
+      import lombok.Data;
+      import java.math.BigDecimal;
+      import java.time.LocalDateTime;
+
+      @Entity
+      @Table(name = "products")
+      @Data
+      public class Product {
+          @Id
+          @GeneratedValue(strategy = GenerationType.IDENTITY)
+          private Long id;
+
+          @Column(name = "name", nullable = false, length = 255)
+          private String name;
+
+          @Column(name = "description")
+          private String description;
+
+          @Column(name = "price", nullable = false)
+          private BigDecimal price;
+
+          @Column(name = "image")
+          private String image;
+
+          @Column(name = "created_at", nullable = false)
+          private LocalDateTime createdAt;
+
+          @Column(name = "updated_at", nullable = false)
+          private LocalDateTime updatedAt;
+      }
+      ```
+    - If schema changes needed, prompt user: "Entity X missing in entity-context.json. Propose new entity or modify existing?"
+  - **Validation**: Use @NotNull, @Size, @Min, @Pattern to match constraints (e.g., @Size(max = 100) for `firstName`, @Min(0) for `price`, @Pattern(regexp = "^[0-9]{8,20}$") for `phone`).
+
+## UI Consistency (Bootstrap + Sitemesh)
+- **Layout**:
+  - Use Sitemesh decorator `decorators/main.html`:
+    ```html
+    <!DOCTYPE html>
+    <html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+        <style>
+            body { font-family: 'Roboto', sans-serif; background-color: #FFE4E1; }
+            .btn-primary { background-color: #FFB6C1; border-color: #FFB6C1; }
+            .btn-primary:hover { background-color: #FF8C94; border-color: #FF8C94; transform: scale(1.05); transition: all 0.2s; }
+            .card { border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        </style>
+        <sitemesh:write property='head'/>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg bg-primary" style="background-color: #FFB6C1;">
+            <div class="container">
+                <a class="navbar-brand text-white" href="/">StarShop</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item"><a class="nav-link text-white" href="/products">Flowers</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/cart">Cart</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/orders">Orders</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/messages">Messages</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="/login">Login</a></li>
+                    </ul>
+                    <form class="d-flex ms-auto" th:action="@{/products/search}" method="get">
+                        <input class="form-control me-2" type="search" name="query" placeholder="Search flowers">
+                        <button class="btn btn-outline-light" type="submit">Search</button>
+                    </form>
+                </div>
+            </div>
+        </nav>
+        <div class="container py-4">
+            <sitemesh:write property='body'/>
+        </div>
+        <footer class="bg-light text-center py-3">
+            <p>&copy; 2025 StarShop. Links: <a href="/about">About</a> | <a href="/contact">Contact</a> | <a href="/privacy">Privacy</a></p>
+        </footer>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+        <sitemesh:write property='script'/>
+    </body>
+    </html>
+    ```
+  - All pages must use this decorator for consistent navbar, footer, and scripts.
+- **UI Components**:
+  - Buttons: `.btn.btn-primary` (#FFB6C1), hover effect (scale 1.05, change to #FF8C94).
+  - Forms: `.form-group`, `.form-control`; client-side validation with JavaScript (check empty fields, show `.is-invalid`).
+  - Cards: Product cards must have image (200x200px), name, price, attributes (from `AttributeValue`), and "Add to Cart" button.
+  - Modals: Use `.modal` for login, cart preview, order confirmation, messages.
+- **Fragments**: Store reusable Thymeleaf fragments in `src/main/resources/templates/fragments/` (e.g., `navbar.html`, `footer.html`).
+- **Colors**: Primary (#FFB6C1, light pink), Secondary (#228B22, green), Neutral (#F8F9FA, light gray), Background (#FFE4E1, subtle pink), Success (#28A745), Danger (#DC3545).
+- **Responsive**: Use `.col-md-`, `.d-flex`, test on mobile (< 640px) via `@Browser`.
+- **Custom CSS**: Add to `src/main/resources/static/css/custom.css`. Avoid inline CSS unless specified.
+- **Client-Side Validation**:
+  ```html
+  <script>
+      document.querySelectorAll('form').forEach(form => {
+          form.addEventListener('submit', function(e) {
+              const inputs = form.querySelectorAll('.form-control');
+              let valid = true;
+              inputs.forEach(input => {
+                  if (!input.value) {
+                      input.classList.add('is-invalid');
+                      valid = false;
+                  } else {
+                      input.classList.remove('is-invalid');
+                  }
+              });
+              if (!valid) e.preventDefault();
+          });
+      });
+  </script>
+
+Security with JWT
+
+Use Spring Security 6.3.4 with JJWT 0.12.6 and BCrypt for password hashing (per entity-context.json):
+Config: SecurityConfig.java with @EnableWebSecurity, JWT filter (extends OncePerRequestFilter), OAuth2 for Google/Facebook.
+Public endpoints: /api/auth/login, /api/auth/register, /public/*.
+Protected endpoints: /api/users/*, /api/products/*, /api/orders/*, /api/cart/*, /api/reviews/*, /api/messages/* require JWT in Authorization: Bearer <token>.
+Roles: Map to User.role (customer, staff, admin). Use @PreAuthorize("hasRole('customer')") or @PreAuthorize("hasRole('admin')").
+Example:package com.starshop.controller;
+
+import com.starshop.service.JwtService;
+import com.starshop.model.User;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/auth")
+@Slf4j
+public class AuthController {
+    private final JwtService jwtService;
+    private final UserService userService;
+    private final BCryptPasswordEncoder passwordEncoder;
+
+    public AuthController(JwtService jwtService, UserService userService, BCryptPasswordEncoder passwordEncoder) {
+        this.jwtService = jwtService;
+        this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        log.info("Login attempt for email: {}", request.getEmail());
+        User user = userService.findByEmail(request.getEmail());
+        if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            return ResponseEntity.status(401).body(new ResponseWrapper<>(null, "Invalid credentials"));
+        }
+        String token = jwtService.generateToken(user.getEmail(), user.getRole());
+        return ResponseEntity.ok(new ResponseWrapper<>(token, null));
+    }
+}
+
+
+If JWT or OAuth2 logic unclear, prompt user: "Specify roles, token expiration, or OAuth2 client IDs for this endpoint?"
+
+
+
+Real-Time with WebSocket
+
+Config: Use @EnableWebSocketMessageBroker, Spring WebSocket 6.1.13, STOMP over WebSocket.
+Channels:
+/topic/orders: Broadcast order status updates (e.g., Order.status changes).
+/topic/messages/{userId}: Private messages (from Message entity).
+
+
+Client-side: Use SockJS 1.6.1, Stomp.js 2.3.3 in Thymeleaf:<script>
+    var socket = new SockJS('/ws');
+    var stompClient = Stomp.over(socket);
+    stompClient.connect({}, function(frame) {
+        stompClient.subscribe('/topic/orders', function(message) {
+            showNotification('Order update: ' + message.body);
+        });
+        stompClient.subscribe('/topic/messages/' + userId, function(message) {
+            showNotification('New message: ' + message.body);
+        });
+    }, function(error) {
+        console.error('WebSocket error: ', error);
+        setTimeout(() => stompClient.connect({}, frame), 5000); // Reconnect after 5s
+    });
+    function showNotification(message) {
+        const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+        document.getElementById('notificationContent').innerText = message;
+        modal.show();
+    }
+</script>
+<div class="modal fade" id="notificationModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body" id="notificationContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+Error handling: Implement reconnect logic (retry every 5s).
+If feature unclear, prompt user: "Specify WebSocket channel or message format?"
+
+API Design
+
+Use RESTful conventions per entity-context.json:
+/api/auth: Authentication (login, register).
+/api/users: User management.
+/api/products: Product catalog.
+/api/orders: Order management.
+/api/cart: Cart operations.
+/api/reviews: Product reviews.
+/api/admin: Admin functions.
+
+
+Versioning: Prefix endpoints with /api/v1/ (e.g., /api/v1/products).
+Pagination: Use Pageable in controllers (Page<Product> findAll(Pageable pageable)).
+Response format: JSON { "data": [], "error": null } or { "error": "message" }.
+Example:package com.starshop.controller;
+
+import com.starshop.model.Product;
+import com.starshop.service.ProductService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1")
+@Slf4j
+public class ProductController {
+    private final ProductService productService;
+
+    public ProductController(ProductService productService) {
+        this.productService = productService;
+    }
+
+    @GetMapping("/products")
+    public ResponseEntity<?> getAll(Pageable pageable) {
+        log.info("Fetching products with page: {}", pageable);
+        try {
+            Page<Product> products = productService.findAll(pageable);
+            return ResponseEntity.ok(new ResponseWrapper<>(products, null));
+        } catch (Exception e) {
+            log.error("Error fetching products: {}", e.getMessage());
+            return ResponseEntity.status(500).body(new ResponseWrapper<>(null, "Server error"));
+        }
+    }
+}
+
+
+
+Testing
+
+Framework: JUnit 5.11.2, Mockito 5.13.0, TestRestTemplate for integration tests.
+Scope:
+Controllers: Test HTTP responses (200, 404, 401).
+Services: Mock repositories, test business logic (e.g., voucher application, order total).
+Repositories: Test queries with @DataJpaTest, validate against entity-context.json.
+
+
+Example:package com.starshop.service;
+
+import com.starshop.model.Product;
+import com.starshop.repository.ProductRepository;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.springframework.boot.test.context.SpringBootTest;
+import java.math.BigDecimal;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
+
+@SpringBootTest
+public class ProductServiceTest {
+    @Mock
+    private ProductRepository productRepository;
+    @InjectMocks
+    private ProductService productService;
+
+    @Test
+    public void testGetProductById() {
+        Product product = new Product();
+        product.setId(1L);
+        product.setName("Rose");
+        product.setPrice(new BigDecimal("89000.00"));
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        Product result = productService.findById(1L);
+        assertEquals("Rose", result.getName());
+    }
+}
+
+
+Suggest tests for every generated controller/service/repository.
+
+Environment Configuration
+
+Use application.yml:spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/starshop
+    username: postgres
+    password: secret
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: your-google-client-id
+            client-secret: your-google-client-secret
+          facebook:
+            client-id: your-facebook-client-id
+            client-secret: your-facebook-client-secret
+jwt:
+  secret: your_jwt_secret
+  expiration: 86400000
+server:
+  port: 8080
+
+
+Support profiles: dev, prod. Example: application-dev.yml.
+If config unclear, prompt user: "Specify database URL, JWT secret, OAuth2 client IDs, or profile?"
+
+Cursor AI Integration
+
+Prompt Handling:
+For ambiguous requests, ask user: "Need clarification on [feature]. Provide details or example?"
+Example: If prompt is "Add product page," ask: "Include search bar? Specific fields in form?"
+
+
+Debugging:
+Use @Browser to check console logs/network requests:@Browser Check console logs for http://localhost:8080/products. Fix JavaScript errors in Thymeleaf templates, follow rules.mdc.
+
+
+Limit changes: "Only fix X, don’t modify Y."
+Example: "Only fix fetch call in products.js, keep HTML unchanged."
+
+
+Avoid Over-Generation:
+Check existing files in controller/, service/, model/ for reuse.
+Example: If ProductController exists, extend it instead of creating new.
+
+
+Version Control:
+Suggest commit messages: "Added ProductService with JPA queries, ref LIN-123."
+
+
+Validation:
+After generating code, suggest: "Run mvn test or @Browser verify no console errors."
+Example: "Generated ProductController. Verify with @Browser check http://localhost:8080/products."
+
+
+Error Handling:
+If errors occur, analyze with @Browser:@Browser Analyze network requests for http://localhost:8080/api/v1/products. If 404, check endpoint and fix controller or fetch call, follow rules.mdc.
+
+
+
+
+
+Additional Rules
+
+File Organization:
+Static assets: src/main/resources/static/css/, static/js/, static/images/.
+Templates: src/main/resources/templates/.
+Fragments: src/main/resources/templates/fragments/.
+Decorators: src/main/resources/decorators/.
+
+
+Performance (per entity-context.json):
+Cache product data with Redis (optional, prompt user if needed).
+Use HikariCP for connection pooling.
+Apply lazy loading for JPA relationships (e.g., User.addresses).
+Leverage database indexes for common queries (e.g., User.email, Product.name).
+Paginate product listings and order history.
+
+
+Logging:
+Log all API calls and errors:package com.starshop.controller;
+
+import com.starshop.model.Order;
+import com.starshop.service.OrderService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1")
+@Slf4j
+public class OrderController {
+    private final OrderService orderService;
+
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    @GetMapping("/orders/{id}")
+    public ResponseEntity<?> getOrderById(@PathVariable Long id) {
+        log.info("Fetching order with ID: {}", id);
+        try {
+            Order order = orderService.findById(id);
+            return ResponseEntity.ok(new ResponseWrapper<>(order, null));
+        } catch (Exception e) {
+            log.error("Error fetching order: {}", e.getMessage());
+            return ResponseEntity.status(500).body(new ResponseWrapper<>(null, "Server error"));
+        }
+    }
+}
+
+
+
+
+If Stuck:
+Prompt user: "Feature X conflicts with Y in entity-context.json. Suggest alternative or confirm implementation?"
+Example: "No entity for feature X in entity-context.json. Add new entity or adjust existing?"
+
+
+
+

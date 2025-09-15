@@ -1,0 +1,73 @@
+spring:
+  application:
+    name: starshop
+  datasource:
+    url: jdbc:postgresql://localhost:5432/flower_shop_system
+    username: flower_admin
+    password: flower_password_2024
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+  
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false
+  
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 45091665731-js8rgkgu5c662khuebpcieikh47eps6t.apps.googleusercontent.com
+            client-secret: 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
+            scope: profile,email
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+          facebook:
+            client-id: 1220413069770726
+            client-secret: c5b7d1d07a1564b8bf592045bafbc144
+            scope: email,public_profile
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          facebook:
+            authorization-uri: https://www.facebook.com/v18.0/dialog/oauth
+            token-uri: https://graph.facebook.com/v18.0/oauth/access_token
+            user-info-uri: https://graph.facebook.com/v18.0/me?fields=id,name,email
+            user-name-attribute: id
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: Asia/Ho_Chi_Minh
+  
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+jwt:
+  secret: starshop_jwt_secret_key_2024_very_secure_key_for_production_use
+  expiration: 86400000 # 24 hours in milliseconds
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    com.example.demo: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE

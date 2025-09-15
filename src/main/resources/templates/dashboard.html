@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        .welcome-card {
+            background: linear-gradient(135deg, #FFB6C1, #FFE4E1);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-card">
+        <h1 class="mb-3">🌸 Welcome to StarShop Dashboard! 🌸</h1>
+        <p class="lead" th:text="${message}">Welcome message</p>
+        <p class="mb-0">Your one-stop destination for beautiful flowers and arrangements</p>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="feature-card text-center">
+                <div class="feature-icon">🌹</div>
+                <h4>Browse Flowers</h4>
+                <p>Discover our beautiful collection of fresh flowers and arrangements</p>
+                <a href="/products" class="btn btn-primary">Shop Now</a>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="feature-card text-center">
+                <div class="feature-icon">🛒</div>
+                <h4>Your Cart</h4>
+                <p>Review and manage items in your shopping cart</p>
+                <a href="/cart" class="btn btn-primary">View Cart</a>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="feature-card text-center">
+                <div class="feature-icon">📦</div>
+                <h4>Order History</h4>
+                <p>Track your orders and view purchase history</p>
+                <a href="/orders" class="btn btn-primary">My Orders</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="feature-card text-center">
+                <div class="feature-icon">⭐</div>
+                <h4>Reviews</h4>
+                <p>Share your experience and read customer reviews</p>
+                <a href="/reviews" class="btn btn-primary">View Reviews</a>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="feature-card text-center">
+                <div class="feature-icon">💬</div>
+                <h4>Messages</h4>
+                <p>Chat with our customer support team</p>
+                <a href="/messages" class="btn btn-primary">Open Chat</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Connect to WebSocket after page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for OAuth2 success
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('oauth2') === 'success') {
+                console.log('OAuth2 login successful!');
+                
+                // Show success message
+                const welcomeCard = document.querySelector('.welcome-card');
+                if (welcomeCard) {
+                    const successMsg = document.createElement('div');
+                    successMsg.className = 'alert alert-success mt-3';
+                    successMsg.innerHTML = '<strong>🎉 OAuth2 Login Successful!</strong> Welcome to StarShop!';
+                    welcomeCard.appendChild(successMsg);
+                }
+                
+                // Clean URL
+                window.history.replaceState({}, document.title, '/dashboard');
+            }
+            
+            const token = localStorage.getItem('jwt_token') || localStorage.getItem('authToken');
+            if (token) {
+                // Set user ID for WebSocket connection
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    window.userId = payload.userId;
+                    
+                    // Connect WebSocket if function exists (from main decorator)
+                    if (typeof connectWebSocket === 'function') {
+                        connectWebSocket();
+                    }
+                } catch (e) {
+                    console.error('Error parsing JWT token:', e);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
