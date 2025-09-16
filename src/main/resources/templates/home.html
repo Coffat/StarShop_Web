@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout('Trang chủ', 
+          'StarShop - Cửa hàng hoa tươi đẹp, chất lượng cao. Giao hàng nhanh chóng toàn quốc. Hoa sinh nhật, hoa tình yêu, hoa cưới, quà tặng đặc biệt.',
+          ~{::link},
+          ~{::content})}">
+
+<head>
+    <link rel="stylesheet" href="/css/home.css">
+</head>
+
+<body>
+<th:block th:fragment="content">
+    <!-- Hero Section - Simplified -->
+    <section class="hero-section">
+        <div class="hero-background">
+            <!-- Floating petals - reduced to 4 -->
+            <div class="floating-petals">
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    Mang <span class="gradient-text">hoa đến niềm vui</span><br>
+                    của bạn
+                </h1>
+                <p class="hero-description">
+                    Khám phá bộ sưu tập hoa tươi tuyệt đẹp tại StarShop. 
+                    Chúng tôi mang đến những bó hoa tinh tế cho mọi dịp đặc biệt.
+                </p>
+                <div class="hero-actions">
+                    <a href="/products" class="btn-primary">
+                        Khám phá sản phẩm
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                    <a href="/categories" class="btn-link">Xem danh mục</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why StarShop Section - New USP Section -->
+    <section class="why-starshop-section">
+            <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Tại sao chọn StarShop?</h2>
+                <p class="section-subtitle">
+                    Chúng tôi cam kết mang đến trải nghiệm tuyệt vời nhất
+                </p>
+                            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-flower1"></i>
+                                </div>
+                    <h3 class="feature-title">Hoa tươi 100%</h3>
+                    <p class="feature-description">
+                        Nhập khẩu trực tiếp từ nông trại, đảm bảo độ tươi mới cao nhất
+                    </p>
+                                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-truck"></i>
+                                </div>
+                    <h3 class="feature-title">Giao hàng nhanh</h3>
+                    <p class="feature-description">
+                        Giao trong 2 giờ nội thành, 24 giờ toàn quốc
+                    </p>
+                            </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-award"></i>
+                    </div>
+                    <h3 class="feature-title">Thiết kế chuyên nghiệp</h3>
+                    <p class="feature-description">
+                        Đội ngũ florist giàu kinh nghiệm, thiết kế độc đáo
+                    </p>
+                                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-headset"></i>
+                    </div>
+                    <h3 class="feature-title">Hỗ trợ 24/7</h3>
+                    <p class="feature-description">
+                        Đội ngũ tư vấn nhiệt tình, sẵn sàng hỗ trợ mọi lúc
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section - Simplified -->
+    <section class="categories-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Danh mục nổi bật</h2>
+                <p class="section-subtitle">
+                    Tìm kiếm bó hoa hoàn hảo cho mọi dịp đặc biệt
+                </p>
+            </div>
+            
+            <div class="categories-grid">
+                <div class="category-card">
+                        <div class="category-image">
+                        <img src="/images/categories/birthday-flowers.jpg" alt="Hoa sinh nhật">
+                            <div class="category-overlay">
+                                <div class="category-content">
+                                <div class="category-icon">🎂</div>
+                                <h3 class="category-title">Hoa Sinh Nhật</h3>
+                                <p class="category-description">Chúc mừng ngày đặc biệt</p>
+                                <a href="/categories/sinh-nhat" class="category-link">
+                                    Khám phá
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="category-card">
+                        <div class="category-image">
+                        <img src="/images/categories/love-flowers.jpg" alt="Hoa tình yêu">
+                            <div class="category-overlay">
+                                <div class="category-content">
+                                <div class="category-icon">❤️</div>
+                                <h3 class="category-title">Hoa Tình Yêu</h3>
+                                <p class="category-description">Thể hiện tình cảm chân thành</p>
+                                <a href="/categories/tinh-yeu" class="category-link">
+                                    Khám phá
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="category-card">
+                        <div class="category-image">
+                            <img src="/images/categories/wedding-flowers.jpg" alt="Hoa cưới">
+                            <div class="category-overlay">
+                                <div class="category-content">
+                                <div class="category-icon">💍</div>
+                                <h3 class="category-title">Hoa Cưới</h3>
+                                    <p class="category-description">Ngày trọng đại viên mãn</p>
+                                <a href="/categories/cuoi" class="category-link">
+                                    Khám phá
+                                    <i class="bi bi-arrow-right"></i>
+                                    </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="category-card">
+                        <div class="category-image">
+                            <img src="/images/categories/opening-flowers.jpg" alt="Hoa khai trương">
+                            <div class="category-overlay">
+                                <div class="category-content">
+                                <div class="category-icon">🎉</div>
+                                <h3 class="category-title">Hoa Khai Trương</h3>
+                                    <p class="category-description">Khởi đầu thành công</p>
+                                <a href="/categories/khai-truong" class="category-link">
+                                    Khám phá
+                                    <i class="bi bi-arrow-right"></i>
+                                    </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="category-card">
+                        <div class="category-image">
+                        <img src="/images/categories/mother-flowers.jpg" alt="Hoa tặng mẹ">
+                            <div class="category-overlay">
+                                <div class="category-content">
+                                <div class="category-icon">🌹</div>
+                                <h3 class="category-title">Hoa Tặng Mẹ</h3>
+                                <p class="category-description">Tình yêu vô điều kiện</p>
+                                <a href="/categories/tang-me" class="category-link">
+                                    Khám phá
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="category-card">
+                        <div class="category-image">
+                        <img src="/images/categories/sympathy-flowers.jpg" alt="Hoa chia buồn">
+                            <div class="category-overlay">
+                                <div class="category-content">
+                                <div class="category-icon">🕊️</div>
+                                <h3 class="category-title">Hoa Chia Buồn</h3>
+                                <p class="category-description">Chia sẻ nỗi niềm</p>
+                                <a href="/categories/chia-buon" class="category-link">
+                                    Khám phá
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section-footer">
+                <a href="/categories" class="btn-outline">Xem tất cả danh mục</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Products Section - Streamlined -->
+    <section class="products-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Sản phẩm nổi bật</h2>
+                <p class="section-subtitle">
+                    Những bó hoa được yêu thích nhất tại StarShop
+                </p>
+            </div>
+            
+            <div class="products-grid">
+                    <div class="product-card">
+                        <div class="product-image">
+                        <img src="/images/products/rose-bouquet-1.jpg" alt="Bó hoa hồng đỏ tình yêu">
+                        </div>
+                        <div class="product-content">
+                        <h3 class="product-title">
+                                <a href="/products/bo-hoa-hong-do-tinh-yeu">Bó hoa hồng đỏ tình yêu</a>
+                        </h3>
+                            <div class="product-price">
+                                <span class="current-price">650.000₫</span>
+                                <span class="original-price">750.000₫</span>
+                            </div>
+                        <button class="btn-quick-add" data-product-id="1">
+                                <i class="bi bi-bag-plus"></i>
+                            Mua ngay
+                            </button>
+                    </div>
+                </div>
+                
+                    <div class="product-card">
+                        <div class="product-image">
+                        <img src="/images/products/tulip-bouquet.jpg" alt="Bó tulip Hà Lan cao cấp">
+                        </div>
+                        <div class="product-content">
+                        <h3 class="product-title">
+                                <a href="/products/bo-tulip-ha-lan">Bó tulip Hà Lan cao cấp</a>
+                        </h3>
+                            <div class="product-price">
+                                <span class="current-price">850.000₫</span>
+                            </div>
+                        <button class="btn-quick-add" data-product-id="2">
+                                <i class="bi bi-bag-plus"></i>
+                            Mua ngay
+                            </button>
+                    </div>
+                </div>
+                
+                    <div class="product-card">
+                        <div class="product-image">
+                        <img src="/images/products/sunflower-bouquet.jpg" alt="Bó hoa hướng dương rạng rỡ">
+                        </div>
+                        <div class="product-content">
+                        <h3 class="product-title">
+                                <a href="/products/bo-hoa-huong-duong">Bó hoa hướng dương rạng rỡ</a>
+                        </h3>
+                            <div class="product-price">
+                                <span class="current-price">480.000₫</span>
+                            </div>
+                        <button class="btn-quick-add" data-product-id="3">
+                                <i class="bi bi-bag-plus"></i>
+                            Mua ngay
+                            </button>
+                    </div>
+                </div>
+                
+                    <div class="product-card">
+                        <div class="product-image">
+                        <img src="/images/products/mixed-bouquet.jpg" alt="Bó hoa hỗn hợp thanh lịch">
+                        </div>
+                        <div class="product-content">
+                        <h3 class="product-title">
+                                <a href="/products/bo-hoa-hon-hop">Bó hoa hỗn hợp thanh lịch</a>
+                        </h3>
+                            <div class="product-price">
+                                <span class="current-price">720.000₫</span>
+                                <span class="original-price">900.000₫</span>
+                            </div>
+                        <button class="btn-quick-add" data-product-id="4">
+                                <i class="bi bi-bag-plus"></i>
+                            Mua ngay
+                            </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section-footer">
+                <a href="/products" class="btn-outline">Xem tất cả sản phẩm</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Promotion Banner -->
+    <section class="promotion-section">
+        <div class="container">
+            <div class="promotion-banner">
+                <div class="promotion-content">
+                    <div class="promotion-badge">
+                        <i class="bi bi-gift"></i>
+                        Ưu đãi đặc biệt
+                    </div>
+                    <h3 class="promotion-title">
+                        <span class="highlight-text">Giảm 20%</span> cho đơn hàng đầu tiên
+                    </h3>
+                    <p class="promotion-description">
+                        Chào mừng bạn đến với StarShop! Nhận ngay ưu đãi hấp dẫn.
+                    </p>
+                    <div class="promotion-features">
+                        <div class="feature-item">
+                            <i class="bi bi-truck"></i>
+                            <span>Miễn phí giao hàng nội thành</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="bi bi-clock"></i>
+                            <span>Giao hàng trong 2 giờ</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="bi bi-flower1"></i>
+                            <span>Hoa tươi 100%</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="bi bi-star-fill"></i>
+                            <span>Đánh giá 5 sao</span>
+                        </div>
+                    </div>
+                    <div class="promotion-actions">
+                        <a href="/products" class="btn-primary">
+                            Mua sắm ngay
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                        <span class="promo-code">Mã: WELCOME20</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section - Simplified -->
+    <section class="testimonials-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Khách hàng nói gì về chúng tôi</h2>
+                <p class="section-subtitle">
+                    Hàng nghìn khách hàng đã tin tưởng StarShop
+                </p>
+            </div>
+            
+            <div class="testimonials-grid">
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            <div class="testimonial-rating">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                            </div>
+                            <p class="testimonial-text">
+                                "Hoa rất tươi và đẹp, giao hàng đúng giờ. Người yêu mình rất thích món quà bất ngờ này. 
+                            Chắc chắn sẽ quay lại StarShop!"
+                            </p>
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="/images/testimonials/customer-1.jpg" alt="Nguyễn Văn An" class="author-avatar">
+                            <div class="author-info">
+                                <h5 class="author-name">Nguyễn Văn An</h5>
+                                <span class="author-location">TP. Hồ Chí Minh</span>
+                        </div>
+                    </div>
+                </div>
+                
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            <div class="testimonial-rating">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                            </div>
+                            <p class="testimonial-text">
+                                "Dịch vụ tuyệt vời! Bó hoa sinh nhật cho mẹ được thiết kế rất tinh tế và ý nghĩa. 
+                            Mẹ mình rất cảm động. Cảm ơn StarShop!"
+                            </p>
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="/images/testimonials/customer-2.jpg" alt="Trần Thị Bình" class="author-avatar">
+                            <div class="author-info">
+                                <h5 class="author-name">Trần Thị Bình</h5>
+                                <span class="author-location">Hà Nội</span>
+                        </div>
+                    </div>
+                </div>
+                
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            <div class="testimonial-rating">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                            </div>
+                            <p class="testimonial-text">
+                                "Lần đầu đặt hoa online và được trải nghiệm tuyệt vời. Hoa đẹp, gói gọn gàng, 
+                                giao hàng nhanh. Nhân viên tư vấn rất nhiệt tình!"
+                            </p>
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="/images/testimonials/customer-3.jpg" alt="Lê Minh Châu" class="author-avatar">
+                            <div class="author-info">
+                                <h5 class="author-name">Lê Minh Châu</h5>
+                                <span class="author-location">Đà Nẵng</span>
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</th:block>
+</body>
+</html>

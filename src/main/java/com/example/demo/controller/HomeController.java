@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.security.core.Authentication;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,9 +14,16 @@ import java.util.Map;
 public class HomeController {
 
     @GetMapping("/")
-    public String home() {
-        log.info("Root path accessed, redirecting to login");
-        return "redirect:/login";
+    public String home(Authentication authentication) {
+        log.info("Home page accessed");
+        
+        if (authentication != null && authentication.isAuthenticated() && !authentication.getName().equals("anonymousUser")) {
+            log.info("Home accessed by authenticated user: {}", authentication.getName());
+        } else {
+            log.info("Home accessed by guest user");
+        }
+        
+        return "home";
     }
 
     @GetMapping("/api/health")
@@ -36,4 +44,6 @@ public class HomeController {
         response.put("developer", "Your Team");
         return response;
     }
+    
 }
+

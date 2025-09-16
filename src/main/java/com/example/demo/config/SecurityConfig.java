@@ -1,7 +1,6 @@
 package com.example.demo.config;
 
 import com.example.demo.security.JwtAuthenticationFilter;
-import com.example.demo.config.CustomOAuth2UserService;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.JwtService;
@@ -91,6 +90,14 @@ public class SecurityConfig {
                     .userService(customOAuth2UserService())
                 )
             )
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/")
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .deleteCookies("authToken", "JSESSIONID", "SPRING_SECURITY_REMEMBER_ME_COOKIE")
+                .permitAll()
+            )
             .headers(headers -> headers
                 .frameOptions(frame -> frame.sameOrigin()) // For H2 console
             )
@@ -140,11 +147,11 @@ public class SecurityConfig {
                 String token = jwtService.generateToken(user.getEmail(), user.getRole(), user.getId());
                 System.out.println("JWT token generated: " + token.substring(0, 20) + "...");
                 
-                // Simple redirect to dashboard with token in session
+                // Simple redirect to home with token in session
                 request.getSession().setAttribute("authToken", token);
                 request.getSession().setAttribute("userEmail", user.getEmail());
                 
-                response.sendRedirect("/dashboard?oauth2=success");
+                response.sendRedirect("/?oauth2=success");
                 
             } catch (Exception e) {
                 System.out.println("OAuth2 error: " + e.getMessage());

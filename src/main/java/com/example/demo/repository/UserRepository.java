@@ -28,4 +28,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     @Query("SELECT u FROM User u WHERE u.role = :role ORDER BY u.createdAt DESC")
     List<User> findRecentUsersByRole(@Param("role") UserRole role);
+    
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.addresses WHERE u.email = :email")
+    Optional<User> findByEmailWithAddresses(@Param("email") String email);
 }

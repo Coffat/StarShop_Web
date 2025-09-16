@@ -18,6 +18,15 @@ public enum UserRole {
     public String getValue() {
         return value;
     }
+    
+    public String getDisplayName() {
+        switch (this) {
+            case CUSTOMER: return "Khách hàng";
+            case STAFF: return "Nhân viên";
+            case ADMIN: return "Quản trị viên";
+            default: return "Khách hàng";
+        }
+    }
 
     @JsonCreator
     public static UserRole fromString(String value) {

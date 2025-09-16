@@ -1335,9 +1335,9 @@
                     // Setup WebSocket connection for welcome message
                     setupWebSocket(data.data.user.id);
                     
-                    // Redirect to dashboard
+                    // Redirect to home
                     setTimeout(() => {
-                        window.location.href = '/dashboard';
+                        window.location.href = '/';
                     }, 1500);
                 } else {
                     // Show error message
@@ -1482,9 +1482,9 @@
                     // Show success message
                     showAlert('success', 'Đăng nhập thành công! Đang chuyển hướng...');
                     
-                    // Redirect to dashboard
+                    // Redirect to home
                     setTimeout(() => {
-                        window.location.replace('/dashboard');
+                        window.location.replace('/');
                     }, 1500);
                     
                     return;

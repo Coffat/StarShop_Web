@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout('Danh sách yêu thích', 
+          'Quản lý danh sách hoa yêu thích của bạn tại StarShop. Lưu trữ và theo dõi những sản phẩm hoa đẹp nhất.',
+          ~{::link},
+          ~{::content})}">
+
+<head>
+    <link rel="stylesheet" href="/css/account.css">
+</head>
+
+<body>
+<th:block th:fragment="content">
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="breadcrumb-wrapper">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">
+                                <a href="/" class="breadcrumb-link">
+                                    <i class="bi bi-house"></i>
+                                    Trang chủ
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item">
+                                <a href="/account/profile" class="breadcrumb-link">Tài khoản</a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">Danh sách yêu thích</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="page-title-section">
+                    <h1 class="page-title">
+                        <span class="title-icon">
+                            <i class="bi bi-heart-fill"></i>
+                        </span>
+                        Danh sách yêu thích
+                    </h1>
+                    <p class="page-subtitle">Những sản phẩm hoa mà bạn đã lưu lại</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Wishlist Content -->
+    <section class="account-section">
+        <div class="container">
+            <div class="row g-4">
+                
+                <!-- Sidebar Navigation -->
+                <div class="col-lg-3">
+                    <div class="account-sidebar">
+                        <!-- User Profile Card -->
+                        <div class="profile-card">
+                            <div class="profile-avatar">
+                                <div class="avatar-circle">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                                <div class="avatar-status">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                </div>
+                            </div>
+                            <div class="profile-info">
+                                <h3 class="profile-name" th:text="${userObject != null ? userObject.fullName : 'Người dùng'}">Người dùng</h3>
+                                <p class="profile-email" th:text="${userObject != null ? userObject.email : currentUser}">user@example.com</p>
+                                <span class="profile-badge">
+                                    <i class="bi bi-star-fill"></i>
+                                    Thành viên từ <span th:text="${userObject != null and userObject.createdAt != null ? #temporals.format(userObject.createdAt, 'yyyy') : '2024'}">2024</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Menu -->
+                        <nav class="account-nav">
+                            <ul class="nav-list">
+                                <li class="nav-item">
+                                    <a href="/account/profile" class="nav-link">
+                                        <span class="nav-icon">
+                                            <i class="bi bi-person"></i>
+                                        </span>
+                                        <span class="nav-text">Thông tin cá nhân</span>
+                                        <span class="nav-arrow">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/account/orders" class="nav-link">
+                                        <span class="nav-icon">
+                                            <i class="bi bi-bag"></i>
+                                        </span>
+                                        <span class="nav-text">Đơn hàng của tôi</span>
+                                        <span class="nav-badge" th:text="${ordersCount}" th:if="${ordersCount > 0}">3</span>
+                                        <span class="nav-arrow">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/account/wishlist" class="nav-link active">
+                                        <span class="nav-icon">
+                                            <i class="bi bi-heart"></i>
+                                        </span>
+                                        <span class="nav-text">Yêu thích</span>
+                                        <span class="nav-badge" th:text="${wishlistCount}" th:if="${wishlistCount > 0}">12</span>
+                                        <span class="nav-arrow">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/account/settings" class="nav-link">
+                                        <span class="nav-icon">
+                                            <i class="bi bi-gear"></i>
+                                        </span>
+                                        <span class="nav-text">Cài đặt</span>
+                                        <span class="nav-arrow">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </span>
+                                    </a>
+                                </li>
+                                <li class="nav-divider"></li>
+                                <li class="nav-item">
+                                    <a href="/logout" class="nav-link logout-link">
+                                        <span class="nav-icon">
+                                            <i class="bi bi-box-arrow-right"></i>
+                                        </span>
+                                        <span class="nav-text">Đăng xuất</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="col-lg-9">
+                    <div class="account-content">
+                        
+                        <!-- Wishlist Header -->
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h2 class="card-title">
+                                    <i class="bi bi-heart-fill"></i>
+                                    Sản phẩm yêu thích (<span th:text="${wishlistCount ?: 0}">0</span>)
+                                </h2>
+                                <div class="wishlist-actions" th:if="${wishlistCount > 0}">
+                                    <button class="btn-outline-secondary" id="clearAllWishlist">
+                                        <i class="bi bi-trash"></i>
+                                        Xóa tất cả
+                                    </button>
+                                    <button class="btn-primary" id="shareWishlist">
+                                        <i class="bi bi-share"></i>
+                                        Chia sẻ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Empty Wishlist State -->
+                        <div class="content-card" th:if="${wishlistCount == 0}">
+                            <div class="card-body">
+                                <div class="empty-activity">
+                                    <div class="empty-activity-icon">
+                                        <i class="bi bi-heart"></i>
+                                    </div>
+                                    <h4 class="empty-activity-title">Danh sách yêu thích trống</h4>
+                                    <p class="empty-activity-desc">
+                                        Bạn chưa có sản phẩm nào trong danh sách yêu thích.<br>
+                                        Hãy khám phá và lưu lại những bó hoa đẹp nhất!
+                                    </p>
+                                    <a href="/products" class="btn btn-primary">
+                                        <i class="bi bi-search"></i>
+                                        Khám phá sản phẩm
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Wishlist Grid -->
+                        <div class="wishlist-grid" th:if="${wishlistCount > 0}">
+                            
+                            <!-- Wishlist Item 1 -->
+                            <div class="wishlist-item">
+                                <div class="item-image">
+                                    <img src="/images/products/rose-bouquet.jpg" alt="Hoa hồng đỏ premium">
+                                    <div class="item-badges">
+                                        <span class="badge-new">Mới</span>
+                                        <span class="badge-sale">-20%</span>
+                                    </div>
+                                    <button class="btn-remove-wishlist" title="Xóa khỏi yêu thích">
+                                        <i class="bi bi-heart-fill"></i>
+                                    </button>
+                                </div>
+                                <div class="item-content">
+                                    <h4 class="item-name">Bó hoa hồng đỏ premium</h4>
+                                    <div class="item-rating">
+                                        <div class="stars">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-half"></i>
+                                        </div>
+                                        <span class="rating-text">(4.5) 128 đánh giá</span>
+                                    </div>
+                                    <div class="item-price">
+                                        <span class="price-sale">890,000₫</span>
+                                        <span class="price-original">1,112,500₫</span>
+                                    </div>
+                                    <div class="item-actions">
+                                        <button class="btn-add-cart">
+                                            <i class="bi bi-bag-plus"></i>
+                                            Thêm vào giỏ
+                                        </button>
+                                        <button class="btn-quick-view">
+                                            <i class="bi bi-eye"></i>
+                                            Xem nhanh
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Wishlist Item 2 -->
+                            <div class="wishlist-item">
+                                <div class="item-image">
+                                    <img src="/images/products/lily-bouquet.jpg" alt="Hoa ly trắng">
+                                    <div class="item-badges">
+                                        <span class="badge-hot">Hot</span>
+                                    </div>
+                                    <button class="btn-remove-wishlist" title="Xóa khỏi yêu thích">
+                                        <i class="bi bi-heart-fill"></i>
+                                    </button>
+                                </div>
+                                <div class="item-content">
+                                    <h4 class="item-name">Bó hoa ly trắng tinh khôi</h4>
+                                    <div class="item-rating">
+                                        <div class="stars">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                        </div>
+                                        <span class="rating-text">(5.0) 89 đánh giá</span>
+                                    </div>
+                                    <div class="item-price">
+                                        <span class="price-current">650,000₫</span>
+                                    </div>
+                                    <div class="item-actions">
+                                        <button class="btn-add-cart">
+                                            <i class="bi bi-bag-plus"></i>
+                                            Thêm vào giỏ
+                                        </button>
+                                        <button class="btn-quick-view">
+                                            <i class="bi bi-eye"></i>
+                                            Xem nhanh
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Wishlist Item 3 -->
+                            <div class="wishlist-item">
+                                <div class="item-image">
+                                    <img src="/images/products/mixed-bouquet.jpg" alt="Hoa hỗn hợp">
+                                    <div class="item-badges">
+                                        <span class="badge-limited">Giới hạn</span>
+                                    </div>
+                                    <button class="btn-remove-wishlist" title="Xóa khỏi yêu thích">
+                                        <i class="bi bi-heart-fill"></i>
+                                    </button>
+                                </div>
+                                <div class="item-content">
+                                    <h4 class="item-name">Bó hoa hỗn hợp nhiều màu</h4>
+                                    <div class="item-rating">
+                                        <div class="stars">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star"></i>
+                                        </div>
+                                        <span class="rating-text">(4.2) 67 đánh giá</span>
+                                    </div>
+                                    <div class="item-price">
+                                        <span class="price-current">750,000₫</span>
+                                    </div>
+                                    <div class="item-actions">
+                                        <button class="btn-add-cart">
+                                            <i class="bi bi-bag-plus"></i>
+                                            Thêm vào giỏ
+                                        </button>
+                                        <button class="btn-quick-view">
+                                            <i class="bi bi-eye"></i>
+                                            Xem nhanh
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- More items... -->
+                            
+                        </div>
+
+                        <!-- Load More -->
+                        <div class="load-more-wrapper" th:if="${wishlistCount > 3}">
+                            <button class="btn-load-more">
+                                <i class="bi bi-arrow-down-circle"></i>
+                                Xem thêm sản phẩm
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </section>
+
+</th:block>
+</body>
+</html>

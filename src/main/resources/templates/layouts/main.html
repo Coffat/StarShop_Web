@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" 
+      lang="vi" 
+      th:fragment="layout (title, description, extraCSS, content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title != null ? title + ' - StarShop 🌸' : 'StarShop 🌸 - Cửa hàng hoa tươi'}">StarShop 🌸</title>
+    
+    <!-- Meta Tags for SEO -->
+    <meta name="description" th:content="${description != null ? description : 'StarShop - Cửa hàng hoa tươi, đẹp, chất lượng cao. Giao hàng nhanh chóng toàn quốc.'}">
+    <meta name="keywords" content="hoa tươi, shop hoa, StarShop, hoa sinh nhật, hoa tình yêu, hoa cưới, hoa khai trương">
+    <meta name="author" content="StarShop">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" th:content="${title != null ? title + ' - StarShop 🌸' : 'StarShop 🌸 - Cửa hàng hoa tươi'}">
+    <meta property="og:description" th:content="${description != null ? description : 'StarShop - Cửa hàng hoa tươi, đẹp, chất lượng cao. Giao hàng nhanh chóng toàn quốc.'}">
+    <meta property="og:image" content="/images/starshop-og.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" th:content="${title != null ? title + ' - StarShop 🌸' : 'StarShop 🌸 - Cửa hàng hoa tươi'}">
+    <meta property="twitter:description" th:content="${description != null ? description : 'StarShop - Cửa hàng hoa tươi, đẹp, chất lượng cao. Giao hàng nhanh chóng toàn quốc.'}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" 
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Google Fonts - Manrope -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    
+    <!-- Page-specific CSS -->
+    <th:block th:replace="${extraCSS}"></th:block>
+    
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "StarShop",
+        "description": "Cửa hàng hoa tươi chất lượng cao",
+        "url": "https://starshop.vn",
+        "logo": "https://starshop.vn/images/logo.png",
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+84-901-234-567",
+            "contactType": "customer service",
+            "availableLanguage": ["Vietnamese"]
+        },
+        "sameAs": [
+            "https://facebook.com/starshop",
+            "https://instagram.com/starshop",
+            "https://tiktok.com/@starshop"
+        ]
+    }
+    </script>
+</head>
+<body>
+    <!-- Background Decoration -->
+    <div class="bg-decoration"></div>
+    
+    <!-- Floating Petals Animation -->
+    <div class="floating-petals">
+        <div class="petal"></div>
+        <div class="petal"></div>
+        <div class="petal"></div>
+        <div class="petal"></div>
+        <div class="petal"></div>
+        <div class="petal"></div>
+        <div class="petal"></div>
+        <div class="petal"></div>
+    </div>
+    
+    <!-- Header -->
+    <div th:replace="~{fragments/header :: header}"></div>
+    
+    <!-- Main Content -->
+    <main id="main-content">
+        <!-- Page-specific content goes here -->
+        <th:block th:replace="${content}">
+            <!-- Content will be inserted here -->
+        </th:block>
+    </main>
+    
+    <!-- Footer -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    
+    <!-- Back to Top Button -->
+    <button type="button" class="btn-back-to-top" id="backToTop" title="Lên đầu trang">
+        <i class="bi bi-arrow-up"></i>
+    </button>
+    
+    <!-- Bootstrap 5.3.3 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    
+    <!-- Main JavaScript -->
+    <script src="/js/main.js"></script>
+    
+    <!-- Language Switcher JS -->
+    <script src="/js/language-switcher.js"></script>
+    
+    <!-- Page-specific JavaScript -->
+    <th:block th:if="${additionalJS}" th:each="js : ${additionalJS}">
+        <script th:src="@{${js}}"></script>
+    </th:block>
+    
+    <!-- Analytics & Tracking (Add your tracking codes here) -->
+    <!-- Google Analytics -->
+    <!-- Facebook Pixel -->
+    <!-- Other tracking codes -->
+</body>
+</html>
+
+<style>
+/* Back to Top Button */
+.btn-back-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    border: none;
+    color: var(--white);
+    font-size: 1.2rem;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-normal);
+    z-index: 1000;
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-back-to-top:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-xl);
+}
+
+.btn-back-to-top.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Skip to main content for accessibility */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: var(--primary);
+    color: var(--white);
+    padding: 8px;
+    text-decoration: none;
+    border-radius: 4px;
+    z-index: 1001;
+    transition: top var(--transition-fast);
+}
+
+.skip-link:focus {
+    top: 6px;
+    color: var(--white);
+}
+
+@media (max-width: 768px) {
+    .btn-back-to-top {
+        bottom: 20px;
+        right: 20px;
+        width: 45px;
+        height: 45px;
+        font-size: 1rem;
+    }
+}
+</style>
+
+<script>
+// Back to Top Button Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const backToTopBtn = document.getElementById('backToTop');
+    
+    // Show/hide button based on scroll position
+    window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 300) {
+            backToTopBtn.classList.add('show');
+        } else {
+            backToTopBtn.classList.remove('show');
+        }
+    });
+    
+    // Smooth scroll to top
+    backToTopBtn.addEventListener('click', function() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+});
+
+// Enhanced loading states
+window.addEventListener('load', function() {
+    document.body.classList.add('loaded');
+});
+
+// Preload critical resources
+const preloadResource = (href, as, type = null) => {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.href = href;
+    link.as = as;
+    if (type) link.type = type;
+    document.head.appendChild(link);
+};
+
+// Preload fonts
+preloadResource('https://fonts.gstatic.com/s/manrope/v15/xn7_YHE41ni1AdIRqAuZuw1Bx9mbZk6jFO_F.woff2', 'font', 'font/woff2');
+</script>

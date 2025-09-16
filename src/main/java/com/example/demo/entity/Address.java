@@ -33,6 +33,11 @@ public class Address extends BaseEntity {
         this.isDefault = isDefault;
         this.user = user;
     }
+    
+    // Helper methods
+    public String getFullAddress() {
+        return street + ", " + city + ", " + province;
+    }
 
     // Getters and Setters
     public String getStreet() {

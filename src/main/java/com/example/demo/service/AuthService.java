@@ -63,9 +63,20 @@ public class AuthService {
             
             User user = userOptional.get();
             
+            // Debug: Log password check
+            log.info("DEBUG: Checking password for user {}", email);
+            log.info("DEBUG: Stored password hash: {}", user.getPassword().substring(0, 10) + "...");
+            log.info("DEBUG: Password encoder type: {}", passwordEncoder.getClass().getSimpleName());
+            
             // Validate password using BCrypt
-            if (!passwordEncoder.matches(password, user.getPassword())) {
+            boolean passwordMatches = passwordEncoder.matches(password, user.getPassword());
+            log.info("DEBUG: Password matches result: {}", passwordMatches);
+            
+            if (!passwordMatches) {
                 log.warn("Authentication failed: invalid password for email: {}", email);
+                // Additional debug - try encoding the provided password
+                String encodedPassword = passwordEncoder.encode(password);
+                log.info("DEBUG: If password '{}' was encoded now, it would be: {}", password, encodedPassword.substring(0, 10) + "...");
                 return null;
             }
             

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout('Cài đặt tài khoản', 
+          'Cài đặt và quản lý tùy chọn tài khoản StarShop của bạn. Thay đổi mật khẩu, thông báo và các tùy chọn bảo mật.',
+          ~{::link},
+          ~{::content})}">
+
+<head>
+    <link rel="stylesheet" href="/css/account.css">
+</head>
+
+<body>
+<th:block th:fragment="content">
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="breadcrumb-wrapper">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">
+                                <a href="/" class="breadcrumb-link">
+                                    <i class="bi bi-house"></i>
+                                    Trang chủ
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item">
+                                <a href="/account/profile" class="breadcrumb-link">Tài khoản</a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">Cài đặt</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="page-title-section">
+                    <h1 class="page-title">
+                        <span class="title-icon">
+                            <i class="bi bi-gear-fill"></i>
+                        </span>
+                        Cài đặt tài khoản
+                    </h1>
+                    <p class="page-subtitle">Quản lý các tùy chọn và cài đặt bảo mật</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Settings Content -->
+    <section class="account-section">
+        <div class="container">
+            <div class="row g-4">
+                
+                <!-- Sidebar Navigation -->
+                <div class="col-lg-3">
+                    <div class="account-sidebar">
+                        <!-- User Profile Card -->
+                        <div class="profile-card">
+                            <div class="profile-avatar">
+                                <div class="avatar-circle">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                                <div class="avatar-status">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                </div>
+                            </div>
+                            <div class="profile-info">
+                                <h3 class="profile-name" th:text="${userObject != null ? userObject.fullName : 'Người dùng'}">Người dùng</h3>
+                                <p class="profile-email" th:text="${userObject != null ? userObject.email : currentUser}">user@example.com</p>
+                                <span class="profile-badge">
+                                    <i class="bi bi-star-fill"></i>
+                                    Thành viên từ <span th:text="${userObject != null and userObject.createdAt != null ? #temporals.format(userObject.createdAt, 'yyyy') : '2024'}">2024</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Menu -->
+                        <nav class="account-nav">
+                            <ul class="nav-list">
+                                <li class="nav-item">
+                                    <a href="/account/profile" class="nav-link">
+                                        <span class="nav-icon">
+                                            <i class="bi bi-person"></i>
+                                        </span>
+                                        <span class="nav-text">Thông tin cá nhân</span>
+                                        <span class="nav-arrow">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/account/orders" class="nav-link">
+                                        <span class="nav-icon">
+                                            <i class="bi bi-bag"></i>
+                                        </span>
+                                        <span class="nav-text">Đơn hàng của tôi</span>
+                                        <span class="nav-badge" th:text="${ordersCount}" th:if="${ordersCount > 0}">3</span>
+                                        <span class="nav-arrow">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/account/wishlist" class="nav-link">
+                                        <span class="nav-icon">
+                                            <i class="bi bi-heart"></i>
+                                        </span>
+                                        <span class="nav-text">Yêu thích</span>
+                                        <span class="nav-badge" th:text="${wishlistCount}" th:if="${wishlistCount > 0}">12</span>
+                                        <span class="nav-arrow">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/account/settings" class="nav-link active">
+                                        <span class="nav-icon">
+                                            <i class="bi bi-gear"></i>
+                                        </span>
+                                        <span class="nav-text">Cài đặt</span>
+                                        <span class="nav-arrow">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </span>
+                                    </a>
+                                </li>
+                                <li class="nav-divider"></li>
+                                <li class="nav-item">
+                                    <a href="/logout" class="nav-link logout-link">
+                                        <span class="nav-icon">
+                                            <i class="bi bi-box-arrow-right"></i>
+                                        </span>
+                                        <span class="nav-text">Đăng xuất</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="col-lg-9">
+                    <div class="account-content">
+                        
+                        <!-- Security Settings -->
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h2 class="card-title">
+                                    <i class="bi bi-shield-lock"></i>
+                                    Bảo mật tài khoản
+                                </h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="settings-section">
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">Thay đổi mật khẩu</h4>
+                                            <p class="setting-desc">Cập nhật mật khẩu để bảo vệ tài khoản của bạn</p>
+                                        </div>
+                                        <button class="btn-outline-primary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                                            <i class="bi bi-key"></i>
+                                            Đổi mật khẩu
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">Xác thực hai yếu tố (2FA)</h4>
+                                            <p class="setting-desc">Tăng cường bảo mật với xác thực hai yếu tố</p>
+                                        </div>
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="enable2fa" class="toggle-input">
+                                            <label for="enable2fa" class="toggle-label">
+                                                <span class="toggle-slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notification Settings -->
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h2 class="card-title">
+                                    <i class="bi bi-bell"></i>
+                                    Thông báo
+                                </h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="settings-section">
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">Email thông báo</h4>
+                                            <p class="setting-desc">Nhận thông báo về đơn hàng và khuyến mãi qua email</p>
+                                        </div>
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="emailNotif" class="toggle-input" checked>
+                                            <label for="emailNotif" class="toggle-label">
+                                                <span class="toggle-slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">SMS thông báo</h4>
+                                            <p class="setting-desc">Nhận thông báo quan trọng qua tin nhắn</p>
+                                        </div>
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="smsNotif" class="toggle-input">
+                                            <label for="smsNotif" class="toggle-label">
+                                                <span class="toggle-slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">Thông báo khuyến mãi</h4>
+                                            <p class="setting-desc">Nhận thông tin về các chương trình ưu đãi</p>
+                                        </div>
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="promoNotif" class="toggle-input" checked>
+                                            <label for="promoNotif" class="toggle-label">
+                                                <span class="toggle-slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Privacy Settings -->
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h2 class="card-title">
+                                    <i class="bi bi-eye-slash"></i>
+                                    Quyền riêng tư
+                                </h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="settings-section">
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">Hiển thị thông tin cá nhân</h4>
+                                            <p class="setting-desc">Cho phép hiển thị thông tin trong danh sách khách hàng</p>
+                                        </div>
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="showProfile" class="toggle-input" checked>
+                                            <label for="showProfile" class="toggle-label">
+                                                <span class="toggle-slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">Lưu lịch sử duyệt web</h4>
+                                            <p class="setting-desc">Lưu trữ lịch sử xem sản phẩm để cải thiện trải nghiệm</p>
+                                        </div>
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="saveHistory" class="toggle-input" checked>
+                                            <label for="saveHistory" class="toggle-label">
+                                                <span class="toggle-slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Danger Zone -->
+                        <div class="content-card danger-zone">
+                            <div class="card-header">
+                                <h2 class="card-title">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    Vùng nguy hiểm
+                                </h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="settings-section">
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4 class="setting-title">Xóa tài khoản</h4>
+                                            <p class="setting-desc">Xóa vĩnh viễn tài khoản và toàn bộ dữ liệu liên quan</p>
+                                        </div>
+                                        <button class="btn-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                                            <i class="bi bi-trash"></i>
+                                            Xóa tài khoản
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </section>
+
+    <!-- Change Password Modal -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changePasswordModalLabel">
+                        <i class="bi bi-key"></i>
+                        Thay đổi mật khẩu
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="changePasswordForm">
+                        <div class="mb-3">
+                            <label for="currentPassword" class="form-label">Mật khẩu hiện tại</label>
+                            <input type="password" class="form-control" id="currentPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">Mật khẩu mới</label>
+                            <input type="password" class="form-control" id="newPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Xác nhận mật khẩu mới</label>
+                            <input type="password" class="form-control" id="confirmPassword" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary">
+                        <i class="bi bi-check2"></i>
+                        Cập nhật mật khẩu
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger" id="deleteAccountModalLabel">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Xác nhận xóa tài khoản
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <strong>Cảnh báo!</strong> Hành động này không thể hoàn tác.
+                    </div>
+                    <p>Bạn có chắc chắn muốn xóa tài khoản? Tất cả dữ liệu bao gồm:</p>
+                    <ul>
+                        <li>Thông tin cá nhân</li>
+                        <li>Lịch sử đơn hàng</li>
+                        <li>Danh sách yêu thích</li>
+                        <li>Địa chỉ giao hàng</li>
+                    </ul>
+                    <p>sẽ bị xóa vĩnh viễn.</p>
+                    
+                    <div class="mt-3">
+                        <label for="confirmDelete" class="form-label">Nhập <strong>XÓA TÀI KHOẢN</strong> để xác nhận:</label>
+                        <input type="text" class="form-control" id="confirmDelete" placeholder="XÓA TÀI KHOẢN">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                        <i class="bi bi-trash"></i>
+                        Xóa tài khoản vĩnh viễn
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</th:block>
+</body>
+</html>

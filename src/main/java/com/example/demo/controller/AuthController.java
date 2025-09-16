@@ -17,10 +17,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -38,6 +41,7 @@ public class AuthController {
     private final EmailService emailService;
     private final OtpService otpService;
     private final RegistrationService registrationService;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * User login endpoint
@@ -501,6 +505,63 @@ public class AuthController {
             log.error("Password reset error: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ResponseWrapper.error("Có lỗi xảy ra. Vui lòng thử lại sau."));
+        }
+    }
+
+    /**
+     * Debug endpoint to check user data
+     * GET /api/auth/debug-user?email=xxx
+     */
+    @GetMapping("/debug-user")
+    public ResponseEntity<ResponseWrapper<Object>> debugUser(@RequestParam String email) {
+        try {
+            User user = authService.findUserByEmail(email);
+            if (user == null) {
+                return ResponseEntity.ok(ResponseWrapper.error("User not found"));
+            }
+            
+            Map<String, Object> debugInfo = new HashMap<>();
+            debugInfo.put("email", user.getEmail());
+            debugInfo.put("passwordHash", user.getPassword().substring(0, 10) + "...");
+            debugInfo.put("role", user.getRole());
+            debugInfo.put("firstName", user.getFirstname());
+            debugInfo.put("lastName", user.getLastname());
+            debugInfo.put("phone", user.getPhone());
+            debugInfo.put("createdAt", user.getCreatedAt());
+            
+            return ResponseEntity.ok(ResponseWrapper.success(debugInfo));
+        } catch (Exception e) {
+            return ResponseEntity.ok(ResponseWrapper.error("Error: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Debug endpoint to test password encoding
+     * POST /api/auth/test-password
+     */
+    @PostMapping("/test-password")
+    public ResponseEntity<ResponseWrapper<Object>> testPassword(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            String password = request.get("password");
+            
+            User user = authService.findUserByEmail(email);
+            if (user == null) {
+                return ResponseEntity.ok(ResponseWrapper.error("User not found"));
+            }
+            
+            boolean matches = passwordEncoder.matches(password, user.getPassword());
+            String newHash = passwordEncoder.encode(password);
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("passwordMatches", matches);
+            result.put("storedHash", user.getPassword().substring(0, 10) + "...");
+            result.put("newHashOfSamePassword", newHash.substring(0, 10) + "...");
+            result.put("passwordEncoderType", passwordEncoder.getClass().getSimpleName());
+            
+            return ResponseEntity.ok(ResponseWrapper.success(result));
+        } catch (Exception e) {
+            return ResponseEntity.ok(ResponseWrapper.error("Error: " + e.getMessage()));
         }
     }
 
