@@ -58,6 +58,27 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+  # Mail configuration for Gmail SMTP
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: starshop.a.6868@gmail.com
+    password: mqai nigf sweg imek
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+          ssl:
+            trust: smtp.gmail.com
+    default-encoding: UTF-8
+    from: starshop.a.6868@gmail.com
+
 jwt:
   secret: starshop_jwt_secret_key_2024_very_secure_key_for_production_use
   expiration: 86400000 # 24 hours in milliseconds

@@ -7,41 +7,47 @@
     
     <!-- Bootstrap 5.3.3 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Optimized Google Fonts - Manrope for soft flower shop vibe -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
     
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-light: #a5b4fc;
-            --primary-dark: #4338ca;
-            --secondary: #ec4899;
-            --accent: #06b6d4;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --dark: #1f2937;
-            --gray-50: #f9fafb;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-300: #d1d5db;
-            --gray-400: #9ca3af;
-            --gray-500: #6b7280;
-            --gray-600: #4b5563;
-            --gray-700: #374151;
-            --gray-800: #1f2937;
-            --gray-900: #111827;
+            /* Soft pink flower shop color palette */
+            --primary: #EC407A;
+            --primary-light: #F8BBD9;
+            --primary-dark: #AD1457;
+            --secondary: #ffcccb;
+            --accent: #e8f5e8;
+            --success: #c8e6c9;
+            --warning: #fff3e0;
+            --danger: #ffcdd2;
+            --dark: #2e2e2e;
+            --cream: #fdf8f5;
+            --sage: #9caf88;
+            --lavender: #e6e6fa;
+            --peach: #ffeaa7;
+            --rose-gold: #f4c2a1;
+            --gray-50: #fafafa;
+            --gray-100: #f5f5f5;
+            --gray-200: #eeeeee;
+            --gray-300: #e0e0e0;
+            --gray-400: #bdbdbd;
+            --gray-500: #9e9e9e;
+            --gray-600: #757575;
+            --gray-700: #616161;
+            --gray-800: #424242;
+            --gray-900: #212121;
             --white: #ffffff;
-            --gradient-1: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            --gradient-2: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
-            --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --gradient-1: linear-gradient(135deg, var(--primary) 0%, #F48FB1 100%);
+            --gradient-2: linear-gradient(135deg, var(--accent) 0%, var(--lavender) 100%);
+            --gradient-bg: linear-gradient(135deg, var(--cream) 0%, rgba(248, 187, 217, 0.3) 50%, rgba(232, 245, 232, 0.2) 100%);
+            --shadow-soft: 0 4px 20px rgba(248, 180, 217, 0.15);
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
 
         * {
@@ -51,7 +57,7 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Manrope', sans-serif;
             background: var(--gradient-bg);
             min-height: 100vh;
             position: relative;
@@ -79,65 +85,117 @@
             width: 100%;
             height: 100%;
             background: 
-                radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 75% 75%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
+                radial-gradient(circle at 25% 25%, rgba(236, 64, 122, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(244, 143, 177, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(232, 245, 232, 0.04) 0%, transparent 50%);
         }
 
-        .floating-shapes {
+        .bg-decoration::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.12;
+            background-image: 
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23EC407A' fill-opacity='0.2'%3E%3Cpath d='M30 30c0-6.627 5.373-12 12-12s12 5.373 12 12-5.373 12-12 12-12-5.373-12-12zm12-8c-4.418 0-8 3.582-8 8s3.582 8 8 8 8-3.582 8-8-3.582-8-8-8z'/%3E%3Cpath d='M18 18c0-3.314 2.686-6 6-6s6 2.686 6 6-2.686 6-6 6-6-2.686-6-6zm6-3c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3z'/%3E%3Cpath d='M6 6c0-1.657 1.343-3 3-3s3 1.343 3 3-1.343 3-3 3-3-1.343-3-3z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .floating-petals {
             position: absolute;
             width: 100%;
             height: 100%;
+            pointer-events: none;
+            overflow: hidden;
         }
 
-        .shape {
+        .petal {
             position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            animation: float 8s ease-in-out infinite;
+            width: 20px;
+            height: 20px;
+            font-size: 16px;
+            opacity: 0.8;
+            animation: fall linear infinite;
+            user-select: none;
+            pointer-events: none;
         }
 
-        .shape:nth-child(1) {
-            width: 100px;
-            height: 100px;
-            top: 20%;
+        .petal::before {
+            content: '🌸';
+            display: block;
+        }
+
+        .petal:nth-child(1) {
             left: 10%;
+            animation-duration: 8s;
             animation-delay: 0s;
         }
 
-        .shape:nth-child(2) {
-            width: 150px;
-            height: 150px;
-            top: 60%;
-            right: 15%;
+        .petal:nth-child(2) {
+            left: 20%;
+            animation-duration: 10s;
+            animation-delay: 1s;
+        }
+
+        .petal:nth-child(3) {
+            left: 30%;
+            animation-duration: 12s;
             animation-delay: 2s;
         }
 
-        .shape:nth-child(3) {
-            width: 80px;
-            height: 80px;
-            bottom: 30%;
-            left: 20%;
+        .petal:nth-child(4) {
+            left: 40%;
+            animation-duration: 9s;
+            animation-delay: 3s;
+        }
+
+        .petal:nth-child(5) {
+            left: 50%;
+            animation-duration: 11s;
             animation-delay: 4s;
         }
 
-        .shape:nth-child(4) {
-            width: 120px;
-            height: 120px;
-            top: 10%;
-            right: 30%;
+        .petal:nth-child(6) {
+            left: 60%;
+            animation-duration: 13s;
+            animation-delay: 5s;
+        }
+
+        .petal:nth-child(7) {
+            left: 70%;
+            animation-duration: 8s;
             animation-delay: 6s;
         }
 
-        @keyframes float {
-            0%, 100% { 
-                transform: translateY(0px) rotate(0deg) scale(1); 
-                opacity: 0.7;
+        .petal:nth-child(8) {
+            left: 80%;
+            animation-duration: 10s;
+            animation-delay: 7s;
+        }
+
+        .petal:nth-child(9) {
+            left: 90%;
+            animation-duration: 14s;
+            animation-delay: 8s;
+        }
+
+        @keyframes fall {
+            0% {
+                top: -10px;
+                transform: rotate(0deg) scale(1);
+                opacity: 0.8;
             }
-            50% { 
-                transform: translateY(-30px) rotate(180deg) scale(1.1); 
-                opacity: 0.9;
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                top: 110vh;
+                transform: rotate(360deg) scale(0.8);
+                opacity: 0;
             }
         }
 
@@ -151,29 +209,29 @@
         }
 
         .login-card {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(20px);
             border-radius: 24px;
-            box-shadow: var(--shadow-xl);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.9);
             overflow: hidden;
             width: 100%;
             max-width: 900px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            min-height: 600px;
+            min-height: 480px;
             transition: all 0.3s ease;
         }
 
         .login-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+            transform: translateY(-3px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18), 0 8px 20px rgba(0, 0, 0, 0.1);
         }
 
-        /* Left side - Brand */
+        /* Brand section - left side */
         .brand-section {
             background: var(--gradient-1);
-            padding: 3rem;
+            padding: 2rem;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -181,6 +239,7 @@
             text-align: center;
             position: relative;
             overflow: hidden;
+            border-radius: 24px 0 0 24px;
         }
 
         .brand-section::before {
@@ -205,20 +264,19 @@
         }
 
         .brand-logo {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 3rem;
+            font-family: 'Manrope', sans-serif;
+            font-size: 2.5rem;
             font-weight: 700;
             color: var(--white);
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
             text-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
 
-        .brand-logo i {
-            font-size: 3.5rem;
+        .flower-icon {
             animation: pulse 2s ease-in-out infinite;
         }
 
@@ -228,9 +286,9 @@
         }
 
         .brand-tagline {
-            font-size: 1.25rem;
+            font-size: 1rem;
             color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 2rem;
+            margin-bottom: 1.25rem;
             font-weight: 500;
         }
 
@@ -242,41 +300,43 @@
 
         .brand-features li {
             color: rgba(255, 255, 255, 0.85);
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 500;
         }
 
-        .brand-features i {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 0.5rem;
-            border-radius: 12px;
-            font-size: 1rem;
-            min-width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .brand-features svg {
+            background: rgba(255, 255, 255, 0.25);
+            padding: 0.4rem;
+            border-radius: 10px;
+            min-width: 32px;
+            height: 32px;
+            color: var(--primary-light);
         }
 
-        /* Right side - Form */
+        .brand-features li:nth-child(1) svg { color: #81C784; } /* Green for security */
+        .brand-features li:nth-child(2) svg { color: #FFB74D; } /* Orange for delivery */
+        .brand-features li:nth-child(3) svg { color: #F06292; } /* Pink for flowers */
+        .brand-features li:nth-child(4) svg { color: #64B5F6; } /* Blue for support */
+
+        /* Form section - right side */
         .form-section {
-            padding: 3rem;
+            padding: 2rem;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
 
         .form-header {
-            margin-bottom: 2.5rem;
+            margin-bottom: 1.5rem;
             text-align: center;
         }
 
         .form-title {
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Manrope', sans-serif;
             font-size: 2.25rem;
             font-weight: 700;
             color: var(--gray-900);
@@ -288,14 +348,60 @@
         }
 
         .form-subtitle {
-            color: var(--gray-600);
+            color: var(--primary-dark);
             font-size: 1.125rem;
             font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-description {
+            color: var(--gray-600);
+            font-size: 0.95rem;
+            font-weight: 400;
+            font-style: italic;
+            opacity: 0.8;
+        }
+
+        .welcome-message {
+            text-align: center;
+        }
+
+        .social-proof {
+            margin-top: 1rem;
+        }
+
+        .trust-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(236, 64, 122, 0.1) 0%, rgba(248, 187, 217, 0.15) 100%);
+            color: var(--primary-dark);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid rgba(236, 64, 122, 0.25);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease-out 0.5s both;
+        }
+
+        .trust-badge:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(236, 64, 122, 0.2);
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Form styles */
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
             position: relative;
         }
 
@@ -322,7 +428,8 @@
         .form-control:focus {
             border-color: var(--primary);
             background: var(--white);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 0 3px rgba(236, 64, 122, 0.15);
+            transform: translateY(-1px);
         }
 
         .form-control::placeholder {
@@ -344,9 +451,43 @@
             pointer-events: none;
         }
 
+        .password-group {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--gray-400);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary-dark);
+            background: rgba(236, 64, 122, 0.1);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .password-toggle:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(236, 64, 122, 0.2);
+        }
+
+        .password-group .form-control {
+            padding-right: 3rem;
+        }
+
         .btn-primary {
             width: 100%;
-            padding: 1rem;
+            padding: 0.875rem;
             font-size: 1.125rem;
             font-weight: 600;
             background: var(--gradient-1);
@@ -355,14 +496,41 @@
             color: var(--white);
             cursor: pointer;
             transition: all 0.2s ease;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
             position: relative;
             overflow: hidden;
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(236, 64, 122, 0.4), 0 4px 12px rgba(173, 20, 87, 0.3);
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+        }
+
+        .btn-primary:hover::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: bloom 0.6s ease-out;
+        }
+
+        @keyframes bloom {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 0.8;
+            }
+            100% {
+                width: 100px;
+                height: 100px;
+                opacity: 0;
+            }
         }
 
         .btn-primary:active {
@@ -393,7 +561,7 @@
         /* Divider */
         .divider {
             text-align: center;
-            margin: 2rem 0;
+            margin: 1.5rem 0;
             position: relative;
             color: var(--gray-500);
             font-weight: 500;
@@ -419,7 +587,7 @@
         .social-login {
             display: flex;
             gap: 1rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .btn-social {
@@ -439,37 +607,139 @@
         }
 
         .btn-social:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: var(--shadow-md), 0 4px 15px rgba(248, 180, 217, 0.2);
             text-decoration: none;
         }
 
+        .btn-google {
+            border-color: #EA4335;
+            color: #EA4335;
+        }
+
         .btn-google:hover {
-            border-color: #db4437;
-            background: #db4437;
+            border-color: #EA4335;
+            background: #EA4335;
             color: var(--white);
+        }
+
+        .btn-google svg {
+            fill: #EA4335;
+        }
+
+        .btn-google:hover svg {
+            fill: var(--white);
+        }
+
+        .btn-facebook {
+            border-color: #1877F2;
+            color: #1877F2;
         }
 
         .btn-facebook:hover {
-            border-color: #1877f2;
-            background: #1877f2;
+            border-color: #1877F2;
+            background: #1877F2;
             color: var(--white);
         }
 
-        .forgot-password {
+        .btn-facebook svg {
+            fill: #1877F2;
+        }
+
+        .btn-facebook:hover svg {
+            fill: var(--white);
+        }
+
+        .additional-links {
             text-align: center;
+            margin-top: 1rem;
+        }
+
+        .forgot-password {
+            margin-bottom: 1rem;
         }
 
         .forgot-password a {
+            color: var(--primary-dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: color 0.2s ease;
+        }
+
+        .forgot-password a:hover {
             color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .register-link {
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            color: var(--gray-600);
+        }
+
+        .register-link a {
+            color: var(--primary-dark);
             text-decoration: none;
             font-weight: 600;
             transition: color 0.2s ease;
         }
 
-        .forgot-password a:hover {
+        .register-link a:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .support-links {
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+        }
+
+        .support-link {
+            color: var(--gray-500);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .support-link:hover {
             color: var(--primary-dark);
             text-decoration: underline;
+        }
+
+        .separator {
+            color: var(--gray-400);
+            margin: 0 0.5rem;
+        }
+
+        .language-selector {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .lang-btn {
+            background: none;
+            border: 1px solid var(--gray-300);
+            border-radius: 20px;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .lang-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .lang-btn.active {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary-dark);
+            font-weight: 600;
         }
 
         /* Alert styles */
@@ -526,30 +796,35 @@
             font-weight: 500;
         }
 
-        /* Responsive design */
+        /* Mobile-first responsive design */
         @media (max-width: 768px) {
             .login-card {
                 grid-template-columns: 1fr;
                 max-width: 450px;
+                border-radius: 20px;
+                animation: slideUp 0.6s ease-out;
             }
             
             .brand-section {
                 order: 2;
                 padding: 2rem;
                 min-height: auto;
+                border-radius: 0 0 20px 20px;
             }
             
             .form-section {
                 order: 1;
                 padding: 2rem;
+                border-radius: 20px 20px 0 0;
             }
             
             .brand-logo {
                 font-size: 2.5rem;
             }
             
-            .brand-logo i {
-                font-size: 3rem;
+            .flower-icon {
+                width: 48px;
+                height: 48px;
             }
             
             .form-title {
@@ -558,12 +833,36 @@
             
             .social-login {
                 flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .petal {
+                width: 8px;
+                height: 8px;
+            }
+
+            .additional-links {
+                margin-top: 1rem;
+            }
+
+            .support-links {
+                font-size: 0.8rem;
+            }
+
+            .language-selector {
+                flex-wrap: wrap;
+                gap: 0.25rem;
+            }
+
+            .lang-btn {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.75rem;
             }
         }
 
         @media (max-width: 480px) {
             .login-container {
-                padding: 1rem;
+                padding: 0.5rem;
             }
             
             .brand-section, .form-section {
@@ -571,15 +870,98 @@
             }
             
             .brand-logo {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
             
-            .brand-logo i {
-                font-size: 2.5rem;
+            .flower-icon {
+                width: 40px;
+                height: 40px;
             }
             
             .form-title {
                 font-size: 1.75rem;
+            }
+
+            .form-subtitle {
+                font-size: 1rem;
+            }
+
+            .form-description {
+                font-size: 0.85rem;
+            }
+
+            .btn-primary {
+                padding: 0.875rem;
+                font-size: 1rem;
+            }
+
+            .btn-social {
+                padding: 0.75rem;
+                font-size: 0.9rem;
+            }
+
+            .brand-features {
+                display: none; /* Hide on very small screens */
+            }
+
+            .petal {
+                width: 6px;
+                height: 6px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .login-container {
+                padding: 0.25rem;
+            }
+
+            .brand-section, .form-section {
+                padding: 1rem;
+            }
+
+            .form-header {
+                margin-bottom: 1.5rem;
+            }
+
+            .form-group {
+                margin-bottom: 1.25rem;
+            }
+
+            .support-links {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .separator {
+                display: none;
+            }
+        }
+
+        /* Smooth mobile animations */
+        @keyframes slideUp {
+            0% {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Improved touch targets for mobile */
+        @media (hover: none) {
+            .btn-primary:hover {
+                transform: none;
+            }
+
+            .btn-social:hover {
+                transform: none;
+            }
+
+            .password-toggle:hover {
+                background: rgba(248, 180, 217, 0.1);
             }
         }
 
@@ -592,21 +974,33 @@
 <body>
     <!-- Background decoration -->
     <div class="bg-decoration">
-        <div class="floating-shapes">
-            <div class="shape"></div>
-            <div class="shape"></div>
-            <div class="shape"></div>
-            <div class="shape"></div>
+        <div class="floating-petals">
+            <div class="petal"></div>
+            <div class="petal"></div>
+            <div class="petal"></div>
+            <div class="petal"></div>
+            <div class="petal"></div>
+            <div class="petal"></div>
+            <div class="petal"></div>
+            <div class="petal"></div>
+            <div class="petal"></div>
         </div>
     </div>
 
     <div class="login-container">
         <div class="login-card">
-            <!-- Brand Section -->
+            <!-- Brand Section - left side -->
             <div class="brand-section">
                 <div class="brand-content">
                     <div class="brand-logo">
-                        <i class="bi bi-flower1"></i>
+                        <svg class="flower-icon" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2Z"/>
+                            <path d="M12 6C13.1 6 14 6.9 14 8C14 9.1 13.1 10 12 10C10.9 10 10 9.1 10 8C10 6.9 10.9 6 12 6Z"/>
+                            <path d="M12 10C13.1 10 14 10.9 14 12C14 13.1 13.1 14 12 14C10.9 14 10 13.1 10 12C10 10.9 10.9 10 12 10Z"/>
+                            <path d="M12 14C13.1 14 14 14.9 14 16C14 17.1 13.1 18 12 18C10.9 18 10 17.1 10 16C10 14.9 10.9 14 12 14Z"/>
+                            <path d="M12 18C13.1 18 14 18.9 14 20C14 21.1 13.1 22 12 22C10.9 22 10 21.1 10 20C10 18.9 10.9 18 12 18Z"/>
+                            <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+                        </svg>
                         StarShop
                     </div>
                     <p class="brand-tagline">
@@ -614,19 +1008,29 @@
                     </p>
                     <ul class="brand-features">
                         <li>
-                            <i class="bi bi-shield-check-fill"></i>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1ZM10 17L6 13L7.41 11.59L10 14.17L16.59 7.58L18 9L10 17Z"/>
+                            </svg>
                             Bảo mật tuyệt đối
                         </li>
                         <li>
-                            <i class="bi bi-truck"></i>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 7C19 6.45 18.55 6 18 6C17.45 6 17 6.45 17 7H7V6C7 4.9 6.11 4 5 4S3 4.9 3 6V18C3 19.1 3.9 20 5 20H19C20.1 20 21 19.1 21 18V8C21 7.45 20.55 7 20 7H19ZM18 8V18H6V8H18Z"/>
+                                <path d="M1 6H23L20 9H4L1 6Z"/>
+                            </svg>
                             Giao hàng nhanh chóng
                         </li>
                         <li>
-                            <i class="bi bi-heart-fill"></i>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 21.35L10.55 20.03C5.4 15.36 2 12.27 2 8.5C2 5.42 4.42 3 7.5 3C9.24 3 10.91 3.81 12 5.08C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.42 22 8.5C22 12.27 18.6 15.36 13.45 20.03L12 21.35Z"/>
+                            </svg>
                             Hoa tươi chất lượng
                         </li>
                         <li>
-                            <i class="bi bi-headset"></i>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 1C11.73 1 11.45 1.1 11.25 1.29L1 11.54C.81 11.73 .81 12.04 1 12.23L1.77 13C1.96 13.19 2.27 13.19 2.46 13L12 3.46L21.54 13C21.73 13.19 22.04 13.19 22.23 13L23 12.23C23.19 12.04 23.19 11.73 23 11.54L12.75 1.29C12.55 1.1 12.27 1 12 1Z"/>
+                                <path d="M12 5L6 11V20H9V15H15V20H18V11L12 5Z"/>
+                            </svg>
                             Hỗ trợ 24/7
                         </li>
                     </ul>
@@ -636,19 +1040,31 @@
             <!-- Form Section -->
             <div class="form-section">
                 <div class="form-header">
-                    <h1 class="form-title">Chào mừng trở lại</h1>
-                    <p class="form-subtitle">Đăng nhập để tiếp tục hành trình</p>
+                    <div class="welcome-message">
+                        <h1 class="form-title">Chào mừng bạn quay lại</h1>
+                        <p class="form-subtitle">Hôm nay hãy để hoa thay lời bạn muốn nói 🌸</p>
+                        <p class="form-description">Đăng nhập để theo dõi đơn hàng, lưu địa chỉ & nhận ưu đãi sinh nhật 🎁</p>
+                        <div class="social-proof">
+                            <span class="trust-badge">Hơn 50,000 khách hàng tin dùng 🌷</span>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Alert Messages -->
-                <div th:if="${error}" class="alert alert-danger" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                    <span th:text="${error}"></span>
-                </div>
+                <!-- Alert Messages with accessibility -->
+                <div class="alert-container" aria-live="polite" aria-atomic="true">
+                    <div th:if="${error}" class="alert alert-danger" role="alert">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M1 21H23L12 2L1 21ZM13 18H11V16H13V18ZM13 14H11V10H13V14Z"/>
+                        </svg>
+                        <span th:text="${error}"></span>
+                    </div>
 
-                <div th:if="${success}" class="alert alert-success" role="alert">
-                    <i class="bi bi-check-circle-fill"></i>
-                    <span th:text="${success}"></span>
+                    <div th:if="${success}" class="alert alert-success" role="alert">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M12 2C6.48 2 2 6.48 2 12S6.48 22 12 22S22 17.52 22 12S17.52 2 12 2ZM10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z"/>
+                        </svg>
+                        <span th:text="${success}"></span>
+                    </div>
                 </div>
 
                 <!-- Login Form -->
@@ -663,14 +1079,17 @@
                                    placeholder="Nhập email của bạn" 
                                    required
                                    autocomplete="email">
-                            <i class="input-icon bi bi-envelope"></i>
+                            <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                            </svg>
                         </div>
                         <div class="invalid-feedback" id="emailError"></div>
                     </div>
 
                     <div class="form-group">
                         <label for="password" class="form-label">Mật khẩu</label>
-                        <div class="input-group">
+                        <div class="input-group password-group">
                             <input type="password" 
                                    class="form-control" 
                                    id="password" 
@@ -678,7 +1097,16 @@
                                    placeholder="Nhập mật khẩu của bạn" 
                                    required
                                    autocomplete="current-password">
-                            <i class="input-icon bi bi-lock"></i>
+                            <button type="button" class="password-toggle" id="passwordToggle" aria-label="Hiện mật khẩu">
+                                <svg class="password-icon-hide" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg class="password-icon-show d-none" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
                         </div>
                         <div class="invalid-feedback" id="passwordError"></div>
                     </div>
@@ -697,18 +1125,42 @@
                 <!-- Social Login -->
                 <div class="social-login">
                     <a href="/oauth2/authorization/google" class="btn-social btn-google">
-                        <i class="bi bi-google"></i>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M22.56 12.25C22.56 11.47 22.49 10.72 22.36 10H12V14.26H17.92C17.66 15.63 16.84 16.8 15.62 17.56V20.26H19.18C21.38 18.25 22.56 15.53 22.56 12.25Z"/>
+                            <path d="M12 23C15.24 23 17.96 21.92 19.18 20.26L15.62 17.56C14.62 18.25 13.26 18.63 12 18.63C8.87 18.63 6.22 16.59 5.35 13.76H1.64V16.55C2.85 18.95 7.18 23 12 23Z"/>
+                            <path d="M5.35 13.76C5.13 13.07 5 12.34 5 11.6C5 10.86 5.13 10.13 5.35 9.44V6.65H1.64C0.59 8.73 0 10.61 0 12.6C0 14.59 0.59 16.47 1.64 18.55L5.35 13.76Z"/>
+                            <path d="M12 5.38C13.44 5.38 14.74 5.9 15.76 6.88L18.84 3.8C17.96 2.98 15.24 1 12 1C7.18 1 2.85 5.05 1.64 7.45L5.35 10.24C6.22 7.41 8.87 5.38 12 5.38Z"/>
+                        </svg>
                         Google
                     </a>
                     <a href="/oauth2/authorization/facebook" class="btn-social btn-facebook">
-                        <i class="bi bi-facebook"></i>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24V15.56H7.08V12.07H10.13V9.41C10.13 6.39 11.93 4.73 14.66 4.73C15.97 4.73 17.34 4.95 17.34 4.95V7.92H15.83C14.34 7.92 13.87 8.84 13.87 9.78V12.07H17.2L16.67 15.56H13.87V24C19.61 23.1 24 18.1 24 12.07Z"/>
+                        </svg>
                         Facebook
                     </a>
                 </div>
 
-                <!-- Forgot Password -->
-                <div class="forgot-password">
-                    <a href="/forgot-password">Quên mật khẩu?</a>
+                <!-- Additional Links -->
+                <div class="additional-links">
+                    <div class="forgot-password">
+                        <a href="/forgot-password">Quên mật khẩu?</a>
+                    </div>
+                    <div class="register-link">
+                        <span>Chưa có tài khoản? </span>
+                        <a href="/register">Đăng ký ngay</a>
+                    </div>
+                    <div class="support-links">
+                        <a href="/privacy-policy" class="support-link">Chính sách bảo mật</a>
+                        <span class="separator">•</span>
+                        <a href="/help" class="support-link">Trợ giúp</a>
+                        <span class="separator">•</span>
+                        <a href="/contact" class="support-link">Liên hệ hỗ trợ</a>
+                    </div>
+                    <div class="language-selector">
+                        <button type="button" class="lang-btn active" data-lang="vi">🇻🇳 Tiếng Việt</button>
+                        <button type="button" class="lang-btn" data-lang="en">🇺🇸 English</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -716,12 +1168,123 @@
 
     <!-- Bootstrap 5.3.3 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- SockJS and Stomp for WebSocket -->
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
 
     <script>
+        // Language translations
+        const translations = {
+            vi: {
+                title: 'Chào mừng bạn quay lại',
+                subtitle: 'Hôm nay hãy để hoa thay lời bạn muốn nói 🌸',
+                description: 'Đăng nhập để khám phá thế giới hoa tươi đầy màu sắc',
+                email: 'Email',
+                password: 'Mật khẩu',
+                emailPlaceholder: 'Nhập email của bạn',
+                passwordPlaceholder: 'Nhập mật khẩu của bạn',
+                loginBtn: 'Đăng nhập',
+                loginBtnLoading: 'Đang đăng nhập...',
+                orLoginWith: 'Hoặc đăng nhập với',
+                forgotPassword: 'Quên mật khẩu?',
+                noAccount: 'Chưa có tài khoản? ',
+                registerNow: 'Đăng ký ngay',
+                privacyPolicy: 'Chính sách bảo mật',
+                help: 'Trợ giúp',
+                contactSupport: 'Liên hệ hỗ trợ',
+                brandTagline: 'Nơi kết nối yêu thương qua từng đóa hoa',
+                securityFeature: 'Bảo mật tuyệt đối',
+                deliveryFeature: 'Giao hàng nhanh chóng',
+                qualityFeature: 'Hoa tươi chất lượng',
+                supportFeature: 'Hỗ trợ 24/7'
+            },
+            en: {
+                title: 'Welcome Back',
+                subtitle: 'Let flowers speak for you today 🌸',
+                description: 'Login to explore the colorful world of fresh flowers',
+                email: 'Email',
+                password: 'Password',
+                emailPlaceholder: 'Enter your email',
+                passwordPlaceholder: 'Enter your password',
+                loginBtn: 'Sign In',
+                loginBtnLoading: 'Signing In...',
+                orLoginWith: 'Or sign in with',
+                forgotPassword: 'Forgot Password?',
+                noAccount: "Don't have an account? ",
+                registerNow: 'Register Now',
+                privacyPolicy: 'Privacy Policy',
+                help: 'Help',
+                contactSupport: 'Contact Support',
+                brandTagline: 'Where love connects through every flower',
+                securityFeature: 'Absolute Security',
+                deliveryFeature: 'Fast Delivery',
+                qualityFeature: 'Quality Fresh Flowers',
+                supportFeature: '24/7 Support'
+            }
+        };
+
+        // Language switching functionality
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const lang = this.getAttribute('data-lang');
+                switchLanguage(lang);
+                
+                // Update active state
+                document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        function switchLanguage(lang) {
+            const t = translations[lang];
+            
+            // Update text content
+            document.querySelector('.form-title').textContent = t.title;
+            document.querySelector('.form-subtitle').textContent = t.subtitle;
+            document.querySelector('.form-description').textContent = t.description;
+            document.querySelector('label[for="email"]').textContent = t.email;
+            document.querySelector('label[for="password"]').textContent = t.password;
+            document.querySelector('#email').placeholder = t.emailPlaceholder;
+            document.querySelector('#password').placeholder = t.passwordPlaceholder;
+            document.querySelector('.btn-text').textContent = t.loginBtn;
+            document.querySelector('.divider span').textContent = t.orLoginWith;
+            document.querySelector('.forgot-password a').textContent = t.forgotPassword;
+            document.querySelector('.register-link span').textContent = t.noAccount;
+            document.querySelector('.register-link a').textContent = t.registerNow;
+            document.querySelector('.brand-tagline').textContent = t.brandTagline;
+            
+            // Update support links
+            const supportLinks = document.querySelectorAll('.support-link');
+            supportLinks[0].textContent = t.privacyPolicy;
+            supportLinks[1].textContent = t.help;
+            supportLinks[2].textContent = t.contactSupport;
+            
+            // Update brand features
+            const features = document.querySelectorAll('.brand-features li');
+            if (features.length >= 4) {
+                features[0].lastChild.textContent = ' ' + t.securityFeature;
+                features[1].lastChild.textContent = ' ' + t.deliveryFeature;
+                features[2].lastChild.textContent = ' ' + t.qualityFeature;
+                features[3].lastChild.textContent = ' ' + t.supportFeature;
+            }
+        }
+
+        // Password toggle functionality with accessibility
+        document.getElementById('passwordToggle').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const hideIcon = this.querySelector('.password-icon-hide');
+            const showIcon = this.querySelector('.password-icon-show');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                hideIcon.classList.add('d-none');
+                showIcon.classList.remove('d-none');
+                this.setAttribute('aria-label', 'Ẩn mật khẩu');
+            } else {
+                passwordInput.type = 'password';
+                hideIcon.classList.remove('d-none');
+                showIcon.classList.add('d-none');
+                this.setAttribute('aria-label', 'Hiện mật khẩu');
+            }
+        });
+
         // Form validation and submission
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -757,18 +1320,15 @@
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ email, password })
                 });
                 
                 const data = await response.json();
                 
-                if (response.ok && data.data && data.data.token) {
-                    // Store token
-                    localStorage.setItem('authToken', data.data.token);
-                    localStorage.setItem('userInfo', JSON.stringify(data.data.user));
-                    
+                if (response.ok && data.data && data.data.user) {
+                    // Token will be stored in httpOnly cookie by server
                     // Show success message
                     showAlert('success', 'Đăng nhập thành công! Đang chuyển hướng...');
                     
@@ -815,9 +1375,12 @@
         }
         
         function showAlert(type, message) {
-            // Remove existing alerts
-            const existingAlert = document.querySelector('.alert');
-            if (existingAlert && !existingAlert.hasAttribute('th:if')) {
+            // Find alert container
+            const alertContainer = document.querySelector('.alert-container');
+            
+            // Remove existing dynamic alerts
+            const existingAlert = alertContainer.querySelector('.alert:not([th\\:if])');
+            if (existingAlert) {
                 existingAlert.remove();
             }
             
@@ -825,14 +1388,18 @@
             alertDiv.className = `alert alert-${type}`;
             alertDiv.setAttribute('role', 'alert');
             
-            const icon = type === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill';
+            const iconPath = type === 'success' 
+                ? 'M12 2C6.48 2 2 6.48 2 12S6.48 22 12 22S22 17.52 22 12S17.52 2 12 2ZM10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z'
+                : 'M1 21H23L12 2L1 21ZM13 18H11V16H13V18ZM13 14H11V10H13V14Z';
+            
             alertDiv.innerHTML = `
-                <i class="bi bi-${icon}"></i>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="${iconPath}"/>
+                </svg>
                 <span>${message}</span>
             `;
             
-            const form = document.getElementById('loginForm');
-            form.parentNode.insertBefore(alertDiv, form);
+            alertContainer.appendChild(alertDiv);
             
             // Auto remove after 5 seconds
             setTimeout(() => {
@@ -842,8 +1409,36 @@
             }, 5000);
         }
         
-        function setupWebSocket(userId) {
+        // Lazy load WebSocket scripts and setup connection
+        function loadWebSocketScripts() {
+            return new Promise((resolve, reject) => {
+                // Check if scripts already loaded
+                if (window.SockJS && window.StompJs) {
+                    resolve();
+                    return;
+                }
+
+                // Load SockJS first
+                const sockjsScript = document.createElement('script');
+                sockjsScript.src = 'https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js';
+                sockjsScript.onload = () => {
+                    // Load STOMP after SockJS
+                    const stompScript = document.createElement('script');
+                    stompScript.src = 'https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js';
+                    stompScript.onload = resolve;
+                    stompScript.onerror = reject;
+                    document.head.appendChild(stompScript);
+                };
+                sockjsScript.onerror = reject;
+                document.head.appendChild(sockjsScript);
+            });
+        }
+
+        async function setupWebSocket(userId) {
             try {
+                // Lazy load WebSocket scripts
+                await loadWebSocketScripts();
+                
                 const socket = new SockJS('/ws');
                 const stompClient = new StompJs.Client({
                     webSocketFactory: () => socket,
@@ -881,17 +1476,8 @@
                 const userInfo = hashParams.get('user');
                 
                 if (token) {
-                    // Store token and user info
-                    localStorage.setItem('authToken', token);
-                    
-                    if (userInfo) {
-                        try {
-                            const user = JSON.parse(decodeURIComponent(userInfo));
-                            localStorage.setItem('userInfo', JSON.stringify(user));
-                        } catch (e) {
-                            console.error('Error parsing user info:', e);
-                        }
-                    }
+                    // Token will be handled by server-side cookies
+                    // No need to store in localStorage for security reasons
                     
                     // Show success message
                     showAlert('success', 'Đăng nhập thành công! Đang chuyển hướng...');

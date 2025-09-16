@@ -72,4 +72,83 @@ public class WebController {
         model.addAttribute("message", "Welcome to StarShop Dashboard!");
         return "dashboard";
     }
+
+    /**
+     * Serve register page
+     * @param error Error message if any
+     * @param success Success message if any
+     * @param model Spring Model
+     * @return register template name
+     */
+    @GetMapping("/register")
+    public String registerPage(@RequestParam(value = "error", required = false) String error,
+                              @RequestParam(value = "success", required = false) String success,
+                              Model model) {
+        
+        log.info("Serving register page with error: {}, success: {}", error, success);
+        
+        if (error != null) {
+            model.addAttribute("error", error);
+        }
+        
+        if (success != null) {
+            model.addAttribute("success", success);
+        }
+        
+        return "register";
+    }
+
+    /**
+     * Serve forgot password page
+     * @param error Error message if any
+     * @param success Success message if any
+     * @param model Spring Model
+     * @return forgot-password template name
+     */
+    @GetMapping("/forgot-password")
+    public String forgotPasswordPage(@RequestParam(value = "error", required = false) String error,
+                                   @RequestParam(value = "success", required = false) String success,
+                                   Model model) {
+        
+        log.info("Serving forgot password page with error: {}, success: {}", error, success);
+        
+        if (error != null) {
+            model.addAttribute("error", error);
+        }
+        
+        if (success != null) {
+            model.addAttribute("success", success);
+        }
+        
+        return "forgot-password";
+    }
+
+    /**
+     * Serve reset password page
+     * @param token Reset token
+     * @param error Error message if any
+     * @param model Spring Model
+     * @return reset-password template name
+     */
+    @GetMapping("/reset-password")
+    public String resetPasswordPage(@RequestParam(value = "token", required = false) String token,
+                                  @RequestParam(value = "error", required = false) String error,
+                                  Model model) {
+        
+        log.info("Serving reset password page with token: {}, error: {}", 
+                token != null ? token.substring(0, 10) + "..." : null, error);
+        
+        if (token == null || token.trim().isEmpty()) {
+            log.warn("Reset password page accessed without token");
+            return "redirect:/forgot-password?error=Token không hợp lệ";
+        }
+        
+        model.addAttribute("token", token);
+        
+        if (error != null) {
+            model.addAttribute("error", error);
+        }
+        
+        return "reset-password";
+    }
 }

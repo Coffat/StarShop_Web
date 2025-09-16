@@ -4,7 +4,6 @@ import com.example.demo.security.JwtAuthenticationFilter;
 import com.example.demo.config.CustomOAuth2UserService;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
-import com.example.demo.service.AuthService;
 import com.example.demo.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -24,8 +23,6 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Security Configuration with JWT and OAuth2 support
@@ -44,7 +41,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
+            .csrf(csrf -> csrf
+                .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**")
+            )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .maximumSessions(1)
@@ -53,7 +53,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints as per rules.mdc
                 .requestMatchers("/", "/health", "/info", "/error").permitAll()
-                .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/forgot-password", "/api/auth/verify-otp", "/api/auth/reset-password").permitAll()
                 .requestMatchers("/api/health", "/api/info").permitAll()
                 .requestMatchers("/public/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
@@ -64,7 +64,7 @@ public class SecurityConfig {
                 
                 // Static resources
                 .requestMatchers("/static/**", "/css/**", "/js/**", "/images/**").permitAll()
-                .requestMatchers("/login", "/register", "/forgot-password").permitAll()
+                .requestMatchers("/login", "/register", "/forgot-password", "/reset-password").permitAll()
                 
                 // OAuth2 endpoints
                 .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()

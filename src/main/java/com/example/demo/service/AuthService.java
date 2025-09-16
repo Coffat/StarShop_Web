@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.User;
+import com.example.demo.entity.enums.UserRole;
 import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +9,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Authentication Service for user login and JWT token generation
@@ -23,6 +28,10 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    
+    // In-memory storage for reset tokens
+    // In production, consider using Redis or database
+    private final Map<String, ResetTokenData> resetTokenStorage = new ConcurrentHashMap<>();
 
     /**
      * Authenticate user with email and password
@@ -223,6 +232,223 @@ public class AuthService {
         } catch (Exception e) {
             log.error("Error validating token and getting user: {}", e.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Register new user
+     * @param email User email
+     * @param password Plain text password
+     * @param firstname User first name
+     * @param lastname User last name
+     * @return User entity if registration successful, null otherwise
+     */
+    public User registerUser(String email, String password, String firstname, String lastname, String phone) {
+        log.info("Registration attempt for email: {}", email);
+        
+        try {
+            // Validate input
+            if (email == null || email.trim().isEmpty()) {
+                log.warn("Registration failed: email is null or empty");
+                return null;
+            }
+            
+            if (password == null || password.length() < 8) {
+                log.warn("Registration failed: password is too short for email: {}", email);
+                return null;
+            }
+            
+            if (firstname == null || firstname.trim().isEmpty()) {
+                log.warn("Registration failed: firstname is null or empty for email: {}", email);
+                return null;
+            }
+            
+            if (lastname == null || lastname.trim().isEmpty()) {
+                log.warn("Registration failed: lastname is null or empty for email: {}", email);
+                return null;
+            }
+            
+            if (phone == null || phone.trim().isEmpty()) {
+                log.warn("Registration failed: phone is null or empty for email: {}", email);
+                return null;
+            }
+            
+            // Check if user already exists
+            if (userExists(email)) {
+                log.warn("Registration failed: user already exists for email: {}", email);
+                return null;
+            }
+            
+            // Create new user
+            User newUser = new User();
+            newUser.setEmail(email.trim().toLowerCase());
+            newUser.setPassword(passwordEncoder.encode(password));
+            newUser.setFirstname(firstname.trim());
+            newUser.setLastname(lastname.trim());
+            newUser.setPhone(phone.trim());
+            newUser.setRole(UserRole.CUSTOMER); // Default role
+            newUser.setCreatedAt(LocalDateTime.now());
+            newUser.setUpdatedAt(LocalDateTime.now());
+            
+            // Save user
+            User savedUser = userRepository.save(newUser);
+            
+            log.info("Registration successful for email: {}", email);
+            return savedUser;
+            
+        } catch (Exception e) {
+            log.error("Registration error for email {}: {}", email, e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Generate reset token for password reset
+     * @param email User email
+     * @return Reset token if user exists, null otherwise
+     */
+    public String generateResetToken(String email) {
+        log.info("Generating reset token for email: {}", email);
+        
+        try {
+            // Check if user exists
+            User user = findUserByEmail(email);
+            if (user == null) {
+                log.warn("Reset token generation failed: user not found for email: {}", email);
+                return null;
+            }
+            
+            // Generate unique token
+            String token = UUID.randomUUID().toString();
+            LocalDateTime expiryTime = LocalDateTime.now().plusHours(1); // 1 hour expiry
+            
+            // Store token with user email and expiry
+            ResetTokenData tokenData = new ResetTokenData(email, expiryTime);
+            resetTokenStorage.put(token, tokenData);
+            
+            log.info("Reset token generated successfully for email: {}", email);
+            return token;
+            
+        } catch (Exception e) {
+            log.error("Error generating reset token for email {}: {}", email, e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Reset password using reset token
+     * @param token Reset token
+     * @param newPassword New password
+     * @return true if reset successful, false otherwise
+     */
+    public boolean resetPasswordWithToken(String token, String newPassword) {
+        log.info("Password reset attempt with token: {}", token.substring(0, 10) + "...");
+        
+        try {
+            // Validate input
+            if (token == null || token.trim().isEmpty()) {
+                log.warn("Password reset failed: token is null or empty");
+                return false;
+            }
+            
+            if (newPassword == null || newPassword.length() < 8) {
+                log.warn("Password reset failed: new password is too short");
+                return false;
+            }
+            
+            // Get token data
+            ResetTokenData tokenData = resetTokenStorage.get(token);
+            if (tokenData == null) {
+                log.warn("Password reset failed: invalid token");
+                return false;
+            }
+            
+            // Check if token has expired
+            if (LocalDateTime.now().isAfter(tokenData.expiryTime)) {
+                resetTokenStorage.remove(token);
+                log.warn("Password reset failed: token has expired");
+                return false;
+            }
+            
+            // Find user
+            User user = findUserByEmail(tokenData.email);
+            if (user == null) {
+                resetTokenStorage.remove(token);
+                log.warn("Password reset failed: user not found for email: {}", tokenData.email);
+                return false;
+            }
+            
+            // Update password
+            user.setPassword(passwordEncoder.encode(newPassword));
+            user.setUpdatedAt(LocalDateTime.now());
+            userRepository.save(user);
+            
+            // Remove used token
+            resetTokenStorage.remove(token);
+            
+            log.info("Password reset successful for email: {}", tokenData.email);
+            return true;
+            
+        } catch (Exception e) {
+            log.error("Error resetting password with token: {}", e.getMessage(), e);
+            return false;
+        }
+    }
+
+    /**
+     * Get email from reset token
+     * @param token Reset token
+     * @return Email if token is valid, null otherwise
+     */
+    public String getEmailFromResetToken(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            return null;
+        }
+        
+        ResetTokenData tokenData = resetTokenStorage.get(token);
+        if (tokenData == null) {
+            return null;
+        }
+        
+        // Check if token has expired
+        if (LocalDateTime.now().isAfter(tokenData.expiryTime)) {
+            resetTokenStorage.remove(token);
+            return null;
+        }
+        
+        return tokenData.email;
+    }
+
+    /**
+     * Clean up expired reset tokens (should be called periodically)
+     */
+    public void cleanupExpiredResetTokens() {
+        LocalDateTime now = LocalDateTime.now();
+        final int[] removedCount = {0};
+        
+        resetTokenStorage.entrySet().removeIf(entry -> {
+            if (now.isAfter(entry.getValue().expiryTime)) {
+                removedCount[0]++;
+                return true;
+            }
+            return false;
+        });
+        
+        if (removedCount[0] > 0) {
+            log.info("Cleaned up {} expired reset tokens", removedCount[0]);
+        }
+    }
+
+    /**
+     * Data class to store reset token information
+     */
+    private static class ResetTokenData {
+        final String email;
+        final LocalDateTime expiryTime;
+        
+        ResetTokenData(String email, LocalDateTime expiryTime) {
+            this.email = email;
+            this.expiryTime = expiryTime;
         }
     }
 }
