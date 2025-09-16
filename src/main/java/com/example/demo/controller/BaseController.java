@@ -6,7 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.security.core.Authentication;
+import org.springframework.ui.Model;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Base controller to add common model attributes to all views
@@ -126,5 +129,34 @@ public class BaseController {
             System.out.println("Error getting orders count: " + e.getMessage());
         }
         return 0;
+    }
+    
+    /**
+     * Breadcrumb item class
+     */
+    public static class BreadcrumbItem {
+        private String title;
+        private String url;
+        
+        public BreadcrumbItem(String title, String url) {
+            this.title = title;
+            this.url = url;
+        }
+        
+        public String getTitle() { return title; }
+        public String getUrl() { return url; }
+    }
+    
+    /**
+     * Add breadcrumb item to model
+     */
+    protected void addBreadcrumb(Model model, String title, String url) {
+        @SuppressWarnings("unchecked")
+        List<BreadcrumbItem> breadcrumbs = (List<BreadcrumbItem>) model.asMap().get("breadcrumbs");
+        if (breadcrumbs == null) {
+            breadcrumbs = new ArrayList<>();
+            model.addAttribute("breadcrumbs", breadcrumbs);
+        }
+        breadcrumbs.add(new BreadcrumbItem(title, url));
     }
 }

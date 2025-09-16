@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout(${pageTitle}, 
+          ${pageDescription}, 
+          ~{::link},
+          ~{::content})}">
+
+<head>
+    <link rel="stylesheet" href="/css/products.css">
+</head>
+
+<body>
+<th:block th:fragment="content">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="breadcrumb-nav">
+        <div class="container">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="/" class="breadcrumb-link">
+                        <i class="bi bi-house"></i> Trang chủ
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <span th:text="${searchQuery != null ? 'Tìm kiếm: ' + searchQuery : 'Sản phẩm'}">Sản phẩm</span>
+                </li>
+            </ol>
+        </div>
+    </nav>
+
+    <!-- Products Header -->
+    <section class="products-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="page-title">
+                        <span th:if="${searchQuery != null}">
+                            Kết quả tìm kiếm: <span class="search-term" th:text="${searchQuery}">keyword</span>
+                        </span>
+                        <span th:unless="${searchQuery != null}">Tất cả sản phẩm</span>
+                    </h1>
+                    <p class="page-subtitle">
+                        <span th:if="${searchQuery != null}">
+                            Tìm thấy <strong th:text="${totalElements}">0</strong> sản phẩm phù hợp
+                        </span>
+                        <span th:unless="${searchQuery != null}">
+                            Khám phá <strong th:text="${totalElements}">0</strong> sản phẩm hoa tươi đẹp tại StarShop
+                        </span>
+                    </p>
+                </div>
+                
+                <!-- Search & Filter Bar -->
+                <div class="header-actions">
+                    <div class="search-section">
+                        <form class="search-form" action="/products" method="GET">
+                            <div class="search-input-group">
+                                <i class="bi bi-search search-icon"></i>
+                                <input type="text" 
+                                       class="form-control search-input" 
+                                       name="search" 
+                                       placeholder="Tìm hoa theo tên, mô tả..."
+                                       th:value="${searchQuery}"
+                                       autocomplete="off">
+                                <button type="submit" class="btn-search">
+                                    Tìm kiếm
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Toolbar -->
+    <section class="products-toolbar">
+        <div class="container">
+            <div class="toolbar-content">
+                <!-- Results Info -->
+                <div class="results-info">
+                    <span class="results-text">
+                        Hiển thị 
+                        <strong th:text="${(currentPage * pageSize) + 1}">1</strong>-<strong th:text="${#lists.size(products) + (currentPage * pageSize)}">12</strong> 
+                        trong tổng số <strong th:text="${totalElements}">0</strong> sản phẩm
+                    </span>
+                </div>
+
+                <!-- Sort & View Options -->
+                <div class="toolbar-actions">
+                    <!-- Sort Dropdown -->
+                    <div class="sort-section">
+                        <label for="sortSelect" class="sort-label">Sắp xếp:</label>
+                        <select class="form-select sort-select" id="sortSelect" onchange="changeSorting(this.value)">
+                            <option value="newest" th:selected="${sortBy == 'newest'}">Mới nhất</option>
+                            <option value="oldest" th:selected="${sortBy == 'oldest'}">Cũ nhất</option>
+                            <option value="name" th:selected="${sortBy == 'name'}">Tên A-Z</option>
+                            <option value="price-asc" th:selected="${sortBy == 'price' && sortDirection == 'asc'}">Giá thấp đến cao</option>
+                            <option value="price-desc" th:selected="${sortBy == 'price' && sortDirection == 'desc'}">Giá cao đến thấp</option>
+                        </select>
+                    </div>
+
+                    <!-- View Toggle -->
+                    <div class="view-toggle">
+                        <button class="btn-view-toggle active" data-view="grid" title="Xem dạng lưới">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                        </button>
+                        <button class="btn-view-toggle" data-view="list" title="Xem dạng danh sách">
+                            <i class="bi bi-list"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Grid -->
+    <section class="products-section">
+        <div class="container">
+            <!-- No Results Message -->
+            <div th:if="${#lists.isEmpty(products)}" class="no-results">
+                <div class="no-results-content">
+                    <i class="bi bi-search no-results-icon"></i>
+                    <h3 class="no-results-title">Không tìm thấy sản phẩm nào</h3>
+                    <p class="no-results-text">
+                        <span th:if="${searchQuery != null}">
+                            Không có sản phẩm nào phù hợp với từ khóa "<strong th:text="${searchQuery}">keyword</strong>". 
+                            Hãy thử tìm kiếm với từ khóa khác.
+                        </span>
+                        <span th:unless="${searchQuery != null}">
+                            Hiện tại chưa có sản phẩm nào. Vui lòng quay lại sau.
+                        </span>
+                    </p>
+                    <a href="/products" class="btn-primary" th:if="${searchQuery != null}">
+                        <i class="bi bi-arrow-left"></i>
+                        Xem tất cả sản phẩm
+                    </a>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div th:unless="${#lists.isEmpty(products)}" class="products-grid" id="productsGrid">
+                <div th:each="product : ${products}" class="product-card" th:data-product-id="${product.id}">
+                    <div class="product-image-container">
+                        <a th:href="@{/products/{id}(id=${product.id})}" class="product-image-link">
+                            <img th:src="${product.image != null ? product.image : '/images/products/default-flower.jpg'}" 
+                                 th:alt="${product.name}" 
+                                 class="product-image"
+                                 loading="lazy">
+                        </a>
+                        
+                        <!-- Product Actions -->
+                        <div class="product-actions">
+                            <button class="btn-action btn-wishlist" 
+                                    th:data-product-id="${product.id}"
+                                    title="Thêm vào yêu thích"
+                                    sec:authorize="isAuthenticated()">
+                                <i class="bi bi-heart"></i>
+                            </button>
+                            <button class="btn-action btn-quick-view" 
+                                    th:data-product-id="${product.id}"
+                                    title="Xem nhanh">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+
+                        <!-- Sale Badge -->
+                        <div class="product-badge sale-badge" th:if="${product.price != null}">
+                            Mới
+                        </div>
+                    </div>
+
+                    <div class="product-content">
+                        <div class="product-header">
+                            <h3 class="product-title">
+                                <a th:href="@{/products/{id}(id=${product.id})}" 
+                                   class="product-title-link" 
+                                   th:text="${product.name}">Tên sản phẩm</a>
+                            </h3>
+                            
+                            <!-- Product Rating -->
+                            <div class="product-rating">
+                                <div class="rating-stars">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star"></i>
+                                </div>
+                                <span class="rating-text">(0 đánh giá)</span>
+                            </div>
+                        </div>
+
+                        <div class="product-description" th:if="${product.description != null}">
+                            <p th:text="${#strings.abbreviate(product.description, 80)}">Mô tả sản phẩm...</p>
+                        </div>
+
+                        <div class="product-footer">
+                            <div class="product-price">
+                                <span class="current-price" th:text="${#numbers.formatCurrency(product.price)}">0₫</span>
+                            </div>
+                            
+                            <button class="btn-add-to-cart" 
+                                    th:data-product-id="${product.id}"
+                                    sec:authorize="isAuthenticated()">
+                                <i class="bi bi-bag-plus"></i>
+                                Thêm vào giỏ
+                            </button>
+                            
+                            <a th:href="@{/login}" 
+                               class="btn-add-to-cart btn-login-required"
+                               sec:authorize="!isAuthenticated()">
+                                <i class="bi bi-box-arrow-in-right"></i>
+                                Đăng nhập để mua
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pagination -->
+    <nav th:if="${totalPages > 1}" class="pagination-nav" aria-label="Phân trang sản phẩm">
+        <div class="container">
+            <div class="pagination-wrapper">
+                <ul class="pagination">
+                    <!-- Previous Page -->
+                    <li class="page-item" th:classappend="${isFirst} ? 'disabled'">
+                        <a class="page-link" 
+                           th:href="${isFirst} ? '#' : @{/products(page=${currentPage - 1}, size=${pageSize}, search=${searchQuery}, sort=${sortBy}, direction=${sortDirection})}"
+                           aria-label="Trang trước">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+
+                    <!-- Page Numbers -->
+                    <li th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}" 
+                        th:if="${pageNum >= (currentPage - 2) && pageNum <= (currentPage + 2)}"
+                        class="page-item" 
+                        th:classappend="${pageNum == currentPage} ? 'active'">
+                        <a class="page-link" 
+                           th:href="@{/products(page=${pageNum}, size=${pageSize}, search=${searchQuery}, sort=${sortBy}, direction=${sortDirection})}"
+                           th:text="${pageNum + 1}">1</a>
+                    </li>
+
+                    <!-- Next Page -->
+                    <li class="page-item" th:classappend="${isLast} ? 'disabled'">
+                        <a class="page-link" 
+                           th:href="${isLast} ? '#' : @{/products(page=${currentPage + 1}, size=${pageSize}, search=${searchQuery}, sort=${sortBy}, direction=${sortDirection})}"
+                           aria-label="Trang sau">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Pagination Info -->
+                <div class="pagination-info">
+                    Trang <strong th:text="${currentPage + 1}">1</strong> / <strong th:text="${totalPages}">1</strong>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Quick View Modal -->
+    <div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="quickViewModalLabel">Xem nhanh sản phẩm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body" id="quickViewContent">
+                    <!-- Quick view content will be loaded here via AJAX -->
+                    <div class="loading-spinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Đang tải...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<script>
+// Sort functionality
+function changeSorting(value) {
+    const url = new URL(window.location);
+    
+    switch(value) {
+        case 'newest':
+            url.searchParams.set('sort', 'newest');
+            url.searchParams.delete('direction');
+            break;
+        case 'oldest':
+            url.searchParams.set('sort', 'oldest');
+            url.searchParams.delete('direction');
+            break;
+        case 'name':
+            url.searchParams.set('sort', 'name');
+            url.searchParams.set('direction', 'asc');
+            break;
+        case 'price-asc':
+            url.searchParams.set('sort', 'price');
+            url.searchParams.set('direction', 'asc');
+            break;
+        case 'price-desc':
+            url.searchParams.set('sort', 'price');
+            url.searchParams.set('direction', 'desc');
+            break;
+    }
+    
+    url.searchParams.set('page', '0'); // Reset to first page
+    window.location.href = url.toString();
+}
+
+// View toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const viewToggleButtons = document.querySelectorAll('.btn-view-toggle');
+    const productsGrid = document.getElementById('productsGrid');
+    
+    viewToggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const view = this.dataset.view;
+            
+            // Update active state
+            viewToggleButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update grid class
+            if (view === 'list') {
+                productsGrid.classList.add('products-list-view');
+            } else {
+                productsGrid.classList.remove('products-list-view');
+            }
+            
+            // Save preference
+            localStorage.setItem('productsView', view);
+        });
+    });
+    
+    // Load saved view preference
+    const savedView = localStorage.getItem('productsView');
+    if (savedView === 'list') {
+        document.querySelector('[data-view="list"]').click();
+    }
+});
+</script>
+
+</body>
+</html>
