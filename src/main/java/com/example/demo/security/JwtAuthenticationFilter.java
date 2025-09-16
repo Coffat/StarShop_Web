@@ -54,6 +54,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Skip filter if no JWT token found
         if (jwt == null) {
             log.debug("No JWT token found, continuing without authentication for path: {}", request.getRequestURI());
+            
+            // Check if there's a session-based authentication
+            String sessionToken = (String) request.getSession().getAttribute("authToken");
+            String sessionEmail = (String) request.getSession().getAttribute("userEmail");
+            
+            if (sessionToken != null && sessionEmail != null) {
+                log.debug("Found session-based authentication, trying to validate token for user: {}", sessionEmail);
+                try {
+                    if (jwtService.validateToken(sessionToken)) {
+                        var userRole = jwtService.extractRole(sessionToken);
+                        var userId = jwtService.extractUserId(sessionToken);
+                        
+                        List<SimpleGrantedAuthority> authorities = List.of(
+                            new SimpleGrantedAuthority("ROLE_" + userRole.name().toUpperCase())
+                        );
+                        
+                        UsernamePasswordAuthenticationToken authToken = 
+                            new UsernamePasswordAuthenticationToken(sessionEmail, null, authorities);
+                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        
+                        request.setAttribute("userId", userId);
+                        request.setAttribute("userRole", userRole);
+                        
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                        log.info("Session-based JWT authentication successful for user: {}", sessionEmail);
+                    }
+                } catch (Exception e) {
+                    log.warn("Session token validation failed: {}", e.getMessage());
+                }
+            }
+            
             filterChain.doFilter(request, response);
             return;
         }

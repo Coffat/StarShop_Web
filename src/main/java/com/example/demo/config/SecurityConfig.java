@@ -71,6 +71,12 @@ public class SecurityConfig {
                 // WebSocket endpoints
                 .requestMatchers("/ws/**").permitAll()
                 
+                // Account pages - require authentication
+                .requestMatchers("/account/**").authenticated()
+                
+                // Products pages
+                .requestMatchers("/products", "/products/**").permitAll()
+                
                 // Protected API endpoints as per rules.mdc
                 .requestMatchers("/api/users/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/products/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
@@ -81,6 +87,28 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 
                 .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
+                .loginPage("/login")
+                .permitAll()
+                .defaultSuccessUrl("/", true)
+                .failureUrl("/login?error=true")
+            )
+            .rememberMe(remember -> remember
+                .key("unique-and-secret")
+                .tokenValiditySeconds(86400)
+                .userDetailsService(username -> {
+                    // Simple UserDetails implementation for remember-me
+                    User user = userRepository.findByEmail(username).orElse(null);
+                    if (user != null) {
+                        return org.springframework.security.core.userdetails.User.builder()
+                            .username(user.getEmail())
+                            .password(user.getPassword())
+                            .authorities("ROLE_" + user.getRole().name())
+                            .build();
+                    }
+                    return null;
+                })
             )
             .oauth2Login(oauth2 -> oauth2
                 .loginPage("/login")
@@ -97,6 +125,12 @@ public class SecurityConfig {
                 .clearAuthentication(true)
                 .deleteCookies("authToken", "JSESSIONID", "SPRING_SECURITY_REMEMBER_ME_COOKIE")
                 .permitAll()
+            )
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint((request, response, authException) -> {
+                    // Handle authentication entry point - redirect to login
+                    response.sendRedirect("/login?error=authentication_required");
+                })
             )
             .headers(headers -> headers
                 .frameOptions(frame -> frame.sameOrigin()) // For H2 console
