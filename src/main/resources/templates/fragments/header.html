@@ -3,276 +3,257 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security" 
       lang="vi">
 
-<!-- Header Fragment -->
+<!-- Professional Header Fragment -->
 <div th:fragment="header" class="header-wrapper">
-    <!-- Top Bar -->
+    <!-- Top Bar - Contact & User Actions -->
     <div class="top-bar">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <div class="contact-info">
-                        <span class="contact-item">
-                            <i class="bi bi-telephone"></i>
-                            <a href="tel:+84901234567">0901.234.567</a>
-                        </span>
-                        <span class="contact-item">
-                            <i class="bi bi-envelope"></i>
-                            <a href="mailto:hello@starshop.vn">hello@starshop.vn</a>
-                        </span>
-                    </div>
+            <div class="top-bar-content">
+                <!-- Left: Contact Info -->
+                <div class="contact-info">
+                    <a href="tel:+84901234567" class="contact-item">
+                        <i class="bi bi-telephone"></i>
+                        <span>0901.234.567</span>
+                    </a>
+                    <a href="mailto:hello@starshop.vn" class="contact-item">
+                        <i class="bi bi-envelope"></i>
+                        <span>hello@starshop.vn</span>
+                    </a>
                 </div>
-                <div class="col-md-6">
-                    <div class="top-bar-right">
-                        <!-- Language Switcher -->
-                        <div class="language-switcher">
-                            <div class="dropdown">
-                                <button class="btn-language dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-globe"></i>
-                                    <span class="language-text">VI</span>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end language-menu">
-                                    <li>
-                                        <a class="dropdown-item language-option active" href="#" data-lang="vi">
-                                            <img src="https://flagcdn.com/w20/vn.png" alt="Tiếng Việt" class="flag-icon">
-                                            Tiếng Việt
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item language-option" href="#" data-lang="en">
-                                            <img src="https://flagcdn.com/w20/us.png" alt="English" class="flag-icon">
-                                            English
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
 
-                        <div class="social-links">
-                            <a href="#" class="social-link" title="Facebook">
-                                <i class="bi bi-facebook"></i>
-                            </a>
-                            <a href="#" class="social-link" title="Instagram">
-                                <i class="bi bi-instagram"></i>
-                            </a>
-                            <a href="#" class="social-link" title="TikTok">
-                                <i class="bi bi-tiktok"></i>
-                            </a>
+                <!-- Center: Search Bar -->
+                <div class="top-bar-search d-none d-lg-flex">
+                    <form class="search-form" action="/search" method="GET">
+                        <div class="search-input-group">
+                            <input type="text" 
+                                   class="search-input" 
+                                   name="q" 
+                                   placeholder="🌸 Tìm hoa nhanh - Hoa sinh nhật, tình yêu, cưới..."
+                                   th:value="${searchQuery}"
+                                   autocomplete="off">
+                            <button type="submit" class="search-btn">
+                                <i class="bi bi-search"></i>
+                            </button>
                         </div>
-                        <div class="auth-links" th:if="${!isUserAuthenticated}">
-                            <a href="/login" class="auth-link">
-                                <i class="bi bi-box-arrow-in-right"></i>
-                                Đăng nhập
-                            </a>
-                            <a href="/register" class="auth-link">
-                                <i class="bi bi-person-plus"></i>
-                                Đăng ký
-                            </a>
-                        </div>
-                        <div class="user-menu" th:if="${isUserAuthenticated}">
-                            <div class="dropdown">
-                                <button class="btn-user-menu dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <div class="user-avatar">
-                                        <i class="bi bi-person-circle"></i>
-                                    </div>
-                                    <div class="user-info">
-                                        <span class="user-name" th:text="${userObject != null ? userObject.fullName : currentUser}">User</span>
-                                        <small class="user-role" th:text="${userObject != null ? userObject.role.displayName : 'Khách hàng'}">Khách hàng</small>
-                                    </div>
-                                    <i class="bi bi-chevron-down dropdown-arrow"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end user-dropdown">
-                                    <li class="dropdown-header">
-                                        <div class="user-greeting">
-                                            <i class="bi bi-person-circle user-avatar-large"></i>
-                                            <div>
-                                                <div class="greeting-name" th:text="${userObject != null ? userObject.fullName : currentUser}">User</div>
-                                                <small class="greeting-email" th:text="${userObject != null ? userObject.email : currentUser}">user@email.com</small>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="/account/profile">
-                                        <i class="bi bi-person"></i> Thông tin cá nhân
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="/account/orders">
-                                        <i class="bi bi-bag"></i> Đơn hàng của tôi
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="/account/wishlist">
-                                        <i class="bi bi-heart"></i> Danh sách yêu thích
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="/account/settings">
-                                        <i class="bi bi-gear"></i> Cài đặt
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <form th:action="@{/logout}" method="post" class="d-inline">
-                                            <button type="submit" class="dropdown-item text-danger border-0 bg-transparent w-100 text-start">
-                                                <i class="bi bi-box-arrow-right"></i> Đăng xuất
-                                            </button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
+                    </form>
+                </div>
+
+                <!-- Right: User Actions & Language -->
+                <div class="top-bar-actions">
+                    <!-- Language Switcher -->
+                    <div class="dropdown">
+                        <button class="btn-language dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-globe"></i>
+                            <span>VI</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item active" href="#" data-lang="vi">
+                                    <img src="https://flagcdn.com/w20/vn.png" alt="Tiếng Việt" class="flag-icon">
+                                    Tiếng Việt
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" data-lang="en">
+                                    <img src="https://flagcdn.com/w20/us.png" alt="English" class="flag-icon">
+                                    English
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Social Links -->
+                    <div class="social-links">
+                        <a href="https://facebook.com/starshop" class="social-link" title="Facebook" target="_blank">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                        <a href="https://instagram.com/starshop" class="social-link" title="Instagram" target="_blank">
+                            <i class="bi bi-instagram"></i>
+                        </a>
+                        <a href="https://tiktok.com/@starshop" class="social-link" title="TikTok" target="_blank">
+                            <i class="bi bi-tiktok"></i>
+                        </a>
+                    </div>
+
+                    <!-- Auth Links (Not logged in) -->
+                    <div class="auth-actions" th:if="${!isUserAuthenticated}">
+                        <a href="/login" class="auth-link">
+                            <i class="bi bi-box-arrow-in-right"></i>
+                            <span>Đăng nhập</span>
+                        </a>
+                        <a href="/register" class="auth-link register">
+                            <i class="bi bi-person-plus"></i>
+                            <span>Đăng ký</span>
+                        </a>
+                    </div>
+
+                    <!-- User Menu (Logged in) -->
+                    <div class="dropdown" th:if="${isUserAuthenticated}">
+                        <button class="btn-user dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i>
+                            <span th:text="${userObject != null ? userObject.fullName : currentUser}">User</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end user-dropdown">
+                            <li class="dropdown-header">
+                                <i class="bi bi-person-circle"></i>
+                                <div>
+                                    <div class="user-name" th:text="${userObject != null ? userObject.fullName : currentUser}">User</div>
+                                    <small class="user-email" th:text="${userObject != null ? userObject.email : currentUser}">user@email.com</small>
+                                </div>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/account/profile">
+                                <i class="bi bi-person"></i> Thông tin cá nhân
+                            </a></li>
+                            <li><a class="dropdown-item" href="/account/orders">
+                                <i class="bi bi-bag"></i> Đơn hàng của tôi
+                            </a></li>
+                            <li><a class="dropdown-item" href="/account/wishlist">
+                                <i class="bi bi-heart"></i> Danh sách yêu thích
+                            </a></li>
+                            <li><a class="dropdown-item" href="/account/settings">
+                                <i class="bi bi-gear"></i> Cài đặt
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <!-- Desktop Logout -->
+                            <li>
+                                <a href="/logout" class="dropdown-item text-danger" onclick="return confirm('Bạn có chắc muốn đăng xuất?')">
+                                    <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                                </a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Header -->
+    <!-- Main Header - Logo, Navigation & Actions -->
     <header class="main-header">
         <div class="container">
-            <div class="row align-items-center">
-                <!-- Logo -->
-                <div class="col-lg-3 col-md-4 col-6">
-                    <div class="logo">
+            <div class="main-header-content">
+                <!-- Logo & Navigation Section -->
+                <div class="logo-nav-section">
+                    <!-- Logo -->
+                    <div class="logo-section">
                         <a href="/" class="logo-link">
-                            <span class="logo-text">
-                                StarShop
-                                <span class="logo-icon heartbeat">🌸</span>
-                            </span>
+                            <span class="logo-text">StarShop</span>
+                            <span class="logo-icon heartbeat">🌸</span>
                         </a>
                     </div>
+
+                    <!-- Navigation Menu -->
+                    <nav class="header-nav d-none d-lg-flex">
+                        <ul class="nav-menu">
+                            <li class="nav-item">
+                                <a href="/" class="nav-link" th:classappend="${currentPath == '/' ? 'active' : ''}">
+                                    <i class="bi bi-house"></i>
+                                    <span>Trang chủ</span>
+                                </a>
+                            </li>
+                            <li class="nav-item dropdown-hover">
+                                <a href="/categories" class="nav-link">
+                                    <i class="bi bi-grid"></i>
+                                    <span>Danh mục hoa</span>
+                                    <i class="bi bi-chevron-down dropdown-arrow"></i>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="/categories/sinh-nhat">
+                                        <i class="bi bi-gift"></i> Hoa sinh nhật
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="/categories/tinh-yeu">
+                                        <i class="bi bi-heart"></i> Hoa tình yêu
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="/categories/cuoi">
+                                        <i class="bi bi-suit-heart"></i> Hoa cưới
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="/categories/khai-truong">
+                                        <i class="bi bi-star"></i> Hoa khai trương
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="/categories/chia-buon">
+                                        <i class="bi bi-flower1"></i> Hoa chia buồn
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="/categories/tang-me">
+                                        <i class="bi bi-heart-fill"></i> Hoa tặng mẹ
+                                    </a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/products" class="nav-link" th:classappend="${#strings.startsWith(currentPath, '/products') ? 'active' : ''}">
+                                    <i class="bi bi-flower2"></i>
+                                    <span>Sản phẩm</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/gifts" class="nav-link" th:classappend="${#strings.startsWith(currentPath, '/gifts') ? 'active' : ''}">
+                                    <i class="bi bi-gift"></i>
+                                    <span>Quà tặng</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/occasions" class="nav-link" th:classappend="${#strings.startsWith(currentPath, '/occasions') ? 'active' : ''}">
+                                    <i class="bi bi-calendar-event"></i>
+                                    <span>Dịp đặc biệt</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/blog" class="nav-link" th:classappend="${#strings.startsWith(currentPath, '/blog') ? 'active' : ''}">
+                                    <i class="bi bi-journal-text"></i>
+                                    <span>Blog</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/contact" class="nav-link" th:classappend="${currentPath == '/contact' ? 'active' : ''}">
+                                    <i class="bi bi-telephone"></i>
+                                    <span>Liên hệ</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
 
-                <!-- Search Bar - Nổi bật giữa thanh nav -->
-                <div class="col-lg-6 col-md-8 d-none d-md-block">
-                    <div class="search-bar-hero">
-                        <form class="search-form-hero" action="/search" method="GET">
-                            <div class="search-input-group-hero">
-                                <i class="bi bi-search search-icon"></i>
-                                <input type="text" 
-                                       class="form-control search-input-hero" 
-                                       name="q" 
-                                       placeholder="🌸 Tìm hoa nhanh - Hoa sinh nhật, tình yêu, cưới..."
-                                       th:value="${searchQuery}"
-                                       autocomplete="off">
-                                <div class="search-suggestions" id="searchSuggestions"></div>
-                                <button type="submit" class="btn-search-hero">
-                                    <i class="bi bi-arrow-right"></i>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                <!-- Actions Section -->
+                <div class="actions-section">
+                    <!-- Wishlist -->
+                    <a href="/account/wishlist" class="action-btn" title="Danh sách yêu thích" th:if="${isUserAuthenticated}">
+                        <i class="bi bi-heart"></i>
+                        <span class="action-badge" th:if="${wishlistCount > 0}" th:text="${wishlistCount}">0</span>
+                    </a>
+
+                    <!-- Shopping Cart -->
+                    <a href="/cart" class="action-btn" title="Giỏ hàng" th:if="${isUserAuthenticated}">
+                        <i class="bi bi-bag"></i>
+                        <span class="action-badge" th:if="${cartCount > 0}" th:text="${cartCount}">0</span>
+                    </a>
+
+                    <!-- Mobile Menu Toggle -->
+                    <button class="mobile-menu-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu">
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                    </button>
                 </div>
+            </div>
 
-                <!-- Header Actions -->
-                <div class="col-lg-3 col-md-12 col-6">
-                    <div class="header-actions">
-                        <!-- Wishlist - Only show when authenticated -->
-                        <a href="/account/wishlist" class="action-btn" title="Danh sách yêu thích" th:if="${isUserAuthenticated}">
-                            <i class="bi bi-heart"></i>
-                            <span class="action-count wishlist-count" th:if="${wishlistCount > 0}" th:text="${wishlistCount}">0</span>
-                        </a>
-
-                        <!-- Shopping Cart - Only show when authenticated -->
-                        <a href="/cart" class="action-btn" title="Giỏ hàng" th:if="${isUserAuthenticated}">
-                            <i class="bi bi-bag"></i>
-                            <span class="action-count cart-count" th:if="${cartCount > 0}" th:text="${cartCount}">0</span>
-                        </a>
-
-
-                        <!-- Mobile Menu Toggle -->
-                        <button class="btn-mobile-menu d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu">
-                            <span class="hamburger-line"></span>
-                            <span class="hamburger-line"></span>
-                            <span class="hamburger-line"></span>
+            <!-- Mobile Search -->
+            <div class="mobile-search d-lg-none">
+                <form class="search-form" action="/search" method="GET">
+                    <div class="search-input-group">
+                        <i class="bi bi-search search-icon"></i>
+                        <input type="text" 
+                               class="search-input" 
+                               name="q" 
+                               placeholder="Tìm kiếm hoa..."
+                               th:value="${searchQuery}">
+                        <button type="submit" class="search-btn">
+                            <i class="bi bi-search"></i>
                         </button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </header>
-
-    <!-- Navigation -->
-    <nav class="main-nav">
-        <div class="container">
-            <div class="nav-wrapper">
-                <!-- Desktop Navigation -->
-                <ul class="nav-menu d-none d-lg-flex">
-                    <li class="nav-item">
-                        <a href="/" class="nav-link" th:classappend="${currentPath == '/' ? 'active' : ''}">
-                            <i class="bi bi-house"></i>
-                            Trang chủ
-                        </a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a href="/categories" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                            <i class="bi bi-grid"></i>
-                            Danh mục hoa
-                        </a>
-                        <ul class="dropdown-menu mega-menu">
-                            <li><a class="dropdown-item" href="/categories/sinh-nhat">
-                                <i class="bi bi-gift"></i> Hoa sinh nhật
-                            </a></li>
-                            <li><a class="dropdown-item" href="/categories/tinh-yeu">
-                                <i class="bi bi-heart"></i> Hoa tình yêu
-                            </a></li>
-                            <li><a class="dropdown-item" href="/categories/cuoi">
-                                <i class="bi bi-suit-heart"></i> Hoa cưới
-                            </a></li>
-                            <li><a class="dropdown-item" href="/categories/khai-truong">
-                                <i class="bi bi-star"></i> Hoa khai trương
-                            </a></li>
-                            <li><a class="dropdown-item" href="/categories/chia-buon">
-                                <i class="bi bi-flower1"></i> Hoa chia buồn
-                            </a></li>
-                            <li><a class="dropdown-item" href="/categories/tang-me">
-                                <i class="bi bi-heart-fill"></i> Hoa tặng mẹ
-                            </a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/products" class="nav-link" th:classappend="${#strings.startsWith(currentPath, '/products') ? 'active' : ''}">
-                            <i class="bi bi-flower2"></i>
-                            Sản phẩm
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/gifts" class="nav-link" th:classappend="${#strings.startsWith(currentPath, '/gifts') ? 'active' : ''}">
-                            <i class="bi bi-gift"></i>
-                            Quà tặng
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/occasions" class="nav-link" th:classappend="${#strings.startsWith(currentPath, '/occasions') ? 'active' : ''}">
-                            <i class="bi bi-calendar-event"></i>
-                            Dịp đặc biệt
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/blog" class="nav-link" th:classappend="${#strings.startsWith(currentPath, '/blog') ? 'active' : ''}">
-                            <i class="bi bi-journal-text"></i>
-                            Blog
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/contact" class="nav-link" th:classappend="${currentPath == '/contact' ? 'active' : ''}">
-                            <i class="bi bi-telephone"></i>
-                            Liên hệ
-                        </a>
-                    </li>
-                </ul>
-
-                <!-- Search Bar Mobile -->
-                <div class="mobile-search d-md-none">
-                    <form class="search-form" action="/search" method="GET">
-                        <div class="search-input-group">
-                            <input type="text" 
-                                   class="form-control search-input" 
-                                   name="q" 
-                                   placeholder="Tìm kiếm..."
-                                   th:value="${searchQuery}">
-                            <button type="submit" class="btn-search">
-                                <i class="bi bi-search"></i>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </nav>
 </div>
 
 <!-- Mobile Offcanvas Menu -->
@@ -353,8 +334,8 @@
             <a href="/login" class="btn btn-outline-primary w-100 mb-2">
                 <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
             </a>
-            <a href="/register" class="btn btn-primary w-100">
-                <i class="bi bi-person-plus"></i> Đăng ký
+            <a href="/register" class="btn btn-primary w-100 mb-2">
+                <i class="bi bi-box-arrow-in-right"></i> Đăng ký
             </a>
         </div>
 
@@ -370,11 +351,9 @@
             <a href="/account/wishlist" class="mobile-nav-link">
                 <i class="bi bi-heart"></i> Danh sách yêu thích
             </a>
-            <form th:action="@{/logout}" method="post" class="d-inline w-100">
-                <button type="submit" class="mobile-nav-link text-danger border-0 bg-transparent w-100 text-start">
+            <a href="/logout" class="mobile-nav-link text-danger" onclick="return confirm('Bạn có chắc muốn đăng xuất?')">
                 <i class="bi bi-box-arrow-right"></i> Đăng xuất
-                </button>
-            </form>
+            </a>
         </div>
     </div>
 </div>

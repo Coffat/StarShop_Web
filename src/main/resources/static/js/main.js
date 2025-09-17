@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize all components
     initializeHeader();
     initializeSearch();
+    initializeSearchToggle();
     initializeMobileMenu();
     initializeScrollEffects();
     initializeNewsletterForm();
@@ -662,3 +663,150 @@ style.textContent = `
 `;
 
 document.head.appendChild(style);
+
+// Search Toggle Functionality
+function initializeSearchToggle() {
+    const searchToggleBtn = document.getElementById('searchToggleBtn') || document.querySelector('.search-toggle-btn');
+    const searchCollapse = document.getElementById('searchCollapse');
+    
+    console.log('Initializing search toggle:', { searchToggleBtn, searchCollapse });
+    
+    if (!searchToggleBtn || !searchCollapse) {
+        console.error('Search elements not found during initialization');
+        return;
+    }
+    
+    // Add event listener as backup to onclick
+    searchToggleBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('Search toggle clicked via event listener');
+        toggleSearch();
+    });
+    
+    // Close search when clicking outside
+    document.addEventListener('click', function(e) {
+        const searchBox = document.getElementById('searchCollapse');
+        const toggleBtn = document.getElementById('searchToggleBtn');
+        
+        if (searchBox && toggleBtn && searchBox.classList.contains('show')) {
+            // Check if click is outside both search box and toggle button
+            if (!searchBox.contains(e.target) && !toggleBtn.contains(e.target)) {
+                console.log('👆 Clicked outside - closing search');
+                hideSearch();
+            }
+        }
+    });
+    
+    // Close search on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const searchBox = document.getElementById('searchCollapse');
+            if (searchBox && searchBox.classList.contains('show')) {
+                console.log('⌨️ Escape pressed - closing search');
+                hideSearch();
+            }
+        }
+    });
+}
+
+// Enhanced Search Toggle Function
+function toggleSearch() {
+    console.log('🔍 === SEARCH TOGGLE ===');
+    
+    const searchBox = document.getElementById('searchCollapse');
+    const toggleBtn = document.getElementById('searchToggleBtn');
+    
+    if (!searchBox) {
+        console.error('❌ Search box not found!');
+        return;
+    }
+    
+    const isVisible = searchBox.classList.contains('show');
+    console.log('Current state:', isVisible ? 'VISIBLE' : 'HIDDEN');
+    
+    if (isVisible) {
+        // Hide search
+        hideSearch();
+    } else {
+        // Show search
+        showSearch();
+    }
+}
+
+// Show Search Function
+function showSearch() {
+    console.log('🔓 SHOWING search...');
+    
+    const searchBox = document.getElementById('searchCollapse');
+    const toggleBtn = document.getElementById('searchToggleBtn');
+    
+    if (searchBox) {
+        searchBox.classList.add('show');
+        
+        // Focus on input after animation
+        setTimeout(() => {
+            const input = searchBox.querySelector('.search-input');
+            if (input) {
+                input.focus();
+                input.select(); // Select all text if any
+                console.log('🎯 Input focused and selected');
+            }
+        }, 300);
+    }
+    
+    if (toggleBtn) {
+        toggleBtn.classList.add('active');
+    }
+    
+    console.log('✅ Search box is now VISIBLE');
+}
+
+// Hide Search Function
+function hideSearch() {
+    console.log('🔒 HIDING search...');
+    
+    const searchBox = document.getElementById('searchCollapse');
+    const toggleBtn = document.getElementById('searchToggleBtn');
+    
+    if (searchBox) {
+        searchBox.classList.remove('show');
+        
+        // Blur input
+        const input = searchBox.querySelector('.search-input');
+        if (input) {
+            input.blur();
+        }
+    }
+    
+    if (toggleBtn) {
+        toggleBtn.classList.remove('active');
+    }
+    
+    console.log('✅ Search box is now HIDDEN');
+}
+
+// Close search function - specifically for X button
+function closeSearch() {
+    console.log('❌ CLOSE button clicked');
+    hideSearch();
+}
+
+// Test function - call this from browser console to test
+function testSearchToggle() {
+    console.log('=== Testing Search Toggle ===');
+    const searchCollapse = document.getElementById('searchCollapse');
+    const searchToggleBtn = document.getElementById('searchToggleBtn');
+    
+    console.log('Elements found:', {
+        searchCollapse: !!searchCollapse,
+        searchToggleBtn: !!searchToggleBtn,
+        searchCollapseClasses: searchCollapse ? searchCollapse.className : 'not found',
+        searchToggleBtnClasses: searchToggleBtn ? searchToggleBtn.className : 'not found'
+    });
+    
+    if (searchCollapse) {
+        console.log('Manually adding show class...');
+        searchCollapse.classList.add('show');
+        console.log('Classes after manual add:', searchCollapse.className);
+    }
+}

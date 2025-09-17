@@ -2,135 +2,99 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<!-- Professional Horizontal Footer -->
-<footer th:fragment="footer" class="professional-footer">
-  <div class="footer-container">
-    <!-- Brand Section -->
-    <div class="footer-brand">
-      <a href="/" class="brand-logo">
-        <span class="brand-icon">🌸</span>
-        <span class="brand-name">StarShop</span>
-      </a>
-      <p class="brand-tagline">
-        Nơi tình yêu nở hoa - Mang vẻ đẹp thiên nhiên đến từng khoảnh khắc đặc biệt của bạn
-      </p>
+<!-- Professional Pink Theme Footer -->
+<footer th:fragment="footer" class="starshop-footer">
+    <!-- Main footer content -->
+    <section class="footer-main">
+        <div class="container text-center text-md-start">
+            <!-- Grid row -->
+            <div class="row">
+                <!-- Company column -->
+                <div class="col-md-3 col-lg-4 col-xl-3 mx-auto mb-4">
+                    <h6 class="text-uppercase fw-bold mb-4">
+                        <i class="bi bi-flower1 me-2"></i>StarShop
+                    </h6>
+                    <hr class="footer-divider mb-4 mt-0 d-inline-block mx-auto">
+                    <p>
+                        Nơi tình yêu nở hoa - Chúng tôi mang đến những bó hoa tươi tuyệt đẹp 
+                        cho mọi dịp đặc biệt trong cuộc sống của bạn. Chất lượng cao, giao hàng nhanh chóng.
+                    </p>
                 </div>
 
-    <!-- Main Footer Content - 4 Columns Horizontal -->
-    <div class="footer-content">
-      
-      <!-- Column 1: Products -->
-      <div class="footer-column">
-        <h4 class="column-title">Sản phẩm</h4>
-        <nav class="column-nav">
-          <a href="/categories/sinh-nhat" class="nav-link">Hoa sinh nhật</a>
-          <a href="/categories/tinh-yeu" class="nav-link">Hoa tình yêu</a>
-          <a href="/categories/cuoi" class="nav-link">Hoa cưới</a>
-          <a href="/categories/khai-truong" class="nav-link">Hoa khai trương</a>
-          <a href="/categories/chia-buon" class="nav-link">Hoa chia buồn</a>
-        </nav>
+                <!-- Products column -->
+                <div class="col-md-2 col-lg-2 col-xl-2 mx-auto mb-4">
+                    <h6 class="text-uppercase fw-bold mb-4">Sản phẩm</h6>
+                    <hr class="footer-divider mb-4 mt-0 d-inline-block mx-auto">
+                    <p><a href="/products?category=sinh-nhat" class="footer-link">Hoa sinh nhật</a></p>
+                    <p><a href="/products?category=tinh-yeu" class="footer-link">Hoa tình yêu</a></p>
+                    <p><a href="/products?category=cuoi" class="footer-link">Hoa cưới</a></p>
+                    <p><a href="/products?category=khai-truong" class="footer-link">Hoa khai trương</a></p>
+                    <p><a href="/products?category=chia-buon" class="footer-link">Hoa chia buồn</a></p>
                 </div>
 
-      <!-- Column 2: Support -->
-      <div class="footer-column">
-        <h4 class="column-title">Hỗ trợ</h4>
-        <nav class="column-nav">
-          <a href="/help/shipping" class="nav-link">Chính sách giao hàng</a>
-          <a href="/help/returns" class="nav-link">Đổi trả & hoàn tiền</a>
-          <a href="/help/care" class="nav-link">Hướng dẫn chăm sóc</a>
-          <a href="/help/faq" class="nav-link">Câu hỏi thường gặp</a>
-          <a href="/contact" class="nav-link">Liên hệ hỗ trợ</a>
-        </nav>
+                <!-- Useful links column -->
+                <div class="col-md-3 col-lg-2 col-xl-2 mx-auto mb-4">
+                    <h6 class="text-uppercase fw-bold mb-4">Liên kết hữu ích</h6>
+                    <hr class="footer-divider mb-4 mt-0 d-inline-block mx-auto">
+                    <p><a href="/account/profile" class="footer-link">Tài khoản của bạn</a></p>
+                    <p><a href="/help/shipping" class="footer-link">Chính sách giao hàng</a></p>
+                    <p><a href="/help/returns" class="footer-link">Đổi trả & hoàn tiền</a></p>
+                    <p><a href="/help/care" class="footer-link">Hướng dẫn chăm sóc hoa</a></p>
+                    <p><a href="/help/faq" class="footer-link">Câu hỏi thường gặp</a></p>
                 </div>
 
-      <!-- Column 3: Newsletter -->
-      <div class="footer-column">
-        <h4 class="column-title">Nhận ưu đãi</h4>
-        <p class="column-desc">Đăng ký nhận thông tin khuyến mãi</p>
-                            <form class="newsletter-form" action="/newsletter/subscribe" method="POST">
-                                <div class="input-group">
-                                    <input type="email" 
-                                           name="email" 
-                   class="newsletter-input" 
-                                           placeholder="Email của bạn..."
-                                           required>
-            <button type="submit" class="newsletter-btn">
-              Đăng ký
-                                    </button>
-                                </div>
-                            </form>
+                <!-- Contact & Social column -->
+                <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mb-md-0 mb-4">
+                    <h6 class="text-uppercase fw-bold mb-4">Liên hệ & Kết nối</h6>
+                    <hr class="footer-divider mb-4 mt-0 d-inline-block mx-auto">
+                    
+                    <!-- Contact Info -->
+                    <p><i class="bi bi-geo-alt me-3"></i> 123 Nguyễn Huệ, Quận 1, TP.HCM</p>
+                    <p><i class="bi bi-envelope me-3"></i> hello@starshop.vn</p>
+                    <p><i class="bi bi-telephone me-3"></i> + 84 901 234 567</p>
+                    <p><i class="bi bi-printer me-3"></i> + 84 901 234 568</p>
+                    
+                    <!-- Business hours -->
+                    <div class="mt-4 mb-4">
+                        <h6 class="fw-bold mb-2">Giờ làm việc:</h6>
+                        <p class="mb-1"><small>Thứ 2 - Thứ 6: 8:00 - 20:00</small></p>
+                        <p class="mb-1"><small>Thứ 7 - Chủ nhật: 9:00 - 18:00</small></p>
+                    </div>
+                    
+                    <!-- Social Media -->
+                    <div class="social-media-section">
+                        <h6 class="fw-bold mb-3">Theo dõi chúng tôi:</h6>
+                        <div class="social-links d-flex gap-3">
+                            <a href="https://facebook.com/starshop" class="social-link facebook" target="_blank" rel="noopener" title="Facebook">
+                                <i class="bi bi-facebook"></i>
+                            </a>
+                            <a href="https://twitter.com/starshop" class="social-link twitter" target="_blank" rel="noopener" title="Twitter">
+                                <i class="bi bi-twitter"></i>
+                            </a>
+                            <a href="https://instagram.com/starshop" class="social-link instagram" target="_blank" rel="noopener" title="Instagram">
+                                <i class="bi bi-instagram"></i>
+                            </a>
+                            <a href="https://tiktok.com/@starshop" class="social-link tiktok" target="_blank" rel="noopener" title="TikTok">
+                                <i class="bi bi-tiktok"></i>
+                            </a>
+                            <a href="https://youtube.com/@starshop" class="social-link youtube" target="_blank" rel="noopener" title="YouTube">
+                                <i class="bi bi-youtube"></i>
+                            </a>
                         </div>
-
-      <!-- Column 4: Contact & Social -->
-      <div class="footer-column">
-        <h4 class="column-title">Liên hệ</h4>
-        <div class="contact-info">
-          <div class="contact-item">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0Z"/>
-              <circle cx="12" cy="10" r="3"/>
-            </svg>
-            <span>123 Nguyễn Huệ, Q.1, TP.HCM</span>
-          </div>
-          <div class="contact-item">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.09 4.2 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.63 2.63a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.45-1.19a2 2 0 0 1 2.11-.45c.85.3 1.73.51 2.63.63A2 2 0 0 1 22 16.92z"/>
-            </svg>
-            <a href="tel:+84901234567" class="contact-link">0901.234.567</a>
-          </div>
-          <div class="contact-item">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M4 4h16v16H4z"/><path d="m22 6-10 7L2 6"/>
-            </svg>
-            <a href="mailto:hello@starshop.vn" class="contact-link">hello@starshop.vn</a>
-                            </div>
-                        </div>
-
-        <div class="social-section">
-          <p class="social-label">Theo dõi chúng tôi</p>
-          <div class="social-links">
-            <a href="https://facebook.com/starshop" class="social-link facebook" target="_blank" rel="noopener" title="Facebook">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-              </svg>
-            </a>
-            <a href="https://instagram.com/starshop" class="social-link instagram" target="_blank" rel="noopener" title="Instagram">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-              </svg>
-            </a>
-            <a href="https://tiktok.com/@starshop" class="social-link tiktok" target="_blank" rel="noopener" title="TikTok">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
-              </svg>
-            </a>
-            <a href="https://youtube.com/@starshop" class="social-link youtube" target="_blank" rel="noopener" title="YouTube">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.30 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-              </svg>
-            </a>
-            </div>
-        </div>
-    </div>
-
-        </div>
-    </div>
-
-  <!-- Divider -->
-  <div class="footer-divider"></div>
-
-    <!-- Footer Bottom -->
-  <div class="footer-container">
-    <div class="footer-bottom">
-      <div class="bottom-row">
-        <div class="bottom-meta">&copy; <span th:text="${#dates.year(#dates.createNow())}">2024</span> StarShop. Tất cả quyền được bảo lưu.</div>
-        <div class="bottom-legal">
-          <a href="/legal/privacy">Chính sách bảo mật</a>
-          <span class="dot">·</span>
-          <a href="/legal/terms">Điều khoản sử dụng</a>
+                    </div>
                 </div>
             </div>
         </div>
+    </section>
+
+    <!-- Copyright section -->
+    <div class="copyright-section text-center p-4">
+        © <span th:text="${#dates.year(#dates.createNow())}">2025</span> Bản quyền thuộc về:
+        <a class="fw-bold" href="/">StarShop.vn</a>
+        <span class="mx-2">|</span>
+        <a href="/legal/privacy">Chính sách bảo mật</a>
+        <span class="mx-2">|</span>
+        <a href="/legal/terms">Điều khoản sử dụng</a>
     </div>
 </footer>
 
