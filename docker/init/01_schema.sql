@@ -30,6 +30,7 @@ CREATE TABLE Users (
     cover VARCHAR(255) DEFAULT NULL,
     role user_role NOT NULL DEFAULT 'customer',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CHECK (LENGTH(password) >= 8)
 );
 
@@ -45,6 +46,7 @@ CREATE TABLE Addresses (
     city VARCHAR(100) NOT NULL,
     province VARCHAR(100) NOT NULL,
     is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
 );
 
@@ -95,6 +97,7 @@ CREATE TABLE AttributeValues (
     value VARCHAR(255) NOT NULL,
     FOREIGN KEY (attribute_id) REFERENCES ProductAttributes(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES Products(id) ON DELETE CASCADE,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (attribute_id, product_id, value)
 );
 
@@ -107,6 +110,7 @@ CREATE TABLE DeliveryUnits (
     name VARCHAR(100) UNIQUE NOT NULL,
     fee NUMERIC(10,2) NOT NULL DEFAULT 0.00,
     estimated_time VARCHAR(50) DEFAULT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CHECK (fee >= 0)
 );
 
@@ -123,7 +127,9 @@ CREATE TABLE Vouchers (
     max_uses INTEGER DEFAULT NULL,
     uses INTEGER NOT NULL DEFAULT 0,
     CHECK (discount_value > 0),
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CHECK (max_uses IS NULL OR uses <= max_uses)
+
 );
 
 COMMENT ON TABLE Vouchers IS 'Discount vouchers';
@@ -140,6 +146,7 @@ CREATE TABLE Orders (
     voucher_id BIGINT DEFAULT NULL,
     address_id BIGINT NOT NULL,
     payment_method payment_method NOT NULL DEFAULT 'cash_on_delivery',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Users(id),
     FOREIGN KEY (delivery_unit_id) REFERENCES DeliveryUnits(id),
     FOREIGN KEY (voucher_id) REFERENCES Vouchers(id),
@@ -159,6 +166,7 @@ CREATE TABLE OrderItems (
     product_id BIGINT NOT NULL,
     quantity INTEGER NOT NULL DEFAULT 1,
     price NUMERIC(10,2) NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES Orders(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES Products(id),
     CHECK (quantity > 0)
@@ -182,6 +190,7 @@ CREATE TABLE CartItems (
     cart_id BIGINT NOT NULL,
     product_id BIGINT NOT NULL,
     quantity INTEGER NOT NULL DEFAULT 1,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (cart_id) REFERENCES Carts(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES Products(id),
     CHECK (quantity > 0),
@@ -199,6 +208,7 @@ CREATE TABLE Reviews (
     rating SMALLINT NOT NULL,
     comment TEXT DEFAULT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Users(id),
     FOREIGN KEY (product_id) REFERENCES Products(id) ON DELETE CASCADE,
     CHECK (rating BETWEEN 1 AND 5)
@@ -213,6 +223,7 @@ CREATE TABLE Follows (
     user_id BIGINT NOT NULL,
     product_id BIGINT NOT NULL,
     followed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Users(id),
     FOREIGN KEY (product_id) REFERENCES Products(id) ON DELETE CASCADE,
     UNIQUE (user_id, product_id)
@@ -229,6 +240,7 @@ CREATE TABLE Messages (
     content TEXT NOT NULL,
     sent_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sender_id) REFERENCES Users(id),
     FOREIGN KEY (receiver_id) REFERENCES Users(id)
 );
@@ -246,6 +258,7 @@ CREATE TABLE Transactions (
     type transaction_type NOT NULL,
     status transaction_status NOT NULL DEFAULT 'failed',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Users(id),
     FOREIGN KEY (order_id) REFERENCES Orders(id),
     CHECK (amount > 0)
