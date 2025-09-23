@@ -32,7 +32,7 @@
     <section class="products-header">
         <div class="container">
             <div class="header-content">
-                <div class="header-text">
+                <div class="header-text" data-aos="fade-up" data-aos-duration="800">
                     <h1 class="page-title">
                         <span th:if="${searchQuery != null}">
                             Kết quả tìm kiếm: <span class="search-term" th:text="${searchQuery}">keyword</span>
@@ -50,7 +50,7 @@
                 </div>
                 
                 <!-- Search & Filter Bar -->
-                <div class="header-actions">
+                <div class="header-actions" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
                     <div class="search-section">
                         <form class="search-form" action="/products" method="GET">
                             <div class="search-input-group">
@@ -77,7 +77,7 @@
         <div class="container">
             <div class="toolbar-content">
                 <!-- Results Info -->
-                <div class="results-info">
+                <div class="results-info" data-aos="fade-up" data-aos-duration="600">
                     <span class="results-text">
                         Hiển thị 
                         <strong th:text="${(currentPage * pageSize) + 1}">1</strong>-<strong th:text="${#lists.size(products) + (currentPage * pageSize)}">12</strong> 
@@ -86,7 +86,7 @@
                 </div>
 
                 <!-- Sort & View Options -->
-                <div class="toolbar-actions">
+                <div class="toolbar-actions" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
                     <!-- Sort Dropdown -->
                     <div class="sort-section">
                         <label for="sortSelect" class="sort-label">Sắp xếp:</label>
@@ -139,7 +139,12 @@
 
             <!-- Products Grid -->
             <div th:unless="${#lists.isEmpty(products)}" class="products-grid" id="productsGrid">
-                <div th:each="product : ${products}" class="product-card" th:data-product-id="${product.id}">
+                <div th:each="product, iterStat : ${products}" 
+                     class="product-card" 
+                     th:data-product-id="${product.id}"
+                     data-aos="fade-up" 
+                     data-aos-duration="600" 
+                     th:data-aos-delay="${iterStat.index * 100}">
                     <div class="product-image-container">
                         <a th:href="@{/products/{id}(id=${product.id})}" class="product-image-link">
                             <img th:src="${product.image != null ? product.image : '/images/products/default-flower.jpg'}" 
@@ -220,7 +225,7 @@
     </section>
 
     <!-- Pagination -->
-    <nav th:if="${totalPages > 1}" class="pagination-nav" aria-label="Phân trang sản phẩm">
+    <nav th:if="${totalPages > 1}" class="pagination-nav" aria-label="Phân trang sản phẩm" data-aos="fade-up" data-aos-duration="600">
         <div class="container">
             <div class="pagination-wrapper">
                 <ul class="pagination">

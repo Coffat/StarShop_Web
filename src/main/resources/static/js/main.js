@@ -1,6 +1,9 @@
 // StarShop Main JavaScript
 document.addEventListener('DOMContentLoaded', function() {
     
+    // Initialize AOS (Animate On Scroll) first
+    initializeAOS();
+    
     // Initialize all components
     initializeHeader();
     initializeSearch();
@@ -17,51 +20,134 @@ document.addEventListener('DOMContentLoaded', function() {
     
 });
 
-// Header functionality
+// AOS (Animate On Scroll) initialization
+function initializeAOS() {
+    // Check if AOS is available
+    if (typeof AOS !== 'undefined') {
+        // Detect device capabilities
+        const isMobile = window.innerWidth < 768;
+        const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        
+        // Skip AOS if user prefers reduced motion
+        if (prefersReducedMotion) {
+            console.log('AOS disabled: User prefers reduced motion');
+            return;
+        }
+        
+        AOS.init({
+            // Global settings
+            duration: isMobile ? 600 : 800,   // Shorter duration on mobile
+            easing: 'ease-out-cubic',         // Smooth easing
+            once: false,                       // Animation happens only once
+            mirror: false,                    // Don't mirror animation on scroll up
+            anchorPlacement: 'top-bottom',    // When element triggers animation
+            
+            // Performance settings
+            disable: isMobile,                // Disable on mobile for better performance
+            startEvent: 'DOMContentLoaded',   // Event to start AOS
+            initClassName: 'aos-init',        // Class added after initialization
+            animatedClassName: 'aos-animate', // Class added on animation
+            useClassNames: false,             // Use data-aos-* as class names
+            disableMutationObserver: isMobile, // Disable on mobile for performance
+            debounceDelay: isMobile ? 100 : 50, // Longer debounce on mobile
+            throttleDelay: isMobile ? 150 : 99, // Longer throttle on mobile
+            
+            // Responsive settings
+            offset: isMobile ? 80 : 120,      // Smaller offset on mobile
+            delay: 0,                         // Delay before animation starts
+            anchor: null,                     // Anchor element for offset
+            placement: 'top-bottom',          // Placement of element
+        });
+        
+        // Only add event listeners if AOS is enabled
+        if (!isMobile) {
+            // Refresh AOS when new content is loaded
+            window.addEventListener('load', function() {
+                AOS.refresh();
+            });
+            
+            // Refresh AOS on window resize with throttling
+            let resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(function() {
+                    // Re-initialize AOS with new settings if screen size changes significantly
+                    const newIsMobile = window.innerWidth < 768;
+                    if (newIsMobile !== isMobile) {
+                        AOS.refresh();
+                    }
+                }, 250);
+            });
+            
+            // Handle reduced motion preference changes
+            window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', function(e) {
+                if (e.matches) {
+                    AOS.refresh();
+                }
+            });
+        }
+        
+        console.log(`AOS initialized successfully - Mobile: ${isMobile}, Tablet: ${isTablet}, Reduced Motion: ${prefersReducedMotion}`);
+    } else {
+        console.warn('AOS library not loaded');
+    }
+}
+
+
+// Simple Header functionality - No effects
 function initializeHeader() {
     const header = document.querySelector('.header-wrapper');
-    const topBar = document.querySelector('.top-bar');
     
     if (!header) return;
     
-    // Sticky header on scroll
-    let lastScrollTop = 0;
-    let headerHeight = header.offsetHeight;
+    // Fix dropdown positioning issues
+    fixDropdownPositioning();
     
-    window.addEventListener('scroll', function() {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        
-        // Add/remove scrolled class
-        if (scrollTop > 50) {
-            header.classList.add('scrolled');
-        } else {
-            header.classList.remove('scrolled');
-        }
-        
-        // Hide/show header on scroll
-        if (scrollTop > headerHeight) {
-            if (scrollTop > lastScrollTop) {
-                // Scrolling down
-                header.classList.add('header-hidden');
-            } else {
-                // Scrolling up
-                header.classList.remove('header-hidden');
+    console.log('Simple header initialized - no scroll effects');
+}
+
+// Fix dropdown positioning issues
+function fixDropdownPositioning() {
+    // Fix Bootstrap dropdown positioning for header dropdowns
+    document.addEventListener('shown.bs.dropdown', function(event) {
+        const dropdown = event.target.closest('.dropdown');
+        if (dropdown && dropdown.closest('.header-wrapper')) {
+            const menu = dropdown.querySelector('.dropdown-menu');
+            if (menu) {
+                // Add a class to force our CSS overrides
+                menu.classList.add('header-dropdown-fixed');
+                
+                // Force reflow to ensure positioning works
+                menu.offsetHeight;
+                
+                // Double-check positioning after a short delay
+                setTimeout(() => {
+                    if (menu.classList.contains('show')) {
+                        menu.style.transform = 'none';
+                        menu.style.position = 'absolute';
+                        menu.style.top = '100%';
+                        menu.style.right = '0';
+                        menu.style.left = 'auto';
+                        menu.style.zIndex = '1060';
+                        menu.style.overflow = 'visible';
+                    }
+                }, 10);
             }
         }
-        
-        lastScrollTop = scrollTop;
     });
     
-    // Hide top bar on mobile scroll
-    if (window.innerWidth <= 768 && topBar) {
-        window.addEventListener('scroll', function() {
-            if (window.pageYOffset > 100) {
-                topBar.style.transform = 'translateY(-100%)';
-            } else {
-                topBar.style.transform = 'translateY(0)';
+    // Also fix on hide to reset any Bootstrap positioning
+    document.addEventListener('hidden.bs.dropdown', function(event) {
+        const dropdown = event.target.closest('.dropdown');
+        if (dropdown && dropdown.closest('.header-wrapper')) {
+            const menu = dropdown.querySelector('.dropdown-menu');
+            if (menu) {
+                // Remove our fix class
+                menu.classList.remove('header-dropdown-fixed');
             }
-        });
-    }
+        }
+    });
 }
 
 // Search functionality

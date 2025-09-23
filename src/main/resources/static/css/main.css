@@ -2,6 +2,101 @@
    StarShop Main CSS - Unified Design System
    ================================ */
 
+/* AOS Custom Styles & Optimizations */
+/* ================================ */
+
+/* Smooth transitions for AOS elements */
+[data-aos] {
+    transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Optimize AOS performance on mobile */
+@media (max-width: 767px) {
+    [data-aos] {
+        /* Disable animations on mobile for better performance */
+        transition: none !important;
+        animation: none !important;
+        transform: none !important;
+        opacity: 1 !important;
+    }
+    
+    /* Ensure elements are visible on mobile */
+    [data-aos].aos-animate {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    [data-aos] {
+        transition: none !important;
+        animation: none !important;
+        transform: none !important;
+        opacity: 1 !important;
+    }
+    
+    [data-aos].aos-animate {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
+
+/* Custom AOS animations for better UX */
+[data-aos="fade-up"] {
+    opacity: 0;
+    transform: translate3d(0, 30px, 0);
+}
+
+[data-aos="fade-up"].aos-animate {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+}
+
+[data-aos="fade-left"] {
+    opacity: 0;
+    transform: translate3d(-30px, 0, 0);
+}
+
+[data-aos="fade-left"].aos-animate {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+}
+
+[data-aos="fade-right"] {
+    opacity: 0;
+    transform: translate3d(30px, 0, 0);
+}
+
+[data-aos="fade-right"].aos-animate {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+}
+
+[data-aos="zoom-in"] {
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+[data-aos="zoom-in"].aos-animate {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Performance optimizations */
+[data-aos] {
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* Ensure smooth scrolling doesn't interfere with AOS */
+html {
+    scroll-behavior: smooth;
+}
+
+/* ================================
+
 /* CSS Variables - Brand Colors & Design Tokens */
 :root {
     /* Primary Brand Colors - Pink Pastel Palette */
