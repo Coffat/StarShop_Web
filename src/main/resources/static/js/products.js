@@ -164,13 +164,13 @@
                 
                 // Update grid class with animation
                 if (view === 'list') {
-                    productsGrid.style.opacity = '0.7';
+                    productsGrid.style.opacity = '1';
                     setTimeout(() => {
                         productsGrid.classList.add('products-list-view');
                         productsGrid.style.opacity = '1';
                     }, 150);
                 } else {
-                    productsGrid.style.opacity = '0.7';
+                    productsGrid.style.opacity = '1';
                     setTimeout(() => {
                         productsGrid.classList.remove('products-list-view');
                         productsGrid.style.opacity = '1';

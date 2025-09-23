@@ -528,7 +528,7 @@ p, body { font-size: 1rem; line-height: 1.6; }
    ================================ */
 
 .promotion-section {
-    background: var(--primary-light);
+    background: linear-gradient(135deg, rgb(253, 248, 245) 0%, rgba(248, 187, 217, 0.3) 50%, rgba(232, 245, 232, 0.2) 100%);
 }
 
 .promotion-banner {
@@ -543,13 +543,42 @@ p, body { font-size: 1rem; line-height: 1.6; }
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background: var(--primary);
+    background: linear-gradient(135deg, #ec407a 0%, #e91e63 50%, #ad1457 100%);
     color: var(--white);
-    padding: 0.5rem 1rem;
-    border-radius: 25px;
-    font-size: 0.9rem;
-    font-weight: var(--font-weight-medium);
-    margin-bottom: 1rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(236, 64, 122, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.promotion-badge::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.promotion-badge:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(236, 64, 122, 0.4);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.promotion-badge:hover::before {
+    left: 100%;
 }
 
 .promotion-title {
