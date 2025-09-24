@@ -120,7 +120,7 @@ public class SecurityConfig {
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/")
+                .logoutSuccessUrl("/login")
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
                 .deleteCookies("authToken", "JSESSIONID", "SPRING_SECURITY_REMEMBER_ME_COOKIE")

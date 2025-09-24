@@ -1,0 +1,760 @@
+{
+  "jpa_entities_info": {
+    "framework": "Spring Boot 3.5.5 with JPA/Hibernate",
+    "database": "PostgreSQL 15",
+    "auditing": "JPA Auditing enabled for created_at/updated_at",
+    "description": "JPA Entity mapping for Flower Shop System"
+  },
+  "base_entity": {
+    "name": "BaseEntity",
+    "description": "Abstract base class for all entities with common fields",
+    "fields": {
+      "id": {
+        "type": "Long",
+        "annotations": ["@Id", "@GeneratedValue(strategy = GenerationType.IDENTITY)"],
+        "description": "Primary key"
+      },
+      "createdAt": {
+        "type": "LocalDateTime",
+        "annotations": ["@CreatedDate", "@Column(name = \"created_at\", nullable = false, updatable = false)"],
+        "description": "Creation timestamp managed by JPA Auditing"
+      },
+      "updatedAt": {
+        "type": "LocalDateTime", 
+        "annotations": ["@LastModifiedDate", "@Column(name = \"updated_at\")"],
+        "description": "Last modification timestamp managed by JPA Auditing"
+      }
+    }
+  },
+  "enums": {
+    "UserRole": {
+      "package": "com.example.demo.entity.enums",
+      "values": ["CUSTOMER", "STAFF", "ADMIN"],
+      "description": "User roles in the system"
+    },
+    "OrderStatus": {
+      "package": "com.example.demo.entity.enums", 
+      "values": ["PENDING", "PROCESSING", "SHIPPED", "COMPLETED", "CANCELLED"],
+      "description": "Order processing status"
+    },
+    "DiscountType": {
+      "package": "com.example.demo.entity.enums",
+      "values": ["PERCENTAGE", "FIXED"],
+      "description": "Types of discount calculation"
+    },
+    "PaymentMethod": {
+      "package": "com.example.demo.entity.enums",
+      "values": ["CASH_ON_DELIVERY", "CREDIT_CARD", "BANK_TRANSFER", "WALLET"],
+      "description": "Available payment methods"
+    },
+    "TransactionType": {
+      "package": "com.example.demo.entity.enums",
+      "values": ["PAYMENT", "REFUND"],
+      "description": "Transaction types"
+    },
+    "TransactionStatus": {
+      "package": "com.example.demo.entity.enums",
+      "values": ["SUCCESS", "FAILED"],
+      "description": "Transaction processing status"
+    },
+    "ProductStatus": {
+      "package": "com.example.demo.entity.enums",
+      "values": ["ACTIVE", "INACTIVE", "OUT_OF_STOCK", "DISCONTINUED"],
+      "description": "Product availability status"
+    }
+  },
+  "entities": {
+    "User": {
+      "table": "users",
+      "extends": "BaseEntity",
+      "description": "User information including customers, staff, and admins",
+      "fields": {
+        "firstName": {
+          "type": "String",
+          "annotations": ["@Column(nullable = false, length = 100)"],
+          "description": "User's first name"
+        },
+        "lastName": {
+          "type": "String", 
+          "annotations": ["@Column(nullable = false, length = 100)"],
+          "description": "User's last name"
+        },
+        "email": {
+          "type": "String",
+          "annotations": ["@Column(unique = true, nullable = false)"],
+          "description": "User's email address"
+        },
+        "password": {
+          "type": "String",
+          "annotations": ["@Column(nullable = false)"],
+          "description": "Encrypted password"
+        },
+        "phone": {
+          "type": "String",
+          "annotations": ["@Column(unique = true, nullable = false, length = 20)"],
+          "description": "User's phone number"
+        },
+        "avatar": {
+          "type": "String",
+          "annotations": ["@Column"],
+          "description": "User's avatar image URL"
+        },
+        "role": {
+          "type": "UserRole",
+          "annotations": ["@Enumerated(EnumType.STRING)", "@Column(nullable = false)"],
+          "description": "User's role in the system"
+        }
+      },
+      "relationships": {
+        "addresses": {
+          "type": "OneToMany",
+          "target": "Address",
+          "mappedBy": "user",
+          "cascade": "CascadeType.ALL",
+          "fetch": "FetchType.LAZY"
+        },
+        "orders": {
+          "type": "OneToMany", 
+          "target": "Order",
+          "mappedBy": "user",
+          "fetch": "FetchType.LAZY"
+        },
+        "cart": {
+          "type": "OneToOne",
+          "target": "Cart",
+          "mappedBy": "user",
+          "fetch": "FetchType.LAZY"
+        },
+        "reviews": {
+          "type": "OneToMany",
+          "target": "Review", 
+          "mappedBy": "user",
+          "fetch": "FetchType.LAZY"
+        },
+        "follows": {
+          "type": "OneToMany",
+          "target": "Follow",
+          "mappedBy": "user", 
+          "fetch": "FetchType.LAZY"
+        },
+        "sentMessages": {
+          "type": "OneToMany",
+          "target": "Message",
+          "mappedBy": "sender",
+          "fetch": "FetchType.LAZY"
+        },
+        "receivedMessages": {
+          "type": "OneToMany",
+          "target": "Message",
+          "mappedBy": "receiver",
+          "fetch": "FetchType.LAZY"
+        },
+        "transactions": {
+          "type": "OneToMany",
+          "target": "Transaction",
+          "mappedBy": "user",
+          "fetch": "FetchType.LAZY"
+        },
+        "timeSheets": {
+          "type": "OneToMany",
+          "target": "TimeSheet",
+          "mappedBy": "staff",
+          "fetch": "FetchType.LAZY"
+        }
+      }
+    },
+    "Address": {
+      "table": "addresses",
+      "extends": "BaseEntity",
+      "description": "User delivery addresses",
+      "fields": {
+        "user": {
+          "type": "User",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"user_id\", nullable = false)"],
+          "description": "Owner of the address"
+        },
+        "street": {
+          "type": "String",
+          "annotations": ["@Column(nullable = false)"],
+          "description": "Street address"
+        },
+        "city": {
+          "type": "String",
+          "annotations": ["@Column(nullable = false, length = 100)"],
+          "description": "City name"
+        },
+        "province": {
+          "type": "String",
+          "annotations": ["@Column(nullable = false, length = 100)"],
+          "description": "Province/state name"
+        },
+        "isDefault": {
+          "type": "Boolean",
+          "annotations": ["@Column(nullable = false)"],
+          "default": "false",
+          "description": "Whether this is the default address"
+        }
+      }
+    },
+    "Product": {
+      "table": "products",
+      "extends": "BaseEntity",
+      "description": "Flower products catalog",
+      "fields": {
+        "name": {
+          "type": "String",
+          "annotations": ["@Column(nullable = false)"],
+          "description": "Product name"
+        },
+        "description": {
+          "type": "String",
+          "annotations": ["@Column(columnDefinition = \"TEXT\")"],
+          "description": "Product description"
+        },
+        "price": {
+          "type": "BigDecimal",
+          "annotations": ["@Column(nullable = false, precision = 10, scale = 2)"],
+          "default": "BigDecimal.ZERO",
+          "description": "Product price"
+        },
+        "image": {
+          "type": "String",
+          "annotations": ["@Column"],
+          "description": "Product image URL"
+        },
+        "stockQuantity": {
+          "type": "Integer",
+          "annotations": ["@Column(name = \"stock_quantity\")"],
+          "default": "0",
+          "description": "Available stock quantity"
+        },
+        "status": {
+          "type": "ProductStatus",
+          "annotations": ["@Enumerated(EnumType.STRING)", "@Column(nullable = true)", "@JdbcTypeCode(SqlTypes.NAMED_ENUM)"],
+          "default": "ProductStatus.ACTIVE",
+          "description": "Product availability status"
+        }
+      },
+      "relationships": {
+        "attributeValues": {
+          "type": "OneToMany",
+          "target": "AttributeValue",
+          "mappedBy": "product",
+          "cascade": "CascadeType.ALL",
+          "fetch": "FetchType.LAZY"
+        },
+        "orderItems": {
+          "type": "OneToMany",
+          "target": "OrderItem",
+          "mappedBy": "product",
+          "fetch": "FetchType.LAZY"
+        },
+        "cartItems": {
+          "type": "OneToMany",
+          "target": "CartItem",
+          "mappedBy": "product",
+          "fetch": "FetchType.LAZY"
+        },
+        "reviews": {
+          "type": "OneToMany",
+          "target": "Review",
+          "mappedBy": "product",
+          "fetch": "FetchType.LAZY"
+        },
+        "follows": {
+          "type": "OneToMany",
+          "target": "Follow",
+          "mappedBy": "product",
+          "fetch": "FetchType.LAZY"
+        }
+      },
+      "methods": {
+        "isInStock": "Returns true if stock quantity > 0",
+        "isLowStock": "Returns true if stock quantity <= threshold",
+        "isAvailable": "Returns true if status is ACTIVE and in stock",
+        "updateStatusBasedOnStock": "Automatically updates status based on stock quantity"
+      }
+    },
+    "ProductAttribute": {
+      "table": "productattributes",
+      "extends": "BaseEntity",
+      "description": "Product attribute types (e.g., color, size)",
+      "fields": {
+        "name": {
+          "type": "String",
+          "annotations": ["@Column(nullable = false, unique = true, length = 100)"],
+          "description": "Attribute name"
+        }
+      },
+      "relationships": {
+        "attributeValues": {
+          "type": "OneToMany",
+          "target": "AttributeValue",
+          "mappedBy": "attribute",
+          "cascade": "CascadeType.ALL",
+          "fetch": "FetchType.LAZY"
+        }
+      }
+    },
+    "AttributeValue": {
+      "table": "attributevalues",
+      "extends": "BaseEntity",
+      "description": "Specific values for product attributes",
+      "fields": {
+        "attribute": {
+          "type": "ProductAttribute",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"attribute_id\", nullable = false)"],
+          "description": "The attribute this value belongs to"
+        },
+        "product": {
+          "type": "Product",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"product_id\", nullable = false)"],
+          "description": "The product this value belongs to"
+        },
+        "value": {
+          "type": "String",
+          "annotations": ["@Column(nullable = false)"],
+          "description": "The attribute value"
+        }
+      }
+    },
+    "DeliveryUnit": {
+      "table": "deliveryunits",
+      "extends": "BaseEntity",
+      "description": "Delivery service providers",
+      "fields": {
+        "name": {
+          "type": "String",
+          "annotations": ["@Column(nullable = false, unique = true, length = 100)"],
+          "description": "Delivery unit name"
+        },
+        "fee": {
+          "type": "BigDecimal",
+          "annotations": ["@Column(nullable = false, precision = 10, scale = 2)"],
+          "default": "BigDecimal.ZERO",
+          "description": "Delivery fee"
+        },
+        "estimatedTime": {
+          "type": "String",
+          "annotations": ["@Column(length = 50)"],
+          "description": "Estimated delivery time"
+        },
+        "isActive": {
+          "type": "Boolean",
+          "annotations": ["@Column(name = \"is_active\")"],
+          "default": "true",
+          "description": "Whether the delivery unit is active"
+        }
+      }
+    },
+    "Voucher": {
+      "table": "vouchers",
+      "extends": "BaseEntity",
+      "description": "Discount vouchers",
+      "fields": {
+        "code": {
+          "type": "String",
+          "annotations": ["@Column(nullable = false, unique = true, length = 50)"],
+          "description": "Voucher code"
+        },
+        "discountValue": {
+          "type": "BigDecimal",
+          "annotations": ["@Column(nullable = false, precision = 10, scale = 2)"],
+          "description": "Discount value"
+        },
+        "discountType": {
+          "type": "DiscountType",
+          "annotations": ["@Enumerated(EnumType.STRING)", "@Column(nullable = false)"],
+          "description": "Type of discount"
+        },
+        "expiryDate": {
+          "type": "LocalDate",
+          "annotations": ["@Column(nullable = false)"],
+          "description": "Voucher expiry date"
+        },
+        "minimumOrderAmount": {
+          "type": "BigDecimal",
+          "annotations": ["@Column(precision = 10, scale = 2)"],
+          "default": "BigDecimal.ZERO",
+          "description": "Minimum order amount to use voucher"
+        },
+        "maxUses": {
+          "type": "Integer",
+          "annotations": ["@Column"],
+          "description": "Maximum number of uses"
+        },
+        "uses": {
+          "type": "Integer",
+          "annotations": ["@Column(nullable = false)"],
+          "default": "0",
+          "description": "Current number of uses"
+        },
+        "isActive": {
+          "type": "Boolean",
+          "annotations": ["@Column(name = \"is_active\")"],
+          "default": "true",
+          "description": "Whether the voucher is active"
+        }
+      },
+      "methods": {
+        "isValid": "Returns true if voucher is active, not expired, and within usage limits"
+      }
+    },
+    "Order": {
+      "table": "orders",
+      "extends": "BaseEntity",
+      "description": "Customer orders with status and payment info",
+      "fields": {
+        "user": {
+          "type": "User",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"user_id\", nullable = false)"],
+          "description": "Order owner"
+        },
+        "totalAmount": {
+          "type": "BigDecimal",
+          "annotations": ["@Column(nullable = false, precision = 10, scale = 2)"],
+          "default": "BigDecimal.ZERO",
+          "description": "Total order amount"
+        },
+        "status": {
+          "type": "OrderStatus",
+          "annotations": ["@Enumerated(EnumType.STRING)", "@Column(nullable = false)"],
+          "default": "OrderStatus.PENDING",
+          "description": "Order status"
+        },
+        "orderDate": {
+          "type": "LocalDateTime",
+          "annotations": ["@Column(nullable = false)"],
+          "default": "LocalDateTime.now()",
+          "description": "Order date"
+        },
+        "deliveryUnit": {
+          "type": "DeliveryUnit",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"delivery_unit_id\")"],
+          "description": "Delivery service"
+        },
+        "voucher": {
+          "type": "Voucher",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"voucher_id\")"],
+          "description": "Applied voucher"
+        },
+        "address": {
+          "type": "Address",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"address_id\", nullable = false)"],
+          "description": "Delivery address"
+        },
+        "paymentMethod": {
+          "type": "PaymentMethod",
+          "annotations": ["@Enumerated(EnumType.STRING)", "@Column(nullable = false)"],
+          "default": "PaymentMethod.CASH_ON_DELIVERY",
+          "description": "Payment method"
+        },
+        "notes": {
+          "type": "String",
+          "annotations": ["@Column(columnDefinition = \"TEXT\")"],
+          "description": "Order notes"
+        }
+      },
+      "relationships": {
+        "orderItems": {
+          "type": "OneToMany",
+          "target": "OrderItem",
+          "mappedBy": "order",
+          "cascade": "CascadeType.ALL",
+          "fetch": "FetchType.LAZY"
+        },
+        "transactions": {
+          "type": "OneToMany",
+          "target": "Transaction",
+          "mappedBy": "order",
+          "fetch": "FetchType.LAZY"
+        }
+      }
+    },
+    "OrderItem": {
+      "table": "orderitems",
+      "extends": "BaseEntity",
+      "description": "Items within an order",
+      "fields": {
+        "order": {
+          "type": "Order",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"order_id\", nullable = false)"],
+          "description": "Parent order"
+        },
+        "product": {
+          "type": "Product",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"product_id\", nullable = false)"],
+          "description": "Product in the order"
+        },
+        "quantity": {
+          "type": "Integer",
+          "annotations": ["@Column(nullable = false)"],
+          "default": "1",
+          "description": "Quantity ordered"
+        },
+        "price": {
+          "type": "BigDecimal",
+          "annotations": ["@Column(nullable = false, precision = 10, scale = 2)"],
+          "description": "Price at time of order"
+        }
+      },
+      "methods": {
+        "getSubtotal": "Returns quantity * price"
+      }
+    },
+    "Cart": {
+      "table": "carts",
+      "extends": "BaseEntity",
+      "description": "User shopping carts",
+      "fields": {
+        "user": {
+          "type": "User",
+          "annotations": ["@OneToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"user_id\", unique = true, nullable = false)"],
+          "description": "Cart owner"
+        },
+        "totalAmount": {
+          "type": "BigDecimal",
+          "annotations": ["@Column(name = \"total_amount\", nullable = true, precision = 10, scale = 2)"],
+          "default": "BigDecimal.ZERO",
+          "description": "Total cart amount"
+        }
+      },
+      "relationships": {
+        "cartItems": {
+          "type": "OneToMany",
+          "target": "CartItem",
+          "mappedBy": "cart",
+          "cascade": "CascadeType.ALL",
+          "orphanRemoval": "true",
+          "fetch": "FetchType.LAZY"
+        }
+      },
+      "methods": {
+        "addItem": "Adds item to cart",
+        "removeItem": "Removes item from cart",
+        "clear": "Clears all items from cart",
+        "getTotalItems": "Returns total number of items",
+        "calculateTotalAmount": "Calculates total amount from cart items"
+      }
+    },
+    "CartItem": {
+      "table": "cartitems",
+      "extends": "BaseEntity",
+      "description": "Items in user carts",
+      "fields": {
+        "cart": {
+          "type": "Cart",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"cart_id\", nullable = false)"],
+          "description": "Parent cart"
+        },
+        "product": {
+          "type": "Product",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"product_id\", nullable = false)"],
+          "description": "Product in cart"
+        },
+        "quantity": {
+          "type": "Integer",
+          "annotations": ["@Column(nullable = false)"],
+          "default": "1",
+          "description": "Quantity in cart"
+        }
+      }
+    },
+    "Review": {
+      "table": "reviews",
+      "extends": "BaseEntity",
+      "description": "Product reviews and ratings",
+      "fields": {
+        "user": {
+          "type": "User",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"user_id\", nullable = false)"],
+          "description": "Review author"
+        },
+        "product": {
+          "type": "Product",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"product_id\", nullable = false)"],
+          "description": "Reviewed product"
+        },
+        "rating": {
+          "type": "Short",
+          "annotations": ["@Column(nullable = false)"],
+          "description": "Rating from 1-5"
+        },
+        "comment": {
+          "type": "String",
+          "annotations": ["@Column(columnDefinition = \"TEXT\")"],
+          "description": "Review comment"
+        }
+      }
+    },
+    "Follow": {
+      "table": "follows",
+      "extends": "BaseEntity",
+      "description": "User follows on products (wishlist)",
+      "fields": {
+        "user": {
+          "type": "User",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"user_id\", nullable = false)"],
+          "description": "User who follows"
+        },
+        "product": {
+          "type": "Product",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"product_id\", nullable = false)"],
+          "description": "Followed product"
+        },
+        "followedAt": {
+          "type": "LocalDateTime",
+          "annotations": ["@Column(nullable = false)"],
+          "default": "LocalDateTime.now()",
+          "description": "When the product was followed"
+        }
+      }
+    },
+    "Message": {
+      "table": "messages",
+      "extends": "BaseEntity",
+      "description": "User-to-user messaging",
+      "fields": {
+        "sender": {
+          "type": "User",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"sender_id\", nullable = false)"],
+          "description": "Message sender"
+        },
+        "receiver": {
+          "type": "User",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"receiver_id\", nullable = false)"],
+          "description": "Message receiver"
+        },
+        "content": {
+          "type": "String",
+          "annotations": ["@Column(nullable = false, columnDefinition = \"TEXT\")"],
+          "description": "Message content"
+        },
+        "sentAt": {
+          "type": "LocalDateTime",
+          "annotations": ["@CreatedDate", "@Column(name = \"sent_at\", nullable = false)"],
+          "description": "When message was sent"
+        },
+        "isRead": {
+          "type": "Boolean",
+          "annotations": ["@Column(name = \"is_read\", nullable = false)"],
+          "default": "false",
+          "description": "Whether message has been read"
+        }
+      }
+    },
+    "Transaction": {
+      "table": "transactions",
+      "extends": "BaseEntity",
+      "description": "Payment/refund transactions",
+      "fields": {
+        "user": {
+          "type": "User",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"user_id\", nullable = false)"],
+          "description": "Transaction user"
+        },
+        "order": {
+          "type": "Order",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"order_id\")"],
+          "description": "Related order"
+        },
+        "amount": {
+          "type": "BigDecimal",
+          "annotations": ["@Column(nullable = false, precision = 10, scale = 2)"],
+          "description": "Transaction amount"
+        },
+        "type": {
+          "type": "TransactionType",
+          "annotations": ["@Enumerated(EnumType.STRING)", "@Column(nullable = false)"],
+          "description": "Transaction type"
+        },
+        "status": {
+          "type": "TransactionStatus",
+          "annotations": ["@Enumerated(EnumType.STRING)", "@Column(nullable = false)"],
+          "default": "TransactionStatus.FAILED",
+          "description": "Transaction status"
+        },
+        "transactionReference": {
+          "type": "String",
+          "annotations": ["@Column(name = \"transaction_reference\", length = 255)"],
+          "description": "External transaction reference"
+        },
+        "notes": {
+          "type": "String",
+          "annotations": ["@Column(columnDefinition = \"TEXT\")"],
+          "description": "Transaction notes"
+        }
+      }
+    },
+    "TimeSheet": {
+      "table": "timesheets",
+      "extends": "BaseEntity",
+      "description": "Staff work hours tracking",
+      "fields": {
+        "staff": {
+          "type": "User",
+          "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"staff_id\", nullable = false)"],
+          "description": "Staff member"
+        },
+        "checkIn": {
+          "type": "LocalDateTime",
+          "annotations": ["@Column(name = \"check_in\", nullable = false)"],
+          "description": "Check-in time"
+        },
+        "checkOut": {
+          "type": "LocalDateTime",
+          "annotations": ["@Column(name = \"check_out\")"],
+          "description": "Check-out time"
+        },
+        "date": {
+          "type": "LocalDate",
+          "annotations": ["@Column(nullable = false)"],
+          "description": "Work date"
+        },
+        "hoursWorked": {
+          "type": "BigDecimal",
+          "annotations": ["@Column(name = \"hours_worked\", precision = 5, scale = 2)"],
+          "default": "BigDecimal.ZERO",
+          "description": "Hours worked"
+        },
+        "notes": {
+          "type": "String",
+          "annotations": ["@Column(columnDefinition = \"TEXT\")"],
+          "description": "Timesheet notes"
+        }
+      },
+      "methods": {
+        "calculateHoursWorked": "Calculates hours worked from check-in/check-out times"
+      }
+    }
+  },
+  "dto_classes": {
+    "UserProfileDTO": {
+      "description": "Optimized DTO for user profile data",
+      "fields": ["id", "firstName", "lastName", "email", "phone", "avatar", "role", "memberSince", "primaryAddress", "ordersCount", "wishlistCount", "cartItemsCount"]
+    },
+    "ProductDetailDTO": {
+      "description": "Optimized DTO for product detail with rating",
+      "fields": ["product", "averageRating", "reviewCount"]
+    }
+  },
+  "repository_optimizations": {
+    "UserRepository": {
+      "optimized_queries": ["findUserProfileByEmail - returns UserProfileDTO with aggregated data"]
+    },
+    "ProductRepository": {
+      "optimized_queries": ["findProductDetailById - returns ProductDetailDTO with rating data"]
+    }
+  },
+  "jpa_configuration": {
+    "auditing": {
+      "enabled": true,
+      "auditor_aware": "CustomAuditorAware",
+      "created_date_field": "createdAt",
+      "last_modified_date_field": "updatedAt"
+    },
+    "naming_strategy": "PhysicalNamingStrategyStandardImpl",
+    "hibernate_dialect": "PostgreSQLDialect",
+    "ddl_auto": "update"
+  }
+}
