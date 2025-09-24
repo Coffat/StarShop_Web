@@ -33,6 +33,12 @@ public class Transaction extends BaseEntity {
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private TransactionStatus status = TransactionStatus.FAILED;
 
+    @Column(name = "transaction_reference", length = 255)
+    private String transactionReference;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+
     // Constructors
     public Transaction() {
     }
@@ -84,5 +90,21 @@ public class Transaction extends BaseEntity {
 
     public void setStatus(TransactionStatus status) {
         this.status = status;
+    }
+
+    public String getTransactionReference() {
+        return transactionReference;
+    }
+
+    public void setTransactionReference(String transactionReference) {
+        this.transactionReference = transactionReference;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 }

@@ -18,6 +18,9 @@ public class DeliveryUnit extends BaseEntity {
     @Column(name = "estimated_time", length = 50)
     private String estimatedTime;
 
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
     @OneToMany(mappedBy = "deliveryUnit", fetch = FetchType.LAZY)
     private List<Order> orders = new ArrayList<>();
 
@@ -62,5 +65,13 @@ public class DeliveryUnit extends BaseEntity {
 
     public void setOrders(List<Order> orders) {
         this.orders = orders;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 }

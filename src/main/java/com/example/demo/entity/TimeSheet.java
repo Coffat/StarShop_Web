@@ -26,6 +26,9 @@ public class TimeSheet extends BaseEntity {
     @Column(name = "hours_worked", precision = 5, scale = 2)
     private BigDecimal hoursWorked = BigDecimal.ZERO;
 
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+
     // Constructors
     public TimeSheet() {
     }
@@ -40,7 +43,7 @@ public class TimeSheet extends BaseEntity {
     public void calculateHoursWorked() {
         if (checkIn != null && checkOut != null) {
             long minutes = ChronoUnit.MINUTES.between(checkIn, checkOut);
-            hoursWorked = BigDecimal.valueOf(minutes).divide(BigDecimal.valueOf(60), 2, BigDecimal.ROUND_HALF_UP);
+            hoursWorked = BigDecimal.valueOf(minutes).divide(BigDecimal.valueOf(60), 2, java.math.RoundingMode.HALF_UP);
         }
     }
 
@@ -84,5 +87,13 @@ public class TimeSheet extends BaseEntity {
 
     public void setHoursWorked(BigDecimal hoursWorked) {
         this.hoursWorked = hoursWorked;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 }

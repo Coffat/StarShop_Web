@@ -1,10 +1,10 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.User;
+import com.example.demo.dto.UserProfileDTO;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.OrderRepository;
 import com.example.demo.repository.FollowRepository;
-import com.example.demo.repository.CartRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -30,7 +30,6 @@ public class AccountController {
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
     private final FollowRepository followRepository;
-    private final CartRepository cartRepository;
 
     /**
      * Serve account information page
@@ -42,8 +41,11 @@ public class AccountController {
     public String accountProfile(Authentication authentication, Model model) {
         log.info("Account profile page accessed by user: {}", authentication.getName());
         
-        User user = userRepository.findByEmailWithAddresses(authentication.getName()).orElse(null);
-        if (user != null) {
+        // Use optimized query to get user profile with statistics in one query
+        UserProfileDTO userProfile = userRepository.findUserProfileByEmail(authentication.getName()).orElse(null);
+        if (userProfile != null) {
+            User user = userProfile.getUser();
+            
             // User basic info
             model.addAttribute("userObject", user);
             model.addAttribute("userFullName", user.getFullName());
@@ -60,16 +62,10 @@ public class AccountController {
                 model.addAttribute("userAddress", "");
             }
             
-            // Get user statistics
-            Long ordersCount = orderRepository.countOrdersByUser(user.getId());
-            Long wishlistCount = followRepository.countByUserId(user.getId());
-            
-            // Get cart count efficiently
-            Long cartCount = cartRepository.countItemsByUserId(user.getId());
-            
-            model.addAttribute("ordersCount", ordersCount);
-            model.addAttribute("wishlistCount", wishlistCount);
-            model.addAttribute("cartCount", cartCount);
+            // Use pre-calculated statistics from DTO
+            model.addAttribute("ordersCount", userProfile.getOrdersCount());
+            model.addAttribute("wishlistCount", userProfile.getWishlistCount());
+            model.addAttribute("cartCount", userProfile.getCartItemsCount());
         }
         
         // Authentication info

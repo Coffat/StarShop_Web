@@ -8,11 +8,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "messages")
 @EntityListeners(AuditingEntityListener.class)
-public class Message {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Message extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", nullable = false)
@@ -28,22 +24,6 @@ public class Message {
     @CreatedDate
     @Column(name = "sent_at", nullable = false)
     private LocalDateTime sentAt;
-    
-    @Column(
-        name = "created_at", 
-        insertable = false, 
-        updatable = false,
-        columnDefinition = "TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP"
-    )
-    private LocalDateTime createdAt;
-    
-    @Column(
-        name = "updated_at", 
-        insertable = false, 
-        updatable = false,
-        columnDefinition = "TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
-    )
-    private LocalDateTime updatedAt;
 
     @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;
@@ -59,13 +39,6 @@ public class Message {
     }
 
     // Getters and Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public User getSender() {
         return sender;
@@ -105,13 +78,5 @@ public class Message {
 
     public void setIsRead(Boolean isRead) {
         this.isRead = isRead;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
     }
 }

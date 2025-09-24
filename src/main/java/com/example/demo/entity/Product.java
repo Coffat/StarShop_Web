@@ -1,6 +1,9 @@
 package com.example.demo.entity;
 
+import com.example.demo.entity.enums.ProductStatus;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +23,14 @@ public class Product extends BaseEntity {
 
     @Column
     private String image;
+
+    @Column(name = "stock_quantity")
+    private Integer stockQuantity = 0;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true) // Tạm thời cho phép NULL
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    private ProductStatus status = ProductStatus.ACTIVE;
 
     // Relationships
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -57,6 +68,26 @@ public class Product extends BaseEntity {
                 .mapToDouble(Review::getRating)
                 .average()
                 .orElse(0.0);
+    }
+
+    public boolean isInStock() {
+        return stockQuantity != null && stockQuantity > 0;
+    }
+
+    public boolean isLowStock(int threshold) {
+        return stockQuantity != null && stockQuantity <= threshold;
+    }
+
+    public boolean isAvailable() {
+        return status == ProductStatus.ACTIVE && isInStock();
+    }
+
+    public void updateStatusBasedOnStock() {
+        if (stockQuantity == null || stockQuantity <= 0) {
+            this.status = ProductStatus.OUT_OF_STOCK;
+        } else if (status == ProductStatus.OUT_OF_STOCK) {
+            this.status = ProductStatus.ACTIVE;
+        }
     }
 
     // Getters and Setters
@@ -130,5 +161,22 @@ public class Product extends BaseEntity {
 
     public void setFollows(List<Follow> follows) {
         this.follows = follows;
+    }
+
+    public Integer getStockQuantity() {
+        return stockQuantity;
+    }
+
+    public void setStockQuantity(Integer stockQuantity) {
+        this.stockQuantity = stockQuantity;
+        updateStatusBasedOnStock();
+    }
+
+    public ProductStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ProductStatus status) {
+        this.status = status;
     }
 }
