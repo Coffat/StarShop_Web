@@ -157,8 +157,7 @@
         "voucher_id": {"type": "BIGINT", "constraints": ["DEFAULT NULL", "FOREIGN KEY -> vouchers(id)"]},
         "address_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> addresses(id)"]},
         "payment_method": {"type": "payment_method", "constraints": ["NOT NULL", "DEFAULT 'cash_on_delivery'"]},
-        "notes": {"type": "TEXT", "constraints": ["DEFAULT NULL"]},
-        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+        "notes": {"type": "TEXT", "constraints": ["DEFAULT NULL"]}
       },
       "indexes": ["idx_orders_user_id", "idx_orders_status", "idx_orders_user_status"],
       "constraints": ["CHECK (total_amount >= 0)"]
@@ -170,8 +169,7 @@
         "order_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> orders(id)"]},
         "product_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> products(id)"]},
         "quantity": {"type": "INTEGER", "constraints": ["NOT NULL", "DEFAULT 1"]},
-        "price": {"type": "NUMERIC(10,2)", "constraints": ["NOT NULL"]},
-        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+        "price": {"type": "NUMERIC(10,2)", "constraints": ["NOT NULL"]}
       },
       "indexes": ["idx_orderitems_order_id"],
       "constraints": ["CHECK (quantity > 0)"]
@@ -220,8 +218,7 @@
         "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
         "user_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> users(id)"]},
         "product_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> products(id)"]},
-        "followed_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL", "DEFAULT CURRENT_TIMESTAMP"]},
-        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+        "followed_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL", "DEFAULT CURRENT_TIMESTAMP"]}
       },
       "indexes": ["idx_follows_unique", "idx_follows_product_id"],
       "constraints": ["UNIQUE (user_id, product_id)"]
@@ -234,8 +231,7 @@
         "receiver_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> users(id)"]},
         "content": {"type": "TEXT", "constraints": ["NOT NULL"]},
         "sent_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL", "DEFAULT CURRENT_TIMESTAMP"]},
-        "is_read": {"type": "BOOLEAN", "constraints": ["NOT NULL", "DEFAULT FALSE"]},
-        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+        "is_read": {"type": "BOOLEAN", "constraints": ["NOT NULL", "DEFAULT FALSE"]}
       },
       "indexes": ["idx_messages_conversation", "idx_messages_sent_at"]
     },
@@ -265,8 +261,7 @@
         "check_out": {"type": "TIMESTAMP", "constraints": ["DEFAULT NULL"]},
         "date": {"type": "DATE", "constraints": ["NOT NULL"]},
         "hours_worked": {"type": "NUMERIC(5,2)", "constraints": ["DEFAULT 0.00"]},
-        "notes": {"type": "TEXT", "constraints": ["DEFAULT NULL"]},
-        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+        "notes": {"type": "TEXT", "constraints": ["DEFAULT NULL"]}
       },
       "indexes": ["idx_timesheets_staff_date"],
       "constraints": ["CHECK (hours_worked >= 0)", "CHECK (check_out IS NULL OR check_out > check_in)"]

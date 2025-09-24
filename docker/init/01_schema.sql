@@ -149,7 +149,6 @@ CREATE TABLE Orders (
     address_id BIGINT NOT NULL,
     payment_method payment_method NOT NULL DEFAULT 'cash_on_delivery',
     notes TEXT DEFAULT NULL,
-    updated_at TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Users(id),
     FOREIGN KEY (delivery_unit_id) REFERENCES DeliveryUnits(id),
     FOREIGN KEY (voucher_id) REFERENCES Vouchers(id),
@@ -169,7 +168,6 @@ CREATE TABLE OrderItems (
     product_id BIGINT NOT NULL,
     quantity INTEGER NOT NULL DEFAULT 1,
     price NUMERIC(10,2) NOT NULL,
-    updated_at TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES Orders(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES Products(id),
     CHECK (quantity > 0)
@@ -231,7 +229,6 @@ CREATE TABLE Follows (
     user_id BIGINT NOT NULL,
     product_id BIGINT NOT NULL,
     followed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Users(id),
     FOREIGN KEY (product_id) REFERENCES Products(id) ON DELETE CASCADE,
     UNIQUE (user_id, product_id)
@@ -248,7 +245,6 @@ CREATE TABLE Messages (
     content TEXT NOT NULL,
     sent_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     is_read BOOLEAN NOT NULL DEFAULT FALSE,
-    updated_at TIMESTAMP,
     FOREIGN KEY (sender_id) REFERENCES Users(id),
     FOREIGN KEY (receiver_id) REFERENCES Users(id)
 );
@@ -287,7 +283,6 @@ CREATE TABLE TimeSheets (
     date DATE NOT NULL,
     hours_worked NUMERIC(5,2) DEFAULT 0.00,
     notes TEXT DEFAULT NULL,
-    updated_at TIMESTAMP,
     FOREIGN KEY (staff_id) REFERENCES Users(id),
     CHECK (hours_worked >= 0),
     CHECK (check_out IS NULL OR check_out > check_in)

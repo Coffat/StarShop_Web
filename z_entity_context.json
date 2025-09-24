@@ -402,9 +402,20 @@
     },
     "Order": {
       "table": "orders",
-      "extends": "BaseEntity",
+      "extends": "None",
       "description": "Customer orders with status and payment info",
       "fields": {
+        "id": {
+          "type": "Long",
+          "annotations": ["@Id", "@GeneratedValue(strategy = GenerationType.IDENTITY)"],
+          "description": "Primary key"
+        },
+        "createdAt": {
+          "type": "LocalDateTime",
+          "annotations": ["@Column(name = \"created_at\", nullable = false, updatable = false)"],
+          "default": "LocalDateTime.now()",
+          "description": "Creation timestamp"
+        },
         "user": {
           "type": "User",
           "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"user_id\", nullable = false)"],
@@ -473,9 +484,20 @@
     },
     "OrderItem": {
       "table": "orderitems",
-      "extends": "BaseEntity",
+      "extends": "None",
       "description": "Items within an order",
       "fields": {
+        "id": {
+          "type": "Long",
+          "annotations": ["@Id", "@GeneratedValue(strategy = GenerationType.IDENTITY)"],
+          "description": "Primary key"
+        },
+        "createdAt": {
+          "type": "LocalDateTime",
+          "annotations": ["@Column(name = \"created_at\", nullable = false, updatable = false)"],
+          "default": "LocalDateTime.now()",
+          "description": "Creation timestamp"
+        },
         "order": {
           "type": "Order",
           "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"order_id\", nullable = false)"],
@@ -589,9 +611,20 @@
     },
     "Follow": {
       "table": "follows",
-      "extends": "BaseEntity",
+      "extends": "None",
       "description": "User follows on products (wishlist)",
       "fields": {
+        "id": {
+          "type": "Long",
+          "annotations": ["@Id", "@GeneratedValue(strategy = GenerationType.IDENTITY)"],
+          "description": "Primary key"
+        },
+        "createdAt": {
+          "type": "LocalDateTime",
+          "annotations": ["@Column(name = \"created_at\", nullable = false, updatable = false)"],
+          "default": "LocalDateTime.now()",
+          "description": "Creation timestamp"
+        },
         "user": {
           "type": "User",
           "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"user_id\", nullable = false)"],
@@ -612,9 +645,20 @@
     },
     "Message": {
       "table": "messages",
-      "extends": "BaseEntity",
+      "extends": "None",
       "description": "User-to-user messaging",
       "fields": {
+        "id": {
+          "type": "Long",
+          "annotations": ["@Id", "@GeneratedValue(strategy = GenerationType.IDENTITY)"],
+          "description": "Primary key"
+        },
+        "createdAt": {
+          "type": "LocalDateTime",
+          "annotations": ["@Column(name = \"created_at\", nullable = false, updatable = false)"],
+          "default": "LocalDateTime.now()",
+          "description": "Creation timestamp"
+        },
         "sender": {
           "type": "User",
           "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"sender_id\", nullable = false)"],
@@ -688,9 +732,20 @@
     },
     "TimeSheet": {
       "table": "timesheets",
-      "extends": "BaseEntity",
+      "extends": "None",
       "description": "Staff work hours tracking",
       "fields": {
+        "id": {
+          "type": "Long",
+          "annotations": ["@Id", "@GeneratedValue(strategy = GenerationType.IDENTITY)"],
+          "description": "Primary key"
+        },
+        "createdAt": {
+          "type": "LocalDateTime",
+          "annotations": ["@Column(name = \"created_at\", nullable = false, updatable = false)"],
+          "default": "LocalDateTime.now()",
+          "description": "Creation timestamp"
+        },
         "staff": {
           "type": "User",
           "annotations": ["@ManyToOne(fetch = FetchType.LAZY)", "@JoinColumn(name = \"staff_id\", nullable = false)"],

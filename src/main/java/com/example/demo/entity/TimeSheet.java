@@ -8,7 +8,14 @@ import java.time.temporal.ChronoUnit;
 
 @Entity
 @Table(name = "timesheets")
-public class TimeSheet extends BaseEntity {
+public class TimeSheet {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "staff_id", nullable = false)
@@ -48,6 +55,22 @@ public class TimeSheet extends BaseEntity {
     }
 
     // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public User getStaff() {
         return staff;
     }
