@@ -1,21 +1,11 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "messages")
-@EntityListeners(AuditingEntityListener.class)
-public class Message {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+public class Message extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", nullable = false)
@@ -28,9 +18,8 @@ public class Message {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @CreatedDate
     @Column(name = "sent_at", nullable = false)
-    private LocalDateTime sentAt;
+    private LocalDateTime sentAt = LocalDateTime.now();
 
     @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;
@@ -46,21 +35,6 @@ public class Message {
     }
 
     // Getters and Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
 
     public User getSender() {
         return sender;

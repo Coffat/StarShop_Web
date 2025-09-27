@@ -20,6 +20,10 @@ public class Review extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String comment;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_item_id", unique = true)
+    private OrderItem orderItem;
+
     // Constructors
     public Review() {
     }
@@ -62,5 +66,13 @@ public class Review extends BaseEntity {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public OrderItem getOrderItem() {
+        return orderItem;
+    }
+
+    public void setOrderItem(OrderItem orderItem) {
+        this.orderItem = orderItem;
     }
 }

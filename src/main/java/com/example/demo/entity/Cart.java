@@ -13,8 +13,11 @@ public class Cart extends BaseEntity {
     @JoinColumn(name = "user_id", unique = true, nullable = false)
     private User user;
 
-    @Column(name = "total_amount", nullable = true, precision = 10, scale = 2) // Tạm thời cho phép NULL
+    @Column(name = "total_amount", precision = 10, scale = 2)
     private BigDecimal totalAmount = BigDecimal.ZERO;
+
+    @Column(name = "total_quantity")
+    private Integer totalQuantity = 0;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<CartItem> cartItems = new ArrayList<>();
@@ -52,6 +55,10 @@ public class Cart extends BaseEntity {
         totalAmount = cartItems.stream()
                 .map(item -> item.getProduct().getPrice().multiply(new BigDecimal(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        totalQuantity = cartItems.stream()
+                .mapToInt(CartItem::getQuantity)
+                .sum();
     }
 
     // Getters and Setters
@@ -77,5 +84,13 @@ public class Cart extends BaseEntity {
 
     public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
+    }
+
+    public Integer getTotalQuantity() {
+        return totalQuantity;
+    }
+
+    public void setTotalQuantity(Integer totalQuantity) {
+        this.totalQuantity = totalQuantity;
     }
 }

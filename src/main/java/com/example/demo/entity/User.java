@@ -3,6 +3,7 @@ package com.example.demo.entity;
 import com.example.demo.entity.enums.UserRole;
 import com.example.demo.entity.enums.UserRoleConverter;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,7 @@ public class User extends BaseEntity {
     private String email;
 
     @Column(nullable = false)
+    @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
 
     @Column(nullable = false, unique = true, length = 20)
@@ -29,7 +31,6 @@ public class User extends BaseEntity {
     @Column
     private String avatar;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Convert(converter = UserRoleConverter.class)
     private UserRole role = UserRole.CUSTOMER;
@@ -61,6 +62,9 @@ public class User extends BaseEntity {
 
     @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
     private List<TimeSheet> timeSheets = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Salary> salaries = new ArrayList<>();
 
     // Constructors
     public User() {
@@ -207,5 +211,13 @@ public class User extends BaseEntity {
 
     public void setTimeSheets(List<TimeSheet> timeSheets) {
         this.timeSheets = timeSheets;
+    }
+
+    public List<Salary> getSalaries() {
+        return salaries;
+    }
+
+    public void setSalaries(List<Salary> salaries) {
+        this.salaries = salaries;
     }
 }

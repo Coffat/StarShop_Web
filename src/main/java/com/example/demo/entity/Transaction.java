@@ -23,12 +23,10 @@ public class Transaction extends BaseEntity {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private TransactionType type;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private TransactionStatus status = TransactionStatus.FAILED;

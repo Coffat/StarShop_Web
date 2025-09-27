@@ -20,7 +20,6 @@ public class Voucher extends BaseEntity {
     @Column(name = "discount_value", nullable = false, precision = 10, scale = 2)
     private BigDecimal discountValue;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "discount_type", nullable = false)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private DiscountType discountType;

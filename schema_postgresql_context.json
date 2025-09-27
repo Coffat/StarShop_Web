@@ -1,316 +1,436 @@
 {
+  "Lưu ý":
+  {
+    "lưu ý": "Tên bảng tạo trong database tất cả đều là viết thường"
+  },
   "database_info": {
-    "name": "Flower Shop System",
-    "version": "1.0",
-    "database_type": "PostgreSQL 15",
-    "description": "Complete e-commerce system for flower shop with user management, product catalog, orders, and analytics"
+    "name": "Flower Store Management System",
+    "description": "Hệ thống quản lý web bán hoa với đầy đủ chức năng e-commerce",
+    "database_type": "PostgreSQL",
+    "version": "Latest",
+    "schema_file": "docker/init/init_schema.sql"
   },
   "enums": {
     "user_role": {
-      "type": "ENUM",
+      "description": "Vai trò người dùng trong hệ thống",
       "values": ["customer", "staff", "admin"],
-      "description": "User roles in the system"
+      "default": "customer"
     },
     "order_status": {
-      "type": "ENUM", 
+      "description": "Trạng thái đơn hàng",
       "values": ["pending", "processing", "shipped", "completed", "cancelled"],
-      "description": "Order processing status"
+      "default": "pending"
     },
     "discount_type": {
-      "type": "ENUM",
-      "values": ["percentage", "fixed"],
-      "description": "Types of discount calculation"
+      "description": "Loại giảm giá voucher",
+      "values": ["percentage", "fixed"]
     },
     "payment_method": {
-      "type": "ENUM",
+      "description": "Phương thức thanh toán",
       "values": ["cash_on_delivery", "credit_card", "bank_transfer", "wallet"],
-      "description": "Available payment methods"
+      "default": "cash_on_delivery"
     },
     "transaction_type": {
-      "type": "ENUM",
-      "values": ["payment", "refund"],
-      "description": "Transaction types"
+      "description": "Loại giao dịch",
+      "values": ["payment", "refund"]
     },
     "transaction_status": {
-      "type": "ENUM",
+      "description": "Trạng thái giao dịch",
       "values": ["success", "failed"],
-      "description": "Transaction processing status"
+      "default": "failed"
     },
     "product_status": {
-      "type": "ENUM",
+      "description": "Trạng thái sản phẩm",
       "values": ["active", "inactive", "out_of_stock", "discontinued"],
-      "description": "Product availability status"
+      "default": "active"
+    },
+    "salary_status": {
+      "description": "Trạng thái lương nhân viên",
+      "values": ["pending", "paid", "overdue"],
+      "default": "pending"
     }
   },
   "tables": {
-    "users": {
-      "description": "Stores user information including customers, staff, and admins",
+    "Users": {
+      "description": "Bảng lưu trữ thông tin người dùng bao gồm khách hàng, nhân viên và admin",
+      "primary_key": "id",
       "columns": {
-        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
-        "firstname": {"type": "VARCHAR(100)", "constraints": ["NOT NULL"]},
-        "lastname": {"type": "VARCHAR(100)", "constraints": ["NOT NULL"]},
-        "email": {"type": "VARCHAR(255)", "constraints": ["UNIQUE", "NOT NULL"]},
-        "password": {"type": "VARCHAR(255)", "constraints": ["NOT NULL"]},
-        "phone": {"type": "VARCHAR(20)", "constraints": ["UNIQUE", "NOT NULL"]},
-        "avatar": {"type": "VARCHAR(255)", "constraints": ["DEFAULT NULL"]},
-        "role": {"type": "user_role", "constraints": ["NOT NULL", "DEFAULT 'customer'"]},
-        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
-        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+        "id": "BIGSERIAL PRIMARY KEY",
+        "firstname": "VARCHAR(100) NOT NULL",
+        "lastname": "VARCHAR(100) NOT NULL", 
+        "email": "VARCHAR(255) UNIQUE NOT NULL",
+        "password": "VARCHAR(255) NOT NULL (min 8 chars)",
+        "phone": "VARCHAR(20) UNIQUE NOT NULL",
+        "avatar": "VARCHAR(255) DEFAULT NULL",
+        "role": "user_role NOT NULL DEFAULT 'customer'",
+        "created_at": "TIMESTAMP NOT NULL",
+        "updated_at": "TIMESTAMP"
       },
-      "indexes": ["idx_users_email", "idx_users_phone"],
-      "constraints": ["CHECK (LENGTH(password) >= 8)"]
+      "indexes": ["email", "phone"],
+      "business_rules": ["Mật khẩu phải có ít nhất 8 ký tự"]
     },
-    "addresses": {
-      "description": "User delivery addresses",
-      "columns": {
-        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
-        "user_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> users(id)"]},
-        "street": {"type": "VARCHAR(255)", "constraints": ["NOT NULL"]},
-        "city": {"type": "VARCHAR(100)", "constraints": ["NOT NULL"]},
-        "province": {"type": "VARCHAR(100)", "constraints": ["NOT NULL"]},
-        "is_default": {"type": "BOOLEAN", "constraints": ["NOT NULL", "DEFAULT FALSE"]},
-        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
-        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+    "Addresses": {
+      "description": "Địa chỉ giao hàng của người dùng",
+      "primary_key": "id",
+      "foreign_keys": {
+        "user_id": "Users(id) ON DELETE CASCADE"
       },
-      "indexes": ["idx_addresses_user_id"]
+      "columns": {
+        "id": "BIGSERIAL PRIMARY KEY",
+        "user_id": "BIGINT NOT NULL",
+        "street": "VARCHAR(255) NOT NULL",
+        "city": "VARCHAR(100) NOT NULL",
+        "province": "VARCHAR(100) NOT NULL",
+        "is_default": "BOOLEAN NOT NULL DEFAULT FALSE",
+        "created_at": "TIMESTAMP NOT NULL",
+        "updated_at": "TIMESTAMP"
+      },
+      "indexes": ["user_id"]
     },
-    "products": {
-      "description": "Flower products catalog",
+    "Products": {
+      "description": "Danh mục sản phẩm hoa",
+      "primary_key": "id",
       "columns": {
-        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
-        "name": {"type": "VARCHAR(255)", "constraints": ["NOT NULL"]},
-        "description": {"type": "TEXT", "constraints": ["DEFAULT NULL"]},
-        "price": {"type": "NUMERIC(10,2)", "constraints": ["NOT NULL", "DEFAULT 0.00"]},
-        "image": {"type": "VARCHAR(255)", "constraints": ["DEFAULT NULL"]},
-        "stock_quantity": {"type": "INTEGER", "constraints": ["DEFAULT 0"]},
-        "status": {"type": "product_status", "constraints": ["DEFAULT 'active'"]},
-        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
-        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+        "id": "BIGSERIAL PRIMARY KEY",
+        "name": "VARCHAR(255) NOT NULL",
+        "description": "TEXT DEFAULT NULL",
+        "price": "NUMERIC(10,2) NOT NULL DEFAULT 0.00",
+        "image": "VARCHAR(255) DEFAULT NULL",
+        "stock_quantity": "INTEGER DEFAULT 0",
+        "status": "product_status DEFAULT 'active'",
+        "created_at": "TIMESTAMP NOT NULL",
+        "updated_at": "TIMESTAMP"
       },
-      "indexes": ["idx_products_name", "idx_products_stock_quantity"],
-      "constraints": ["CHECK (price >= 0)", "CHECK (stock_quantity >= 0)"]
+      "indexes": ["name", "stock_quantity"],
+      "business_rules": ["Giá >= 0", "Số lượng tồn kho >= 0"]
     },
-    "productattributes": {
-      "description": "Product attribute types (e.g., color, size)",
+    "ProductAttributes": {
+      "description": "Loại thuộc tính sản phẩm (ví dụ: màu sắc, kích thước)",
+      "primary_key": "id",
       "columns": {
-        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
-        "name": {"type": "VARCHAR(100)", "constraints": ["UNIQUE", "NOT NULL"]},
-        "created_at": {"type": "TIMESTAMP", "constraints": ["DEFAULT CURRENT_TIMESTAMP"]},
-        "updated_at": {"type": "TIMESTAMP", "constraints": ["DEFAULT CURRENT_TIMESTAMP"]}
+        "id": "BIGSERIAL PRIMARY KEY",
+        "name": "VARCHAR(100) UNIQUE NOT NULL",
+        "created_at": "TIMESTAMP NOT NULL",
+        "updated_at": "TIMESTAMP"
       },
-      "indexes": ["idx_productattributes_name"]
+      "indexes": ["name"]
     },
-    "attributevalues": {
-      "description": "Specific values for product attributes",
-      "columns": {
-        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
-        "attribute_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> productattributes(id)"]},
-        "product_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> products(id)"]},
-        "value": {"type": "VARCHAR(255)", "constraints": ["NOT NULL"]},
-        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
-        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+    "AttributeValues": {
+      "description": "Giá trị cụ thể cho thuộc tính sản phẩm",
+      "primary_key": "id",
+      "foreign_keys": {
+        "attribute_id": "ProductAttributes(id) ON DELETE CASCADE",
+        "product_id": "Products(id) ON DELETE CASCADE"
       },
-      "indexes": ["idx_attributevalues_unique"],
-      "constraints": ["UNIQUE (attribute_id, product_id, value)"]
+      "columns": {
+        "id": "BIGSERIAL PRIMARY KEY",
+        "attribute_id": "BIGINT NOT NULL",
+        "product_id": "BIGINT NOT NULL",
+        "value": "VARCHAR(255) NOT NULL",
+        "created_at": "TIMESTAMP NOT NULL",
+        "updated_at": "TIMESTAMP"
+      },
+      "unique_constraints": ["(attribute_id, product_id, value)"]
     },
-    "deliveryunits": {
-      "description": "Delivery service providers",
+    "DeliveryUnits": {
+      "description": "Đơn vị vận chuyển",
+      "primary_key": "id",
       "columns": {
-        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
-        "name": {"type": "VARCHAR(100)", "constraints": ["UNIQUE", "NOT NULL"]},
-        "fee": {"type": "NUMERIC(10,2)", "constraints": ["NOT NULL", "DEFAULT 0.00"]},
-        "estimated_time": {"type": "VARCHAR(50)", "constraints": ["DEFAULT NULL"]},
-        "is_active": {"type": "BOOLEAN", "constraints": ["DEFAULT TRUE"]},
-        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
-        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+        "id": "BIGSERIAL PRIMARY KEY",
+        "name": "VARCHAR(100) UNIQUE NOT NULL",
+        "fee": "NUMERIC(10,2) NOT NULL DEFAULT 0.00",
+        "estimated_time": "VARCHAR(50) DEFAULT NULL",
+        "is_active": "BOOLEAN DEFAULT TRUE",
+        "created_at": "TIMESTAMP NOT NULL",
+        "updated_at": "TIMESTAMP"
       },
-      "indexes": ["idx_deliveryunits_is_active"],
-      "constraints": ["CHECK (fee >= 0)"]
+      "indexes": ["is_active"],
+      "business_rules": ["Phí vận chuyển >= 0"]
     },
-    "vouchers": {
-      "description": "Discount vouchers",
+    "Vouchers": {
+      "description": "Mã giảm giá",
+      "primary_key": "id",
       "columns": {
-        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
-        "code": {"type": "VARCHAR(50)", "constraints": ["UNIQUE", "NOT NULL"]},
-        "discount_value": {"type": "NUMERIC(10,2)", "constraints": ["NOT NULL"]},
-        "discount_type": {"type": "discount_type", "constraints": ["NOT NULL"]},
-        "expiry_date": {"type": "DATE", "constraints": ["NOT NULL"]},
-        "min_order_value": {"type": "NUMERIC(10,2)", "constraints": ["DEFAULT 0.00"]},
-        "max_uses": {"type": "INTEGER", "constraints": ["DEFAULT NULL"]},
-        "uses": {"type": "INTEGER", "constraints": ["NOT NULL", "DEFAULT 0"]},
-        "is_active": {"type": "BOOLEAN", "constraints": ["DEFAULT TRUE"]},
-        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
-        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+        "id": "BIGSERIAL PRIMARY KEY",
+        "code": "VARCHAR(50) UNIQUE NOT NULL",
+        "discount_value": "NUMERIC(10,2) NOT NULL",
+        "discount_type": "discount_type NOT NULL",
+        "expiry_date": "DATE NOT NULL",
+        "min_order_value": "NUMERIC(10,2) DEFAULT 0.00",
+        "max_uses": "INTEGER DEFAULT NULL",
+        "uses": "INTEGER NOT NULL DEFAULT 0",
+        "is_active": "BOOLEAN DEFAULT TRUE",
+        "created_at": "TIMESTAMP NOT NULL",
+        "updated_at": "TIMESTAMP"
       },
-      "indexes": ["idx_vouchers_code", "idx_vouchers_is_active"],
-      "constraints": ["CHECK (discount_value > 0)", "CHECK (max_uses IS NULL OR uses <= max_uses)"]
+      "indexes": ["code", "is_active"],
+      "business_rules": ["Giá trị giảm > 0", "Số lần sử dụng <= số lần tối đa"]
     },
-    "orders": {
-      "description": "Customer orders with status and payment info",
-      "columns": {
-        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
-        "user_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> users(id)"]},
-        "total_amount": {"type": "NUMERIC(10,2)", "constraints": ["NOT NULL", "DEFAULT 0.00"]},
-        "status": {"type": "order_status", "constraints": ["NOT NULL", "DEFAULT 'pending'"]},
-        "order_date": {"type": "TIMESTAMP", "constraints": ["NOT NULL", "DEFAULT CURRENT_TIMESTAMP"]},
-        "delivery_unit_id": {"type": "BIGINT", "constraints": ["DEFAULT NULL", "FOREIGN KEY -> deliveryunits(id)"]},
-        "voucher_id": {"type": "BIGINT", "constraints": ["DEFAULT NULL", "FOREIGN KEY -> vouchers(id)"]},
-        "address_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> addresses(id)"]},
-        "payment_method": {"type": "payment_method", "constraints": ["NOT NULL", "DEFAULT 'cash_on_delivery'"]},
-        "notes": {"type": "TEXT", "constraints": ["DEFAULT NULL"]}
+    "Orders": {
+      "description": "Đơn hàng khách hàng với trạng thái và thông tin thanh toán",
+      "primary_key": "id",
+      "foreign_keys": {
+        "user_id": "Users(id)",
+        "delivery_unit_id": "DeliveryUnits(id)",
+        "voucher_id": "Vouchers(id)",
+        "address_id": "Addresses(id)"
       },
-      "indexes": ["idx_orders_user_id", "idx_orders_status", "idx_orders_user_status"],
-      "constraints": ["CHECK (total_amount >= 0)"]
+      "columns": {
+        "id": "BIGSERIAL PRIMARY KEY",
+        "user_id": "BIGINT NOT NULL",
+        "total_amount": "NUMERIC(10,2) NOT NULL DEFAULT 0.00",
+        "status": "order_status NOT NULL DEFAULT 'pending'",
+        "order_date": "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP",
+        "delivery_unit_id": "BIGINT DEFAULT NULL",
+        "voucher_id": "BIGINT DEFAULT NULL",
+        "address_id": "BIGINT NOT NULL",
+        "payment_method": "payment_method NOT NULL DEFAULT 'cash_on_delivery'",
+        "notes": "TEXT DEFAULT NULL"
+      },
+      "indexes": ["user_id", "status", "(user_id, status)"],
+      "business_rules": ["Tổng tiền >= 0"]
     },
-    "orderitems": {
-      "description": "Items within an order",
-      "columns": {
-        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
-        "order_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> orders(id)"]},
-        "product_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> products(id)"]},
-        "quantity": {"type": "INTEGER", "constraints": ["NOT NULL", "DEFAULT 1"]},
-        "price": {"type": "NUMERIC(10,2)", "constraints": ["NOT NULL"]}
+    "OrderItems": {
+      "description": "Sản phẩm trong đơn hàng",
+      "primary_key": "id",
+      "foreign_keys": {
+        "order_id": "Orders(id) ON DELETE CASCADE",
+        "product_id": "Products(id)"
       },
-      "indexes": ["idx_orderitems_order_id"],
-      "constraints": ["CHECK (quantity > 0)"]
+      "columns": {
+        "id": "BIGSERIAL PRIMARY KEY",
+        "order_id": "BIGINT NOT NULL",
+        "product_id": "BIGINT NOT NULL",
+        "quantity": "INTEGER NOT NULL DEFAULT 1",
+        "price": "NUMERIC(10,2) NOT NULL"
+      },
+      "indexes": ["order_id"],
+      "business_rules": ["Số lượng > 0"]
     },
-    "carts": {
-      "description": "User shopping carts",
-      "columns": {
-        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
-        "user_id": {"type": "BIGINT", "constraints": ["UNIQUE", "NOT NULL", "FOREIGN KEY -> users(id)"]},
-        "total_amount": {"type": "NUMERIC(10,2)", "constraints": ["DEFAULT 0.00"]},
-        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
-        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+    "Carts": {
+      "description": "Giỏ hàng của người dùng",
+      "primary_key": "id",
+      "foreign_keys": {
+        "user_id": "Users(id) ON DELETE CASCADE"
       },
-      "constraints": ["CHECK (total_amount >= 0)"]
+      "columns": {
+        "id": "BIGSERIAL PRIMARY KEY",
+        "user_id": "BIGINT UNIQUE NOT NULL",
+        "total_amount": "NUMERIC(10,2) DEFAULT 0.00",
+        "created_at": "TIMESTAMP NOT NULL",
+        "updated_at": "TIMESTAMP",
+        "total_quantity": "INTEGER DEFAULT 0"
+      },
+      "business_rules": ["Tổng tiền >= 0", "Tổng số lượng >= 0"]
     },
-    "cartitems": {
-      "description": "Items in user carts",
-      "columns": {
-        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
-        "cart_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> carts(id)"]},
-        "product_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> products(id)"]},
-        "quantity": {"type": "INTEGER", "constraints": ["NOT NULL", "DEFAULT 1"]},
-        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
-        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+    "CartItems": {
+      "description": "Sản phẩm trong giỏ hàng",
+      "primary_key": "id",
+      "foreign_keys": {
+        "cart_id": "Carts(id) ON DELETE CASCADE",
+        "product_id": "Products(id)"
       },
-      "indexes": ["idx_cartitems_unique"],
-      "constraints": ["CHECK (quantity > 0)", "UNIQUE (cart_id, product_id)"]
+      "columns": {
+        "id": "BIGSERIAL PRIMARY KEY",
+        "cart_id": "BIGINT NOT NULL",
+        "product_id": "BIGINT NOT NULL",
+        "quantity": "INTEGER NOT NULL DEFAULT 1",
+        "created_at": "TIMESTAMP NOT NULL",
+        "updated_at": "TIMESTAMP"
+      },
+      "unique_constraints": ["(cart_id, product_id)"],
+      "business_rules": ["Số lượng > 0"]
     },
-    "reviews": {
-      "description": "Product reviews and ratings",
-      "columns": {
-        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
-        "user_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> users(id)"]},
-        "product_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> products(id)"]},
-        "rating": {"type": "SMALLINT", "constraints": ["NOT NULL"]},
-        "comment": {"type": "TEXT", "constraints": ["DEFAULT NULL"]},
-        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
-        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+    "Reviews": {
+      "description": "Đánh giá và xếp hạng sản phẩm",
+      "primary_key": "id",
+      "foreign_keys": {
+        "user_id": "Users(id)",
+        "product_id": "Products(id) ON DELETE CASCADE",
+        "order_item_id": "OrderItems(id) ON DELETE CASCADE"
       },
-      "indexes": ["idx_reviews_product_id"],
-      "constraints": ["CHECK (rating BETWEEN 1 AND 5)"]
+      "columns": {
+        "id": "BIGSERIAL PRIMARY KEY",
+        "user_id": "BIGINT NOT NULL",
+        "product_id": "BIGINT NOT NULL",
+        "rating": "SMALLINT NOT NULL",
+        "comment": "TEXT DEFAULT NULL",
+        "created_at": "TIMESTAMP NOT NULL",
+        "updated_at": "TIMESTAMP",
+        "order_item_id": "BIGINT UNIQUE"
+      },
+      "indexes": ["product_id"],
+      "business_rules": ["Điểm đánh giá từ 1-5"]
     },
-    "follows": {
-      "description": "User follows on products (wishlist)",
-      "columns": {
-        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
-        "user_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> users(id)"]},
-        "product_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> products(id)"]},
-        "followed_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL", "DEFAULT CURRENT_TIMESTAMP"]}
+    "Follows": {
+      "description": "Theo dõi sản phẩm của người dùng",
+      "primary_key": "id",
+      "foreign_keys": {
+        "user_id": "Users(id)",
+        "product_id": "Products(id) ON DELETE CASCADE"
       },
-      "indexes": ["idx_follows_unique", "idx_follows_product_id"],
-      "constraints": ["UNIQUE (user_id, product_id)"]
+      "columns": {
+        "id": "BIGSERIAL PRIMARY KEY",
+        "user_id": "BIGINT NOT NULL",
+        "product_id": "BIGINT NOT NULL",
+        "followed_at": "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
+      },
+      "unique_constraints": ["(user_id, product_id)"],
+      "indexes": ["product_id"]
     },
-    "messages": {
-      "description": "User-to-user messaging",
-      "columns": {
-        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
-        "sender_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> users(id)"]},
-        "receiver_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> users(id)"]},
-        "content": {"type": "TEXT", "constraints": ["NOT NULL"]},
-        "sent_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL", "DEFAULT CURRENT_TIMESTAMP"]},
-        "is_read": {"type": "BOOLEAN", "constraints": ["NOT NULL", "DEFAULT FALSE"]}
+    "Messages": {
+      "description": "Tin nhắn giữa người dùng",
+      "primary_key": "id",
+      "foreign_keys": {
+        "sender_id": "Users(id)",
+        "receiver_id": "Users(id)"
       },
-      "indexes": ["idx_messages_conversation", "idx_messages_sent_at"]
+      "columns": {
+        "id": "BIGSERIAL PRIMARY KEY",
+        "sender_id": "BIGINT NOT NULL",
+        "receiver_id": "BIGINT NOT NULL",
+        "content": "TEXT NOT NULL",
+        "sent_at": "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP",
+        "is_read": "BOOLEAN NOT NULL DEFAULT FALSE"
+      },
+      "indexes": ["(sender_id, receiver_id, sent_at)", "sent_at"]
     },
-    "transactions": {
-      "description": "Payment/refund transactions",
-      "columns": {
-        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
-        "user_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> users(id)"]},
-        "order_id": {"type": "BIGINT", "constraints": ["DEFAULT NULL", "FOREIGN KEY -> orders(id)"]},
-        "amount": {"type": "NUMERIC(10,2)", "constraints": ["NOT NULL"]},
-        "type": {"type": "transaction_type", "constraints": ["NOT NULL"]},
-        "status": {"type": "transaction_status", "constraints": ["NOT NULL", "DEFAULT 'failed'"]},
-        "transaction_reference": {"type": "VARCHAR(255)", "constraints": ["DEFAULT NULL"]},
-        "notes": {"type": "TEXT", "constraints": ["DEFAULT NULL"]},
-        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
-        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+    "Transactions": {
+      "description": "Giao dịch thanh toán/hoàn tiền",
+      "primary_key": "id",
+      "foreign_keys": {
+        "user_id": "Users(id)",
+        "order_id": "Orders(id)"
       },
-      "indexes": ["idx_transactions_order_id", "idx_transactions_created_at", "idx_transactions_transaction_reference"],
-      "constraints": ["CHECK (amount > 0)"]
+      "columns": {
+        "id": "BIGSERIAL PRIMARY KEY",
+        "user_id": "BIGINT NOT NULL",
+        "order_id": "BIGINT DEFAULT NULL",
+        "amount": "NUMERIC(10,2) NOT NULL",
+        "type": "transaction_type NOT NULL",
+        "status": "transaction_status NOT NULL DEFAULT 'failed'",
+        "transaction_reference": "VARCHAR(255) DEFAULT NULL",
+        "notes": "TEXT DEFAULT NULL",
+        "created_at": "TIMESTAMP NOT NULL",
+        "updated_at": "TIMESTAMP"
+      },
+      "indexes": ["order_id", "created_at", "transaction_reference"],
+      "business_rules": ["Số tiền > 0"]
     },
-    "timesheets": {
-      "description": "Staff work hours tracking",
-      "columns": {
-        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
-        "staff_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> users(id)"]},
-        "check_in": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
-        "check_out": {"type": "TIMESTAMP", "constraints": ["DEFAULT NULL"]},
-        "date": {"type": "DATE", "constraints": ["NOT NULL"]},
-        "hours_worked": {"type": "NUMERIC(5,2)", "constraints": ["DEFAULT 0.00"]},
-        "notes": {"type": "TEXT", "constraints": ["DEFAULT NULL"]}
+    "TimeSheets": {
+      "description": "Theo dõi giờ làm việc của nhân viên",
+      "primary_key": "id",
+      "foreign_keys": {
+        "staff_id": "Users(id)"
       },
-      "indexes": ["idx_timesheets_staff_date"],
-      "constraints": ["CHECK (hours_worked >= 0)", "CHECK (check_out IS NULL OR check_out > check_in)"]
+      "columns": {
+        "id": "BIGSERIAL PRIMARY KEY",
+        "staff_id": "BIGINT NOT NULL",
+        "check_in": "TIMESTAMP NOT NULL",
+        "check_out": "TIMESTAMP DEFAULT NULL",
+        "date": "DATE NOT NULL",
+        "hours_worked": "NUMERIC(5,2) DEFAULT 0.00",
+        "notes": "TEXT DEFAULT NULL"
+      },
+      "indexes": ["(staff_id, date)"],
+      "business_rules": ["Giờ làm >= 0", "Giờ ra >= giờ vào"]
+    },
+    "Salaries": {
+      "description": "Bản ghi lương nhân viên đơn giản, dựa trên mức lương theo giờ và tổng giờ làm việc",
+      "primary_key": "id",
+      "foreign_keys": {
+        "user_id": "Users(id) ON DELETE CASCADE"
+      },
+      "columns": {
+        "id": "BIGSERIAL PRIMARY KEY",
+        "user_id": "BIGINT NOT NULL",
+        "base_salary": "NUMERIC(10,2) NOT NULL",
+        "working_time": "NUMERIC(5,2) NOT NULL DEFAULT 0.00",
+        "total_salary": "NUMERIC(10,2) GENERATED ALWAYS AS (base_salary * working_time) STORED",
+        "month_year": "DATE NOT NULL",
+        "status": "salary_status NOT NULL DEFAULT 'pending'",
+        "notes": "TEXT DEFAULT NULL",
+        "created_at": "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP",
+        "updated_at": "TIMESTAMP"
+      },
+      "unique_constraints": ["(user_id, month_year)"],
+      "indexes": ["user_id", "month_year"],
+      "business_rules": ["Lương cơ bản >= 0", "Thời gian làm >= 0"]
     }
   },
   "relationships": {
-    "users": {
-      "one_to_many": ["addresses", "orders", "carts", "reviews", "follows", "messages_sent", "messages_received", "transactions", "timesheets"],
-      "description": "Central user entity with multiple relationships"
+    "user_management": {
+      "Users": ["Addresses", "Orders", "Carts", "Reviews", "Follows", "Messages", "Transactions", "TimeSheets", "Salaries"],
+      "description": "Người dùng có thể có nhiều địa chỉ, đơn hàng, đánh giá, theo dõi sản phẩm và gửi tin nhắn"
     },
-    "products": {
-      "one_to_many": ["attributevalues", "orderitems", "cartitems", "reviews", "follows"],
-      "many_to_many": ["productattributes (through attributevalues)"],
-      "description": "Product catalog with attributes and relationships"
+    "product_management": {
+      "Products": ["AttributeValues", "OrderItems", "CartItems", "Reviews", "Follows"],
+      "description": "Sản phẩm có thể có nhiều thuộc tính, xuất hiện trong đơn hàng và giỏ hàng, được đánh giá và theo dõi"
     },
-    "orders": {
-      "many_to_one": ["users", "deliveryunits", "vouchers", "addresses"],
-      "one_to_many": ["orderitems", "transactions"],
-      "description": "Order management with items and transactions"
+    "order_management": {
+      "Orders": ["OrderItems", "Transactions"],
+      "description": "Đơn hàng chứa nhiều sản phẩm và có thể có nhiều giao dịch"
     },
-    "carts": {
-      "many_to_one": ["users"],
-      "one_to_many": ["cartitems"],
-      "description": "Shopping cart with items"
+    "cart_management": {
+      "Carts": ["CartItems"],
+      "description": "Giỏ hàng chứa nhiều sản phẩm"
+    },
+    "attribute_management": {
+      "ProductAttributes": ["AttributeValues"],
+      "description": "Thuộc tính sản phẩm có nhiều giá trị cho các sản phẩm khác nhau"
     }
   },
-  "sample_data": {
-    "users": 6,
-    "products": 10,
-    "orders": 4,
-    "carts": 3,
-    "reviews": 4,
-    "follows": 4,
-    "messages": 3,
-    "timesheets": 3,
-    "transactions": 4,
-    "description": "Comprehensive sample data for testing and development"
+  "business_logic": {
+    "user_roles": {
+      "customer": "Khách hàng có thể mua hàng, đánh giá sản phẩm, theo dõi sản phẩm",
+      "staff": "Nhân viên có thể quản lý đơn hàng, theo dõi giờ làm việc",
+      "admin": "Quản trị viên có quyền truy cập đầy đủ hệ thống"
+    },
+    "order_flow": {
+      "pending": "Đơn hàng mới được tạo",
+      "processing": "Đơn hàng đang được xử lý",
+      "shipped": "Đơn hàng đã được gửi",
+      "completed": "Đơn hàng hoàn thành",
+      "cancelled": "Đơn hàng bị hủy"
+    },
+    "inventory_management": {
+      "stock_tracking": "Theo dõi số lượng tồn kho sản phẩm",
+      "product_status": "Quản lý trạng thái sản phẩm (hoạt động, ngừng bán, hết hàng)"
+    },
+    "payment_system": {
+      "methods": ["Thanh toán khi nhận hàng", "Thẻ tín dụng", "Chuyển khoản ngân hàng", "Ví điện tử"],
+      "transactions": "Theo dõi giao dịch thanh toán và hoàn tiền"
+    },
+    "discount_system": {
+      "voucher_types": ["Phần trăm", "Số tiền cố định"],
+      "usage_limits": "Giới hạn số lần sử dụng và giá trị đơn hàng tối thiểu"
+    }
   },
-  "features": {
-    "user_management": "Complete user system with roles (customer, staff, admin)",
-    "product_catalog": "EAV model for flexible product attributes",
-    "shopping_cart": "Persistent cart with automatic total calculation",
-    "order_management": "Full order lifecycle with status tracking",
-    "payment_system": "Multiple payment methods with transaction tracking",
-    "messaging": "User-to-user communication system",
-    "reviews_ratings": "Product review and rating system",
-    "wishlist": "Product following/wishlist functionality",
-    "staff_management": "Time tracking for staff members",
-    "voucher_system": "Discount voucher management",
-    "delivery_management": "Multiple delivery options with fees"
+  "performance_optimization": {
+    "indexes": {
+      "user_lookup": "email, phone",
+      "order_queries": "user_id, status, (user_id, status)",
+      "product_search": "name, stock_quantity",
+      "review_display": "product_id",
+      "message_conversation": "(sender_id, receiver_id, sent_at)",
+      "transaction_tracking": "order_id, created_at, transaction_reference"
+    },
+    "unique_constraints": [
+      "Email và số điện thoại người dùng",
+      "Sản phẩm trong giỏ hàng",
+      "Theo dõi sản phẩm của người dùng",
+      "Lương theo tháng của nhân viên"
+    ]
+  },
+  "data_integrity": {
+    "foreign_key_constraints": "Tất cả các khóa ngoại đều có ràng buộc để đảm bảo tính toàn vẹn dữ liệu",
+    "check_constraints": [
+      "Mật khẩu tối thiểu 8 ký tự",
+      "Giá sản phẩm và phí vận chuyển >= 0",
+      "Số lượng trong kho >= 0",
+      "Điểm đánh giá từ 1-5",
+      "Thời gian làm việc >= 0"
+    ],
+    "cascade_deletes": "Xóa người dùng sẽ xóa địa chỉ, giỏ hàng và các dữ liệu liên quan"
   }
 }

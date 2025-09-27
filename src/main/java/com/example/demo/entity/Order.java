@@ -13,14 +13,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "orders")
-public class Order {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+public class Order extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -29,7 +22,6 @@ public class Order {
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private OrderStatus status = OrderStatus.PENDING;
@@ -49,7 +41,6 @@ public class Order {
     @JoinColumn(name = "address_id", nullable = false)
     private Address address;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "payment_method", nullable = false)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private PaymentMethod paymentMethod = PaymentMethod.CASH_ON_DELIVERY;
@@ -97,21 +88,6 @@ public class Order {
     }
 
     // Getters and Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
 
     public User getUser() {
         return user;

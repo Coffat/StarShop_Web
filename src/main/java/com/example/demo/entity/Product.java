@@ -27,7 +27,7 @@ public class Product extends BaseEntity {
     private Integer stockQuantity = 0;
 
     @Convert(converter = ProductStatusConverter.class)
-    @Column(nullable = true) // Tạm thời cho phép NULL
+    @Column(nullable = false)
     private ProductStatus status = ProductStatus.ACTIVE;
 
     // Relationships
