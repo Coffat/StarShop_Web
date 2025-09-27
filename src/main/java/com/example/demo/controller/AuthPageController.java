@@ -5,6 +5,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 @Controller
 @Slf4j
@@ -65,5 +68,30 @@ public class AuthPageController {
         }
         
         return "register";
+    }
+    
+    @GetMapping("/logout")
+    public void logout(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        log.info("Logout request received");
+        
+        // Invalidate session
+        if (request.getSession(false) != null) {
+            request.getSession().invalidate();
+        }
+        
+        // Clear authentication cookies
+        response.addCookie(createExpiredCookie("authToken"));
+        response.addCookie(createExpiredCookie("JSESSIONID"));
+        response.addCookie(createExpiredCookie("SPRING_SECURITY_REMEMBER_ME_COOKIE"));
+        
+        // Redirect to login page with success message
+        response.sendRedirect("/login?success=logout");
+    }
+    
+    private jakarta.servlet.http.Cookie createExpiredCookie(String name) {
+        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie(name, "");
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        return cookie;
     }
 }

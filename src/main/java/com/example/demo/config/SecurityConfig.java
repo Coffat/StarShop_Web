@@ -42,7 +42,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf
                 .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**")
+                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout")
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -63,7 +63,7 @@ public class SecurityConfig {
                 
                 // Static resources
                 .requestMatchers("/static/**", "/css/**", "/js/**", "/images/**").permitAll()
-                .requestMatchers("/login", "/register", "/forgot-password", "/reset-password").permitAll()
+                .requestMatchers("/login", "/register", "/forgot-password", "/reset-password", "/logout").permitAll()
                 
                 // OAuth2 endpoints
                 .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
