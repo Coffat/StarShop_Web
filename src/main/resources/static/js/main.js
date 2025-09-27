@@ -576,8 +576,8 @@ function toggleWishlist(productId, button) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            updateWishlistCount(data.wishlistCount);
-            showToast(data.inWishlist ? 'Đã thêm vào danh sách yêu thích' : 'Đã xóa khỏi danh sách yêu thích', 'success');
+            updateWishlistCount(data.data.favoriteCount);
+            showToast(data.data.isFavorite ? 'Đã thêm vào danh sách yêu thích' : 'Đã xóa khỏi danh sách yêu thích', 'success');
         } else {
             // Revert optimistic update
             if (isInWishlist) {

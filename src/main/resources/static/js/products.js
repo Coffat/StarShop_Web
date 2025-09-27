@@ -272,22 +272,46 @@
         if (isAdding) {
             icon.className = 'bi bi-heart-fill';
             button.classList.add('active');
-            showToast('Đã thêm vào danh sách yêu thích');
         } else {
             icon.className = 'bi bi-heart';
             button.classList.remove('active');
-            showToast('Đã xóa khỏi danh sách yêu thích');
         }
 
-        // TODO: Implement actual wishlist API call
-        console.log(`${isAdding ? 'Adding to' : 'Removing from'} wishlist:`, productId);
-        
-        // Track analytics
-        if (typeof gtag !== 'undefined') {
-            gtag('event', isAdding ? 'add_to_wishlist' : 'remove_from_wishlist', {
-                'item_id': productId
-            });
-        }
+        // API call to toggle wishlist
+        fetch('/api/wishlist/toggle', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ productId: productId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.data.isFavorite ? 'Đã thêm vào danh sách yêu thích' : 'Đã xóa khỏi danh sách yêu thích', 'success');
+                
+                // Track analytics
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', data.data.isFavorite ? 'add_to_wishlist' : 'remove_from_wishlist', {
+                        'item_id': productId
+                    });
+                }
+            } else {
+                // Revert optimistic update
+                if (isAdding) {
+                    icon.className = 'bi bi-heart';
+                    button.classList.remove('active');
+                } else {
+                    icon.className = 'bi bi-heart-fill';
+                    button.classList.add('active');
+                }
+                throw new Error(data.message);
+            }
+        })
+        .catch(error => {
+            showToast(error.message || 'Có lỗi xảy ra khi thay đổi danh sách yêu thích', 'error');
+        });
     }
 
     function updateCartCount() {
