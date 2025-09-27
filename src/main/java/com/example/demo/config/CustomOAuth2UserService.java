@@ -3,30 +3,31 @@ package com.example.demo.config;
 import com.example.demo.entity.User;
 import com.example.demo.entity.enums.UserRole;
 import com.example.demo.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Custom OAuth2 User Service for Google and Facebook login
- * Following rules.mdc specifications for OAuth2 integration
+ * Custom OAuth2 User Service to handle Google and Facebook login
+ * Creates or updates user accounts based on OAuth2 provider data
  */
 @Service
-@Slf4j
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    
+
     public CustomOAuth2UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -39,150 +40,164 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         
         try {
             return processOAuth2User(userRequest, oauth2User);
-        } catch (Exception e) {
-            log.error("Error processing OAuth2 user: {}", e.getMessage(), e);
-            throw new OAuth2AuthenticationException("OAuth2 user processing failed");
+        } catch (Exception ex) {
+            throw new OAuth2AuthenticationException("Error processing OAuth2 user: " + ex.getMessage());
         }
     }
 
     private OAuth2User processOAuth2User(OAuth2UserRequest userRequest, OAuth2User oauth2User) {
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
-        String email = extractEmail(oauth2User, registrationId);
-        String name = extractName(oauth2User, registrationId);
+        Map<String, Object> attributes = oauth2User.getAttributes();
         
-        log.info("Processing OAuth2 user from {}: email={}, name={}", registrationId, email, name);
+        // Reduced logging for performance
+        System.out.println("OAuth2 login: " + registrationId);
         
-        if (email == null || email.trim().isEmpty()) {
-            throw new OAuth2AuthenticationException("Email not found from OAuth2 provider");
+        String email = extractEmail(attributes, registrationId);
+        String name = extractName(attributes, registrationId);
+        String avatar = extractAvatar(attributes, registrationId);
+        
+        if (email == null || email.isEmpty()) {
+            throw new OAuth2AuthenticationException("Email not found in OAuth2 response");
         }
         
-        User user = userRepository.findByEmail(email.toLowerCase())
-                .orElseGet(() -> createNewOAuth2User(email, name, registrationId));
+        // Check if user already exists
+        Optional<User> existingUser = userRepository.findByEmail(email);
+        User user;
         
-        // Update user information if needed
-        updateUserFromOAuth2(user, oauth2User, registrationId);
+        if (existingUser.isPresent()) {
+            user = existingUser.get();
+            boolean needsUpdate = updateUserInfo(user, name, avatar);
+            // Only save if user was updated
+            if (needsUpdate) {
+                try {
+                    user = userRepository.save(user);
+                } catch (Exception e) {
+                    // Handle save errors for existing users
+                    if (e.getMessage().contains("duplicate key value violates unique constraint")) {
+                        try {
+                            user = userRepository.save(user);
+                        } catch (Exception retryException) {
+                            throw new OAuth2AuthenticationException("Failed to save user: " + retryException.getMessage());
+                        }
+                    } else {
+                        throw new OAuth2AuthenticationException("Failed to save user: " + e.getMessage());
+                    }
+                }
+            }
+        } else {
+            user = createNewUser(email, name, avatar, registrationId);
+            // Save new user
+            try {
+                user = userRepository.save(user);
+            } catch (Exception e) {
+                if (e.getMessage().contains("duplicate key value violates unique constraint")) {
+                    try {
+                        user = userRepository.save(user);
+                    } catch (Exception retryException) {
+                        throw new OAuth2AuthenticationException("Failed to save user: " + retryException.getMessage());
+                    }
+                } else {
+                    throw new OAuth2AuthenticationException("Failed to save user: " + e.getMessage());
+                }
+            }
+        }
         
-        return oauth2User;
+        // Create authorities
+        var authorities = Collections.singletonList(
+            new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
+        );
+        
+        return new DefaultOAuth2User(authorities, attributes, "email");
     }
 
-    private String extractEmail(OAuth2User oauth2User, String registrationId) {
-        switch (registrationId) {
-            case "google":
-                return oauth2User.getAttribute("email");
-            case "facebook":
-                return oauth2User.getAttribute("email");
-            default:
-                return oauth2User.getAttribute("email");
+    private String extractEmail(Map<String, Object> attributes, String registrationId) {
+        if ("google".equals(registrationId)) {
+            return (String) attributes.get("email");
+        } else if ("facebook".equals(registrationId)) {
+            return (String) attributes.get("email");
         }
+        return null;
     }
 
-    private String extractName(OAuth2User oauth2User, String registrationId) {
-        switch (registrationId) {
-            case "google":
-                return oauth2User.getAttribute("name");
-            case "facebook":
-                return oauth2User.getAttribute("name");
-            default:
-                return oauth2User.getAttribute("name");
+    private String extractName(Map<String, Object> attributes, String registrationId) {
+        if ("google".equals(registrationId)) {
+            return (String) attributes.get("name");
+        } else if ("facebook".equals(registrationId)) {
+            return (String) attributes.get("name");
         }
+        return null;
     }
 
-    private User createNewOAuth2User(String email, String name, String provider) {
-        log.info("Creating new OAuth2 user: email={}, provider={}", email, provider);
+    private String extractAvatar(Map<String, Object> attributes, String registrationId) {
+        if ("google".equals(registrationId)) {
+            return (String) attributes.get("picture");
+        } else if ("facebook".equals(registrationId)) {
+            String id = (String) attributes.get("id");
+            if (id != null) {
+                return "https://graph.facebook.com/" + id + "/picture?type=large";
+            }
+        }
+        return null;
+    }
+
+    private boolean updateUserInfo(User user, String name, String avatar) {
+        boolean needsUpdate = false;
+        
+        if (name != null && !name.isEmpty()) {
+            String[] nameParts = splitName(name);
+            if (!nameParts[0].equals(user.getFirstname()) || !nameParts[1].equals(user.getLastname())) {
+                user.setFirstname(nameParts[0]);
+                user.setLastname(nameParts[1]);
+                needsUpdate = true;
+            }
+        }
+        
+        if (avatar != null && !avatar.isEmpty() && !avatar.equals(user.getAvatar())) {
+            user.setAvatar(avatar);
+            needsUpdate = true;
+        }
+        
+        return needsUpdate;
+    }
+
+    private User createNewUser(String email, String name, String avatar, String registrationId) {
+        String[] nameParts = splitName(name != null ? name : "User");
+        String randomPassword = UUID.randomUUID().toString();
+        
+        // Generate unique phone number to avoid constraint violation
+        String defaultPhone = "OAuth2_" + System.currentTimeMillis();
         
         User user = new User();
-        user.setEmail(email.toLowerCase());
-        
-        // Parse name into first and last name
-        if (name != null && !name.trim().isEmpty()) {
-            String[] nameParts = name.trim().split("\\s+", 2);
-            user.setFirstname(nameParts[0]);
-            user.setLastname(nameParts.length > 1 ? nameParts[1] : "");
-        } else {
-            user.setFirstname("User");
-            user.setLastname("");
-        }
-        
-        // Generate random password for OAuth2 users (they won't use it for login)
-        user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
-        
-        // Generate a unique temporary phone number (will need to be updated by user)
-        String uniquePhone = generateUniquePhone();
-        user.setPhone(uniquePhone);
-        
+        user.setFirstname(nameParts[0]);
+        user.setLastname(nameParts[1]);
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(randomPassword));
+        user.setPhone(defaultPhone);
+        user.setAvatar(avatar);
         user.setRole(UserRole.CUSTOMER);
-        user.setCreatedAt(LocalDateTime.now());
         
-        try {
-            user = userRepository.save(user);
-            log.info("Successfully created OAuth2 user with ID: {}", user.getId());
-            return user;
-        } catch (Exception e) {
-            log.error("Error creating OAuth2 user: {}", e.getMessage(), e);
-            throw new OAuth2AuthenticationException("Failed to create user account");
-        }
+        // Removed logging for performance
+        
+        return user;
     }
 
-    private void updateUserFromOAuth2(User user, OAuth2User oauth2User, String registrationId) {
-        boolean updated = false;
-        
-        // Update avatar if available
-        String avatarUrl = extractAvatarUrl(oauth2User, registrationId);
-        if (avatarUrl != null && !avatarUrl.equals(user.getAvatar())) {
-            user.setAvatar(avatarUrl);
-            updated = true;
+    private String[] splitName(String fullName) {
+        if (fullName == null || fullName.trim().isEmpty()) {
+            return new String[]{"User", "Name"};
         }
         
-        // Update name if it's different
-        String name = extractName(oauth2User, registrationId);
-        if (name != null && !name.trim().isEmpty()) {
-            String[] nameParts = name.trim().split("\\s+", 2);
-            String firstName = nameParts[0];
-            String lastName = nameParts.length > 1 ? nameParts[1] : "";
-            
-            if (!firstName.equals(user.getFirstname()) || !lastName.equals(user.getLastname())) {
-                user.setFirstname(firstName);
-                user.setLastname(lastName);
-                updated = true;
+        String[] parts = fullName.trim().split("\\s+");
+        if (parts.length == 1) {
+            return new String[]{parts[0], ""};
+        } else if (parts.length == 2) {
+            return new String[]{parts[0], parts[1]};
+        } else {
+            StringBuilder lastName = new StringBuilder();
+            for (int i = 1; i < parts.length; i++) {
+                if (i > 1) lastName.append(" ");
+                lastName.append(parts[i]);
             }
+            return new String[]{parts[0], lastName.toString()};
         }
-        
-        if (updated) {
-            try {
-                userRepository.save(user);
-                log.info("Updated OAuth2 user information for: {}", user.getEmail());
-            } catch (Exception e) {
-                log.error("Error updating OAuth2 user: {}", e.getMessage());
-            }
-        }
-    }
-
-    private String extractAvatarUrl(OAuth2User oauth2User, String registrationId) {
-        switch (registrationId) {
-            case "google":
-                return oauth2User.getAttribute("picture");
-            case "facebook":
-                // Facebook graph API format for profile picture
-                String facebookId = oauth2User.getAttribute("id");
-                return facebookId != null ? "https://graph.facebook.com/" + facebookId + "/picture?type=large" : null;
-            default:
-                return null;
-        }
-    }
-
-    /**
-     * Generate a unique temporary phone number for OAuth2 users
-     * Format: 09XXXXXXXX (10 digits Vietnamese mobile format)
-     */
-    private String generateUniquePhone() {
-        // Use current timestamp to ensure uniqueness
-        long timestamp = System.currentTimeMillis();
-        String timestampStr = String.valueOf(timestamp);
-        
-        // Take last 8 digits and prepend with "09" for Vietnamese mobile format
-        String phone = "09" + timestampStr.substring(timestampStr.length() - 8);
-        
-        log.info("Generated unique phone for OAuth2 user: {}", phone);
-        return phone;
     }
 }

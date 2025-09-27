@@ -149,8 +149,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CustomOAuth2UserService customOAuth2UserService() {
-        return new CustomOAuth2UserService(userRepository, passwordEncoder());
+    public com.example.demo.config.CustomOAuth2UserService customOAuth2UserService() {
+        return new com.example.demo.config.CustomOAuth2UserService(userRepository, passwordEncoder());
     }
 
     @Bean
@@ -170,10 +170,10 @@ public class SecurityConfig {
                     return;
                 }
                 
-                // Find or create user
+                // Find user (should exist after CustomOAuth2UserService processing)
                 User user = userRepository.findByEmail(email).orElse(null);
                 if (user == null) {
-                    System.out.println("User not found, redirecting to error");
+                    System.out.println("User not found after OAuth2 processing, redirecting to error");
                     response.sendRedirect("/login?error=oauth2_user_not_found");
                     return;
                 }
@@ -184,10 +184,13 @@ public class SecurityConfig {
                 String token = jwtService.generateToken(user.getEmail(), user.getRole(), user.getId());
                 System.out.println("JWT token generated: " + token.substring(0, 20) + "...");
                 
-                // Simple redirect to home with token in session
+                // Set authentication in session
                 request.getSession().setAttribute("authToken", token);
                 request.getSession().setAttribute("userEmail", user.getEmail());
+                request.getSession().setAttribute("userRole", user.getRole().name());
+                request.getSession().setAttribute("userId", user.getId());
                 
+                // Redirect to home page
                 response.sendRedirect("/?oauth2=success");
                 
             } catch (Exception e) {
