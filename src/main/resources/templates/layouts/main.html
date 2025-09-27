@@ -13,6 +13,10 @@
     <meta name="keywords" content="hoa tươi, shop hoa, StarShop, hoa sinh nhật, hoa tình yêu, hoa cưới, hoa khai trương">
     <meta name="author" content="StarShop">
     
+    <!-- CSRF Token -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:title" th:content="${title != null ? title + ' - StarShop 🌸' : 'StarShop 🌸 - Cửa hàng hoa tươi'}">

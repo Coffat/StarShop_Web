@@ -573,12 +573,10 @@ function toggleWishlist(productId, button) {
         },
         body: JSON.stringify({ productId: productId })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            updateWishlistCount(data.data.favoriteCount);
-            showToast(data.data.isFavorite ? 'Đã thêm vào danh sách yêu thích' : 'Đã xóa khỏi danh sách yêu thích', 'success');
-        } else {
+    .then(response => {
+        if (response.status === 401) {
+            // User not authenticated
+            showToast('Vui lòng đăng nhập để sử dụng tính năng yêu thích', 'warning');
             // Revert optimistic update
             if (isInWishlist) {
                 icon.classList.remove('bi-heart');
@@ -589,11 +587,30 @@ function toggleWishlist(productId, button) {
                 icon.classList.add('bi-heart');
                 button.classList.remove('active');
             }
-            throw new Error(data.message);
+            return;
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data && data.success) {
+            updateWishlistCount(data.data.favoriteCount);
+            showToast(data.data.isFavorite ? 'Đã thêm vào danh sách yêu thích' : 'Đã xóa khỏi danh sách yêu thích', 'success');
+        } else if (data && !data.success) {
+            // Revert optimistic update
+            if (isInWishlist) {
+                icon.classList.remove('bi-heart');
+                icon.classList.add('bi-heart-fill');
+                button.classList.add('active');
+            } else {
+                icon.classList.remove('bi-heart-fill');
+                icon.classList.add('bi-heart');
+                button.classList.remove('active');
+            }
+            showToast(data.message || 'Có lỗi xảy ra', 'error');
         }
     })
     .catch(error => {
-        showToast(error.message || 'Có lỗi xảy ra', 'error');
+        showToast('Có lỗi xảy ra khi thực hiện yêu cầu', 'error');
     });
 }
 
@@ -619,6 +636,11 @@ function updateWishlistCount(count) {
             element.style.display = 'none';
         }
     });
+}
+
+function getCsrfToken() {
+    const token = document.querySelector('meta[name="_csrf"]');
+    return token ? token.getAttribute('content') : '';
 }
 
 // CSS animations

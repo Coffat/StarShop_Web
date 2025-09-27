@@ -1,7 +1,22 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{layouts/main :: layout(~{::title}, ~{::content})}">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{layouts/main :: layout(~{::title}, 'Lỗi máy chủ - StarShop', ~{::link}, ~{::content})}">
 <head>
     <title>Lỗi 500 - Lỗi máy chủ</title>
+    <th:block th:fragment="link">
+        <style>
+            .error-template {
+                padding: 40px 15px;
+                text-align: center;
+            }
+            .error-actions {
+                margin-top: 15px;
+                margin-bottom: 15px;
+            }
+            .error-actions .btn {
+                margin-right: 10px;
+            }
+        </style>
+    </th:block>
 </head>
 <body>
     <div th:fragment="content">

@@ -17,7 +17,7 @@ CREATE TABLE Users (
     password VARCHAR(255) NOT NULL,
     phone VARCHAR(20) UNIQUE NOT NULL,
     avatar VARCHAR(255) DEFAULT NULL,
-    role user_role NOT NULL DEFAULT 'customer',
+    role VARCHAR(20) NOT NULL DEFAULT 'customer',
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     CHECK (LENGTH(password) >= 8)

@@ -286,18 +286,10 @@
             },
             body: JSON.stringify({ productId: productId })
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast(data.data.isFavorite ? 'Đã thêm vào danh sách yêu thích' : 'Đã xóa khỏi danh sách yêu thích', 'success');
-                
-                // Track analytics
-                if (typeof gtag !== 'undefined') {
-                    gtag('event', data.data.isFavorite ? 'add_to_wishlist' : 'remove_from_wishlist', {
-                        'item_id': productId
-                    });
-                }
-            } else {
+        .then(response => {
+            if (response.status === 401) {
+                // User not authenticated
+                showToast('Vui lòng đăng nhập để sử dụng tính năng yêu thích', 'warning');
                 // Revert optimistic update
                 if (isAdding) {
                     icon.className = 'bi bi-heart';
@@ -306,11 +298,34 @@
                     icon.className = 'bi bi-heart-fill';
                     button.classList.add('active');
                 }
-                throw new Error(data.message);
+                return;
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.success) {
+                showToast(data.data.isFavorite ? 'Đã thêm vào danh sách yêu thích' : 'Đã xóa khỏi danh sách yêu thích', 'success');
+                
+                // Track analytics
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', data.data.isFavorite ? 'add_to_wishlist' : 'remove_from_wishlist', {
+                        'item_id': productId
+                    });
+                }
+            } else if (data && !data.success) {
+                // Revert optimistic update
+                if (isAdding) {
+                    icon.className = 'bi bi-heart';
+                    button.classList.remove('active');
+                } else {
+                    icon.className = 'bi bi-heart-fill';
+                    button.classList.add('active');
+                }
+                showToast(data.message || 'Có lỗi xảy ra', 'error');
             }
         })
         .catch(error => {
-            showToast(error.message || 'Có lỗi xảy ra khi thay đổi danh sách yêu thích', 'error');
+            showToast('Có lỗi xảy ra khi thực hiện yêu cầu', 'error');
         });
     }
 
@@ -736,6 +751,15 @@
             }
         }
     };
+
+    // ================================
+    // UTILITY FUNCTIONS
+    // ================================
+    
+    function getCsrfToken() {
+        const token = document.querySelector('meta[name="_csrf"]');
+        return token ? token.getAttribute('content') : '';
+    }
 
     // ================================
     // DOM READY

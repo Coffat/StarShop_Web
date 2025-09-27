@@ -41,7 +41,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         try {
             return processOAuth2User(userRequest, oauth2User);
         } catch (Exception ex) {
-            throw new OAuth2AuthenticationException("Error processing OAuth2 user: " + ex.getMessage());
+            ex.printStackTrace(); // Print full stack trace for debugging
+            String errorMessage = ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName();
+            throw new OAuth2AuthenticationException("Error processing OAuth2 user: " + errorMessage);
         }
     }
 
@@ -49,12 +51,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
         Map<String, Object> attributes = oauth2User.getAttributes();
         
-        // Reduced logging for performance
+        // Enhanced logging for debugging
         System.out.println("OAuth2 login: " + registrationId);
+        System.out.println("OAuth2 attributes: " + attributes);
         
         String email = extractEmail(attributes, registrationId);
         String name = extractName(attributes, registrationId);
         String avatar = extractAvatar(attributes, registrationId);
+        
+        System.out.println("Extracted - Email: " + email + ", Name: " + name + ", Avatar: " + avatar);
         
         if (email == null || email.isEmpty()) {
             throw new OAuth2AuthenticationException("Email not found in OAuth2 response");
@@ -85,11 +90,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 }
             }
         } else {
+            System.out.println("Creating new user for email: " + email);
             user = createNewUser(email, name, avatar, registrationId);
+            System.out.println("New user created: " + user.getEmail() + ", Role: " + user.getRole());
+            
             // Save new user
             try {
                 user = userRepository.save(user);
+                System.out.println("User saved successfully with ID: " + user.getId());
             } catch (Exception e) {
+                System.out.println("Error saving user: " + e.getMessage());
+                e.printStackTrace();
                 if (e.getMessage().contains("duplicate key value violates unique constraint")) {
                     try {
                         user = userRepository.save(user);
@@ -167,6 +178,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         // Generate unique phone number to avoid constraint violation
         String defaultPhone = "OAuth2_" + System.currentTimeMillis();
         
+        System.out.println("Creating user with phone: " + defaultPhone);
+        
         User user = new User();
         user.setFirstname(nameParts[0]);
         user.setLastname(nameParts[1]);
@@ -176,7 +189,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         user.setAvatar(avatar);
         user.setRole(UserRole.CUSTOMER);
         
-        // Removed logging for performance
+        System.out.println("User object created: " + user.getEmail() + ", Phone: " + user.getPhone() + ", Role: " + user.getRole());
         
         return user;
     }

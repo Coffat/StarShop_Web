@@ -42,7 +42,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf
                 .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout")
+                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**")
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -86,6 +86,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/orders/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/cart/**").hasRole("CUSTOMER")
                 .requestMatchers("/api/reviews/**").hasRole("CUSTOMER")
+                .requestMatchers("/api/wishlist/**").hasRole("CUSTOMER")
+                .requestMatchers("/api/favorite/**").hasRole("CUSTOMER")
                 .requestMatchers("/api/messages/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 
@@ -131,8 +133,21 @@ public class SecurityConfig {
             )
             .exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint((request, response, authException) -> {
-                    // Handle authentication entry point - redirect to login
-                    response.sendRedirect("/login?error=authentication_required");
+                    try {
+                        // Check if this is an API request
+                        if (request.getRequestURI().startsWith("/api/")) {
+                            response.setStatus(401);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write("{\"success\":false,\"message\":\"Vui lòng đăng nhập để sử dụng tính năng này\"}");
+                        } else {
+                            // Handle authentication entry point - redirect to login for web pages
+                            response.sendRedirect("/login?error=authentication_required");
+                        }
+                    } catch (IOException e) {
+                        // Log error and send basic error response
+                        System.err.println("Error in authentication entry point: " + e.getMessage());
+                        response.setStatus(500);
+                    }
                 })
             )
             .headers(headers -> headers
