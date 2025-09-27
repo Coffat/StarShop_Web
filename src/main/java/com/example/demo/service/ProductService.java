@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.Product;
+import com.example.demo.dto.ProductDetailDTO;
 import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -168,11 +169,26 @@ public class ProductService {
     }
 
     /**
-     * Get product with average rating and review count
+     * Get product with average rating and review count using optimized query
      * @param productId Product ID
-     * @return Product with rating information
+     * @return ProductDetailDTO with rating information
      */
-    public ProductWithRating getProductWithRating(Long productId) {
+    public ProductDetailDTO getProductWithRating(Long productId) {
+        if (productId == null) {
+            log.warn("Product ID is null");
+            return null;
+        }
+        
+        log.info("Fetching product detail with rating for ID: {}", productId);
+        return productRepository.findProductDetailById(productId).orElse(null);
+    }
+
+    /**
+     * Get product with average rating and review count (legacy method for backward compatibility)
+     * @param productId Product ID
+     * @return ProductWithRating with rating information
+     */
+    public ProductWithRating getProductWithRatingLegacy(Long productId) {
         Product product = findById(productId);
         if (product == null) {
             return null;

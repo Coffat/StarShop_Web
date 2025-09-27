@@ -29,9 +29,6 @@ public class User extends BaseEntity {
     @Column
     private String avatar;
 
-    @Column
-    private String cover;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Convert(converter = UserRoleConverter.class)
@@ -130,14 +127,6 @@ public class User extends BaseEntity {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
-    }
-
-    public String getCover() {
-        return cover;
-    }
-
-    public void setCover(String cover) {
-        this.cover = cover;
     }
 
     public UserRole getRole() {

@@ -37,6 +37,9 @@ public class Voucher extends BaseEntity {
     @Column(nullable = false)
     private Integer uses = 0;
 
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
     @OneToMany(mappedBy = "voucher", fetch = FetchType.LAZY)
     private List<Order> orders = new ArrayList<>();
 
@@ -56,7 +59,7 @@ public class Voucher extends BaseEntity {
 
     // Helper methods
     public boolean isValid() {
-        return LocalDate.now().isBefore(expiryDate) && 
+        return isActive && LocalDate.now().isBefore(expiryDate) && 
                (maxUses == null || uses < maxUses);
     }
 
@@ -139,5 +142,13 @@ public class Voucher extends BaseEntity {
 
     public void setOrders(List<Order> orders) {
         this.orders = orders;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 }

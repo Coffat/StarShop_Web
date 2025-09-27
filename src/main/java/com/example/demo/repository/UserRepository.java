@@ -2,6 +2,7 @@ package com.example.demo.repository;
 
 import com.example.demo.entity.User;
 import com.example.demo.entity.enums.UserRole;
+import com.example.demo.dto.UserProfileDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -31,4 +32,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.addresses WHERE u.email = :email")
     Optional<User> findByEmailWithAddresses(@Param("email") String email);
+    
+    @Query("SELECT new com.example.demo.dto.UserProfileDTO(u, " +
+           "(SELECT COUNT(o) FROM Order o WHERE o.user.id = u.id), " +
+           "(SELECT COUNT(f) FROM Follow f WHERE f.user.id = u.id), " +
+           "(SELECT COALESCE(SUM(ci.quantity), 0) FROM CartItem ci WHERE ci.cart.user.id = u.id)) " +
+           "FROM User u WHERE u.email = :email")
+    Optional<UserProfileDTO> findUserProfileByEmail(@Param("email") String email);
 }

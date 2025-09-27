@@ -1,0 +1,316 @@
+{
+  "database_info": {
+    "name": "Flower Shop System",
+    "version": "1.0",
+    "database_type": "PostgreSQL 15",
+    "description": "Complete e-commerce system for flower shop with user management, product catalog, orders, and analytics"
+  },
+  "enums": {
+    "user_role": {
+      "type": "ENUM",
+      "values": ["customer", "staff", "admin"],
+      "description": "User roles in the system"
+    },
+    "order_status": {
+      "type": "ENUM", 
+      "values": ["pending", "processing", "shipped", "completed", "cancelled"],
+      "description": "Order processing status"
+    },
+    "discount_type": {
+      "type": "ENUM",
+      "values": ["percentage", "fixed"],
+      "description": "Types of discount calculation"
+    },
+    "payment_method": {
+      "type": "ENUM",
+      "values": ["cash_on_delivery", "credit_card", "bank_transfer", "wallet"],
+      "description": "Available payment methods"
+    },
+    "transaction_type": {
+      "type": "ENUM",
+      "values": ["payment", "refund"],
+      "description": "Transaction types"
+    },
+    "transaction_status": {
+      "type": "ENUM",
+      "values": ["success", "failed"],
+      "description": "Transaction processing status"
+    },
+    "product_status": {
+      "type": "ENUM",
+      "values": ["active", "inactive", "out_of_stock", "discontinued"],
+      "description": "Product availability status"
+    }
+  },
+  "tables": {
+    "users": {
+      "description": "Stores user information including customers, staff, and admins",
+      "columns": {
+        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
+        "firstname": {"type": "VARCHAR(100)", "constraints": ["NOT NULL"]},
+        "lastname": {"type": "VARCHAR(100)", "constraints": ["NOT NULL"]},
+        "email": {"type": "VARCHAR(255)", "constraints": ["UNIQUE", "NOT NULL"]},
+        "password": {"type": "VARCHAR(255)", "constraints": ["NOT NULL"]},
+        "phone": {"type": "VARCHAR(20)", "constraints": ["UNIQUE", "NOT NULL"]},
+        "avatar": {"type": "VARCHAR(255)", "constraints": ["DEFAULT NULL"]},
+        "role": {"type": "user_role", "constraints": ["NOT NULL", "DEFAULT 'customer'"]},
+        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
+        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+      },
+      "indexes": ["idx_users_email", "idx_users_phone"],
+      "constraints": ["CHECK (LENGTH(password) >= 8)"]
+    },
+    "addresses": {
+      "description": "User delivery addresses",
+      "columns": {
+        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
+        "user_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> users(id)"]},
+        "street": {"type": "VARCHAR(255)", "constraints": ["NOT NULL"]},
+        "city": {"type": "VARCHAR(100)", "constraints": ["NOT NULL"]},
+        "province": {"type": "VARCHAR(100)", "constraints": ["NOT NULL"]},
+        "is_default": {"type": "BOOLEAN", "constraints": ["NOT NULL", "DEFAULT FALSE"]},
+        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
+        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+      },
+      "indexes": ["idx_addresses_user_id"]
+    },
+    "products": {
+      "description": "Flower products catalog",
+      "columns": {
+        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
+        "name": {"type": "VARCHAR(255)", "constraints": ["NOT NULL"]},
+        "description": {"type": "TEXT", "constraints": ["DEFAULT NULL"]},
+        "price": {"type": "NUMERIC(10,2)", "constraints": ["NOT NULL", "DEFAULT 0.00"]},
+        "image": {"type": "VARCHAR(255)", "constraints": ["DEFAULT NULL"]},
+        "stock_quantity": {"type": "INTEGER", "constraints": ["DEFAULT 0"]},
+        "status": {"type": "product_status", "constraints": ["DEFAULT 'active'"]},
+        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
+        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+      },
+      "indexes": ["idx_products_name", "idx_products_stock_quantity"],
+      "constraints": ["CHECK (price >= 0)", "CHECK (stock_quantity >= 0)"]
+    },
+    "productattributes": {
+      "description": "Product attribute types (e.g., color, size)",
+      "columns": {
+        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
+        "name": {"type": "VARCHAR(100)", "constraints": ["UNIQUE", "NOT NULL"]},
+        "created_at": {"type": "TIMESTAMP", "constraints": ["DEFAULT CURRENT_TIMESTAMP"]},
+        "updated_at": {"type": "TIMESTAMP", "constraints": ["DEFAULT CURRENT_TIMESTAMP"]}
+      },
+      "indexes": ["idx_productattributes_name"]
+    },
+    "attributevalues": {
+      "description": "Specific values for product attributes",
+      "columns": {
+        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
+        "attribute_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> productattributes(id)"]},
+        "product_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> products(id)"]},
+        "value": {"type": "VARCHAR(255)", "constraints": ["NOT NULL"]},
+        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
+        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+      },
+      "indexes": ["idx_attributevalues_unique"],
+      "constraints": ["UNIQUE (attribute_id, product_id, value)"]
+    },
+    "deliveryunits": {
+      "description": "Delivery service providers",
+      "columns": {
+        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
+        "name": {"type": "VARCHAR(100)", "constraints": ["UNIQUE", "NOT NULL"]},
+        "fee": {"type": "NUMERIC(10,2)", "constraints": ["NOT NULL", "DEFAULT 0.00"]},
+        "estimated_time": {"type": "VARCHAR(50)", "constraints": ["DEFAULT NULL"]},
+        "is_active": {"type": "BOOLEAN", "constraints": ["DEFAULT TRUE"]},
+        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
+        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+      },
+      "indexes": ["idx_deliveryunits_is_active"],
+      "constraints": ["CHECK (fee >= 0)"]
+    },
+    "vouchers": {
+      "description": "Discount vouchers",
+      "columns": {
+        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
+        "code": {"type": "VARCHAR(50)", "constraints": ["UNIQUE", "NOT NULL"]},
+        "discount_value": {"type": "NUMERIC(10,2)", "constraints": ["NOT NULL"]},
+        "discount_type": {"type": "discount_type", "constraints": ["NOT NULL"]},
+        "expiry_date": {"type": "DATE", "constraints": ["NOT NULL"]},
+        "min_order_value": {"type": "NUMERIC(10,2)", "constraints": ["DEFAULT 0.00"]},
+        "max_uses": {"type": "INTEGER", "constraints": ["DEFAULT NULL"]},
+        "uses": {"type": "INTEGER", "constraints": ["NOT NULL", "DEFAULT 0"]},
+        "is_active": {"type": "BOOLEAN", "constraints": ["DEFAULT TRUE"]},
+        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
+        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+      },
+      "indexes": ["idx_vouchers_code", "idx_vouchers_is_active"],
+      "constraints": ["CHECK (discount_value > 0)", "CHECK (max_uses IS NULL OR uses <= max_uses)"]
+    },
+    "orders": {
+      "description": "Customer orders with status and payment info",
+      "columns": {
+        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
+        "user_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> users(id)"]},
+        "total_amount": {"type": "NUMERIC(10,2)", "constraints": ["NOT NULL", "DEFAULT 0.00"]},
+        "status": {"type": "order_status", "constraints": ["NOT NULL", "DEFAULT 'pending'"]},
+        "order_date": {"type": "TIMESTAMP", "constraints": ["NOT NULL", "DEFAULT CURRENT_TIMESTAMP"]},
+        "delivery_unit_id": {"type": "BIGINT", "constraints": ["DEFAULT NULL", "FOREIGN KEY -> deliveryunits(id)"]},
+        "voucher_id": {"type": "BIGINT", "constraints": ["DEFAULT NULL", "FOREIGN KEY -> vouchers(id)"]},
+        "address_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> addresses(id)"]},
+        "payment_method": {"type": "payment_method", "constraints": ["NOT NULL", "DEFAULT 'cash_on_delivery'"]},
+        "notes": {"type": "TEXT", "constraints": ["DEFAULT NULL"]}
+      },
+      "indexes": ["idx_orders_user_id", "idx_orders_status", "idx_orders_user_status"],
+      "constraints": ["CHECK (total_amount >= 0)"]
+    },
+    "orderitems": {
+      "description": "Items within an order",
+      "columns": {
+        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
+        "order_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> orders(id)"]},
+        "product_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> products(id)"]},
+        "quantity": {"type": "INTEGER", "constraints": ["NOT NULL", "DEFAULT 1"]},
+        "price": {"type": "NUMERIC(10,2)", "constraints": ["NOT NULL"]}
+      },
+      "indexes": ["idx_orderitems_order_id"],
+      "constraints": ["CHECK (quantity > 0)"]
+    },
+    "carts": {
+      "description": "User shopping carts",
+      "columns": {
+        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
+        "user_id": {"type": "BIGINT", "constraints": ["UNIQUE", "NOT NULL", "FOREIGN KEY -> users(id)"]},
+        "total_amount": {"type": "NUMERIC(10,2)", "constraints": ["DEFAULT 0.00"]},
+        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
+        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+      },
+      "constraints": ["CHECK (total_amount >= 0)"]
+    },
+    "cartitems": {
+      "description": "Items in user carts",
+      "columns": {
+        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
+        "cart_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> carts(id)"]},
+        "product_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> products(id)"]},
+        "quantity": {"type": "INTEGER", "constraints": ["NOT NULL", "DEFAULT 1"]},
+        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
+        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+      },
+      "indexes": ["idx_cartitems_unique"],
+      "constraints": ["CHECK (quantity > 0)", "UNIQUE (cart_id, product_id)"]
+    },
+    "reviews": {
+      "description": "Product reviews and ratings",
+      "columns": {
+        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
+        "user_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> users(id)"]},
+        "product_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> products(id)"]},
+        "rating": {"type": "SMALLINT", "constraints": ["NOT NULL"]},
+        "comment": {"type": "TEXT", "constraints": ["DEFAULT NULL"]},
+        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
+        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+      },
+      "indexes": ["idx_reviews_product_id"],
+      "constraints": ["CHECK (rating BETWEEN 1 AND 5)"]
+    },
+    "follows": {
+      "description": "User follows on products (wishlist)",
+      "columns": {
+        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
+        "user_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> users(id)"]},
+        "product_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> products(id)"]},
+        "followed_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL", "DEFAULT CURRENT_TIMESTAMP"]}
+      },
+      "indexes": ["idx_follows_unique", "idx_follows_product_id"],
+      "constraints": ["UNIQUE (user_id, product_id)"]
+    },
+    "messages": {
+      "description": "User-to-user messaging",
+      "columns": {
+        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
+        "sender_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> users(id)"]},
+        "receiver_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> users(id)"]},
+        "content": {"type": "TEXT", "constraints": ["NOT NULL"]},
+        "sent_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL", "DEFAULT CURRENT_TIMESTAMP"]},
+        "is_read": {"type": "BOOLEAN", "constraints": ["NOT NULL", "DEFAULT FALSE"]}
+      },
+      "indexes": ["idx_messages_conversation", "idx_messages_sent_at"]
+    },
+    "transactions": {
+      "description": "Payment/refund transactions",
+      "columns": {
+        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
+        "user_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> users(id)"]},
+        "order_id": {"type": "BIGINT", "constraints": ["DEFAULT NULL", "FOREIGN KEY -> orders(id)"]},
+        "amount": {"type": "NUMERIC(10,2)", "constraints": ["NOT NULL"]},
+        "type": {"type": "transaction_type", "constraints": ["NOT NULL"]},
+        "status": {"type": "transaction_status", "constraints": ["NOT NULL", "DEFAULT 'failed'"]},
+        "transaction_reference": {"type": "VARCHAR(255)", "constraints": ["DEFAULT NULL"]},
+        "notes": {"type": "TEXT", "constraints": ["DEFAULT NULL"]},
+        "created_at": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
+        "updated_at": {"type": "TIMESTAMP", "constraints": []}
+      },
+      "indexes": ["idx_transactions_order_id", "idx_transactions_created_at", "idx_transactions_transaction_reference"],
+      "constraints": ["CHECK (amount > 0)"]
+    },
+    "timesheets": {
+      "description": "Staff work hours tracking",
+      "columns": {
+        "id": {"type": "BIGSERIAL", "constraints": ["PRIMARY KEY"]},
+        "staff_id": {"type": "BIGINT", "constraints": ["NOT NULL", "FOREIGN KEY -> users(id)"]},
+        "check_in": {"type": "TIMESTAMP", "constraints": ["NOT NULL"]},
+        "check_out": {"type": "TIMESTAMP", "constraints": ["DEFAULT NULL"]},
+        "date": {"type": "DATE", "constraints": ["NOT NULL"]},
+        "hours_worked": {"type": "NUMERIC(5,2)", "constraints": ["DEFAULT 0.00"]},
+        "notes": {"type": "TEXT", "constraints": ["DEFAULT NULL"]}
+      },
+      "indexes": ["idx_timesheets_staff_date"],
+      "constraints": ["CHECK (hours_worked >= 0)", "CHECK (check_out IS NULL OR check_out > check_in)"]
+    }
+  },
+  "relationships": {
+    "users": {
+      "one_to_many": ["addresses", "orders", "carts", "reviews", "follows", "messages_sent", "messages_received", "transactions", "timesheets"],
+      "description": "Central user entity with multiple relationships"
+    },
+    "products": {
+      "one_to_many": ["attributevalues", "orderitems", "cartitems", "reviews", "follows"],
+      "many_to_many": ["productattributes (through attributevalues)"],
+      "description": "Product catalog with attributes and relationships"
+    },
+    "orders": {
+      "many_to_one": ["users", "deliveryunits", "vouchers", "addresses"],
+      "one_to_many": ["orderitems", "transactions"],
+      "description": "Order management with items and transactions"
+    },
+    "carts": {
+      "many_to_one": ["users"],
+      "one_to_many": ["cartitems"],
+      "description": "Shopping cart with items"
+    }
+  },
+  "sample_data": {
+    "users": 6,
+    "products": 10,
+    "orders": 4,
+    "carts": 3,
+    "reviews": 4,
+    "follows": 4,
+    "messages": 3,
+    "timesheets": 3,
+    "transactions": 4,
+    "description": "Comprehensive sample data for testing and development"
+  },
+  "features": {
+    "user_management": "Complete user system with roles (customer, staff, admin)",
+    "product_catalog": "EAV model for flexible product attributes",
+    "shopping_cart": "Persistent cart with automatic total calculation",
+    "order_management": "Full order lifecycle with status tracking",
+    "payment_system": "Multiple payment methods with transaction tracking",
+    "messaging": "User-to-user communication system",
+    "reviews_ratings": "Product review and rating system",
+    "wishlist": "Product following/wishlist functionality",
+    "staff_management": "Time tracking for staff members",
+    "voucher_system": "Discount voucher management",
+    "delivery_management": "Multiple delivery options with fees"
+  }
+}

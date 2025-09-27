@@ -3,6 +3,7 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.Product;
 import com.example.demo.entity.Review;
+import com.example.demo.dto.ProductDetailDTO;
 import com.example.demo.repository.ReviewRepository;
 import com.example.demo.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -136,15 +137,15 @@ public class ProductController extends BaseController {
                 return "error/404";
             }
 
-            // Get product with rating information
-            ProductService.ProductWithRating productWithRating = productService.getProductWithRating(id);
-            if (productWithRating == null || productWithRating.getProduct() == null) {
+            // Get product with rating information using optimized query
+            ProductDetailDTO productDetail = productService.getProductWithRating(id);
+            if (productDetail == null || productDetail.getProduct() == null) {
                 log.warn("Product not found with ID: {}", id);
                 model.addAttribute("errorMessage", "Sản phẩm không tồn tại.");
                 return "error/404";
             }
 
-            Product product = productWithRating.getProduct();
+            Product product = productDetail.getProduct();
             
             // Get product reviews with pagination
             Pageable reviewPageable = PageRequest.of(0, 10);
@@ -161,8 +162,8 @@ public class ProductController extends BaseController {
 
             // Add model attributes
             model.addAttribute("product", product);
-            model.addAttribute("averageRating", productWithRating.getAverageRating());
-            model.addAttribute("reviewCount", productWithRating.getReviewCount());
+            model.addAttribute("averageRating", productDetail.getAverageRating());
+            model.addAttribute("reviewCount", productDetail.getReviewCount());
             model.addAttribute("reviews", reviewsPage.getContent());
             model.addAttribute("reviewsPage", reviewsPage);
             model.addAttribute("relatedProducts", relatedProducts);

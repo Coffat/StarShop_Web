@@ -16,19 +16,11 @@ public abstract class BaseEntity {
     private Long id;
 
     @CreatedDate
-    @Column(
-        name = "created_at", 
-        nullable = false, 
-        updatable = false,
-        columnDefinition = "TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP"
-    )
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
-    @Column(
-        name = "updated_at",
-        columnDefinition = "TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
-    )
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     // Getters and Setters

@@ -1,6 +1,7 @@
 package com.example.demo.repository;
 
 import com.example.demo.entity.Product;
+import com.example.demo.dto.ProductDetailDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
@@ -32,4 +34,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     @Query("SELECT DISTINCT p FROM Product p JOIN p.attributeValues av WHERE av.attribute.id = :attributeId AND av.value = :value")
     List<Product> findByAttributeValue(@Param("attributeId") Long attributeId, @Param("value") String value);
+    
+    @Query("SELECT new com.example.demo.dto.ProductDetailDTO(p, AVG(r.rating), COUNT(r)) " +
+           "FROM Product p LEFT JOIN p.reviews r WHERE p.id = :productId GROUP BY p")
+    Optional<ProductDetailDTO> findProductDetailById(@Param("productId") Long productId);
 }
