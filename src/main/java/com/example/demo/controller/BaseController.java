@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.security.core.Authentication;
 import org.springframework.ui.Model;
+import org.springframework.transaction.annotation.Transactional;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +56,7 @@ public class BaseController {
      * Add full user object to all views
      */
     @ModelAttribute("userObject")
+    @Transactional(readOnly = true)
     public User addUserObject(Authentication authentication) {
         System.out.println("=== BaseController Debug ===");
         System.out.println("Authentication: " + authentication);
@@ -78,6 +80,7 @@ public class BaseController {
      * Add cart count to all views
      */
     @ModelAttribute("cartCount")
+    @Transactional(readOnly = true)
     public int addCartCount(Authentication authentication) {
         try {
             if (authentication != null && 
@@ -98,15 +101,19 @@ public class BaseController {
      * Add wishlist count to all views
      */
     @ModelAttribute("wishlistCount")
+    @Transactional(readOnly = true)
     public int addWishlistCount(Authentication authentication) {
-        if (authentication != null && 
-            authentication.isAuthenticated() && 
-            !authentication.getName().equals("anonymousUser")) {
-            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
-            if (user != null) {
-                // TODO: Implement actual wishlist count when wishlist entity is created
-                return 12; // Placeholder for now
+        try {
+            if (authentication != null && 
+                authentication.isAuthenticated() && 
+                !authentication.getName().equals("anonymousUser")) {
+                User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+                if (user != null && user.getFollows() != null) {
+                    return user.getFollows().size();
+                }
             }
+        } catch (Exception e) {
+            System.out.println("Error getting wishlist count: " + e.getMessage());
         }
         return 0;
     }
@@ -115,6 +122,7 @@ public class BaseController {
      * Add orders count to all views
      */
     @ModelAttribute("ordersCount")
+    @Transactional(readOnly = true)
     public int addOrdersCount(Authentication authentication) {
         try {
             if (authentication != null && 

@@ -26,7 +26,7 @@ import java.util.List;
 @RequestMapping("/products")
 @RequiredArgsConstructor
 @Slf4j
-public class ProductController extends BaseController {
+public class ProductController {
 
     private final ProductService productService;
     private final ReviewRepository reviewRepository;
@@ -97,9 +97,7 @@ public class ProductController extends BaseController {
             model.addAttribute("isFirst", productsPage.isFirst());
             model.addAttribute("isLast", productsPage.isLast());
 
-            // Add breadcrumb
-            addBreadcrumb(model, "Trang chủ", "/");
-            addBreadcrumb(model, "Sản phẩm", "/products");
+            // Breadcrumb removed - no longer extending BaseController
 
             // Set page metadata
             model.addAttribute("pageTitle", search != null && !search.trim().isEmpty() ? 
@@ -168,10 +166,7 @@ public class ProductController extends BaseController {
             model.addAttribute("reviewsPage", reviewsPage);
             model.addAttribute("relatedProducts", relatedProducts);
 
-            // Add breadcrumbs
-            addBreadcrumb(model, "Trang chủ", "/");
-            addBreadcrumb(model, "Sản phẩm", "/products");
-            addBreadcrumb(model, product.getName(), "/products/" + id);
+            // Breadcrumbs removed - no longer extending BaseController
 
             // Set page metadata
             model.addAttribute("pageTitle", product.getName());
@@ -225,31 +220,20 @@ public class ProductController extends BaseController {
     }
 
     /**
-     * Get product categories (placeholder for future implementation)
+     * Get product categories page
      * @param model Spring Model
      * @return Categories page
      */
     @GetMapping("/categories")
     public String categories(Model model) {
-        try {
-            log.info("Categories page request");
+        log.info("Categories page request");
+        
+        // Set page metadata
+        model.addAttribute("pageTitle", "Danh mục sản phẩm");
+        model.addAttribute("pageDescription", "Khám phá các danh mục hoa tươi đa dạng tại StarShop");
 
-            // Add breadcrumbs
-            addBreadcrumb(model, "Trang chủ", "/");
-            addBreadcrumb(model, "Sản phẩm", "/products");
-            addBreadcrumb(model, "Danh mục", "/products/categories");
-
-            // Set page metadata
-            model.addAttribute("pageTitle", "Danh mục sản phẩm");
-            model.addAttribute("pageDescription", "Khám phá các danh mục hoa tươi đa dạng tại StarShop");
-
-            // For now, redirect to main products page
-            // TODO: Implement proper category system when Category entity is added
-            return "redirect:/products";
-
-        } catch (Exception e) {
-            log.error("Error loading categories: {}", e.getMessage(), e);
-            return "redirect:/products";
-        }
+        log.info("Categories page loaded successfully");
+        return "products/categories";
     }
+    
 }

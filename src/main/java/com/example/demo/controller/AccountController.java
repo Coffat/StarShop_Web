@@ -2,9 +2,11 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.User;
 import com.example.demo.dto.UserProfileDTO;
+import com.example.demo.dto.FavoriteDTO;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.OrderRepository;
 import com.example.demo.repository.FollowRepository;
+import com.example.demo.service.FavoriteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -16,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 /**
  * Account Controller for user account management pages
@@ -30,6 +33,7 @@ public class AccountController {
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
     private final FollowRepository followRepository;
+    private final FavoriteService favoriteService;
 
     /**
      * Serve account information page
@@ -149,16 +153,15 @@ public class AccountController {
         if (user != null) {
             model.addAttribute("userObject", user);
             
-            // Get user's wishlist and statistics
+            // Get user's wishlist and statistics using FavoriteService
             Long ordersCount = orderRepository.countOrdersByUser(user.getId());
-            Long wishlistCount = followRepository.countByUserId(user.getId());
+            Long wishlistCount = favoriteService.getUserFavoriteCount(user.getId());
+            List<FavoriteDTO> favoritesList = favoriteService.getUserFavorites(user.getId());
             
             model.addAttribute("ordersCount", ordersCount);
-            model.addAttribute("wishlistCount", wishlistCount);
-            
-            // TODO: Add actual wishlist data from database
-            // List<Follow> userWishlist = followRepository.findByUserId(user.getId());
-            // model.addAttribute("wishlistItems", userWishlist);
+            model.addAttribute("wishlistCount", wishlistCount.intValue());
+            model.addAttribute("totalFavorites", wishlistCount);
+            model.addAttribute("favoritesList", favoritesList);
         }
         
         model.addAttribute("isUserAuthenticated", authentication.isAuthenticated());

@@ -1,9 +1,8 @@
 package com.example.demo.entity;
 
 import com.example.demo.entity.enums.ProductStatus;
+import com.example.demo.entity.enums.ProductStatusConverter;
 import jakarta.persistence.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,9 +26,8 @@ public class Product extends BaseEntity {
     @Column(name = "stock_quantity")
     private Integer stockQuantity = 0;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = ProductStatusConverter.class)
     @Column(nullable = true) // Tạm thời cho phép NULL
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private ProductStatus status = ProductStatus.ACTIVE;
 
     // Relationships

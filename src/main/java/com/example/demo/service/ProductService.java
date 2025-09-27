@@ -129,8 +129,14 @@ public class ProductService {
      */
     public List<Product> getBestSellingProducts(int limit) {
         log.info("Fetching {} best selling products", limit);
-        Pageable pageable = PageRequest.of(0, limit);
-        return productRepository.findBestSellingProducts(pageable);
+        try {
+            Pageable pageable = PageRequest.of(0, limit);
+            return productRepository.findBestSellingProducts(pageable);
+        } catch (Exception e) {
+            log.warn("Error fetching best selling products, falling back to latest products: {}", e.getMessage());
+            // Fallback to latest products if best selling query fails
+            return getLatestProducts(limit);
+        }
     }
 
     /**

@@ -77,6 +77,9 @@ public class SecurityConfig {
                 // Products pages
                 .requestMatchers("/products", "/products/**").permitAll()
                 
+                // Categories page
+                .requestMatchers("/categories").permitAll()
+                
                 // Protected API endpoints as per rules.mdc
                 .requestMatchers("/api/users/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/products/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
