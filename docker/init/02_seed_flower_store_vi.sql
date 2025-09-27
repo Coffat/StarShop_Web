@@ -10,16 +10,16 @@ BEGIN;
 
 -- ========== 1) USERS ==========
 -- 5 khách hàng (1..5), 2 nhân viên (6..7), 1 admin (8)
-INSERT INTO Users(id, firstname, lastname, email, password, phone, avatar, role, created_at)
+INSERT INTO Users(firstname, lastname, email, password, phone, avatar, role, created_at)
 VALUES
-(1, 'Nguyễn', 'An', 'an.nguyen@example.com', 'an12345678', '0901000001', NULL, 'customer', NOW() - INTERVAL '60 days'),
-(2, 'Trần', 'Bình', 'binh.tran@example.com', 'binh123456', '0901000002', NULL, 'customer', NOW() - INTERVAL '58 days'),
-(3, 'Lê', 'Chi', 'chi.le@example.com', 'chi12345678', '0901000003', NULL, 'customer', NOW() - INTERVAL '40 days'),
-(4, 'Phạm', 'Dũng', 'dung.pham@example.com', 'dung123456', '0901000004', NULL, 'customer', NOW() - INTERVAL '35 days'),
-(5, 'Võ', 'Hà', 'ha.vo@example.com', 'ha12345678', '0901000005', NULL, 'customer', NOW() - INTERVAL '30 days'),
-(6, 'Hoàng', 'Lan', 'lan.hoang@example.com', 'lan12345678', '0901000006', NULL, 'staff', NOW() - INTERVAL '90 days'),
-(7, 'Đỗ', 'Minh', 'minh.do@example.com', 'minh123456', '0901000007', NULL, 'staff', NOW() - INTERVAL '90 days'),
-(8, 'Admin', 'Root', 'admin@example.com', 'admin123456', '0901000008', NULL, 'admin', NOW() - INTERVAL '100 days');
+('Nguyễn', 'An', 'an.nguyen@example.com', 'an12345678', '0901000001', NULL, 'customer', NOW() - INTERVAL '60 days'),
+('Trần', 'Bình', 'binh.tran@example.com', 'binh123456', '0901000002', NULL, 'customer', NOW() - INTERVAL '58 days'),
+('Lê', 'Chi', 'chi.le@example.com', 'chi12345678', '0901000003', NULL, 'customer', NOW() - INTERVAL '40 days'),
+('Phạm', 'Dũng', 'dung.pham@example.com', 'dung123456', '0901000004', NULL, 'customer', NOW() - INTERVAL '35 days'),
+('Võ', 'Hà', 'ha.vo@example.com', 'ha12345678', '0901000005', NULL, 'customer', NOW() - INTERVAL '30 days'),
+('Hoàng', 'Lan', 'lan.hoang@example.com', 'lan12345678', '0901000006', NULL, 'staff', NOW() - INTERVAL '90 days'),
+('Đỗ', 'Minh', 'minh.do@example.com', 'minh123456', '0901000007', NULL, 'staff', NOW() - INTERVAL '90 days'),
+('Admin', 'Root', 'admin@example.com', 'admin123456', '0901000008', NULL, 'admin', NOW() - INTERVAL '100 days');
 
 -- ========== 2) ADDRESSES ==========
 -- Mỗi khách hàng 2 địa chỉ, 1 địa chỉ mặc định
