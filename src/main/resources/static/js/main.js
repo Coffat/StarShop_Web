@@ -504,118 +504,182 @@ function getToastIcon(type) {
     return icons[type] || icons.info;
 }
 
-function addToCart(productId, button) {
+function addToCart(button) {
+    const productId = button.dataset.productId;
+    const quantity = document.getElementById('quantity')?.value || 1;
+    
+    if (!productId) {
+        showToast('Không thể thêm sản phẩm vào giỏ hàng', 'error');
+        return;
+    }
+
     const originalHTML = button.innerHTML;
     
     // Show loading state
-    button.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i> Đang thêm...';
+    button.innerHTML = '<i class="bi bi-hourglass"></i> Đang thêm...';
     button.disabled = true;
+
+    // Get CSRF token
+    const csrfToken = getCsrfToken();
+    const csrfHeaderElement = document.querySelector('meta[name="_csrf_header"]');
+    const csrfHeader = csrfHeaderElement ? csrfHeaderElement.getAttribute('content') : 'X-CSRF-TOKEN';
     
-    // Simulate API call
+
+    // API call to add to cart
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+    };
+    
+    if (csrfToken && csrfHeader) {
+        headers[csrfHeader] = csrfToken;
+    }
+
     fetch('/api/cart/add', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify({ productId: productId, quantity: 1 })
+        headers: headers,
+        credentials: 'same-origin',
+        body: JSON.stringify({ 
+            productId: parseInt(productId), 
+            quantity: parseInt(quantity) 
+        })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (response.status === 401) {
+            showToast('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng', 'warning');
+            button.innerHTML = originalHTML;
+            button.disabled = false;
+            return;
+        }
+        
+        if (response.status === 403) {
+            showToast('Lỗi bảo mật: Vui lòng refresh trang và thử lại', 'error');
+            button.innerHTML = originalHTML;
+            button.disabled = false;
+            return;
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        return response.json();
+    })
     .then(data => {
-        if (data.success) {
-            showToast('Đã thêm sản phẩm vào giỏ hàng', 'success');
-            updateCartCount(data.cartCount);
-            
+        if (data && data.data && data.data.success) {
             // Success state
-            button.innerHTML = '<i class="bi bi-check"></i> Đã thêm';
-            button.classList.add('btn-success');
+            button.innerHTML = '<i class="bi bi-check"></i> Đã thêm!';
+            button.classList.add('success');
             
-            // Reset after 2 seconds
+            showToast(data.data.message || `Đã thêm sản phẩm vào giỏ hàng`, 'success');
+            
+            // Update cart count in header (realtime)
+            if (data.data.totalItems !== undefined) {
+                updateCartCount(data.data.totalItems);
+            }
+            
+            // Reset button after delay
             setTimeout(() => {
                 button.innerHTML = originalHTML;
-                button.classList.remove('btn-success');
+                button.classList.remove('success');
                 button.disabled = false;
-            }, 2000);
+            }, 1500);
+            
+            // Track analytics
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'add_to_cart', {
+                    'currency': 'VND',
+                    'items': [{
+                        'item_id': productId,
+                        'quantity': parseInt(quantity)
+                    }]
+                });
+            }
         } else {
-            throw new Error(data.message || 'Có lỗi xảy ra');
+            // Error state
+            button.innerHTML = originalHTML;
+            button.disabled = false;
+            showToast(data.error || data.message || 'Có lỗi xảy ra khi thêm vào giỏ hàng', 'error');
         }
     })
     .catch(error => {
-        showToast(error.message || 'Không thể thêm sản phẩm vào giỏ hàng', 'error');
-        
-        // Reset button
+        console.error('Error adding to cart:', error);
         button.innerHTML = originalHTML;
         button.disabled = false;
+        showToast('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng', 'error');
     });
 }
 
+// DEPRECATED: Wishlist functionality moved to products.js
+// This function is commented out to avoid duplicate handlers
+/*
 function toggleWishlist(productId, button) {
     const icon = button.querySelector('i');
-    const isInWishlist = icon.classList.contains('bi-heart-fill');
     
-    // Optimistic update
-    if (isInWishlist) {
-        icon.classList.remove('bi-heart-fill');
-        icon.classList.add('bi-heart');
-        button.classList.remove('active');
-    } else {
-        icon.classList.remove('bi-heart');
-        icon.classList.add('bi-heart-fill');
-        button.classList.add('active');
-    }
+    // Disable button to prevent multiple clicks
+    button.disabled = true;
+    const originalContent = icon.className;
+    icon.className = 'bi bi-hourglass';
     
-    // API call
-    fetch('/api/wishlist/toggle', {
+        // Get CSRF token
+        const csrfToken = getCsrfToken();
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+        
+        // API call - let server determine the action based on database
+        fetch('/api/wishlist/toggle', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-Requested-With': 'XMLHttpRequest',
+            [csrfHeader]: csrfToken
         },
+        credentials: 'same-origin', // Include cookies for authentication
         body: JSON.stringify({ productId: productId })
     })
     .then(response => {
         if (response.status === 401) {
             // User not authenticated
             showToast('Vui lòng đăng nhập để sử dụng tính năng yêu thích', 'warning');
-            // Revert optimistic update
-            if (isInWishlist) {
-                icon.classList.remove('bi-heart');
-                icon.classList.add('bi-heart-fill');
-                button.classList.add('active');
-            } else {
-                icon.classList.remove('bi-heart-fill');
-                icon.classList.add('bi-heart');
-                button.classList.remove('active');
-            }
+            // Revert to original state
+            icon.className = originalContent;
+            button.disabled = false;
             return;
         }
         return response.json();
     })
     .then(data => {
-        if (data && data.success) {
-            updateWishlistCount(data.data.favoriteCount);
-            showToast(data.data.isFavorite ? 'Đã thêm vào danh sách yêu thích' : 'Đã xóa khỏi danh sách yêu thích', 'success');
-        } else if (data && !data.success) {
-            // Revert optimistic update
-            if (isInWishlist) {
-                icon.classList.remove('bi-heart');
-                icon.classList.add('bi-heart-fill');
+        if (data && data.data && data.data.success) {
+            // Update UI based on server response (database truth)
+            if (data.data.isFavorite) {
+                icon.className = 'bi bi-heart-fill';
                 button.classList.add('active');
             } else {
-                icon.classList.remove('bi-heart-fill');
-                icon.classList.add('bi-heart');
+                icon.className = 'bi bi-heart';
                 button.classList.remove('active');
             }
-            showToast(data.message || 'Có lỗi xảy ra', 'error');
+            
+            updateWishlistCount(data.data.favoriteCount);
+            showToast(data.data.isFavorite ? 'Đã thêm vào danh sách yêu thích' : 'Đã xóa khỏi danh sách yêu thích', 'success');
+        } else {
+            // Revert to original state on error
+            icon.className = originalContent;
+            showToast(data.error || data.message || 'Có lỗi xảy ra', 'error');
         }
     })
     .catch(error => {
+        // Revert to original state on error
+        icon.className = originalContent;
         showToast('Có lỗi xảy ra khi thực hiện yêu cầu', 'error');
+    })
+    .finally(() => {
+        // Re-enable button
+        button.disabled = false;
     });
 }
+*/
 
 function updateCartCount(count) {
-    const cartCountElements = document.querySelectorAll('.cart-count');
+    const cartCountElements = document.querySelectorAll('.cart-count, .cart-badge, .action-badge');
     cartCountElements.forEach(element => {
         if (count > 0) {
             element.textContent = count;
@@ -639,6 +703,16 @@ function updateWishlistCount(count) {
 }
 
 function getCsrfToken() {
+    // Try to get CSRF token from cookie first (Spring Security default)
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'XSRF-TOKEN') {
+            return decodeURIComponent(value);
+        }
+    }
+    
+    // Fallback to meta tag
     const token = document.querySelector('meta[name="_csrf"]');
     return token ? token.getAttribute('content') : '';
 }

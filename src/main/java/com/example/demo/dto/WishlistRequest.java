@@ -3,18 +3,18 @@ package com.example.demo.dto;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * Request DTO for adding/removing favorites
+ * Request DTO for adding/removing wishlist items
  */
-public class FavoriteRequest {
+public class WishlistRequest {
     
     @NotNull(message = "Product ID is required")
     private Long productId;
     
     // Constructors
-    public FavoriteRequest() {
+    public WishlistRequest() {
     }
     
-    public FavoriteRequest(Long productId) {
+    public WishlistRequest(Long productId) {
         this.productId = productId;
     }
     

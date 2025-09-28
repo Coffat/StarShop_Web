@@ -104,6 +104,9 @@ public class ProductController {
                     "Tìm kiếm: " + search : "Tất cả sản phẩm");
             model.addAttribute("pageDescription", "Khám phá bộ sưu tập hoa tươi đa dạng tại StarShop. " +
                     "Hoa sinh nhật, hoa tình yêu, hoa cưới và nhiều loại hoa khác với chất lượng tốt nhất.");
+            
+            // Add page-specific JavaScript
+            model.addAttribute("additionalJS", List.of("/js/products.js"));
 
             log.info("Products listing completed - showing {} products on page {}/{}", 
                     productsPage.getContent().size(), validPage + 1, productsPage.getTotalPages());
@@ -173,6 +176,9 @@ public class ProductController {
             model.addAttribute("pageDescription", product.getDescription() != null ? 
                     product.getDescription().substring(0, Math.min(product.getDescription().length(), 160)) : 
                     "Chi tiết sản phẩm " + product.getName() + " tại StarShop");
+            
+            // Add page-specific JavaScript
+            model.addAttribute("additionalJS", List.of("/js/products.js"));
 
             log.info("Product detail loaded successfully for: {} (ID: {})", product.getName(), id);
 

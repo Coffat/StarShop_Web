@@ -92,7 +92,7 @@
                             <li><a class="dropdown-item" href="/account/orders">
                                 <i class="bi bi-bag"></i> Đơn hàng của tôi
                             </a></li>
-                            <li><a class="dropdown-item" href="/account/wishlist">
+                            <li><a class="dropdown-item" href="/wishlist">
                                 <i class="bi bi-heart"></i> Danh sách yêu thích
                             </a></li>
                             <li><a class="dropdown-item" href="/account/settings">
@@ -191,7 +191,7 @@
                 <!-- Actions Section -->
                 <div class="actions-section">
                     <!-- Wishlist -->
-                    <a href="/account/wishlist" class="action-btn" title="Danh sách yêu thích" th:if="${isUserAuthenticated}">
+                    <a href="/wishlist" class="action-btn" title="Danh sách yêu thích" th:if="${isUserAuthenticated}">
                         <i class="bi bi-heart"></i>
                         <span class="action-badge" th:if="${wishlistCount > 0}" th:text="${wishlistCount}">0</span>
                     </a>
@@ -323,13 +323,13 @@
             <a href="/account/orders" class="mobile-nav-link">
                 <i class="bi bi-bag"></i> Đơn hàng của tôi
             </a>
-            <a href="/account/wishlist" class="mobile-nav-link">
+            <a href="/wishlist" class="mobile-nav-link">
                 <i class="bi bi-heart"></i> Danh sách yêu thích
             </a>
             <a href="/logout" class="mobile-nav-link text-danger" onclick="return confirm('Bạn có chắc muốn đăng xuất?')">
                 <i class="bi bi-box-arrow-right"></i> Đăng xuất
             </a>
-        </div>
+{{ ... }}
     </div>
 </div>
 

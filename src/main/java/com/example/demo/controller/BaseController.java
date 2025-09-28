@@ -1,13 +1,15 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.User;
+import com.example.demo.repository.FollowRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.security.core.Authentication;
-import org.springframework.ui.Model;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +22,12 @@ public class BaseController {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private CartService cartService;
+    
+    @Autowired
+    private FollowRepository followRepository;
 
     /**
      * Add current path to all views for navigation highlighting
@@ -81,47 +89,45 @@ public class BaseController {
      */
     @ModelAttribute("cartCount")
     @Transactional(readOnly = true)
-    public int addCartCount(Authentication authentication) {
+    public Long addCartCount(Authentication authentication) {
         try {
             if (authentication != null && 
                 authentication.isAuthenticated() && 
                 !authentication.getName().equals("anonymousUser")) {
                 User user = userRepository.findByEmail(authentication.getName()).orElse(null);
-                if (user != null && user.getCart() != null) {
-                    return user.getCart().getTotalItems();
+                if (user != null) {
+                    return cartService.getCartItemsCount(user.getId());
                 }
             }
         } catch (Exception e) {
             System.out.println("Error getting cart count: " + e.getMessage());
         }
-        return 0;
+        return 0L;
     }
-    
     /**
      * Add wishlist count to all views
      */
     @ModelAttribute("wishlistCount")
     @Transactional(readOnly = true)
-    public int addWishlistCount(Authentication authentication) {
+    public Long addWishlistCount(Authentication authentication) {
         try {
             if (authentication != null && 
                 authentication.isAuthenticated() && 
                 !authentication.getName().equals("anonymousUser")) {
                 User user = userRepository.findByEmail(authentication.getName()).orElse(null);
-                if (user != null && user.getFollows() != null) {
-                    return user.getFollows().size();
+                if (user != null) {
+                    return followRepository.countByUserId(user.getId());
                 }
             }
         } catch (Exception e) {
             System.out.println("Error getting wishlist count: " + e.getMessage());
         }
-        return 0;
+        return 0L;
     }
     
     /**
      * Add orders count to all views
      */
-    @ModelAttribute("ordersCount")
     @Transactional(readOnly = true)
     public int addOrdersCount(Authentication authentication) {
         try {

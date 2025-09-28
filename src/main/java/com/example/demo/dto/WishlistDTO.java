@@ -5,10 +5,10 @@ import java.time.LocalDateTime;
 import java.math.BigDecimal;
 
 /**
- * DTO for Favorite/Follow entity
- * Represents a user's favorite product
+ * DTO for Wishlist/Follow entity
+ * Represents a user's wishlist product
  */
-public class FavoriteDTO {
+public class WishlistDTO {
     
     private Long id;
     private Long userId;
@@ -23,10 +23,10 @@ public class FavoriteDTO {
     private LocalDateTime followedAt;
     
     // Constructors
-    public FavoriteDTO() {
+    public WishlistDTO() {
     }
     
-    public FavoriteDTO(Long id, Long userId, Long productId, String productName, 
+    public WishlistDTO(Long id, Long userId, Long productId, String productName, 
                       String productDescription, BigDecimal productPrice, String productImage,
                       Integer productStockQuantity, String productStatus, 
                       Double productAverageRating, LocalDateTime followedAt) {
@@ -44,8 +44,8 @@ public class FavoriteDTO {
     }
     
     // Static factory method to create from Product
-    public static FavoriteDTO fromProduct(Product product, Long userId, Long followId, LocalDateTime followedAt) {
-        return new FavoriteDTO(
+    public static WishlistDTO fromProduct(Product product, Long userId, Long followId, LocalDateTime followedAt) {
+        return new WishlistDTO(
             followId,
             userId,
             product.getId(),

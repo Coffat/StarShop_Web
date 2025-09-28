@@ -146,6 +146,9 @@
         
         // Quick view functionality
         initializeQuickView();
+        
+        // Load initial favorite status
+        loadInitialFavoriteStatus();
     }
 
     function initializeViewToggle() {
@@ -198,6 +201,8 @@
     }
 
     function initializeProductActions() {
+        console.log('Products.js: Initializing product actions...');
+        
         // Add to cart buttons
         document.addEventListener('click', function(e) {
             if (e.target.matches('.btn-add-to-cart') || e.target.closest('.btn-add-to-cart')) {
@@ -208,11 +213,59 @@
         });
 
         // Wishlist buttons
+        console.log('Products.js: Setting up wishlist event listeners...');
         document.addEventListener('click', function(e) {
             if (e.target.matches('.btn-wishlist') || e.target.closest('.btn-wishlist')) {
+                console.log('Products.js: Wishlist button clicked!');
                 e.preventDefault();
                 const button = e.target.matches('.btn-wishlist') ? e.target : e.target.closest('.btn-wishlist');
                 handleWishlistToggle(button);
+            }
+        });
+    }
+
+    function loadInitialFavoriteStatus() {
+        const wishlistButtons = document.querySelectorAll('.btn-wishlist');
+        
+        wishlistButtons.forEach(button => {
+            const productId = button.dataset.productId;
+            if (productId) {
+                // Get CSRF token for status check
+                const csrfToken = getCsrfToken();
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+                
+                fetch(`/api/wishlist/status/${productId}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        [csrfHeader]: csrfToken
+                    },
+                    credentials: 'same-origin' // Include cookies for authentication
+                })
+                .then(response => {
+                    if (response.status === 401) {
+                        // User not authenticated, keep default state
+                        return;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.data && data.data.success) {
+                        const icon = button.querySelector('i');
+                        const isInWishlist = data.data.isFavorite || data.data.isInWishlist;
+                        
+                        if (isInWishlist) {
+                            icon.className = 'bi bi-heart-fill';
+                            button.classList.add('active');
+                        } else {
+                            icon.className = 'bi bi-heart';
+                            button.classList.remove('active');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.log('Error loading favorite status:', error);
+                });
             }
         });
     }
@@ -227,37 +280,80 @@
         }
 
         // Show loading state
-        setLoadingState(button);
+        const originalHTML = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="bi bi-hourglass"></i> Đang thêm...';
 
-        // Simulate API call (replace with actual implementation)
-        setTimeout(() => {
-            // Success state
-            button.innerHTML = '<i class="bi bi-check"></i> Đã thêm!';
-            button.classList.add('success');
-            
-            showToast(`Đã thêm sản phẩm vào giỏ hàng (${quantity} sản phẩm)`);
-            
-            // Update cart count in header
-            updateCartCount();
-            
-            // Reset button after delay
-            setTimeout(() => {
-                setLoadingState(button, false);
-                button.classList.remove('success');
-            }, 1500);
-            
-            // Track analytics
-            if (typeof gtag !== 'undefined') {
-                gtag('event', 'add_to_cart', {
-                    'currency': 'VND',
-                    'value': 0, // Replace with actual product price
-                    'items': [{
-                        'item_id': productId,
-                        'quantity': parseInt(quantity)
-                    }]
-                });
+        // Get CSRF token
+        const csrfToken = getCsrfToken();
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+        // API call to add to cart
+        fetch('/api/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                [csrfHeader]: csrfToken
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ 
+                productId: parseInt(productId), 
+                quantity: parseInt(quantity) 
+            })
+        })
+        .then(response => {
+            if (response.status === 401) {
+                showToast('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng', 'warning');
+                button.innerHTML = originalHTML;
+                button.disabled = false;
+                return;
             }
-        }, 1000);
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.data && data.data.success) {
+                // Success state
+                button.innerHTML = '<i class="bi bi-check"></i> Đã thêm!';
+                button.classList.add('success');
+                
+                showToast(data.data.message || `Đã thêm sản phẩm vào giỏ hàng`, 'success');
+                
+                // Update cart count in header (realtime)
+                if (data.data.totalItems !== undefined) {
+                    updateCartCount(data.data.totalItems);
+                }
+                
+                // Reset button after delay
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.classList.remove('success');
+                    button.disabled = false;
+                }, 1500);
+                
+                // Track analytics
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'add_to_cart', {
+                        'currency': 'VND',
+                        'items': [{
+                            'item_id': productId,
+                            'quantity': parseInt(quantity)
+                        }]
+                    });
+                }
+            } else {
+                // Error state
+                button.innerHTML = originalHTML;
+                button.disabled = false;
+                showToast(data.error || data.message || 'Có lỗi xảy ra khi thêm vào giỏ hàng', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding to cart:', error);
+            button.innerHTML = originalHTML;
+            button.disabled = false;
+            showToast('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng', 'error');
+        });
     }
 
     function handleWishlistToggle(button) {
@@ -266,66 +362,107 @@
         
         if (!productId || !icon) return;
 
-        const isAdding = icon.classList.contains('bi-heart');
-        
-        // Optimistic UI update
-        if (isAdding) {
-            icon.className = 'bi bi-heart-fill';
-            button.classList.add('active');
-        } else {
-            icon.className = 'bi bi-heart';
-            button.classList.remove('active');
-        }
+        // Disable button to prevent multiple clicks
+        button.disabled = true;
+        const originalContent = icon.className;
+        icon.className = 'bi bi-hourglass';
 
-        // API call to toggle wishlist
+        console.log('Wishlist toggle - Product ID:', productId);
+
+        // Get CSRF token
+        const csrfToken = getCsrfToken();
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+        
+        console.log('CSRF Token:', csrfToken);
+        console.log('CSRF Header:', csrfHeader);
+        
+        // API call to toggle wishlist - let server determine the action
         fetch('/api/wishlist/toggle', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest',
+                [csrfHeader]: csrfToken
             },
+            credentials: 'same-origin', // Include cookies for authentication
             body: JSON.stringify({ productId: productId })
         })
         .then(response => {
+            console.log('API Response Status:', response.status);
             if (response.status === 401) {
                 // User not authenticated
+                console.log('User not authenticated');
                 showToast('Vui lòng đăng nhập để sử dụng tính năng yêu thích', 'warning');
-                // Revert optimistic update
-                if (isAdding) {
-                    icon.className = 'bi bi-heart';
-                    button.classList.remove('active');
-                } else {
-                    icon.className = 'bi bi-heart-fill';
-                    button.classList.add('active');
-                }
+                // Revert to original state
+                icon.className = originalContent;
+                button.disabled = false;
                 return;
+            }
+            if (!response.ok) {
+                console.log('API Error:', response.status, response.statusText);
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             return response.json();
         })
         .then(data => {
-            if (data && data.success) {
-                showToast(data.data.isFavorite ? 'Đã thêm vào danh sách yêu thích' : 'Đã xóa khỏi danh sách yêu thích', 'success');
+            console.log('Full API Response:', data);
+            if (data && data.data && data.data.success) {
+                // Get the current wishlist status from server response
+                const isInWishlist = data.data.isFavorite || data.data.isInWishlist;
+                
+                console.log('=== WISHLIST TOGGLE DEBUG ===');
+                console.log('Server response:', data);
+                console.log('isInWishlist from server:', data.data.isInWishlist);
+                console.log('isFavorite (backward compatibility):', data.data.isFavorite);
+                console.log('Final isInWishlist value:', isInWishlist);
+                console.log('Message from server:', data.data.message);
+                
+                // Update UI based on server response (database truth)
+                if (isInWishlist) {
+                    icon.className = 'bi bi-heart-fill';
+                    button.classList.add('active');
+                } else {
+                    icon.className = 'bi bi-heart';
+                    button.classList.remove('active');
+                }
+                
+                // Generate correct message based on ACTUAL status
+                const message = isInWishlist ? 'Đã thêm vào danh sách yêu thích' : 'Đã xóa khỏi danh sách yêu thích';
+                
+                console.log('Frontend generated message:', message);
+                console.log('UI Updated - Icon class:', icon.className, 'Button active:', button.classList.contains('active'));
+                console.log('=== END DEBUG ===');
+                showToast(message, 'success');
+                
+                // Update wishlist count in header (realtime)
+                if (data.data.userWishlistCount !== undefined) {
+                    updateWishlistCount(data.data.userWishlistCount);
+                } else if (data.data.favoriteCount !== undefined) {
+                    // Fallback to old field name
+                    updateWishlistCount(data.data.favoriteCount);
+                }
                 
                 // Track analytics
                 if (typeof gtag !== 'undefined') {
-                    gtag('event', data.data.isFavorite ? 'add_to_wishlist' : 'remove_from_wishlist', {
+                    gtag('event', isInWishlist ? 'add_to_wishlist' : 'remove_from_wishlist', {
                         'item_id': productId
                     });
                 }
-            } else if (data && !data.success) {
-                // Revert optimistic update
-                if (isAdding) {
-                    icon.className = 'bi bi-heart';
-                    button.classList.remove('active');
-                } else {
-                    icon.className = 'bi bi-heart-fill';
-                    button.classList.add('active');
-                }
-                showToast(data.message || 'Có lỗi xảy ra', 'error');
+            } else {
+                // Revert to original state on error
+                console.log('API Error Response:', data);
+                icon.className = originalContent;
+                showToast(data.error || data.message || 'Có lỗi xảy ra', 'error');
             }
         })
         .catch(error => {
+            // Revert to original state on error
+            icon.className = originalContent;
             showToast('Có lỗi xảy ra khi thực hiện yêu cầu', 'error');
+        })
+        .finally(() => {
+            // Re-enable button
+            button.disabled = false;
         });
     }
 
@@ -678,11 +815,18 @@
     // ================================
     
     function initialize() {
+        console.log('Products.js: Initializing...');
+        
         // Check if we're on a products page
         const isProductsPage = document.querySelector('.products-section') || 
                               document.querySelector('.product-detail-section');
         
-        if (!isProductsPage) return;
+        console.log('Products.js: isProductsPage =', isProductsPage);
+        
+        if (!isProductsPage) {
+            console.log('Products.js: Not on products page, skipping initialization');
+            return;
+        }
 
         // Initialize common functionality
         initializeErrorHandling();
@@ -693,7 +837,14 @@
         // Initialize page-specific functionality
         if (document.querySelector('.products-section')) {
             // Products listing page
-            initializeProductGrid();
+        console.log('Products.js: Initializing product grid...');
+        
+        // Test toast notification
+        setTimeout(() => {
+            showToast('Products.js loaded successfully!', 'success');
+        }, 1000);
+        
+        initializeProductGrid();
         }
 
         if (document.querySelector('.product-detail-section')) {
@@ -757,8 +908,42 @@
     // ================================
     
     function getCsrfToken() {
+        // Try to get CSRF token from cookie first (Spring Security default)
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'XSRF-TOKEN') {
+                return decodeURIComponent(value);
+            }
+        }
+        
+        // Fallback to meta tag
         const token = document.querySelector('meta[name="_csrf"]');
         return token ? token.getAttribute('content') : '';
+    }
+
+    function updateWishlistCount(count) {
+        const wishlistCountElements = document.querySelectorAll('.wishlist-count, .action-badge');
+        wishlistCountElements.forEach(element => {
+            if (count > 0) {
+                element.textContent = count;
+                element.style.display = 'block';
+            } else {
+                element.style.display = 'none';
+            }
+        });
+    }
+
+    function updateCartCount(count) {
+        const cartCountElements = document.querySelectorAll('.cart-count, .cart-badge');
+        cartCountElements.forEach(element => {
+            if (count > 0) {
+                element.textContent = count;
+                element.style.display = 'block';
+            } else {
+                element.style.display = 'none';
+            }
+        });
     }
 
     // ================================

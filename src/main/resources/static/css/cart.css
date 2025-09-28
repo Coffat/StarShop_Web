@@ -1,0 +1,130 @@
+/* Cart Page Styles */
+
+.cart-item-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 150px;
+}
+
+.quantity-input {
+    width: 60px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+
+.quantity-input:focus {
+    outline: none;
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.empty-cart {
+    padding: 3rem 0;
+}
+
+.empty-cart i {
+    font-size: 5rem;
+    color: #6c757d;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.subtotal {
+    font-size: 1.1rem;
+}
+
+.cart-summary {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.btn-success.w-100 {
+    padding: 12px;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .cart-item-image {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .quantity-controls {
+        max-width: 120px;
+    }
+    
+    .quantity-input {
+        width: 50px;
+    }
+    
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+    
+    .empty-cart i {
+        font-size: 3rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .quantity-controls {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .quantity-controls .btn {
+        padding: 2px 6px;
+        font-size: 0.8rem;
+    }
+    
+    .cart-item-image {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+/* Animation for cart updates */
+.cart-item-updating {
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+
+.cart-item-updated {
+    background-color: #d4edda;
+    transition: background-color 0.5s ease;
+}
+
+/* Success state for buttons */
+.btn.success {
+    background-color: #198754;
+    border-color: #198754;
+    color: white;
+}
+
+/* Loading state */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

@@ -85,6 +85,14 @@ jwt:
 
 server:
   port: 8080
+  servlet:
+    session:
+      cookie:
+        name: JSESSIONID
+        http-only: false
+        secure: false
+        same-site: lax
+        max-age: 3600
 
 logging:
   level:
