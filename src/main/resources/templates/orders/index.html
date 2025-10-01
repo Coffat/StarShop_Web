@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/main :: layout(${pageTitle}, 
+          ${pageDescription}, 
+          ~{::link},
+          ~{::content})}">
+
+<head>
+    <link rel="stylesheet" href="/css/orders.css">
+</head>
+
+<body>
+<th:block th:fragment="content">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="breadcrumb-nav">
+        <div class="container">
+            <ol class="breadcrumb" th:if="${breadcrumbs}">
+                <li class="breadcrumb-item" th:each="breadcrumb : ${breadcrumbs}">
+                    <a th:href="${breadcrumb.url}" th:text="${breadcrumb.title}" 
+                       th:classappend="${breadcrumbStat.last} ? 'active' : ''"
+                       class="breadcrumb-link"></a>
+                </li>
+            </ol>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0">
+                        <i class="bi bi-bag-check"></i> Đơn hàng của tôi
+                    </h2>
+                    <a href="/cart" class="btn btn-primary">
+                        <i class="bi bi-cart-plus"></i> Tiếp tục mua sắm
+                    </a>
+                </div>
+
+                <!-- Error Message -->
+                <div th:if="${error}" class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span th:text="${error}">Error message</span>
+                </div>
+
+                <!-- Orders List -->
+                <div th:if="${orders != null and orders.hasContent()}" class="orders-container">
+                    <div class="row">
+                        <div class="col-12" th:each="order : ${orders.content}">
+                            <div class="card order-card mb-4">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <div class="order-info">
+                                        <h5 class="mb-1">
+                                            Đơn hàng #<span th:text="${order.id}">123</span>
+                                        </h5>
+                                        <small class="text-muted">
+                                            Đặt ngày: <span th:text="${#temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:00</span>
+                                        </small>
+                                    </div>
+                                    <div class="order-status">
+                                        <span class="badge" 
+                                              th:classappend="${order.status.name() == 'PENDING' ? 'bg-warning' : 
+                                                              order.status.name() == 'PROCESSING' ? 'bg-info' :
+                                                              order.status.name() == 'SHIPPED' ? 'bg-primary' :
+                                                              order.status.name() == 'COMPLETED' ? 'bg-success' : 'bg-danger'}"
+                                              th:text="${order.statusDisplayName}">
+                                            Trạng thái
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="order-items">
+                                                <h6 class="mb-3">Sản phẩm đã đặt:</h6>
+                                                <div class="row" th:if="${order.orderItems != null}">
+                                                    <div class="col-md-6 mb-2" th:each="item : ${order.orderItems}" th:if="${itemStat.index < 2}">
+                                                        <div class="d-flex align-items-center">
+                                                            <img th:src="${item.productImage != null ? item.productImage : '/images/no-image.png'}" 
+                                                                 th:alt="${item.productName}"
+                                                                 class="order-item-image me-3">
+                                                            <div>
+                                                                <div class="fw-bold" th:text="${item.productName}">Product Name</div>
+                                                                <small class="text-muted">
+                                                                    SL: <span th:text="${item.quantity}">1</span> x 
+                                                                    <span th:text="${#numbers.formatInteger(item.price, 0, 'COMMA')}">0</span>₫
+                                                                </small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div th:if="${order.orderItems != null and order.orderItems.size() > 2}" class="text-muted">
+                                                    <small>và <span th:text="${order.orderItems.size() - 2}">0</span> sản phẩm khác...</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-4">
+                                            <div class="order-summary">
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span>Tổng tiền:</span>
+                                                    <span class="fw-bold text-success">
+                                                        <span th:text="${#numbers.formatInteger(order.totalAmount, 0, 'COMMA')}">0</span>₫
+                                                    </span>
+                                                </div>
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span>Thanh toán:</span>
+                                                    <span th:text="${order.paymentMethodDisplayName}">COD</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between mb-3">
+                                                    <span>Số lượng:</span>
+                                                    <span th:text="${order.totalItems}">0</span> sản phẩm
+                                                </div>
+                                                
+                                                <div class="order-actions">
+                                                    <a th:href="@{/orders/{id}(id=${order.id})}" 
+                                                       class="btn btn-outline-primary btn-sm w-100 mb-2">
+                                                        <i class="bi bi-eye"></i> Xem chi tiết
+                                                    </a>
+                                                    <button th:if="${order.status.name() == 'PENDING' or order.status.name() == 'PROCESSING'}"
+                                                            class="btn btn-outline-danger btn-sm w-100"
+                                                            onclick="cancelOrder(this)"
+                                                            th:data-order-id="${order.id}">
+                                                        <i class="bi bi-x-circle"></i> Hủy đơn hàng
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav th:if="${orders.totalPages > 1}" aria-label="Orders pagination">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" th:classappend="${orders.first} ? 'disabled'">
+                                <a class="page-link" th:href="@{/orders(page=${currentPage - 1})}">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                            
+                            <li class="page-item" 
+                                th:each="pageNum : ${#numbers.sequence(0, orders.totalPages - 1)}"
+                                th:classappend="${pageNum == currentPage} ? 'active'">
+                                <a class="page-link" 
+                                   th:href="@{/orders(page=${pageNum})}"
+                                   th:text="${pageNum + 1}">1</a>
+                            </li>
+                            
+                            <li class="page-item" th:classappend="${orders.last} ? 'disabled'">
+                                <a class="page-link" th:href="@{/orders(page=${currentPage + 1})}">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${orders == null or !orders.hasContent()}" class="text-center py-5">
+                    <div class="empty-orders">
+                        <i class="bi bi-bag-x display-1 text-muted mb-3"></i>
+                        <h3 class="text-muted mb-3">Chưa có đơn hàng nào</h3>
+                        <p class="text-muted mb-4">Bạn chưa đặt đơn hàng nào. Hãy bắt đầu mua sắm ngay!</p>
+                        <a href="/" class="btn btn-primary">
+                            <i class="bi bi-shop"></i> Bắt đầu mua sắm
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Cancel order function
+        function cancelOrder(button) {
+            const orderId = button.dataset.orderId;
+            
+            if (!confirm('Bạn có chắc muốn hủy đơn hàng này?')) {
+                return;
+            }
+            
+            const originalHTML = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<i class="bi bi-hourglass"></i> Đang hủy...';
+            
+            // Get CSRF token
+            const csrfToken = getCsrfToken();
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+            
+            fetch(`/api/orders/${orderId}/cancel`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    [csrfHeader]: csrfToken
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.data && data.data.success) {
+                    showToast('Hủy đơn hàng thành công', 'success');
+                    // Reload page to update status
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showToast(data.error || data.message || 'Có lỗi xảy ra khi hủy đơn hàng', 'error');
+                    button.innerHTML = originalHTML;
+                    button.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error cancelling order:', error);
+                showToast('Có lỗi xảy ra khi hủy đơn hàng', 'error');
+                button.innerHTML = originalHTML;
+                button.disabled = false;
+            });
+        }
+        
+        // Get CSRF token function
+        function getCsrfToken() {
+            // Try to get CSRF token from cookie first (Spring Security default)
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'XSRF-TOKEN') {
+                    return decodeURIComponent(value);
+                }
+            }
+            
+            // Fallback to meta tag
+            const csrfMeta = document.querySelector('meta[name="_csrf"]');
+            return csrfMeta ? csrfMeta.getAttribute('content') : null;
+        }
+        
+        // Show toast function
+        function showToast(message, type = 'info') {
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            
+            // Add to toast container
+            let toastContainer = document.querySelector('.toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                document.body.appendChild(toastContainer);
+            }
+            
+            toastContainer.appendChild(toast);
+            
+            // Show toast
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            // Remove toast after it's hidden
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+    </script>
+</th:block>
+</body>
+</html>

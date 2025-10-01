@@ -36,7 +36,27 @@ public class Address extends BaseEntity {
     
     // Helper methods
     public String getFullAddress() {
-        return street + ", " + city + ", " + province;
+        StringBuilder fullAddress = new StringBuilder();
+        
+        if (street != null && !street.trim().isEmpty()) {
+            fullAddress.append(street.trim());
+        }
+        
+        if (city != null && !city.trim().isEmpty()) {
+            if (fullAddress.length() > 0) {
+                fullAddress.append(", ");
+            }
+            fullAddress.append(city.trim());
+        }
+        
+        if (province != null && !province.trim().isEmpty()) {
+            if (fullAddress.length() > 0) {
+                fullAddress.append(", ");
+            }
+            fullAddress.append(province.trim());
+        }
+        
+        return fullAddress.toString();
     }
 
     // Getters and Setters

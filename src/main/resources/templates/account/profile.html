@@ -45,6 +45,18 @@
     <!-- Account Content -->
     <section class="account-section">
         <div class="container">
+            <!-- Success/Error Messages -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            
             <div class="row g-4">
                 
                 <!-- Sidebar Navigation -->
@@ -367,30 +379,53 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="editProfileForm">
+                    <form id="editProfileForm" action="/account/profile/update" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                         <div class="row g-3">
                             <div class="col-6">
                                 <label for="firstName" class="form-label">Tên</label>
-                                <input type="text" class="form-control" id="firstName" th:value="${userObject != null ? userObject.firstname : ''}" placeholder="Nhập tên">
+                                <input type="text" class="form-control" id="firstName" name="firstName" th:value="${userObject != null ? userObject.firstname : ''}" placeholder="Nhập tên" required>
                             </div>
                             <div class="col-6">
                                 <label for="lastName" class="form-label">Họ</label>
-                                <input type="text" class="form-control" id="lastName" th:value="${userObject != null ? userObject.lastname : ''}" placeholder="Nhập họ">
+                                <input type="text" class="form-control" id="lastName" name="lastName" th:value="${userObject != null ? userObject.lastname : ''}" placeholder="Nhập họ" required>
                             </div>
                             <div class="col-12">
                                 <label for="phone" class="form-label">Số điện thoại</label>
-                                <input type="tel" class="form-control" id="phone" th:value="${userObject != null ? userObject.phone : ''}" placeholder="Nhập số điện thoại">
+                                <input type="tel" class="form-control" id="phone" name="phone" th:value="${userObject != null ? userObject.phone : ''}" placeholder="Nhập số điện thoại">
                             </div>
                             <div class="col-12">
-                                <label for="address" class="form-label">Địa chỉ giao hàng</label>
-                                <textarea class="form-control" id="address" rows="3" th:text="${userAddress ?: ''}" placeholder="Nhập địa chỉ chi tiết"></textarea>
+                                <label for="street" class="form-label">Địa chỉ chi tiết</label>
+                                <input type="text" class="form-control" id="street" name="street" th:value="${userObject != null and !userObject.addresses.isEmpty() ? userObject.addresses[0].street : ''}" placeholder="Số nhà, tên đường, phường/xã, quận/huyện" required>
+                            </div>
+                            <div class="col-6">
+                                <label for="city" class="form-label">Thành phố</label>
+                                <select class="form-control" id="city" name="city" required>
+                                    <option value="">Chọn thành phố</option>
+                                    <option value="Thành phố Hồ Chí Minh" th:selected="${userObject != null and !userObject.addresses.isEmpty() and userObject.addresses[0].city == 'Thành phố Hồ Chí Minh'}">Thành phố Hồ Chí Minh</option>
+                                    <option value="Hà Nội" th:selected="${userObject != null and !userObject.addresses.isEmpty() and userObject.addresses[0].city == 'Hà Nội'}">Hà Nội</option>
+                                    <option value="Đà Nẵng" th:selected="${userObject != null and !userObject.addresses.isEmpty() and userObject.addresses[0].city == 'Đà Nẵng'}">Đà Nẵng</option>
+                                    <option value="Cần Thơ" th:selected="${userObject != null and !userObject.addresses.isEmpty() and userObject.addresses[0].city == 'Cần Thơ'}">Cần Thơ</option>
+                                    <option value="Hải Phòng" th:selected="${userObject != null and !userObject.addresses.isEmpty() and userObject.addresses[0].city == 'Hải Phòng'}">Hải Phòng</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label for="province" class="form-label">Tỉnh/Thành phố</label>
+                                <select class="form-control" id="province" name="province" required>
+                                    <option value="">Chọn tỉnh/thành phố</option>
+                                    <option value="TP. Hồ Chí Minh" th:selected="${userObject != null and !userObject.addresses.isEmpty() and userObject.addresses[0].province == 'TP. Hồ Chí Minh'}">TP. Hồ Chí Minh</option>
+                                    <option value="Hà Nội" th:selected="${userObject != null and !userObject.addresses.isEmpty() and userObject.addresses[0].province == 'Hà Nội'}">Hà Nội</option>
+                                    <option value="Đà Nẵng" th:selected="${userObject != null and !userObject.addresses.isEmpty() and userObject.addresses[0].province == 'Đà Nẵng'}">Đà Nẵng</option>
+                                    <option value="Cần Thơ" th:selected="${userObject != null and !userObject.addresses.isEmpty() and userObject.addresses[0].province == 'Cần Thơ'}">Cần Thơ</option>
+                                    <option value="Hải Phòng" th:selected="${userObject != null and !userObject.addresses.isEmpty() and userObject.addresses[0].province == 'Hải Phòng'}">Hải Phòng</option>
+                                </select>
                             </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" form="editProfileForm">
                         <i class="bi bi-check2"></i>
                         Lưu thay đổi
                     </button>
@@ -398,6 +433,54 @@
             </div>
         </div>
     </div>
+
+    <!-- JavaScript for Profile Update -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const editProfileForm = document.getElementById('editProfileForm');
+            const editProfileModal = document.getElementById('editProfileModal');
+            
+            if (editProfileForm) {
+                editProfileForm.addEventListener('submit', function(e) {
+                    // Validate form
+                    const firstName = document.getElementById('firstName').value.trim();
+                    const lastName = document.getElementById('lastName').value.trim();
+                    const street = document.getElementById('street').value.trim();
+                    const city = document.getElementById('city').value.trim();
+                    const province = document.getElementById('province').value.trim();
+                    
+                    if (!firstName || !lastName) {
+                        e.preventDefault();
+                        alert('Vui lòng nhập đầy đủ họ và tên');
+                        return false;
+                    }
+                    
+                    if (!street || !city || !province) {
+                        e.preventDefault();
+                        alert('Vui lòng nhập đầy đủ thông tin địa chỉ');
+                        return false;
+                    }
+                    
+                    // Show loading state
+                    const submitBtn = editProfileForm.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang lưu...';
+                    submitBtn.disabled = true;
+                    
+                    // Form will submit normally to the server
+                });
+            }
+            
+            // Auto-hide alerts after 5 seconds
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
+    </script>
 
 </th:block>
 </body>

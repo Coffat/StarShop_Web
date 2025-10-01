@@ -100,3 +100,28 @@ logging:
     com.example.demo: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+    filter: true
+    display-request-duration: true
+
+momo:
+  base-url: https://test-payment.momo.vn
+  partner-code: MOMO
+  access-key: F8BBA842ECF85
+  secret-key: K951B6PE1waDMi640xX08PD3vg6EkVlz
+  return-url: http://localhost:8080/payment/momo/return
+  notify-url: http://localhost:8080/payment/momo/notify
+  request-type: captureWallet
+  endpoint-create: /v2/gateway/api/create
+  endpoint-query: /v2/gateway/api/query

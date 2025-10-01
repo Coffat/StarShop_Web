@@ -1,5 +1,9 @@
 package com.example.demo.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +15,7 @@ import java.util.Map;
 
 @Controller
 @Slf4j
+@Tag(name = "🏠 System", description = "System health check and information APIs")
 public class HomeController {
 
     @GetMapping("/")
@@ -26,6 +31,13 @@ public class HomeController {
         return "home";
     }
 
+    @Operation(
+        summary = "Health check",
+        description = "Kiểm tra trạng thái hoạt động của hệ thống và kết nối database"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Hệ thống hoạt động bình thường")
+    })
     @GetMapping("/api/health")
     @ResponseBody
     public Map<String, String> health() {
@@ -35,6 +47,13 @@ public class HomeController {
         return response;
     }
 
+    @Operation(
+        summary = "Application information",
+        description = "Lấy thông tin về ứng dụng (tên, mô tả, developer)"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lấy thông tin thành công")
+    })
     @GetMapping("/api/info")
     @ResponseBody
     public Map<String, String> info() {

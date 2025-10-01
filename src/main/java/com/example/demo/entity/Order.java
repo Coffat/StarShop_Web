@@ -43,13 +43,13 @@ public class Order extends BaseEntity {
 
     @Column(name = "payment_method", nullable = false)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    private PaymentMethod paymentMethod = PaymentMethod.CASH_ON_DELIVERY;
+    private PaymentMethod paymentMethod = PaymentMethod.COD;
 
     @Column(columnDefinition = "TEXT")
     private String notes;
 
     // Relationships
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItem> orderItems = new ArrayList<>();
 
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)

@@ -49,16 +49,17 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf
                 .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**", "/api/cart/**")
+                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**", "/api/cart/**", "/api/orders/**", "/api/payment/**", "/swagger-ui/**", "/v3/api-docs/**")
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                .maximumSessions(1)
-                .maxSessionsPreventsLogin(false)
-                .sessionRegistry(sessionRegistry())
-                .and()
-                .sessionFixation().migrateSession()
+                // Configure fixation first so we don't need to call back with .and()
+                .sessionFixation(sessionFixation -> sessionFixation.migrateSession())
                 .invalidSessionUrl("/login?expired")
+                // Configure concurrency last; avoid deprecated .and()
+                .maximumSessions(1)
+                    .maxSessionsPreventsLogin(false)
+                    .sessionRegistry(sessionRegistry())
             )
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints as per rules.mdc
@@ -76,14 +77,24 @@ public class SecurityConfig {
                 .requestMatchers("/static/**", "/css/**", "/js/**", "/images/**").permitAll()
                 .requestMatchers("/login", "/register", "/forgot-password", "/reset-password", "/logout").permitAll()
                 
+                // Swagger UI and API Docs
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()
+                .requestMatchers("/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
+                
                 // OAuth2 endpoints
                 .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
+                
+                // Payment callbacks
+                .requestMatchers("/payment/momo/**").permitAll()
                 
                 // WebSocket endpoints
                 .requestMatchers("/ws/**").permitAll()
                 
                 // Account pages - require authentication
                 .requestMatchers("/account/**").authenticated()
+                
+                // Order pages - require authentication
+                .requestMatchers("/orders", "/orders/**", "/checkout").authenticated()
                 
                 // Products pages
                 .requestMatchers("/products", "/products/**").permitAll()
@@ -95,6 +106,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/users/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/products/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/orders/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
+                .requestMatchers("/api/payment/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/cart/**").hasRole("CUSTOMER")
                 .requestMatchers("/api/reviews/**").hasRole("CUSTOMER")
                 .requestMatchers("/api/wishlist/**").hasRole("CUSTOMER")

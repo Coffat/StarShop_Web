@@ -1,0 +1,192 @@
+package com.example.demo.dto;
+
+import com.example.demo.entity.OrderItem;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+/**
+ * DTO for OrderItem entity
+ * Represents an item in customer order
+ */
+public class OrderItemDTO {
+    
+    private Long id;
+    private Long orderId;
+    private Long productId;
+    private String productName;
+    private String productDescription;
+    private String productImage;
+    private BigDecimal productPrice; // Current product price
+    private Integer productStockQuantity;
+    private String productStatus;
+    private Integer quantity;
+    private BigDecimal price; // Price at time of order
+    private BigDecimal subtotal;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    
+    // Constructors
+    public OrderItemDTO() {
+    }
+    
+    public OrderItemDTO(Long id, Long orderId, Long productId, String productName,
+                        String productDescription, String productImage, BigDecimal productPrice,
+                        Integer productStockQuantity, String productStatus, Integer quantity,
+                        BigDecimal price, BigDecimal subtotal, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.orderId = orderId;
+        this.productId = productId;
+        this.productName = productName;
+        this.productDescription = productDescription;
+        this.productImage = productImage;
+        this.productPrice = productPrice;
+        this.productStockQuantity = productStockQuantity;
+        this.productStatus = productStatus;
+        this.quantity = quantity;
+        this.price = price;
+        this.subtotal = subtotal;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+    
+    // Static factory method to create from OrderItem entity
+    public static OrderItemDTO fromOrderItem(OrderItem orderItem) {
+        if (orderItem == null || orderItem.getProduct() == null) {
+            return null;
+        }
+        
+        BigDecimal subtotal = orderItem.getPrice() != null ?
+            orderItem.getPrice().multiply(new BigDecimal(orderItem.getQuantity())) :
+            BigDecimal.ZERO;
+        
+        return new OrderItemDTO(
+            orderItem.getId(),
+            orderItem.getOrder() != null ? orderItem.getOrder().getId() : null,
+            orderItem.getProduct().getId(),
+            orderItem.getProduct().getName(),
+            orderItem.getProduct().getDescription(),
+            orderItem.getProduct().getImage(),
+            orderItem.getProduct().getPrice(), // Current price
+            orderItem.getProduct().getStockQuantity(),
+            orderItem.getProduct().getStatus() != null ? orderItem.getProduct().getStatus().name() : null,
+            orderItem.getQuantity(),
+            orderItem.getPrice(), // Price at time of order
+            subtotal,
+            orderItem.getCreatedAt(),
+            orderItem.getUpdatedAt()
+        );
+    }
+    
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+    
+    public void setId(Long id) {
+        this.id = id;
+    }
+    
+    public Long getOrderId() {
+        return orderId;
+    }
+    
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
+    }
+    
+    public Long getProductId() {
+        return productId;
+    }
+    
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+    
+    public String getProductName() {
+        return productName;
+    }
+    
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+    
+    public String getProductDescription() {
+        return productDescription;
+    }
+    
+    public void setProductDescription(String productDescription) {
+        this.productDescription = productDescription;
+    }
+    
+    public String getProductImage() {
+        return productImage;
+    }
+    
+    public void setProductImage(String productImage) {
+        this.productImage = productImage;
+    }
+    
+    public BigDecimal getProductPrice() {
+        return productPrice;
+    }
+    
+    public void setProductPrice(BigDecimal productPrice) {
+        this.productPrice = productPrice;
+    }
+    
+    public Integer getProductStockQuantity() {
+        return productStockQuantity;
+    }
+    
+    public void setProductStockQuantity(Integer productStockQuantity) {
+        this.productStockQuantity = productStockQuantity;
+    }
+    
+    public String getProductStatus() {
+        return productStatus;
+    }
+    
+    public void setProductStatus(String productStatus) {
+        this.productStatus = productStatus;
+    }
+    
+    public Integer getQuantity() {
+        return quantity;
+    }
+    
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+    
+    public BigDecimal getPrice() {
+        return price;
+    }
+    
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+    
+    public BigDecimal getSubtotal() {
+        return subtotal;
+    }
+    
+    public void setSubtotal(BigDecimal subtotal) {
+        this.subtotal = subtotal;
+    }
+    
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+    
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+    
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+    
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+}

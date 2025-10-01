@@ -7,6 +7,12 @@ import com.example.demo.dto.ResponseWrapper;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.WishlistService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +36,7 @@ import java.util.List;
  */
 @Controller
 @Validated
+@Tag(name = "❤️ Wishlist", description = "Wishlist/Favorites management APIs - Save favorite products")
 public class WishlistController extends BaseController {
     
     private static final Logger logger = LoggerFactory.getLogger(WishlistController.class);
@@ -105,11 +112,24 @@ public class WishlistController extends BaseController {
     /**
      * REST API: Toggle wishlist/favorite status
      */
+    @Operation(
+        summary = "Toggle trạng thái yêu thích",
+        description = "Bật/tắt trạng thái yêu thích cho sản phẩm. Nếu đã tồn tại thì xóa, chưa có thì thêm.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Toggle thành công"),
+        @ApiResponse(responseCode = "401", description = "Chưa xác thực")
+    })
     @PostMapping("/api/wishlist/toggle")
     @ResponseBody
     public ResponseEntity<ResponseWrapper<WishlistResponse>> toggleWishlist(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "ID sản phẩm cần toggle",
+                required = true
+            )
             @Valid @RequestBody WishlistRequest request,
-            Authentication authentication) {
+            @Parameter(hidden = true) Authentication authentication) {
         
         try {
             // Check authentication
@@ -144,11 +164,25 @@ public class WishlistController extends BaseController {
     /**
      * REST API: Add product to wishlist
      */
+    @Operation(
+        summary = "Thêm sản phẩm vào danh sách yêu thích",
+        description = "Thêm một sản phẩm vào danh sách yêu thích của người dùng",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Thêm thành công"),
+        @ApiResponse(responseCode = "400", description = "Sản phẩm đã có trong wishlist"),
+        @ApiResponse(responseCode = "401", description = "Chưa xác thực")
+    })
     @PostMapping("/api/wishlist/add")
     @ResponseBody
     public ResponseEntity<ResponseWrapper<WishlistResponse>> addToWishlist(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "ID sản phẩm cần thêm",
+                required = true
+            )
             @Valid @RequestBody WishlistRequest request,
-            Authentication authentication) {
+            @Parameter(hidden = true) Authentication authentication) {
         
         try {
             // Check authentication
@@ -183,11 +217,25 @@ public class WishlistController extends BaseController {
     /**
      * REST API: Remove product from wishlist
      */
+    @Operation(
+        summary = "Xóa sản phẩm khỏi danh sách yêu thích",
+        description = "Xóa một sản phẩm khỏi danh sách yêu thích của người dùng",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Xóa thành công"),
+        @ApiResponse(responseCode = "400", description = "Sản phẩm không có trong wishlist"),
+        @ApiResponse(responseCode = "401", description = "Chưa xác thực")
+    })
     @DeleteMapping("/api/wishlist/remove")
     @ResponseBody
     public ResponseEntity<ResponseWrapper<WishlistResponse>> removeFromWishlist(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "ID sản phẩm cần xóa",
+                required = true
+            )
             @Valid @RequestBody WishlistRequest request,
-            Authentication authentication) {
+            @Parameter(hidden = true) Authentication authentication) {
         
         try {
             // Check authentication
@@ -222,11 +270,21 @@ public class WishlistController extends BaseController {
     /**
      * REST API: Get wishlist status for a product
      */
+    @Operation(
+        summary = "Kiểm tra trạng thái yêu thích",
+        description = "Kiểm tra xem sản phẩm có trong danh sách yêu thích hay không",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lấy thành công"),
+        @ApiResponse(responseCode = "401", description = "Chưa xác thực")
+    })
     @GetMapping("/api/wishlist/status/{productId}")
     @ResponseBody
     public ResponseEntity<ResponseWrapper<WishlistResponse>> getWishlistStatus(
+            @Parameter(description = "ID sản phẩm cần kiểm tra", required = true)
             @PathVariable Long productId,
-            Authentication authentication) {
+            @Parameter(hidden = true) Authentication authentication) {
         
         try {
             // Check authentication
@@ -255,10 +313,19 @@ public class WishlistController extends BaseController {
     /**
      * REST API: Get user's wishlist list
      */
+    @Operation(
+        summary = "Lấy danh sách yêu thích",
+        description = "Lấy toàn bộ danh sách sản phẩm yêu thích của người dùng",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lấy thành công"),
+        @ApiResponse(responseCode = "401", description = "Chưa xác thực")
+    })
     @GetMapping("/api/wishlist/list")
     @ResponseBody
     public ResponseEntity<ResponseWrapper<List<WishlistDTO>>> getWishlistList(
-            Authentication authentication) {
+            @Parameter(hidden = true) Authentication authentication) {
         
         try {
             // Check authentication
@@ -287,10 +354,19 @@ public class WishlistController extends BaseController {
     /**
      * REST API: Clear all wishlist items
      */
+    @Operation(
+        summary = "Xóa toàn bộ danh sách yêu thích",
+        description = "Xóa tất cả sản phẩm khỏi danh sách yêu thích",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Xóa thành công"),
+        @ApiResponse(responseCode = "401", description = "Chưa xác thực")
+    })
     @DeleteMapping("/api/wishlist/clear")
     @ResponseBody
     public ResponseEntity<ResponseWrapper<WishlistResponse>> clearWishlist(
-            Authentication authentication) {
+            @Parameter(hidden = true) Authentication authentication) {
         
         try {
             // Check authentication

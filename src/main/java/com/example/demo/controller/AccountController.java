@@ -1,16 +1,21 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.User;
+import com.example.demo.entity.Address;
 import com.example.demo.dto.UserProfileDTO;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.OrderRepository;
 import com.example.demo.repository.FollowRepository;
+import com.example.demo.repository.AddressRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +35,7 @@ public class AccountController {
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
     private final FollowRepository followRepository;
+    private final AddressRepository addressRepository;
 
     /**
      * Serve account information page
@@ -55,9 +61,15 @@ public class AccountController {
             model.addAttribute("memberSince", user.getCreatedAt() != null ? 
                 user.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy")) : "2024");
             
-            // Get primary address - already fetched with JOIN FETCH
+            // Get default address - already fetched with JOIN FETCH
             if (!user.getAddresses().isEmpty()) {
-                model.addAttribute("userAddress", user.getAddresses().get(0).getFullAddress());
+                // Try to find default address first
+                Address defaultAddress = user.getAddresses().stream()
+                    .filter(addr -> addr.getIsDefault() != null && addr.getIsDefault())
+                    .findFirst()
+                    .orElse(user.getAddresses().get(0)); // Fallback to first address
+                
+                model.addAttribute("userAddress", defaultAddress.getFullAddress());
             } else {
                 model.addAttribute("userAddress", "");
             }
@@ -133,6 +145,78 @@ public class AccountController {
         model.addAttribute("currentUser", authentication.getName());
         model.addAttribute("pageTitle", "Lịch sử đơn hàng");
         return "account/orders";
+    }
+
+    /**
+     * Update user profile information
+     * Only accessible to authenticated users
+     */
+    @PostMapping("/profile/update")
+    @PreAuthorize("isAuthenticated()")
+    @Transactional
+    public String updateProfile(
+            @RequestParam("firstName") String firstName,
+            @RequestParam("lastName") String lastName,
+            @RequestParam("phone") String phone,
+            @RequestParam("street") String street,
+            @RequestParam("city") String city,
+            @RequestParam("province") String province,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+        
+        log.info("Profile update requested by user: {}", authentication.getName());
+        
+        try {
+            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            if (user == null) {
+                redirectAttributes.addFlashAttribute("error", "Không tìm thấy thông tin người dùng");
+                return "redirect:/account/profile";
+            }
+            
+            // Update user information
+            user.setFirstname(firstName.trim());
+            user.setLastname(lastName.trim());
+            user.setPhone(phone.trim());
+            
+            // Save user
+            userRepository.save(user);
+            
+            // Handle address update
+            if (street != null && !street.trim().isEmpty()) {
+                log.info("Address update requested - Street: {}, City: {}, Province: {}", street.trim(), city, province);
+                
+                // Check if user already has a default address
+                Address existingAddress = addressRepository.findDefaultAddressByUserId(user.getId()).orElse(null);
+                
+                if (existingAddress != null) {
+                    // Update existing address
+                    existingAddress.setStreet(street.trim());
+                    existingAddress.setCity(city != null ? city.trim() : "Thành phố Hồ Chí Minh");
+                    existingAddress.setProvince(province != null ? province.trim() : "TP. Hồ Chí Minh");
+                    addressRepository.save(existingAddress);
+                    log.info("Updated existing address for user: {}", user.getEmail());
+                } else {
+                    // Create new default address
+                    Address newAddress = new Address();
+                    newAddress.setStreet(street.trim());
+                    newAddress.setCity(city != null ? city.trim() : "Thành phố Hồ Chí Minh");
+                    newAddress.setProvince(province != null ? province.trim() : "TP. Hồ Chí Minh");
+                    newAddress.setIsDefault(true);
+                    newAddress.setUser(user);
+                    addressRepository.save(newAddress);
+                    log.info("Created new default address for user: {}", user.getEmail());
+                }
+            }
+            
+            log.info("Profile updated successfully for user: {}", authentication.getName());
+            redirectAttributes.addFlashAttribute("success", "Cập nhật thông tin thành công!");
+            
+        } catch (Exception e) {
+            log.error("Error updating profile for user {}: {}", authentication.getName(), e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra khi cập nhật thông tin. Vui lòng thử lại.");
+        }
+        
+        return "redirect:/account/profile";
     }
 
     // Wishlist functionality moved to WishlistController (/wishlist)

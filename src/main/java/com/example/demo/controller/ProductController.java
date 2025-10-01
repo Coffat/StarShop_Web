@@ -6,6 +6,11 @@ import com.example.demo.entity.Review;
 import com.example.demo.dto.ProductDetailDTO;
 import com.example.demo.repository.ReviewRepository;
 import com.example.demo.service.ProductService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -26,6 +31,7 @@ import java.util.List;
 @RequestMapping("/products")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "🌸 Products", description = "Product APIs - Search, list, and view product details")
 public class ProductController {
 
     private final ProductService productService;
@@ -198,11 +204,21 @@ public class ProductController {
      * @param size Page size
      * @return JSON response with products
      */
+    @Operation(
+        summary = "Tìm kiếm sản phẩm (AJAX)",
+        description = "API tìm kiếm sản phẩm theo từ khóa, hỗ trợ phân trang. Dùng cho AJAX requests từ frontend."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Tìm kiếm thành công, trả về danh sách sản phẩm")
+    })
     @GetMapping("/search")
     @ResponseBody
     public Page<Product> searchProducts(
+            @Parameter(description = "Từ khóa tìm kiếm", example = "hoa hồng")
             @RequestParam(required = false) String q,
+            @Parameter(description = "Số trang (bắt đầu từ 0)", example = "0")
             @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Số sản phẩm mỗi trang (tối đa 50)", example = "12")
             @RequestParam(defaultValue = "12") int size) {
         
         try {

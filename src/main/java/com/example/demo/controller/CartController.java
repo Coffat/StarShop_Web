@@ -7,6 +7,14 @@ import com.example.demo.dto.ResponseWrapper;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.CartService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +31,7 @@ import jakarta.validation.Valid;
  * Provides both web pages and REST API endpoints
  */
 @Controller
+@Tag(name = "🛒 Cart", description = "Shopping cart management APIs - Add, update, remove items")
 public class CartController extends BaseController {
     
     private static final Logger logger = LoggerFactory.getLogger(CartController.class);
@@ -50,9 +59,7 @@ public class CartController extends BaseController {
             }
             
             // Get user's cart
-            logger.info("Getting cart for user: {}", user.getId());
             CartResponse cartResponse = cartService.getCart(user.getId());
-            logger.info("Cart response: success={}, cart={}", cartResponse.isSuccess(), cartResponse.getCart());
             
             // Add breadcrumbs
             addBreadcrumb(model, "Trang chủ", "/");
@@ -74,7 +81,7 @@ public class CartController extends BaseController {
                 model.addAttribute("error", cartResponse.getMessage());
             }
             
-            return "cart/simple";
+            return "cart/index";
             
         } catch (Exception e) {
             logger.error("Error displaying cart page: {}", e.getMessage());
@@ -86,11 +93,26 @@ public class CartController extends BaseController {
     /**
      * REST API: Add product to cart
      */
+    @Operation(
+        summary = "Thêm sản phẩm vào giỏ hàng",
+        description = "Thêm một sản phẩm vào giỏ hàng của người dùng. Nếu sản phẩm đã tồn tại, số lượng sẽ được cộng dồn.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Thêm thành công"),
+        @ApiResponse(responseCode = "400", description = "Request không hợp lệ hoặc sản phẩm không khả dụng"),
+        @ApiResponse(responseCode = "401", description = "Chưa xác thực")
+    })
     @PostMapping("/api/cart/add")
     @ResponseBody
     public ResponseEntity<ResponseWrapper<CartResponse>> addToCart(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Thông tin sản phẩm cần thêm",
+                required = true,
+                content = @Content(schema = @Schema(implementation = CartRequest.class))
+            )
             @Valid @RequestBody CartRequest request,
-            Authentication authentication) {
+            @Parameter(hidden = true) Authentication authentication) {
         
         try {
             // Check authentication
@@ -125,11 +147,25 @@ public class CartController extends BaseController {
     /**
      * REST API: Update cart item quantity
      */
+    @Operation(
+        summary = "Cập nhật số lượng sản phẩm",
+        description = "Cập nhật số lượng của một sản phẩm trong giỏ hàng. Đặt quantity = 0 để xóa sản phẩm.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Cập nhật thành công"),
+        @ApiResponse(responseCode = "400", description = "Request không hợp lệ"),
+        @ApiResponse(responseCode = "401", description = "Chưa xác thực")
+    })
     @PutMapping("/api/cart/update")
     @ResponseBody
     public ResponseEntity<ResponseWrapper<CartResponse>> updateCartItem(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Thông tin cập nhật số lượng",
+                required = true
+            )
             @Valid @RequestBody CartRequest request,
-            Authentication authentication) {
+            @Parameter(hidden = true) Authentication authentication) {
         
         try {
             // Check authentication
@@ -164,11 +200,25 @@ public class CartController extends BaseController {
     /**
      * REST API: Remove product from cart
      */
+    @Operation(
+        summary = "Xóa sản phẩm khỏi giỏ hàng",
+        description = "Xóa hoàn toàn một sản phẩm khỏi giỏ hàng",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Xóa thành công"),
+        @ApiResponse(responseCode = "400", description = "Sản phẩm không tồn tại trong giỏ"),
+        @ApiResponse(responseCode = "401", description = "Chưa xác thực")
+    })
     @DeleteMapping("/api/cart/remove")
     @ResponseBody
     public ResponseEntity<ResponseWrapper<CartResponse>> removeFromCart(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "ID sản phẩm cần xóa",
+                required = true
+            )
             @Valid @RequestBody CartRequest request,
-            Authentication authentication) {
+            @Parameter(hidden = true) Authentication authentication) {
         
         try {
             // Check authentication
@@ -203,9 +253,19 @@ public class CartController extends BaseController {
     /**
      * REST API: Get user's cart
      */
+    @Operation(
+        summary = "Lấy thông tin giỏ hàng",
+        description = "Lấy toàn bộ thông tin giỏ hàng của người dùng hiện tại",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lấy thành công"),
+        @ApiResponse(responseCode = "401", description = "Chưa xác thực")
+    })
     @GetMapping("/api/cart/get")
     @ResponseBody
-    public ResponseEntity<ResponseWrapper<CartResponse>> getCart(Authentication authentication) {
+    public ResponseEntity<ResponseWrapper<CartResponse>> getCart(
+            @Parameter(hidden = true) Authentication authentication) {
         
         try {
             // Check authentication
@@ -234,9 +294,19 @@ public class CartController extends BaseController {
     /**
      * REST API: Clear user's cart
      */
+    @Operation(
+        summary = "Xóa toàn bộ giỏ hàng",
+        description = "Xóa tất cả sản phẩm trong giỏ hàng của người dùng",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Xóa thành công"),
+        @ApiResponse(responseCode = "401", description = "Chưa xác thực")
+    })
     @DeleteMapping("/api/cart/clear")
     @ResponseBody
-    public ResponseEntity<ResponseWrapper<CartResponse>> clearCart(Authentication authentication) {
+    public ResponseEntity<ResponseWrapper<CartResponse>> clearCart(
+            @Parameter(hidden = true) Authentication authentication) {
         
         try {
             // Check authentication
@@ -271,9 +341,18 @@ public class CartController extends BaseController {
     /**
      * REST API: Get cart items count
      */
+    @Operation(
+        summary = "Đếm số sản phẩm trong giỏ",
+        description = "Lấy tổng số lượng sản phẩm trong giỏ hàng (không yêu cầu authentication, trả về 0 nếu chưa đăng nhập)",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lấy thành công")
+    })
     @GetMapping("/api/cart/count")
     @ResponseBody
-    public ResponseEntity<ResponseWrapper<Long>> getCartCount(Authentication authentication) {
+    public ResponseEntity<ResponseWrapper<Long>> getCartCount(
+            @Parameter(hidden = true) Authentication authentication) {
         
         try {
             // Check authentication

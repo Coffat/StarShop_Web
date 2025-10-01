@@ -10,6 +10,13 @@ import com.example.demo.service.WebSocketService;
 import com.example.demo.service.EmailService;
 import com.example.demo.service.OtpService;
 import com.example.demo.service.RegistrationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +41,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "🔐 Authentication", description = "Authentication APIs - Login, Register, OTP verification")
 public class AuthController {
 
     private final AuthService authService;
@@ -50,11 +58,25 @@ public class AuthController {
      * @param bindingResult Validation results
      * @return JWT token if successful, error message if failed
      */
+    @Operation(
+        summary = "Đăng nhập",
+        description = "Đăng nhập với email và mật khẩu. Trả về JWT token để sử dụng cho các API khác."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Đăng nhập thành công, trả về JWT token"),
+        @ApiResponse(responseCode = "400", description = "Thông tin đăng nhập không hợp lệ"),
+        @ApiResponse(responseCode = "401", description = "Email hoặc mật khẩu không đúng")
+    })
     @PostMapping("/login")
     public ResponseEntity<ResponseWrapper<LoginResponse>> login(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Thông tin đăng nhập (email và password)",
+                required = true,
+                content = @Content(schema = @Schema(implementation = LoginRequest.class))
+            )
             @Valid @RequestBody LoginRequest loginRequest,
-            BindingResult bindingResult,
-            HttpServletResponse response) {
+            @Parameter(hidden = true) BindingResult bindingResult,
+            @Parameter(hidden = true) HttpServletResponse response) {
         
         log.info("Login attempt for email: {}", loginRequest.getEmail());
         
@@ -137,8 +159,21 @@ public class AuthController {
      * @param currentToken Current JWT token
      * @return New JWT token if successful
      */
+    @Operation(
+        summary = "Refresh JWT token",
+        description = "Làm mới JWT token khi sắp hết hạn. Trả về token mới với thời gian sống mới."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Refresh thành công, trả về token mới"),
+        @ApiResponse(responseCode = "401", description = "Token không hợp lệ hoặc đã hết hạn")
+    })
     @PostMapping("/refresh")
-    public ResponseEntity<ResponseWrapper<String>> refreshToken(@RequestBody String currentToken) {
+    public ResponseEntity<ResponseWrapper<String>> refreshToken(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "JWT token hiện tại cần refresh",
+                required = true
+            )
+            @RequestBody String currentToken) {
         
         log.info("Token refresh attempt");
         
@@ -172,8 +207,17 @@ public class AuthController {
      * @param token JWT token from Authorization header
      * @return User information if token is valid
      */
+    @Operation(
+        summary = "Validate JWT token",
+        description = "Kiểm tra tính hợp lệ của JWT token và trả về thông tin user nếu token còn hiệu lực."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Token hợp lệ, trả về thông tin user"),
+        @ApiResponse(responseCode = "401", description = "Token không hợp lệ hoặc đã hết hạn")
+    })
     @GetMapping("/validate")
     public ResponseEntity<ResponseWrapper<Object>> validateToken(
+            @Parameter(description = "JWT token trong header Authorization (Bearer <token>)", required = false)
             @RequestHeader(value = "Authorization", required = false) String token) {
         
         log.debug("Token validation attempt");
@@ -221,6 +265,13 @@ public class AuthController {
      * POST /api/auth/logout
      * @return Success message
      */
+    @Operation(
+        summary = "Đăng xuất",
+        description = "Lưu ý: JWT là stateless nên đăng xuất chỉ cần xóa token ở client. Endpoint này chỉ để logging."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Đăng xuất thành công")
+    })
     @PostMapping("/logout")
     public ResponseEntity<ResponseWrapper<String>> logout() {
         log.info("Logout request received");
@@ -235,8 +286,21 @@ public class AuthController {
      * User registration endpoint - Step 1: Send OTP
      * POST /api/auth/register
      */
+    @Operation(
+        summary = "Đăng ký tài khoản - Bước 1",
+        description = "Gửi OTP đến email để xác thực. Cần cung cấp đầy đủ: email, password, firstname, lastname, phone."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OTP đã gửi đến email"),
+        @ApiResponse(responseCode = "400", description = "Thông tin không hợp lệ hoặc email đã tồn tại")
+    })
     @PostMapping("/register")
-    public ResponseEntity<ResponseWrapper<String>> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<ResponseWrapper<String>> register(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Thông tin đăng ký (email, password, firstname, lastname, phone)",
+                required = true
+            )
+            @RequestBody RegisterRequest request) {
         log.info("Registration OTP request for email: {}", request.getEmail());
         
         try {
@@ -307,8 +371,21 @@ public class AuthController {
      * Verify OTP and complete registration - Step 2
      * POST /api/auth/verify-registration
      */
+    @Operation(
+        summary = "Đăng ký tài khoản - Bước 2",
+        description = "Xác thực OTP và hoàn tất đăng ký. Cần nhập OTP đã nhận qua email."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Đăng ký thành công"),
+        @ApiResponse(responseCode = "400", description = "OTP không hợp lệ hoặc đã hết hạn")
+    })
     @PostMapping("/verify-registration")
-    public ResponseEntity<ResponseWrapper<String>> verifyRegistration(@RequestBody VerifyRegistrationRequest request) {
+    public ResponseEntity<ResponseWrapper<String>> verifyRegistration(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Email và OTP để xác thực",
+                required = true
+            )
+            @RequestBody VerifyRegistrationRequest request) {
         log.info("Registration OTP verification attempt for email: {}", request.getEmail());
         
         try {
@@ -380,8 +457,21 @@ public class AuthController {
      * Forgot password endpoint - send OTP
      * POST /api/auth/forgot-password
      */
+    @Operation(
+        summary = "Quên mật khẩu - Bước 1",
+        description = "Gửi OTP đến email để xác thực quên mật khẩu. Nếu email tồn tại, OTP sẽ được gửi."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OTP đã gửi (hoặc email không tồn tại)"),
+        @ApiResponse(responseCode = "400", description = "Email không hợp lệ")
+    })
     @PostMapping("/forgot-password")
-    public ResponseEntity<ResponseWrapper<String>> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+    public ResponseEntity<ResponseWrapper<String>> forgotPassword(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Email cần reset password",
+                required = true
+            )
+            @RequestBody ForgotPasswordRequest request) {
         log.info("Forgot password request for email: {}", request.getEmail());
         
         try {
@@ -417,8 +507,21 @@ public class AuthController {
      * Verify OTP endpoint
      * POST /api/auth/verify-otp
      */
+    @Operation(
+        summary = "Quên mật khẩu - Bước 2",
+        description = "Xác thực OTP và nhận reset token. Token này dùng cho bước reset password."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Xác thực thành công, trả về reset token"),
+        @ApiResponse(responseCode = "400", description = "OTP không hợp lệ hoặc đã hết hạn")
+    })
     @PostMapping("/verify-otp")
-    public ResponseEntity<ResponseWrapper<VerifyOtpResponse>> verifyOtp(@RequestBody VerifyOtpRequest request) {
+    public ResponseEntity<ResponseWrapper<VerifyOtpResponse>> verifyOtp(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Email và OTP để xác thực",
+                required = true
+            )
+            @RequestBody VerifyOtpRequest request) {
         log.info("OTP verification attempt for email: {}", request.getEmail());
         
         try {
@@ -460,8 +563,21 @@ public class AuthController {
      * Reset password endpoint
      * POST /api/auth/reset-password
      */
+    @Operation(
+        summary = "Quên mật khẩu - Bước 3",
+        description = "Reset mật khẩu mới sử dụng reset token từ bước 2. Mật khẩu mới phải ít nhất 8 ký tự."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Reset mật khẩu thành công"),
+        @ApiResponse(responseCode = "400", description = "Token không hợp lệ hoặc mật khẩu không đủ mạnh")
+    })
     @PostMapping("/reset-password")
-    public ResponseEntity<ResponseWrapper<String>> resetPassword(@RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<ResponseWrapper<String>> resetPassword(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Reset token và mật khẩu mới",
+                required = true
+            )
+            @RequestBody ResetPasswordRequest request) {
         log.info("Password reset attempt for token: {}", request.getToken().substring(0, 10) + "...");
         
         try {
@@ -512,8 +628,17 @@ public class AuthController {
      * Debug endpoint to check user data
      * GET /api/auth/debug-user?email=xxx
      */
+    @Operation(
+        summary = "[DEBUG] Kiểm tra thông tin user",
+        description = "⚠️ DEBUG ONLY: Lấy thông tin chi tiết của user theo email. Endpoint này chỉ dùng cho development/testing."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Trả về thông tin user hoặc lỗi")
+    })
     @GetMapping("/debug-user")
-    public ResponseEntity<ResponseWrapper<Object>> debugUser(@RequestParam String email) {
+    public ResponseEntity<ResponseWrapper<Object>> debugUser(
+            @Parameter(description = "Email của user cần kiểm tra", required = true, example = "user@example.com")
+            @RequestParam String email) {
         try {
             User user = authService.findUserByEmail(email);
             if (user == null) {
@@ -539,8 +664,20 @@ public class AuthController {
      * Debug endpoint to test password encoding
      * POST /api/auth/test-password
      */
+    @Operation(
+        summary = "[DEBUG] Test password encoding",
+        description = "⚠️ DEBUG ONLY: Kiểm tra password encoding và so sánh với hash trong database. Chỉ dùng cho debugging."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Trả về kết quả test password")
+    })
     @PostMapping("/test-password")
-    public ResponseEntity<ResponseWrapper<Object>> testPassword(@RequestBody Map<String, String> request) {
+    public ResponseEntity<ResponseWrapper<Object>> testPassword(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Email và password cần test",
+                required = true
+            )
+            @RequestBody Map<String, String> request) {
         try {
             String email = request.get("email");
             String password = request.get("password");
