@@ -9,11 +9,32 @@
 		if (btn) {
 			btn.addEventListener('click', placeOrder);
 		}
-		['shippingName','shippingPhone','shippingAddress'].forEach(function(id){
-			const el = document.getElementById(id);
-			if (el) el.addEventListener('input', updatePlaceOrderButton);
-		});
+		const addressSelect = document.getElementById('addressSelect');
+		if (addressSelect) {
+			addressSelect.addEventListener('change', function() {
+				updatePlaceOrderButton();
+				updateAddressDetails();
+			});
+			// Show initial address if default is selected
+			if (addressSelect.value) {
+				updateAddressDetails();
+			}
+		}
 	});
+
+	function updateAddressDetails() {
+		const select = document.getElementById('addressSelect');
+		const detailsDiv = document.getElementById('selectedAddressDetails');
+		const detailsText = document.getElementById('addressDetailsText');
+		
+		if (select.value) {
+			const selectedOption = select.options[select.selectedIndex];
+			detailsText.textContent = selectedOption.text;
+			detailsDiv.style.display = 'block';
+		} else {
+			detailsDiv.style.display = 'none';
+		}
+	}
 
 	function loadCartData() {
 		fetch('/api/cart/get', { credentials: 'same-origin' })
@@ -128,11 +149,12 @@
 	function updatePlaceOrderButton() {
 		let hasItems = cartData && cartData.items && cartData.items.length > 0;
 		let hasPaymentMethod = selectedPaymentMethod !== null;
-		let shippingName = document.getElementById('shippingName')?.value?.trim() || '';
-		let shippingPhone = document.getElementById('shippingPhone')?.value?.trim() || '';
-		let shippingAddress = document.getElementById('shippingAddress')?.value?.trim() || '';
-		let hasShippingInfo = shippingName !== '' && shippingPhone !== '' && shippingAddress !== '';
-		document.getElementById('place-order-btn').disabled = !(hasItems && hasPaymentMethod && hasShippingInfo);
+		let addressSelect = document.getElementById('addressSelect');
+		let hasAddress = addressSelect && addressSelect.value !== '';
+		let btn = document.getElementById('place-order-btn');
+		if (btn) {
+			btn.disabled = !(hasItems && hasPaymentMethod && hasAddress);
+		}
 	}
 
 	function placeOrder() {
@@ -140,14 +162,27 @@
 			alert('Vui lòng chọn phương thức thanh toán');
 			return;
 		}
+		
+		const addressSelect = document.getElementById('addressSelect');
+		if (!addressSelect) {
+			alert('Vui lòng thêm địa chỉ giao hàng trước khi đặt hàng');
+			window.location.href = '/account/profile';
+			return;
+		}
+		
+		if (!addressSelect.value) {
+			alert('Vui lòng chọn địa chỉ giao hàng');
+			return;
+		}
+		
 		const btn = document.getElementById('place-order-btn');
 		btn.disabled = true;
 		btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
 		const data = {
 			orderRequest: {
-				shippingAddress: document.getElementById('shippingAddress').value.trim(),
-				shippingPhone: document.getElementById('shippingPhone').value.trim(),
-				notes: document.getElementById('orderNotes').value.trim()
+				addressId: parseInt(addressSelect.value),
+				notes: document.getElementById('orderNotes').value.trim(),
+				paymentMethod: selectedPaymentMethod
 			},
 			paymentMethod: selectedPaymentMethod
 		};

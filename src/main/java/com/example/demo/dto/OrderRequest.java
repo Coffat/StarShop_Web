@@ -10,7 +10,7 @@ import java.util.List;
  */
 public class OrderRequest {
     
-    @NotNull(message = "Address ID is required")
+    // Address ID is optional - will use default address if not provided
     private Long addressId;
     
     @NotNull(message = "Payment method is required")

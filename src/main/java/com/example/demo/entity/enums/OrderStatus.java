@@ -1,19 +1,25 @@
 package com.example.demo.entity.enums;
 
 public enum OrderStatus {
-    PENDING("pending"),
-    PROCESSING("processing"),
-    SHIPPED("shipped"),
-    COMPLETED("completed"),
-    CANCELLED("cancelled");
+    PENDING("Chờ xử lý", "Pending"),
+    PROCESSING("Đang xử lý", "Processing"),
+    SHIPPED("Đang giao hàng", "Shipped"),
+    COMPLETED("Hoàn thành", "Completed"),
+    CANCELLED("Đã hủy", "Cancelled");
 
-    private final String value;
+    private final String displayName;
+    private final String englishName;
 
-    OrderStatus(String value) {
-        this.value = value;
+    OrderStatus(String displayName, String englishName) {
+        this.displayName = displayName;
+        this.englishName = englishName;
     }
 
-    public String getValue() {
-        return value;
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public String getEnglishName() {
+        return englishName;
     }
 }

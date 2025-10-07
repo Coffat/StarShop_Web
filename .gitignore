@@ -93,3 +93,7 @@ node_modules/
 # Build directories
 bin/
 dist/
+
+# Ngrok
+.ngrok-url
+ngrok.log

@@ -311,16 +311,29 @@ public class OrderService {
                 throw new RuntimeException("Giỏ hàng trống");
             }
             
-            // Create temporary address for shipping info
-            Address tempAddress = new Address();
-            tempAddress.setUser(user);
-            tempAddress.setStreet(request.getShippingAddress());
-            tempAddress.setCity("TP.HCM"); // Default city
-            tempAddress.setProvince("TP.HCM"); // Default province
-            tempAddress.setIsDefault(false);
+            // Get user's address
+            Address address;
+            if (request.getAddressId() != null) {
+                // Use specified address
+                Optional<Address> addressOpt = addressRepository.findById(request.getAddressId());
+                if (addressOpt.isEmpty()) {
+                    throw new RuntimeException("Địa chỉ không tồn tại");
+                }
+                address = addressOpt.get();
+                // Verify address belongs to user
+                if (!address.getUser().getId().equals(userId)) {
+                    throw new RuntimeException("Địa chỉ không thuộc về người dùng này");
+                }
+            } else {
+                // Use default address
+                address = user.getAddresses().stream()
+                    .filter(Address::getIsDefault)
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy địa chỉ mặc định. Vui lòng thêm địa chỉ giao hàng."));
+            }
             
             // Create order
-            Order order = new Order(user, tempAddress, request.getPaymentMethod());
+            Order order = new Order(user, address, request.getPaymentMethod());
             order.setNotes(request.getNotes());
             
             // Create order items from cart items

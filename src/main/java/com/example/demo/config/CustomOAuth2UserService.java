@@ -9,7 +9,6 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,11 +25,9 @@ import java.util.UUID;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
-    public CustomOAuth2UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public CustomOAuth2UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -51,15 +48,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
         Map<String, Object> attributes = oauth2User.getAttributes();
         
-        // Enhanced logging for debugging
-        System.out.println("OAuth2 login: " + registrationId);
-        System.out.println("OAuth2 attributes: " + attributes);
-        
         String email = extractEmail(attributes, registrationId);
         String name = extractName(attributes, registrationId);
         String avatar = extractAvatar(attributes, registrationId);
-        
-        System.out.println("Extracted - Email: " + email + ", Name: " + name + ", Avatar: " + avatar);
         
         if (email == null || email.isEmpty()) {
             throw new OAuth2AuthenticationException("Email not found in OAuth2 response");
@@ -90,17 +81,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 }
             }
         } else {
-            System.out.println("Creating new user for email: " + email);
             user = createNewUser(email, name, avatar, registrationId);
-            System.out.println("New user created: " + user.getEmail() + ", Role: " + user.getRole());
             
             // Save new user
             try {
                 user = userRepository.save(user);
-                System.out.println("User saved successfully with ID: " + user.getId());
             } catch (Exception e) {
-                System.out.println("Error saving user: " + e.getMessage());
-                e.printStackTrace();
                 if (e.getMessage().contains("duplicate key value violates unique constraint")) {
                     try {
                         user = userRepository.save(user);
@@ -172,24 +158,20 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     private User createNewUser(String email, String name, String avatar, String registrationId) {
-        String[] nameParts = splitName(name != null ? name : "User");
-        String randomPassword = UUID.randomUUID().toString();
-        
         // Generate unique phone number to avoid constraint violation
         String defaultPhone = "OAuth2_" + System.currentTimeMillis();
         
-        System.out.println("Creating user with phone: " + defaultPhone);
+        // Split name into first and last name
+        String[] nameParts = splitName(name);
         
         User user = new User();
         user.setFirstname(nameParts[0]);
-        user.setLastname(nameParts[1]);
+        user.setLastname(nameParts.length > 1 ? nameParts[1] : "");
         user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(randomPassword));
         user.setPhone(defaultPhone);
+        user.setPassword(""); // OAuth2 users don't have passwords
         user.setAvatar(avatar);
         user.setRole(UserRole.CUSTOMER);
-        
-        System.out.println("User object created: " + user.getEmail() + ", Phone: " + user.getPhone() + ", Role: " + user.getRole());
         
         return user;
     }

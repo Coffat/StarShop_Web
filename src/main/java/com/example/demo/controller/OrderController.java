@@ -4,6 +4,7 @@ import com.example.demo.dto.OrderDTO;
 import com.example.demo.dto.OrderRequest;
 import com.example.demo.dto.OrderResponse;
 import com.example.demo.dto.ResponseWrapper;
+import com.example.demo.entity.Address;
 import com.example.demo.entity.Order;
 import com.example.demo.entity.User;
 import com.example.demo.entity.enums.OrderStatus;
@@ -28,6 +29,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,7 +62,9 @@ public class OrderController extends BaseController {
     @GetMapping("/orders")
     public String ordersPage(Authentication authentication, Model model,
                             @RequestParam(defaultValue = "0") int page,
-                            @RequestParam(defaultValue = "10") int size) {
+                            @RequestParam(defaultValue = "10") int size,
+                            @RequestParam(required = false) String payment,
+                            @RequestParam(required = false) String message) {
         try {
             // Check authentication
             if (authentication == null || !authentication.isAuthenticated()) {
@@ -72,7 +76,13 @@ public class OrderController extends BaseController {
                 return "redirect:/auth/login";
             }
             
-            // Get user's orders with pagination
+            // Handle payment result messages
+            if ("failed".equals(payment)) {
+                model.addAttribute("paymentError", true);
+                model.addAttribute("errorMessage", message != null ? message : "Thanh toán thất bại. Vui lòng thử lại.");
+            }
+            
+            // Get user's orders
             Pageable pageable = PageRequest.of(page, size, Sort.by("orderDate").descending());
             Page<OrderDTO> orders = orderService.getUserOrders(user.getId(), pageable);
             
@@ -90,7 +100,6 @@ public class OrderController extends BaseController {
             
         } catch (Exception e) {
             logger.error("Error displaying orders page: {}", e.getMessage());
-            model.addAttribute("error", "Có lỗi xảy ra khi tải danh sách đơn hàng");
             return "error/500";
         }
     }
@@ -99,7 +108,10 @@ public class OrderController extends BaseController {
      * Display order detail page
      */
     @GetMapping("/orders/{orderId}")
-    public String orderDetailPage(@PathVariable Long orderId, Authentication authentication, Model model) {
+    public String orderDetailPage(@PathVariable Long orderId, 
+                            @RequestParam(required = false) String payment,
+                            @RequestParam(required = false) String transId,
+                            Authentication authentication, Model model) {
         try {
             // Check authentication
             if (authentication == null || !authentication.isAuthenticated()) {
@@ -112,11 +124,23 @@ public class OrderController extends BaseController {
             }
             
             // Get order details
-            OrderResponse orderResponse = orderService.getOrder(orderId, user.getId());
+            OrderResponse orderResponse = orderService.getOrder(user.getId(), orderId);
             
             if (!orderResponse.isSuccess()) {
                 model.addAttribute("error", orderResponse.getMessage());
                 return "error/404";
+            }
+            
+            // Handle payment result messages
+            if ("success".equals(payment)) {
+                model.addAttribute("paymentSuccess", true);
+                model.addAttribute("successMessage", "Thanh toán thành công! Đơn hàng của bạn đang được xử lý.");
+                if (transId != null) {
+                    model.addAttribute("transactionId", transId);
+                }
+            } else if ("failed".equals(payment)) {
+                model.addAttribute("paymentError", true);
+                model.addAttribute("errorMessage", "Thanh toán thất bại. Vui lòng thử lại hoặc chọn phương thức thanh toán khác.");
             }
             
             // Add breadcrumbs
@@ -140,6 +164,7 @@ public class OrderController extends BaseController {
      * Display checkout page
      */
     @GetMapping("/checkout")
+    @Transactional(readOnly = true)
     public String checkoutPage(Authentication authentication, Model model) {
         try {
             // Check authentication
@@ -178,6 +203,16 @@ public class OrderController extends BaseController {
             
             // Add user info for checkout form
             model.addAttribute("user", user);
+            
+            // Add user's addresses
+            model.addAttribute("addresses", user.getAddresses());
+            
+            // Find default address
+            Address defaultAddress = user.getAddresses().stream()
+                .filter(Address::getIsDefault)
+                .findFirst()
+                .orElse(null);
+            model.addAttribute("defaultAddress", defaultAddress);
             
             // Add payment methods
             Map<String, Object> paymentMethods = paymentService.getAvailablePaymentMethods();
@@ -640,10 +675,11 @@ public class OrderController extends BaseController {
      */
     @PostMapping("/api/orders/create-with-payment")
     @ResponseBody
+    @Transactional
     public ResponseEntity<ResponseWrapper<Map<String, Object>>> createOrderWithPayment(
             @Valid @RequestBody OrderWithPaymentRequest request,
             Authentication authentication) {
-        
+        User user = null;
         try {
             // Check authentication
             if (authentication == null || !authentication.isAuthenticated()) {
@@ -651,7 +687,7 @@ public class OrderController extends BaseController {
                     .body(ResponseWrapper.error("Vui lòng đăng nhập để sử dụng tính năng này"));
             }
             
-            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            user = userRepository.findByEmail(authentication.getName()).orElse(null);
             if (user == null) {
                 return ResponseEntity.status(401)
                     .body(ResponseWrapper.error("Người dùng không hợp lệ"));
@@ -667,8 +703,22 @@ public class OrderController extends BaseController {
             // Create order first
             Order order;
             try {
-                order = orderService.createOrderFromCartEntity(user.getId(), request.getOrderRequest());
+                OrderRequest orderRequest = request.getOrderRequest();
+                logger.info("Creating order for user {} with addressId: {}, paymentMethod: {}", 
+                    user.getId(), 
+                    orderRequest.getAddressId(), 
+                    orderRequest.getPaymentMethod());
+                
+                if (orderRequest.getPaymentMethod() == null) {
+                    logger.error("PaymentMethod is null in orderRequest!");
+                    return ResponseEntity.badRequest()
+                        .body(ResponseWrapper.error("Phương thức thanh toán không hợp lệ"));
+                }
+                
+                order = orderService.createOrderFromCartEntity(user.getId(), orderRequest);
+                logger.info("Order created successfully with ID: {}", order.getId());
             } catch (RuntimeException e) {
+                logger.error("Failed to create order for user {}: {}", user.getId(), e.getMessage(), e);
                 return ResponseEntity.badRequest()
                     .body(ResponseWrapper.error(e.getMessage()));
             }
@@ -690,9 +740,10 @@ public class OrderController extends BaseController {
             }
             
         } catch (Exception e) {
-            logger.error("Error creating order with payment: {}", e.getMessage());
+            logger.error("Error creating order with payment for user {}: {}",
+                (user != null ? user.getEmail() : "unknown"), e.getMessage(), e);
             return ResponseEntity.internalServerError()
-                .body(ResponseWrapper.error("Có lỗi xảy ra khi tạo đơn hàng và xử lý thanh toán"));
+                .body(ResponseWrapper.error("Có lỗi xảy ra khi tạo đơn hàng: " + e.getMessage()));
         }
     }
     

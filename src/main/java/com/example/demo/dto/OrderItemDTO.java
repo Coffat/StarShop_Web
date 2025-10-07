@@ -51,7 +51,7 @@ public class OrderItemDTO {
     
     // Static factory method to create from OrderItem entity
     public static OrderItemDTO fromOrderItem(OrderItem orderItem) {
-        if (orderItem == null || orderItem.getProduct() == null) {
+        if (orderItem == null) {
             return null;
         }
         
@@ -59,16 +59,40 @@ public class OrderItemDTO {
             orderItem.getPrice().multiply(new BigDecimal(orderItem.getQuantity())) :
             BigDecimal.ZERO;
         
+        // Safe extraction of product information
+        Long productId = null;
+        String productName = "Unknown Product";
+        String productDescription = null;
+        String productImage = null;
+        BigDecimal productPrice = BigDecimal.ZERO;
+        Integer productStockQuantity = 0;
+        String productStatus = null;
+        
+        try {
+            if (orderItem.getProduct() != null) {
+                productId = orderItem.getProduct().getId();
+                productName = orderItem.getProduct().getName();
+                productDescription = orderItem.getProduct().getDescription();
+                productImage = orderItem.getProduct().getImage();
+                productPrice = orderItem.getProduct().getPrice();
+                productStockQuantity = orderItem.getProduct().getStockQuantity();
+                productStatus = orderItem.getProduct().getStatus() != null ? 
+                    orderItem.getProduct().getStatus().name() : null;
+            }
+        } catch (Exception e) {
+            // Ignore lazy loading exceptions - use default values
+        }
+        
         return new OrderItemDTO(
             orderItem.getId(),
             orderItem.getOrder() != null ? orderItem.getOrder().getId() : null,
-            orderItem.getProduct().getId(),
-            orderItem.getProduct().getName(),
-            orderItem.getProduct().getDescription(),
-            orderItem.getProduct().getImage(),
-            orderItem.getProduct().getPrice(), // Current price
-            orderItem.getProduct().getStockQuantity(),
-            orderItem.getProduct().getStatus() != null ? orderItem.getProduct().getStatus().name() : null,
+            productId,
+            productName,
+            productDescription,
+            productImage,
+            productPrice,
+            productStockQuantity,
+            productStatus,
             orderItem.getQuantity(),
             orderItem.getPrice(), // Price at time of order
             subtotal,

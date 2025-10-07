@@ -35,13 +35,13 @@ public class PaymentService {
      * @return Payment result with status and message
      */
     public PaymentResult processPayment(Order order, PaymentMethod paymentMethod) {
-        log.info("Processing payment for order {} with method {}", order.getId(), paymentMethod);
-        
         try {
             // Validate order
             if (order == null) {
                 return PaymentResult.error("Đơn hàng không hợp lệ");
             }
+            
+            log.info("Processing payment for order {} with method {}", order.getId(), paymentMethod);
             
             if (order.getTotalAmount() == null || order.getTotalAmount().compareTo(BigDecimal.ZERO) <= 0) {
                 return PaymentResult.error("Số tiền thanh toán không hợp lệ");
@@ -127,8 +127,11 @@ public class PaymentService {
             String requestId = "REQ-" + System.currentTimeMillis();
             String orderId = "ORDER-" + order.getId() + "-" + System.currentTimeMillis();
             String orderInfo = "Thanh toan don hang #" + order.getId();
+            // Use configured URLs from properties
             String redirectUrl = momoProperties.getReturnUrl();
             String ipnUrl = momoProperties.getNotifyUrl();
+            
+            log.info("Using MoMo callback URLs - Return: {}, Notify: {}", redirectUrl, ipnUrl);
             String amount = order.getTotalAmount().toBigInteger().toString();
             String requestType = momoProperties.getRequestType();
             String extraData = ""; // base64 optional
@@ -211,6 +214,7 @@ public class PaymentService {
         }
         return sb.toString();
     }
+    
     
     /**
      * Get available payment methods

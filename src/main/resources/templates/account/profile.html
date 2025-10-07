@@ -66,7 +66,13 @@
                         <div class="profile-card">
                             <div class="profile-avatar">
                                 <div class="avatar-circle">
-                                    <i class="bi bi-person-fill"></i>
+                                    <img th:if="${userObject != null and userObject.avatar != null}" 
+                                         th:src="${userObject.avatar}" 
+                                         alt="Avatar" 
+                                         style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                                    <i th:if="${userObject == null or userObject.avatar == null}" class="bi bi-person-fill" style="display: inline-block;"></i>
+                                    <i class="bi bi-person-fill" style="display: none;"></i>
                                 </div>
                                 <div class="avatar-status">
                                     <i class="bi bi-check-circle-fill"></i>

@@ -49,7 +49,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf
                 .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**", "/api/cart/**", "/api/orders/**", "/api/payment/**", "/swagger-ui/**", "/v3/api-docs/**")
+                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**", "/api/cart/**", "/api/orders/**", "/api/payment/**", "/sse/**", "/swagger-ui/**", "/v3/api-docs/**")
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -58,15 +58,19 @@ public class SecurityConfig {
                 .invalidSessionUrl("/login?expired")
                 // Configure concurrency last; avoid deprecated .and()
                 .maximumSessions(1)
-                    .maxSessionsPreventsLogin(false)
                     .sessionRegistry(sessionRegistry())
             )
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints as per rules.mdc
                 .requestMatchers("/", "/health", "/info", "/error").permitAll()
                 .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/forgot-password", "/api/auth/verify-otp", "/api/auth/reset-password").permitAll()
-                .requestMatchers("/api/health", "/api/info").permitAll()
-                .requestMatchers("/public/**").permitAll()
+                // Payment callbacks - MUST BE FIRST to avoid authentication
+                .requestMatchers("/payment/momo/**").permitAll()
+                
+                // Public pages
+                .requestMatchers("/", "/home", "/about", "/contact", "/help/**").permitAll()
+                
+                // H2 Console (for development)
                 .requestMatchers("/h2-console/**").permitAll()
                 
                 // OAuth2 endpoints
@@ -81,18 +85,11 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
                 
-                // OAuth2 endpoints
-                .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-                
-                // Payment callbacks
-                .requestMatchers("/payment/momo/**").permitAll()
-                
                 // WebSocket endpoints
                 .requestMatchers("/ws/**").permitAll()
                 
                 // Account pages - require authentication
                 .requestMatchers("/account/**").authenticated()
-                
                 // Order pages - require authentication
                 .requestMatchers("/orders", "/orders/**", "/checkout").authenticated()
                 
@@ -107,6 +104,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/products/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/orders/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/payment/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
+                .requestMatchers("/sse/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/cart/**").hasRole("CUSTOMER")
                 .requestMatchers("/api/reviews/**").hasRole("CUSTOMER")
                 .requestMatchers("/api/wishlist/**").hasRole("CUSTOMER")
@@ -168,7 +166,6 @@ public class SecurityConfig {
                         }
                     } catch (IOException e) {
                         // Log error and send basic error response
-                        System.err.println("Error in authentication entry point: " + e.getMessage());
                         response.setStatus(500);
                     }
                 })
@@ -188,7 +185,7 @@ public class SecurityConfig {
 
     @Bean
     public com.example.demo.config.CustomOAuth2UserService customOAuth2UserService() {
-        return new com.example.demo.config.CustomOAuth2UserService(userRepository, passwordEncoder());
+        return new CustomOAuth2UserService(userRepository);
     }
 
     @Bean
@@ -199,11 +196,7 @@ public class SecurityConfig {
                 OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
                 String email = oauth2User.getAttribute("email");
                 
-                System.out.println("OAuth2 Success - Email: " + email);
-                System.out.println("OAuth2 User Attributes: " + oauth2User.getAttributes());
-                
                 if (email == null || email.isEmpty()) {
-                    System.out.println("No email found, redirecting to error");
                     response.sendRedirect("/login?error=oauth2_no_email");
                     return;
                 }
@@ -211,16 +204,12 @@ public class SecurityConfig {
                 // Find user (should exist after CustomOAuth2UserService processing)
                 User user = userRepository.findByEmail(email).orElse(null);
                 if (user == null) {
-                    System.out.println("User not found after OAuth2 processing, redirecting to error");
                     response.sendRedirect("/login?error=oauth2_user_not_found");
                     return;
                 }
                 
-                System.out.println("User found: " + user.getEmail());
-                
                 // Generate JWT token
                 String token = jwtService.generateToken(user.getEmail(), user.getRole(), user.getId());
-                System.out.println("JWT token generated: " + token.substring(0, 20) + "...");
                 
                 // Set authentication in session
                 request.getSession().setAttribute("authToken", token);
@@ -232,8 +221,6 @@ public class SecurityConfig {
                 response.sendRedirect("/?oauth2=success");
                 
             } catch (Exception e) {
-                System.out.println("OAuth2 error: " + e.getMessage());
-                e.printStackTrace();
                 response.sendRedirect("/login?error=oauth2_processing");
             }
         };

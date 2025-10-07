@@ -73,13 +73,26 @@
                     <!-- User Menu (Logged in) -->
                     <div class="dropdown" th:if="${isUserAuthenticated}">
                         <button class="btn-user dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle"></i>
+                            <img th:if="${userObject != null and userObject.avatar != null}" 
+                                 th:src="${userObject.avatar}" 
+                                 alt="Avatar" 
+                                 class="user-avatar-img" 
+                                 style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-right: 8px;"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                            <i th:if="${userObject == null or userObject.avatar == null}" class="bi bi-person-circle" style="display: inline-block;"></i>
+                            <i class="bi bi-person-circle" style="display: none;"></i>
                             <span th:text="${userObject != null ? userObject.fullName : currentUser}">User</span>
                             <i class="bi bi-chevron-down"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end user-dropdown">
                             <li class="dropdown-header">
-                                <i class="bi bi-person-circle"></i>
+                                <img th:if="${userObject != null and userObject.avatar != null}" 
+                                     th:src="${userObject.avatar}" 
+                                     alt="Avatar" 
+                                     style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 12px;"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                                <i th:if="${userObject == null or userObject.avatar == null}" class="bi bi-person-circle" style="display: inline-block;"></i>
+                                <i class="bi bi-person-circle" style="display: none;"></i>
                                 <div>
                                     <div class="user-name" th:text="${userObject != null ? userObject.fullName : currentUser}">User</div>
                                     <small class="user-email" th:text="${userObject != null ? userObject.email : currentUser}">user@email.com</small>
@@ -243,8 +256,14 @@
         <!-- User Section for Mobile -->
         <div class="mobile-user-section" th:if="${isUserAuthenticated}">
             <div class="user-info">
-                <i class="bi bi-person-circle"></i>
-                <span th:text="${currentUser}">User</span>
+                <img th:if="${userObject != null and userObject.avatar != null}" 
+                     th:src="${userObject.avatar}" 
+                     alt="Avatar" 
+                     style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 12px;"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                <i th:if="${userObject == null or userObject.avatar == null}" class="bi bi-person-circle" style="display: inline-block;"></i>
+                <i class="bi bi-person-circle" style="display: none;"></i>
+                <span th:text="${userObject != null ? userObject.fullName : currentUser}">User</span>
             </div>
             <hr>
         </div>

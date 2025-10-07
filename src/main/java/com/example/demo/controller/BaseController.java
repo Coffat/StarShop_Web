@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * Base controller to add common model attributes to all views
  */
-@ControllerAdvice
+@ControllerAdvice(basePackages = "com.example.demo.controller")
 public class BaseController {
 
     @Autowired
@@ -38,16 +38,6 @@ public class BaseController {
     }
     
     /**
-     * Add authentication status to all views
-     */
-    @ModelAttribute("isUserAuthenticated")
-    public boolean addAuthenticationStatus(Authentication authentication) {
-        return authentication != null && 
-               authentication.isAuthenticated() && 
-               !authentication.getName().equals("anonymousUser");
-    }
-    
-    /**
      * Add username to all views
      */
     @ModelAttribute("currentUser")
@@ -61,27 +51,18 @@ public class BaseController {
     }
     
     /**
-     * Add full user object to all views
+     * Add authentication status to all views
      */
-    @ModelAttribute("userObject")
-    @Transactional(readOnly = true)
-    public User addUserObject(Authentication authentication) {
-        System.out.println("=== BaseController Debug ===");
-        System.out.println("Authentication: " + authentication);
-        System.out.println("Is authenticated: " + (authentication != null ? authentication.isAuthenticated() : "null"));
-        System.out.println("Principal name: " + (authentication != null ? authentication.getName() : "null"));
-        
-        if (authentication != null && 
-            authentication.isAuthenticated() && 
-            !authentication.getName().equals("anonymousUser")) {
-            
-            System.out.println("Looking up user by email: " + authentication.getName());
-            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
-            System.out.println("Found user: " + (user != null ? user.getFullName() : "null"));
-            return user;
+    @ModelAttribute("isUserAuthenticated")
+    public boolean addAuthenticationStatus(Authentication authentication, HttpServletRequest request) {
+        // Skip for payment callbacks to avoid conflicts
+        if (request.getRequestURI().startsWith("/payment/")) {
+            return false;
         }
-        System.out.println("No authenticated user found");
-        return null;
+        
+        return authentication != null && 
+               authentication.isAuthenticated() && 
+               !authentication.getName().equals("anonymousUser");
     }
     
     /**
@@ -89,7 +70,12 @@ public class BaseController {
      */
     @ModelAttribute("cartCount")
     @Transactional(readOnly = true)
-    public Long addCartCount(Authentication authentication) {
+    public Long addCartCount(Authentication authentication, HttpServletRequest request) {
+        // Skip for payment callbacks to avoid conflicts
+        if (request.getRequestURI().startsWith("/payment/")) {
+            return 0L;
+        }
+        
         try {
             if (authentication != null && 
                 authentication.isAuthenticated() && 
@@ -100,7 +86,7 @@ public class BaseController {
                 }
             }
         } catch (Exception e) {
-            System.out.println("Error getting cart count: " + e.getMessage());
+            // Silently handle cart count error
         }
         return 0L;
     }
@@ -120,7 +106,7 @@ public class BaseController {
                 }
             }
         } catch (Exception e) {
-            System.out.println("Error getting wishlist count: " + e.getMessage());
+            // Silently handle wishlist count error
         }
         return 0L;
     }
@@ -140,7 +126,7 @@ public class BaseController {
                 }
             }
         } catch (Exception e) {
-            System.out.println("Error getting orders count: " + e.getMessage());
+            // Silently handle orders count error
         }
         return 0;
     }

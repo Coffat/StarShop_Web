@@ -89,21 +89,48 @@
                                 
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label for="shippingName" class="form-label">Họ và tên *</label>
-                                        <input type="text" class="form-control" id="shippingName" 
-                                               th:value="${(user.firstname ?: '') + ' ' + (user.lastname ?: '')}" required>
+                                        <label class="form-label">Họ và tên</label>
+                                        <input type="text" class="form-control" 
+                                               th:value="${(user.firstname ?: '') + ' ' + (user.lastname ?: '')}" readonly>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label for="shippingPhone" class="form-label">Số điện thoại *</label>
-                                        <input type="tel" class="form-control" id="shippingPhone" 
-                                               th:value="${user.phone ?: ''}" required>
+                                        <label class="form-label">Số điện thoại</label>
+                                        <input type="tel" class="form-control" 
+                                               th:value="${user.phone ?: ''}" readonly>
                                     </div>
                                 </div>
                                 
                                 <div class="mb-3">
-                                    <label for="shippingAddress" class="form-label">Địa chỉ giao hàng *</label>
-                                    <textarea class="form-control" id="shippingAddress" rows="3" 
-                                              placeholder="Nhập địa chỉ giao hàng chi tiết..." required></textarea>
+                                    <label for="addressSelect" class="form-label">Địa chỉ giao hàng *</label>
+                                    
+                                    <!-- Show warning if no addresses -->
+                                    <div th:if="${addresses == null or addresses.isEmpty()}" class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        Bạn chưa có địa chỉ giao hàng nào. 
+                                        <a href="/account/profile" class="alert-link">Vui lòng thêm địa chỉ</a> trước khi đặt hàng.
+                                    </div>
+                                    
+                                    <!-- Show select if has addresses -->
+                                    <select th:if="${addresses != null and !addresses.isEmpty()}" class="form-select" id="addressSelect" required>
+                                        <option value="">-- Chọn địa chỉ giao hàng --</option>
+                                        <option th:each="address : ${addresses}" 
+                                                th:value="${address.id}"
+                                                th:text="${address.street + ', ' + address.city + ', ' + address.province}"
+                                                th:selected="${defaultAddress != null and address.id == defaultAddress.id}">
+                                        </option>
+                                    </select>
+                                    
+                                    <div th:if="${addresses != null and !addresses.isEmpty()}" class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Muốn thêm địa chỉ mới? 
+                                        <a href="/account/profile" target="_blank">Quản lý địa chỉ</a>
+                                    </div>
+                                </div>
+                                
+                                <!-- Display selected address details -->
+                                <div id="selectedAddressDetails" class="alert alert-info" style="display: none;">
+                                    <strong><i class="fas fa-map-marker-alt me-2"></i>Địa chỉ đã chọn:</strong>
+                                    <p class="mb-0 mt-2" id="addressDetailsText"></p>
                                 </div>
                                 
                                 <div class="mb-3">

@@ -64,7 +64,7 @@
                                                               order.status.name() == 'PROCESSING' ? 'bg-info' :
                                                               order.status.name() == 'SHIPPED' ? 'bg-primary' :
                                                               order.status.name() == 'COMPLETED' ? 'bg-success' : 'bg-danger'}"
-                                              th:text="${order.statusDisplayName}">
+                                              th:text="${order.status.displayName}">
                                             Trạng thái
                                         </span>
                                     </div>

@@ -109,11 +109,11 @@
                 <div class="order-info-row">
                     <span class="order-info-label">Trạng thái:</span>
                     <span class="order-info-value">
-                        <span th:if="${order.status == 'PENDING'}" class="badge bg-warning">Chờ xử lý</span>
-                        <span th:if="${order.status == 'PROCESSING'}" class="badge bg-info">Đang xử lý</span>
-                        <span th:if="${order.status == 'SHIPPED'}" class="badge bg-primary">Đang giao</span>
-                        <span th:if="${order.status == 'COMPLETED'}" class="badge bg-success">Hoàn thành</span>
-                        <span th:if="${order.status == 'CANCELLED'}" class="badge bg-danger">Đã hủy</span>
+                        <span th:if="${order.status?.name() == 'PENDING'}" class="badge bg-warning">Chờ xử lý</span>
+                        <span th:if="${order.status?.name() == 'PROCESSING'}" class="badge bg-info">Đang xử lý</span>
+                        <span th:if="${order.status?.name() == 'SHIPPED'}" class="badge bg-primary">Đang giao</span>
+                        <span th:if="${order.status?.name() == 'COMPLETED'}" class="badge bg-success">Hoàn thành</span>
+                        <span th:if="${order.status?.name() == 'CANCELLED'}" class="badge bg-danger">Đã hủy</span>
                     </span>
                 </div>
                 <div class="order-info-row">

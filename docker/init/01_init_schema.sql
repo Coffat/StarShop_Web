@@ -1,12 +1,12 @@
--- Create ENUM types
-CREATE TYPE user_role AS ENUM ('customer', 'staff', 'admin');
-CREATE TYPE order_status AS ENUM ('pending', 'processing', 'shipped', 'completed', 'cancelled');
-CREATE TYPE discount_type AS ENUM ('percentage', 'fixed');
-CREATE TYPE payment_method AS ENUM ('cash_on_delivery', 'credit_card', 'bank_transfer', 'wallet');
-CREATE TYPE transaction_type AS ENUM ('payment', 'refund');
-CREATE TYPE transaction_status AS ENUM ('success', 'failed');
-CREATE TYPE product_status AS ENUM ('active', 'inactive', 'out_of_stock', 'discontinued');
-CREATE TYPE salary_status AS ENUM ('pending', 'paid', 'overdue');
+-- Create ENUM types (uppercase to match Java enums)
+CREATE TYPE user_role AS ENUM ('CUSTOMER', 'STAFF', 'ADMIN');
+CREATE TYPE order_status AS ENUM ('PENDING', 'PROCESSING', 'SHIPPED', 'COMPLETED', 'CANCELLED');
+CREATE TYPE discount_type AS ENUM ('PERCENTAGE', 'FIXED');
+CREATE TYPE payment_method AS ENUM ('COD', 'MOMO', 'BANK_TRANSFER', 'CREDIT_CARD');
+CREATE TYPE transaction_type AS ENUM ('PAYMENT', 'REFUND');
+CREATE TYPE transaction_status AS ENUM ('SUCCESS', 'FAILED');
+CREATE TYPE product_status AS ENUM ('ACTIVE', 'INACTIVE', 'OUT_OF_STOCK', 'DISCONTINUED');
+CREATE TYPE salary_status AS ENUM ('PENDING', 'PAID', 'OVERDUE');
 
 -- Table: Users
 CREATE TABLE Users (
@@ -17,7 +17,7 @@ CREATE TABLE Users (
     password VARCHAR(255) NOT NULL,
     phone VARCHAR(20) UNIQUE NOT NULL,
     avatar VARCHAR(255) DEFAULT NULL,
-    role VARCHAR(20) NOT NULL DEFAULT 'customer',
+    role VARCHAR(20) NOT NULL DEFAULT 'CUSTOMER',
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     CHECK (LENGTH(password) >= 8)
@@ -49,7 +49,7 @@ CREATE TABLE Products (
     price NUMERIC(10,2) NOT NULL DEFAULT 0.00,
     image VARCHAR(255) DEFAULT NULL,
     stock_quantity INTEGER DEFAULT 0,
-    status product_status DEFAULT 'active',
+    status product_status DEFAULT 'ACTIVE',
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     CHECK (price >= 0),
@@ -120,12 +120,12 @@ CREATE TABLE Orders (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
     total_amount NUMERIC(10,2) NOT NULL DEFAULT 0.00,
-    status order_status NOT NULL DEFAULT 'pending',
+    status order_status NOT NULL DEFAULT 'PENDING',
     order_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     delivery_unit_id BIGINT DEFAULT NULL,
     voucher_id BIGINT DEFAULT NULL,
     address_id BIGINT NOT NULL,
-    payment_method payment_method NOT NULL DEFAULT 'cash_on_delivery',
+    payment_method payment_method NOT NULL DEFAULT 'COD',
     notes TEXT DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES Users(id),
     FOREIGN KEY (delivery_unit_id) REFERENCES DeliveryUnits(id),
@@ -234,7 +234,7 @@ CREATE TABLE Transactions (
     order_id BIGINT DEFAULT NULL,
     amount NUMERIC(10,2) NOT NULL,
     type transaction_type NOT NULL,
-    status transaction_status NOT NULL DEFAULT 'failed',
+    status transaction_status NOT NULL DEFAULT 'FAILED',
     transaction_reference VARCHAR(255) DEFAULT NULL,
     notes TEXT DEFAULT NULL,
     created_at TIMESTAMP NOT NULL,
@@ -271,7 +271,7 @@ CREATE TABLE Salaries (
     working_time NUMERIC(5,2) NOT NULL DEFAULT 0.00 CHECK (working_time >= 0),
     total_salary NUMERIC(10,2) GENERATED ALWAYS AS (base_salary * working_time) STORED,
     month_year DATE NOT NULL,
-    status salary_status NOT NULL DEFAULT 'pending',
+    status salary_status NOT NULL DEFAULT 'PENDING',
     notes TEXT DEFAULT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,

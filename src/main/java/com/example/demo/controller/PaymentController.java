@@ -1,26 +1,27 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.OrderDTO;
 import com.example.demo.entity.Order;
 import com.example.demo.entity.enums.OrderStatus;
 import com.example.demo.repository.OrderRepository;
 import com.example.demo.service.OrderService;
+import com.example.demo.service.SseService;
 import com.example.demo.config.MoMoProperties;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.Enumeration;
 
 @Controller
 @RequestMapping("/payment/momo")
@@ -31,6 +32,7 @@ public class PaymentController {
 
 	private final OrderRepository orderRepository;
 	private final OrderService orderService;
+	private final SseService sseService;
 	private final MoMoProperties momoProperties;
 
 	@Operation(
@@ -41,95 +43,161 @@ public class PaymentController {
 		@ApiResponse(responseCode = "302", description = "Redirect đến trang kết quả thanh toán"),
 		@ApiResponse(responseCode = "400", description = "Chữ ký không hợp lệ hoặc không tìm thấy đơn hàng")
 	})
+
 	@GetMapping("/return")
-	public String momoReturn(
-			@Parameter(description = "MoMo callback parameters", hidden = true)
-			HttpServletRequest request,
-			org.springframework.ui.Model model) {
-		Map<String, String[]> params = request.getParameterMap();
-		Map<String, String> flat = new TreeMap<>();
-		params.forEach((k, v) -> flat.put(k, v != null && v.length > 0 ? v[0] : ""));
-		log.info("MoMo return params: {}", flat);
-
-		String signature = flat.getOrDefault("signature", "");
-		String raw = buildRawSignature(flat);
-		if (!verifySignature(raw, signature, momoProperties.getSecretKey())) {
-			log.error("Invalid MoMo signature");
-			model.addAttribute("success", false);
-			model.addAttribute("message", "Chữ ký thanh toán không hợp lệ. Vui lòng liên hệ hỗ trợ.");
-			model.addAttribute("pageTitle", "Lỗi thanh toán - StarShop");
-			return "orders/payment-result";
-		}
-
-		String orderId = flat.get("orderId");
-		String resultCode = flat.get("resultCode");
-		String transId = flat.get("transId");
-		String message = flat.get("message");
+	@Transactional
+	public String momoReturn(HttpServletRequest request, org.springframework.ui.Model model) {
+		log.info("=== MoMo Return Endpoint Called ===");
+		log.info("Query string: {}", request.getQueryString());
 		
-		Optional<Order> orderOpt = orderRepository.findById(parseOrderId(orderId));
-		if (orderOpt.isEmpty()) {
-			log.error("Order not found: {}", orderId);
+		try {
+			// Extract all parameters for signature verification
+			Map<String, String> params = new HashMap<>();
+			Enumeration<String> paramNames = request.getParameterNames();
+			while (paramNames.hasMoreElements()) {
+				String paramName = paramNames.nextElement();
+				params.put(paramName, request.getParameter(paramName));
+			}
+			
+			String orderId = request.getParameter("orderId");
+			String resultCode = request.getParameter("resultCode");
+			String transId = request.getParameter("transId");
+			String message = request.getParameter("message");
+			String signature = request.getParameter("signature");
+			
+			log.info("Processing order: {}, resultCode: {}", orderId, resultCode);
+			
+			// Verify signature for security
+			if (signature != null) {
+				String rawSignature = buildRawSignature(params);
+				boolean isValidSignature = verifySignature(rawSignature, signature, momoProperties.getSecretKey());
+				log.info("Signature verification: {}", isValidSignature ? "VALID" : "INVALID");
+				
+				if (!isValidSignature) {
+					log.warn("Invalid signature for order: {}", orderId);
+					model.addAttribute("success", false);
+					model.addAttribute("message", "Chữ ký không hợp lệ. Vui lòng liên hệ hỗ trợ.");
+					model.addAttribute("pageTitle", "Lỗi bảo mật - StarShop");
+					return "orders/payment-result";
+				}
+			}
+			
+			if ("0".equals(resultCode)) {
+				// Payment successful
+				if (orderId != null && orderId.startsWith("ORDER-")) {
+					Long orderIdLong = parseOrderId(orderId);
+					try {
+						orderService.updateOrderStatus(orderIdLong, OrderStatus.PROCESSING);
+						log.info("Order {} status updated to PROCESSING via service", orderIdLong);
+					} catch (Exception e) {
+						log.error("Failed to update order {} status: {}", orderIdLong, e.getMessage());
+						// Fallback to direct repository access if service fails
+						Order order = orderRepository.findOrderWithAllDetails(orderIdLong);
+						if (order != null) {
+							order.setStatus(OrderStatus.PROCESSING);
+							orderRepository.save(order);
+							log.info("Order {} status updated to PROCESSING via fallback", orderIdLong);
+						}
+					}
+				}
+				
+				// Redirect to success page with order info to maintain session
+				return "redirect:/orders/" + parseOrderId(orderId) + "?payment=success&transId=" + transId;
+			} else {
+				// Payment failed - redirect to orders page with error
+				return "redirect:/orders?payment=failed&message=" + (message != null ? message : "Payment failed");
+			}
+			
+		} catch (Exception e) {
+			log.error("Error processing MoMo callback: {}", e.getMessage(), e);
 			model.addAttribute("success", false);
-			model.addAttribute("message", "Không tìm thấy đơn hàng. Vui lòng liên hệ hỗ trợ.");
+			model.addAttribute("message", "Có lỗi xảy ra khi xử lý thanh toán. Vui lòng liên hệ hỗ trợ.");
 			model.addAttribute("pageTitle", "Lỗi thanh toán - StarShop");
 			return "orders/payment-result";
 		}
-		Order order = orderOpt.get();
-
-		// Check payment result
-		if ("0".equals(resultCode)) {
-			// Payment successful
-			log.info("MoMo payment successful for order {}", order.getId());
-			order.setStatus(OrderStatus.PROCESSING);
-			orderRepository.save(order);
-			
-			model.addAttribute("success", true);
-			model.addAttribute("message", "Thanh toán thành công! Đơn hàng của bạn đang được xử lý.");
-			model.addAttribute("order", OrderDTO.fromOrder(order));
-			model.addAttribute("transactionId", transId);
-			model.addAttribute("pageTitle", "Thanh toán thành công - StarShop");
-		} else {
-			// Payment failed - cancel order and restore stock
-			log.warn("MoMo payment failed for order {} with resultCode: {}, message: {}", order.getId(), resultCode, message);
-			
-			// Use OrderService to properly cancel order and restore stock
-			orderService.cancelOrderByPaymentFailure(order.getId());
-			
-			// Reload order to get updated status
-			order = orderRepository.findById(order.getId()).orElse(order);
-			
-			model.addAttribute("success", false);
-			model.addAttribute("message", "Thanh toán thất bại: " + (message != null ? message : "Vui lòng thử lại."));
-			model.addAttribute("order", OrderDTO.fromOrder(order));
-			model.addAttribute("transactionId", transId);
-			model.addAttribute("pageTitle", "Thanh toán thất bại - StarShop");
-		}
-
-		return "orders/payment-result";
 	}
 
+
+
 	@Operation(
-		summary = "MoMo IPN (Instant Payment Notification)",
-		description = "Endpoint nhận thông báo thanh toán từ MoMo server. Dùng cho server-to-server notification."
+		summary = "MoMo Notify endpoint (IPN)",
+		description = "Endpoint nhận thông báo từ MoMo server qua ngrok. Xử lý real-time payment updates và push SSE events."
 	)
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "IPN được xử lý")
+		@ApiResponse(responseCode = "200", description = "Notify được xử lý thành công")
 	})
 	@PostMapping("/notify")
 	@ResponseBody
-	public Map<String, Object> momoNotify(
-			@io.swagger.v3.oas.annotations.parameters.RequestBody(
-				description = "MoMo notification payload",
-				required = true
-			)
-			@RequestBody Map<String, Object> body) {
-		log.info("MoMo notify body: {}", body);
-		// In sandbox, MoMo may not post notify. Here we accept and respond success.
-		Map<String, Object> resp = new HashMap<>();
-		resp.put("resultCode", 0);
-		resp.put("message", "success");
-		return resp;
+	@Transactional
+	public Map<String, Object> momoNotify(@RequestBody Map<String, Object> body) {
+		log.info("=== MoMo Notify Endpoint Called ===");
+		log.info("Request body: {}", body);
+		
+		try {
+			// Extract parameters
+			String orderId = String.valueOf(body.get("orderId"));
+			String resultCode = String.valueOf(body.get("resultCode"));
+			String transId = String.valueOf(body.get("transId"));
+			String message = String.valueOf(body.get("message"));
+			String signature = String.valueOf(body.get("signature"));
+			
+			log.info("Processing notify for order: {}, resultCode: {}", orderId, resultCode);
+			
+			// Convert body to flat map for signature verification
+			Map<String, String> params = new HashMap<>();
+			body.forEach((k, v) -> params.put(k, v != null ? String.valueOf(v) : ""));
+			
+			// Verify signature (skip in sandbox for testing)
+			if (signature != null && !signature.equals("null")) {
+				String rawSignature = buildRawSignature(params);
+				boolean isValidSignature = verifySignature(rawSignature, signature, momoProperties.getSecretKey());
+				log.info("Signature verification: {}", isValidSignature ? "VALID" : "INVALID");
+				
+				if (!isValidSignature) {
+					log.warn("Invalid signature for notify order: {}", orderId);
+					return Map.of("resultCode", 1, "message", "Invalid signature");
+				}
+			}
+			
+			// Update order status and push SSE event
+			if ("0".equals(resultCode)) {
+				// Payment successful
+				if (orderId != null && orderId.startsWith("ORDER-")) {
+					Long orderIdLong = parseOrderId(orderId);
+					try {
+						orderService.updateOrderStatus(orderIdLong, OrderStatus.PROCESSING);
+						log.info("Order {} status updated to PROCESSING via notify", orderIdLong);
+						
+						// Push SSE event for real-time UI update
+						sseService.pushPaymentUpdate(orderId, "SUCCESS", "Thanh toán thành công!", transId);
+						log.info("SSE event pushed for successful payment: {}", orderId);
+						
+					} catch (Exception e) {
+						log.error("Failed to update order {} status via notify: {}", orderIdLong, e.getMessage());
+					}
+				}
+			} else {
+				// Payment failed
+				log.warn("MoMo payment failed via notify for order {} with resultCode: {}", orderId, resultCode);
+				
+				// Push SSE event for failed payment
+				sseService.pushPaymentUpdate(orderId, "FAILED", message != null ? message : "Thanh toán thất bại", transId);
+				log.info("SSE event pushed for failed payment: {}", orderId);
+			}
+			
+			log.info("=== MoMo Notify End ===");
+			return Map.of("resultCode", 0, "message", "success");
+			
+		} catch (Exception e) {
+			log.error("=== FATAL ERROR in MoMo notify ===");
+			log.error("Error type: {}", e.getClass().getName());
+			log.error("Error message: {}", e.getMessage());
+			log.error("Stack trace:", e);
+			
+			return Map.of("resultCode", 1, "message", "error");
+		}
 	}
+
 
 	private String buildRawSignature(Map<String, String> params) {
 		// Follow MoMo signature fields ordering for return

@@ -18,7 +18,7 @@ import java.util.Map;
 @Tag(name = "🏠 System", description = "System health check and information APIs")
 public class HomeController {
 
-    @GetMapping("/")
+    @GetMapping({"/", "/home"})
     public String home(Authentication authentication) {
         log.info("Home page accessed");
         

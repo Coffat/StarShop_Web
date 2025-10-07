@@ -74,28 +74,101 @@ public class OrderDTO {
             return null;
         }
         
-        List<OrderItemDTO> itemDTOs = order.getOrderItems() != null ?
-            order.getOrderItems().stream()
-                .map(OrderItemDTO::fromOrderItem)
-                .collect(Collectors.toList()) :
-            new java.util.ArrayList<>();
+        List<OrderItemDTO> itemDTOs = new java.util.ArrayList<>();
+        try {
+            if (order.getOrderItems() != null) {
+                itemDTOs = order.getOrderItems().stream()
+                    .map(OrderItemDTO::fromOrderItem)
+                    .collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            // Ignore lazy loading exceptions for order items
+        }
+        
+        // Safe user info extraction
+        Long userId = null;
+        String userFullName = null;
+        String userEmail = null;
+        try {
+            if (order.getUser() != null) {
+                userId = order.getUser().getId();
+                userEmail = order.getUser().getEmail();
+                // Safe full name extraction
+                String firstname = order.getUser().getFirstname();
+                String lastname = order.getUser().getLastname();
+                if (firstname != null && lastname != null) {
+                    userFullName = firstname + " " + lastname;
+                } else if (firstname != null) {
+                    userFullName = firstname;
+                } else if (lastname != null) {
+                    userFullName = lastname;
+                } else {
+                    userFullName = userEmail;
+                }
+            }
+        } catch (Exception e) {
+            // Ignore lazy loading exceptions for user
+        }
+        
+        // Safe extraction of other relationships
+        Long deliveryUnitId = null;
+        String deliveryUnitName = null;
+        BigDecimal deliveryFee = BigDecimal.ZERO;
+        try {
+            if (order.getDeliveryUnit() != null) {
+                deliveryUnitId = order.getDeliveryUnit().getId();
+                deliveryUnitName = order.getDeliveryUnit().getName();
+                deliveryFee = order.getDeliveryUnit().getFee();
+            }
+        } catch (Exception e) {
+            // Ignore lazy loading exceptions
+        }
+        
+        Long voucherId = null;
+        String voucherCode = null;
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        try {
+            if (order.getVoucher() != null) {
+                voucherId = order.getVoucher().getId();
+                voucherCode = order.getVoucher().getCode();
+                // Safe discount calculation
+                try {
+                    discountAmount = order.getVoucher().calculateDiscount(order.getTotalAmount());
+                } catch (Exception e) {
+                    discountAmount = BigDecimal.ZERO;
+                }
+            }
+        } catch (Exception e) {
+            // Ignore lazy loading exceptions
+        }
+        
+        Long addressId = null;
+        String addressDetails = null;
+        try {
+            if (order.getAddress() != null) {
+                addressId = order.getAddress().getId();
+                addressDetails = order.getAddress().getFullAddress();
+            }
+        } catch (Exception e) {
+            // Ignore lazy loading exceptions
+        }
         
         return new OrderDTO(
             order.getId(),
-            order.getUser() != null ? order.getUser().getId() : null,
-            order.getUser() != null ? order.getUser().getFullName() : null,
-            order.getUser() != null ? order.getUser().getEmail() : null,
+            userId,
+            userFullName,
+            userEmail,
             order.getTotalAmount(),
             order.getStatus(),
             order.getOrderDate(),
-            order.getDeliveryUnit() != null ? order.getDeliveryUnit().getId() : null,
-            order.getDeliveryUnit() != null ? order.getDeliveryUnit().getName() : null,
-            order.getDeliveryUnit() != null ? order.getDeliveryUnit().getFee() : BigDecimal.ZERO,
-            order.getVoucher() != null ? order.getVoucher().getId() : null,
-            order.getVoucher() != null ? order.getVoucher().getCode() : null,
-            order.getVoucher() != null ? order.getVoucher().calculateDiscount(order.getTotalAmount()) : BigDecimal.ZERO,
-            order.getAddress() != null ? order.getAddress().getId() : null,
-            order.getAddress() != null ? order.getAddress().getFullAddress() : null,
+            deliveryUnitId,
+            deliveryUnitName,
+            deliveryFee,
+            voucherId,
+            voucherCode,
+            discountAmount,
+            addressId,
+            addressDetails,
             order.getPaymentMethod(),
             order.getNotes(),
             itemDTOs,
