@@ -2,6 +2,9 @@
    StarShop Main CSS - Unified Design System
    ================================ */
 
+/* Import Google Fonts - Roboto */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
 /* AOS Custom Styles & Optimizations */
 /* ================================ */
 
@@ -151,7 +154,7 @@ html {
     --shadow-hover: 0 8px 25px rgba(236, 64, 122, 0.2);
     
     /* Typography */
-    --font-primary: 'Manrope', sans-serif;
+    --font-primary: 'Roboto', sans-serif;
     --font-weight-normal: 400;
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
@@ -192,6 +195,15 @@ html {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+/* Apply Roboto font globally */
+body {
+    font-family: var(--font-primary);
+}
+
+html, body, h1, h2, h3, h4, h5, h6, p, a, span, div, button, input, textarea, select {
+    font-family: var(--font-primary);
 }
 
 /* ================================
