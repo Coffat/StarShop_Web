@@ -168,7 +168,7 @@
             </div>
             
             <!-- Register Form -->
-            <form th:action="@{/register}" method="post" class="space-y-4">
+            <form id="registerForm" class="space-y-4">
                 <!-- Full Name -->
                 <div>
                     <label for="fullName" class="block text-sm font-semibold text-gray-700 mb-2">
@@ -209,20 +209,6 @@
                            class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none">
                 </div>
                 
-                <!-- Username -->
-                <div>
-                    <label for="username" class="block text-sm font-semibold text-gray-700 mb-2">
-                        Tên đăng nhập
-                    </label>
-                    <input type="text" 
-                           id="username" 
-                           name="username" 
-                           required
-                           placeholder="username"
-                           minlength="4"
-                           class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none">
-                </div>
-                
                 <!-- Password -->
                 <div>
                     <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
@@ -233,8 +219,8 @@
                                id="password" 
                                name="password" 
                                required
-                               minlength="6"
-                               placeholder="Tối thiểu 6 ký tự"
+                               minlength="8"
+                               placeholder="Tối thiểu 8 ký tự"
                                class="w-full px-4 py-3 pr-12 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none">
                         <button type="button" 
                                 @click="showPassword = !showPassword"
@@ -295,8 +281,13 @@
                 
                 <!-- Submit Button -->
                 <button type="submit" 
-                        class="w-full py-3.5 bg-gradient-to-r from-primary to-primary-hover text-white font-semibold rounded-xl hover:shadow-hover hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200">
-                    Đăng ký ngay
+                        id="registerBtn"
+                        class="w-full py-3.5 bg-gradient-to-r from-primary to-primary-hover text-white font-semibold rounded-xl hover:shadow-hover hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span id="registerBtnText">Đăng ký ngay</span>
+                    <svg id="registerBtnSpinner" class="hidden animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
                 </button>
             </form>
             
@@ -309,6 +300,66 @@
             </p>
         </div>
     </div>
+
+    <!-- OTP Verification Modal -->
+    <div id="otpModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 relative">
+            <!-- Header -->
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
+                    <svg class="w-8 h-8 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M3 4a2 2 0 0 0-2 2v1.161l8.441 4.221a1.25 1.25 0 0 0 1.118 0L19 7.162V6a2 2 0 0 0-2-2H3Z" />
+                        <path d="m19 8.839-7.77 3.885a2.75 2.75 0 0 1-2.46 0L1 8.839V14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.839Z" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">Xác thực OTP</h3>
+                <p class="text-gray-600">Chúng tôi đã gửi mã xác thực đến email của bạn</p>
+                <p id="otpEmailDisplay" class="text-primary font-semibold mt-1"></p>
+            </div>
+
+            <!-- OTP Input -->
+            <div class="mb-6">
+                <label for="otpInput" class="block text-sm font-semibold text-gray-700 mb-3 text-center">
+                    Nhập mã OTP (6 số)
+                </label>
+                <input type="text" 
+                       id="otpInput" 
+                       maxlength="6" 
+                       placeholder="000000"
+                       class="w-full px-4 py-3 text-center text-2xl font-mono bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none tracking-widest">
+            </div>
+
+            <!-- Error Message -->
+            <div id="otpError" class="hidden mb-4 p-3 bg-red-50 border-l-4 border-red-500 rounded-lg">
+                <p class="text-sm text-red-700 font-medium"></p>
+            </div>
+
+            <!-- Buttons -->
+            <div class="space-y-3">
+                <button id="verifyOtpBtn" 
+                        class="w-full py-3 bg-gradient-to-r from-primary to-primary-hover text-white font-semibold rounded-xl hover:shadow-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span id="verifyOtpBtnText">Xác thực</span>
+                    <svg id="verifyOtpSpinner" class="hidden animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+                
+                <button id="resendOtpBtn" 
+                        class="w-full py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span id="resendOtpBtnText">Gửi lại mã OTP</span>
+                    <span id="resendCountdown" class="hidden"></span>
+                </button>
+            </div>
+
+            <!-- Close Button -->
+            <button id="closeOtpModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+                </svg>
+            </button>
+        </div>
+    </div>
     
     <!-- Back to Home -->
     <a href="/" class="fixed top-6 left-6 flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 group z-20">
@@ -317,6 +368,322 @@
         </svg>
         <span class="font-semibold text-gray-700">Về trang chủ</span>
     </a>
+
+    <!-- JavaScript -->
+    <script>
+        // Registration data storage
+        let registrationData = {};
+        let resendTimer = null;
+        let resendCountdown = 60;
+
+        // DOM Elements
+        const registerForm = document.getElementById('registerForm');
+        const registerBtn = document.getElementById('registerBtn');
+        const registerBtnText = document.getElementById('registerBtnText');
+        const registerBtnSpinner = document.getElementById('registerBtnSpinner');
+        
+        const otpModal = document.getElementById('otpModal');
+        const otpInput = document.getElementById('otpInput');
+        const otpError = document.getElementById('otpError');
+        const otpEmailDisplay = document.getElementById('otpEmailDisplay');
+        const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+        const verifyOtpBtnText = document.getElementById('verifyOtpBtnText');
+        const verifyOtpSpinner = document.getElementById('verifyOtpSpinner');
+        const resendOtpBtn = document.getElementById('resendOtpBtn');
+        const resendOtpBtnText = document.getElementById('resendOtpBtnText');
+        const resendCountdownSpan = document.getElementById('resendCountdown');
+        const closeOtpModal = document.getElementById('closeOtpModal');
+
+        // Utility functions
+        function showError(message) {
+            // Create or update error alert
+            let errorDiv = document.querySelector('#errorAlert');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.id = 'errorAlert';
+                errorDiv.className = 'mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-start gap-3';
+                errorDiv.innerHTML = `
+                    <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM8.28 7.22a.75.75 0 0 0-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 1 0 1.06 1.06L10 11.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L11.06 10l1.72-1.72a.75.75 0 0 0-1.06-1.06L10 8.94 8.28 7.22Z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm text-red-700 font-medium"></span>
+                `;
+                registerForm.insertBefore(errorDiv, registerForm.firstChild);
+            }
+            errorDiv.classList.remove('hidden');
+            errorDiv.querySelector('span').textContent = message;
+        }
+
+        function hideError() {
+            const errorDiv = document.querySelector('#errorAlert');
+            if (errorDiv) {
+                errorDiv.classList.add('hidden');
+            }
+        }
+
+        function showOtpError(message) {
+            otpError.classList.remove('hidden');
+            otpError.querySelector('p').textContent = message;
+        }
+
+        function hideOtpError() {
+            otpError.classList.add('hidden');
+        }
+
+        function showLoading(btn, textEl, spinner) {
+            btn.disabled = true;
+            textEl.classList.add('hidden');
+            spinner.classList.remove('hidden');
+        }
+
+        function hideLoading(btn, textEl, spinner) {
+            btn.disabled = false;
+            textEl.classList.remove('hidden');
+            spinner.classList.add('hidden');
+        }
+
+        function showOtpModal(email) {
+            otpEmailDisplay.textContent = email;
+            otpModal.classList.remove('hidden');
+            otpInput.focus();
+            startResendTimer();
+        }
+
+        function hideOtpModal() {
+            otpModal.classList.add('hidden');
+            otpInput.value = '';
+            hideOtpError();
+            clearResendTimer();
+        }
+
+        function startResendTimer() {
+            resendCountdown = 60;
+            resendOtpBtn.disabled = true;
+            resendOtpBtnText.classList.add('hidden');
+            resendCountdownSpan.classList.remove('hidden');
+            
+            resendTimer = setInterval(() => {
+                resendCountdown--;
+                resendCountdownSpan.textContent = `Gửi lại sau ${resendCountdown}s`;
+                
+                if (resendCountdown <= 0) {
+                    clearResendTimer();
+                    resendOtpBtn.disabled = false;
+                    resendOtpBtnText.classList.remove('hidden');
+                    resendCountdownSpan.classList.add('hidden');
+                }
+            }, 1000);
+        }
+
+        function clearResendTimer() {
+            if (resendTimer) {
+                clearInterval(resendTimer);
+                resendTimer = null;
+            }
+        }
+
+        // Validate form data
+        function validateForm() {
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const terms = document.getElementById('terms').checked;
+
+            if (!fullName) {
+                showError('Vui lòng nhập họ và tên');
+                return false;
+            }
+
+            if (!email || !email.includes('@')) {
+                showError('Vui lòng nhập email hợp lệ');
+                return false;
+            }
+
+            if (!phone || !/^0[0-9]{9}$/.test(phone)) {
+                showError('Số điện thoại phải có 10 số và bắt đầu bằng 0');
+                return false;
+            }
+
+            if (!password || password.length < 8) {
+                showError('Mật khẩu phải có ít nhất 8 ký tự');
+                return false;
+            }
+
+            if (password !== confirmPassword) {
+                showError('Mật khẩu xác nhận không khớp');
+                return false;
+            }
+
+            if (!terms) {
+                showError('Vui lòng đồng ý với điều khoản dịch vụ');
+                return false;
+            }
+
+            return true;
+        }
+
+        // Parse full name
+        function parseFullName(fullName) {
+            const parts = fullName.trim().split(' ');
+            const firstname = parts.slice(0, -1).join(' ') || parts[0];
+            const lastname = parts[parts.length - 1];
+            return { firstname, lastname };
+        }
+
+        // Register form submission
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            console.log('Form submitted');
+            hideError();
+
+            if (!validateForm()) {
+                console.log('Form validation failed');
+                return;
+            }
+
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const password = document.getElementById('password').value;
+
+            const { firstname, lastname } = parseFullName(fullName);
+
+            registrationData = {
+                email,
+                password,
+                firstname,
+                lastname,
+                phone
+            };
+
+            console.log('Registration data:', registrationData);
+            showLoading(registerBtn, registerBtnText, registerBtnSpinner);
+
+            try {
+                console.log('Sending request to /api/auth/register');
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(registrationData)
+                });
+
+                console.log('Response status:', response.status);
+                const result = await response.json();
+                console.log('Response data:', result);
+
+                if (response.ok) {
+                    console.log('Registration successful, showing OTP modal');
+                    showOtpModal(email);
+                } else {
+                    console.log('Registration failed:', result.message);
+                    showError(result.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showError('Có lỗi xảy ra. Vui lòng thử lại.');
+            } finally {
+                hideLoading(registerBtn, registerBtnText, registerBtnSpinner);
+            }
+        });
+
+        // OTP verification
+        verifyOtpBtn.addEventListener('click', async () => {
+            const otp = otpInput.value.trim();
+            
+            if (!otp || otp.length !== 6) {
+                showOtpError('Vui lòng nhập đầy đủ 6 số OTP');
+                return;
+            }
+
+            hideOtpError();
+            showLoading(verifyOtpBtn, verifyOtpBtnText, verifyOtpSpinner);
+
+            try {
+                const response = await fetch('/api/auth/verify-registration', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: registrationData.email,
+                        otp: otp
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Registration successful
+                    alert('Đăng ký thành công! Bạn sẽ được chuyển đến trang đăng nhập.');
+                    window.location.href = '/login?success=register';
+                } else {
+                    showOtpError(result.message || 'Mã OTP không hợp lệ');
+                }
+            } catch (error) {
+                console.error('OTP verification error:', error);
+                showOtpError('Có lỗi xảy ra. Vui lòng thử lại.');
+            } finally {
+                hideLoading(verifyOtpBtn, verifyOtpBtnText, verifyOtpSpinner);
+            }
+        });
+
+        // Resend OTP
+        resendOtpBtn.addEventListener('click', async () => {
+            showLoading(resendOtpBtn, resendOtpBtnText, document.createElement('div'));
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(registrationData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    startResendTimer();
+                    hideOtpError();
+                } else {
+                    showOtpError(result.message || 'Không thể gửi lại OTP');
+                }
+            } catch (error) {
+                console.error('Resend OTP error:', error);
+                showOtpError('Có lỗi xảy ra. Vui lòng thử lại.');
+            } finally {
+                hideLoading(resendOtpBtn, resendOtpBtnText, document.createElement('div'));
+            }
+        });
+
+        // Close modal
+        closeOtpModal.addEventListener('click', hideOtpModal);
+
+        // Close modal on backdrop click
+        otpModal.addEventListener('click', (e) => {
+            if (e.target === otpModal) {
+                hideOtpModal();
+            }
+        });
+
+        // OTP input formatting
+        otpInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+
+        // Auto-submit OTP when 6 digits entered
+        otpInput.addEventListener('input', (e) => {
+            if (e.target.value.length === 6) {
+                setTimeout(() => {
+                    verifyOtpBtn.click();
+                }, 500);
+            }
+        });
+    </script>
     
 </body>
 </html>

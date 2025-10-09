@@ -484,9 +484,9 @@ public class AuthController {
             // Check if user exists
             User user = authService.findUserByEmail(request.getEmail());
             if (user == null) {
-                // For security, don't reveal if email exists or not
                 log.warn("Forgot password request for non-existent email: {}", request.getEmail());
-                return ResponseEntity.ok(ResponseWrapper.success("Nếu email tồn tại, mã xác thực đã được gửi."));
+                return ResponseEntity.badRequest()
+                        .body(ResponseWrapper.error("Email này chưa được đăng ký trong hệ thống. Vui lòng kiểm tra lại hoặc đăng ký tài khoản mới."));
             }
             
             // Generate and send OTP
