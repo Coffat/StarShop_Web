@@ -35,7 +35,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 /**
  * Controller for managing user orders functionality
@@ -500,7 +499,7 @@ public class OrderController extends BaseController {
     })
     @PutMapping("/api/orders/{orderId}/status")
     @ResponseBody
-    public ResponseEntity<ResponseWrapper<OrderResponse>> updateOrderStatus(
+    public ResponseEntity<ResponseWrapper<OrderDTO>> updateOrderStatus(
             @Parameter(description = "ID đơn hàng", required = true)
             @PathVariable Long orderId,
             @Parameter(description = "Trạng thái mới", required = true, example = "PROCESSING")
@@ -527,14 +526,9 @@ public class OrderController extends BaseController {
             }
             
             // Update order status
-            OrderResponse orderResponse = orderService.updateOrderStatus(orderId, status);
+            OrderDTO updatedOrder = orderService.updateOrderStatus(orderId, status);
             
-            if (orderResponse.isSuccess()) {
-                return ResponseEntity.ok(ResponseWrapper.success(orderResponse));
-            } else {
-                return ResponseEntity.badRequest()
-                    .body(ResponseWrapper.error(orderResponse.getMessage()));
-            }
+            return ResponseEntity.ok(ResponseWrapper.success(updatedOrder));
             
         } catch (Exception e) {
             logger.error("Error updating order {} status: {}", orderId, e.getMessage());
@@ -582,8 +576,10 @@ public class OrderController extends BaseController {
                     .body(ResponseWrapper.error("Bạn không có quyền thực hiện thao tác này"));
             }
             
-            // Get orders by status
-            List<OrderDTO> orders = orderService.getOrdersByStatus(status);
+            // Get orders by status with pagination
+            Pageable pageable = PageRequest.of(0, 100); // Get first 100 orders
+            Page<OrderDTO> orderPage = orderService.getOrdersByStatus(status, pageable);
+            List<OrderDTO> orders = orderPage.getContent();
             
             return ResponseEntity.ok(ResponseWrapper.success(orders));
             

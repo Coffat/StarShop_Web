@@ -93,16 +93,9 @@ public class OrderDTO {
             if (order.getUser() != null) {
                 userId = order.getUser().getId();
                 userEmail = order.getUser().getEmail();
-                // Safe full name extraction
-                String firstname = order.getUser().getFirstname();
-                String lastname = order.getUser().getLastname();
-                if (firstname != null && lastname != null) {
-                    userFullName = firstname + " " + lastname;
-                } else if (firstname != null) {
-                    userFullName = firstname;
-                } else if (lastname != null) {
-                    userFullName = lastname;
-                } else {
+                // Safe full name extraction using User's getFullName method
+                userFullName = order.getUser().getFullName();
+                if (userFullName == null || userFullName.trim().isEmpty()) {
                     userFullName = userEmail;
                 }
             }

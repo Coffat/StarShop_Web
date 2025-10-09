@@ -1,151 +1,207 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Dashboard CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
+</head>
 <body>
     <!-- Dashboard Content -->
-    <div class="space-y-6">
+    <div class="container-fluid">
+        <div class="dashboard-content">
         
         <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="stats-grid">
             <!-- Total Revenue -->
-            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform duration-200">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-blue-100 text-sm font-medium">Tổng doanh thu</p>
-                        <p class="text-3xl font-bold mt-2" th:text="${#numbers.formatCurrency(stats.totalRevenue)}">0₫</p>
-                        <div class="flex items-center mt-2">
-                            <i class="fas fa-chart-line text-green-300 text-sm mr-1"></i>
-                            <span class="text-green-300 text-sm font-medium" th:text="${#numbers.formatCurrency(stats.monthlyRevenue)}">0₫</span>
-                            <span class="text-blue-100 text-sm ml-1">tháng này</span>
+            <div class="stats-card revenue fade-in">
+                <div class="card-header">
+                    <div class="flex-1">
+                        <h3 class="card-title">Tổng doanh thu</h3>
+                        <p class="card-value" th:text="${#numbers.formatCurrency(stats.totalRevenue)}">0₫</p>
+                        <div class="card-change">
+                            <i class="fas fa-trending-up"></i>
+                            <span th:text="${#numbers.formatCurrency(stats.monthlyRevenue)}">0₫</span>
+                            <span>tháng này</span>
                         </div>
                     </div>
-                    <div class="bg-white bg-opacity-20 rounded-full p-3">
-                        <i class="fas fa-chart-line text-2xl"></i>
+                    <div class="card-icon">
+                        <i class="fas fa-chart-line"></i>
                     </div>
                 </div>
             </div>
             
             <!-- Total Orders -->
-            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform duration-200">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-green-100 text-sm font-medium">Tổng đơn hàng</p>
-                        <p class="text-3xl font-bold mt-2" th:text="${stats.totalOrders}">0</p>
-                        <div class="flex items-center mt-2">
-                            <i class="fas fa-clock text-yellow-300 text-sm mr-1"></i>
-                            <span class="text-yellow-300 text-sm font-medium" th:text="${stats.pendingOrders}">0</span>
-                            <span class="text-green-100 text-sm ml-1">đang chờ xử lý</span>
+            <div class="stats-card orders fade-in" style="animation-delay: 0.1s;">
+                <div class="card-header">
+                    <div class="flex-1">
+                        <h3 class="card-title">Tổng đơn hàng</h3>
+                        <p class="card-value" th:text="${stats.totalOrders}">0</p>
+                        <div class="card-change">
+                            <i class="fas fa-clock"></i>
+                            <span th:text="${stats.pendingOrders}">0</span>
+                            <span>đang chờ xử lý</span>
                         </div>
                     </div>
-                    <div class="bg-white bg-opacity-20 rounded-full p-3">
-                        <i class="fas fa-shopping-cart text-2xl"></i>
+                    <div class="card-icon">
+                        <i class="fas fa-shopping-cart"></i>
                     </div>
                 </div>
             </div>
             
             <!-- Total Customers -->
-            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform duration-200">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-purple-100 text-sm font-medium">Tổng khách hàng</p>
-                        <p class="text-3xl font-bold mt-2" th:text="${stats.totalUsers}">0</p>
-                        <div class="flex items-center mt-2">
-                            <i class="fas fa-arrow-up text-green-300 text-sm mr-1"></i>
-                            <span class="text-green-300 text-sm font-medium">+15.3%</span>
-                            <span class="text-purple-100 text-sm ml-1">so với tháng trước</span>
+            <div class="stats-card customers fade-in" style="animation-delay: 0.2s;">
+                <div class="card-header">
+                    <div class="flex-1">
+                        <h3 class="card-title">Tổng khách hàng</h3>
+                        <p class="card-value" th:text="${stats.totalUsers}">0</p>
+                        <div class="card-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+15.3%</span>
+                            <span>so với tháng trước</span>
                         </div>
                     </div>
-                    <div class="bg-white bg-opacity-20 rounded-full p-3">
-                        <i class="fas fa-users text-2xl"></i>
+                    <div class="card-icon">
+                        <i class="fas fa-users"></i>
                     </div>
                 </div>
             </div>
             
             <!-- Total Products -->
-            <div class="bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform duration-200">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-pink-100 text-sm font-medium">Tổng sản phẩm</p>
-                        <p class="text-3xl font-bold mt-2" th:text="${stats.totalProducts}">0</p>
-                        <div class="flex items-center mt-2">
-                            <i class="fas fa-plus text-green-300 text-sm mr-1"></i>
-                            <span class="text-green-300 text-sm font-medium" th:text="${stats.completedOrders}">0</span>
-                            <span class="text-pink-100 text-sm ml-1">đơn hoàn thành</span>
+            <div class="stats-card products fade-in" style="animation-delay: 0.3s;">
+                <div class="card-header">
+                    <div class="flex-1">
+                        <h3 class="card-title">Tổng sản phẩm</h3>
+                        <p class="card-value" th:text="${stats.totalProducts}">0</p>
+                        <div class="card-change">
+                            <i class="fas fa-check-circle"></i>
+                            <span th:text="${stats.completedOrders}">0</span>
+                            <span>đơn hoàn thành</span>
                         </div>
                     </div>
-                    <div class="bg-white bg-opacity-20 rounded-full p-3">
-                        <i class="fas fa-box text-2xl"></i>
+                    <div class="card-icon">
+                        <i class="fas fa-box"></i>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Charts Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Revenue Chart -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-semibold text-gray-900">Doanh thu theo tháng</h3>
-                    <div class="flex space-x-2">
-                        <button class="px-3 py-1 text-sm bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 transition-colors duration-200">6 tháng</button>
-                        <button class="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors duration-200">1 năm</button>
+
+        <!-- Main Chart Section -->
+        <div class="main-chart-section">
+            <div class="main-chart-card">
+                <div class="main-chart-header">
+                    <div class="main-chart-info">
+                        <h2 class="main-chart-title">📊 Tương quan khách hàng - đơn hàng</h2>
+                        <p class="main-chart-subtitle">Mối quan hệ giữa số lượng khách hàng và đơn hàng theo thời gian</p>
+                    </div>
+                    <div class="main-chart-controls">
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <div class="legend-color customers-color"></div>
+                                <span>Khách hàng</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color orders-color"></div>
+                                <span>Đơn hàng</span>
+                            </div>
+                        </div>
+                        <div class="main-chart-filters">
+                            <button class="main-filter-btn active" data-period="7">7 ngày</button>
+                            <button class="main-filter-btn" data-period="30">30 ngày</button>
+                            <button class="main-filter-btn" data-period="90">3 tháng</button>
+                        </div>
                     </div>
                 </div>
-                <div class="h-80">
-                    <canvas id="revenueChart"></canvas>
+                <div class="main-chart-content">
+                    <canvas id="mainOverviewChart"></canvas>
                 </div>
             </div>
-            
+        </div>
+        
+        <!-- Charts Section - 2 Essential Charts -->
+        <div class="charts-grid">
+            <!-- Revenue Trend Chart -->
+            <div class="chart-card slide-up" style="animation-delay: 0.1s;">
+                <div class="chart-header">
+                    <h3 class="chart-title">💰 Xu hướng doanh thu</h3>
+                    <div class="chart-value" id="revenueValue" th:text="${revenueTrend.currentValue != null ? #numbers.formatCurrency(revenueTrend.currentValue) : '0 ₫'}">32M ₫</div>
+                </div>
+                <div class="chart-description">
+                    <p class="chart-subtitle">Xu hướng tăng trưởng doanh thu 7 ngày gần đây</p>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #10b981;"></div>
+                            <span>Doanh thu</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-content">
+                    <canvas id="sideRevenueChart"></canvas>
+                </div>
+            </div>
+
             <!-- Orders Status Chart -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-semibold text-gray-900">Trạng thái đơn hàng</h3>
-                    <div class="flex items-center space-x-2">
-                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                        <span class="text-sm text-gray-600">Hoàn thành</span>
-                        <div class="w-3 h-3 bg-yellow-500 rounded-full ml-4"></div>
-                        <span class="text-sm text-gray-600">Đang xử lý</span>
-                        <div class="w-3 h-3 bg-red-500 rounded-full ml-4"></div>
-                        <span class="text-sm text-gray-600">Đã hủy</span>
+            <div class="chart-card slide-up" style="animation-delay: 0.2s;">
+                <div class="chart-header">
+                    <h3 class="chart-title">📊 Trạng thái đơn hàng</h3>
+                    <div class="chart-value" id="statusValue" th:text="${(orderStatusChart.completed ?: 0) + (orderStatusChart.processing ?: 0) + (orderStatusChart.pending ?: 0) + ' đơn'}">95 đơn</div>
+                </div>
+                <div class="chart-description">
+                    <p class="chart-subtitle">Phân bố trạng thái đơn hàng theo tỷ lệ phần trăm</p>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #10b981;"></div>
+                            <span>Hoàn thành</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #3b82f6;"></div>
+                            <span>Đang xử lý</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #f59e0b;"></div>
+                            <span>Chờ xử lý</span>
+                        </div>
                     </div>
                 </div>
-                <div class="h-80">
-                    <canvas id="ordersChart"></canvas>
+                <div class="chart-content">
+                    <canvas id="sideOrdersStatusChart"></canvas>
                 </div>
             </div>
         </div>
         
-        <!-- Recent Orders & Top Products -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Statistics Section - 2 Essential Stats -->
+        <div class="content-grid">
             <!-- Recent Orders -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-semibold text-gray-900">Đơn hàng gần đây</h3>
-                    <a href="/admin/orders" class="text-primary-600 hover:text-primary-700 text-sm font-medium transition-colors duration-200">
-                        Xem tất cả <i class="fas fa-arrow-right ml-1"></i>
+            <div class="chart-card slide-up" style="animation-delay: 0.8s;">
+                <div class="chart-header">
+                    <h3 class="chart-title">🛍️ Đơn hàng gần đây</h3>
+                    <a href="/admin/orders" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        Xem tất cả <i class="fas fa-arrow-right ml-2"></i>
                     </a>
                 </div>
                 <div class="space-y-4">
                     <!-- Recent Orders from Backend -->
                     <div th:if="${stats.recentOrders != null and !#lists.isEmpty(stats.recentOrders)}">
                         <div th:each="order : ${stats.recentOrders}" 
-                             class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-shopping-bag text-primary-600"></i>
-                                </div>
-                                <div>
-                                    <p class="font-medium text-gray-900" th:text="'ORDER-' + ${order.id}">ORDER-001</p>
-                                    <p class="text-sm text-gray-500" th:text="${order.user != null ? order.user.fullName : 'N/A'}">Customer Name</p>
-                                </div>
+                             class="recent-item">
+                            <div class="recent-item-avatar bg-gradient-to-br from-blue-400 to-purple-500">
+                                <i class="fas fa-shopping-bag text-white text-lg"></i>
                             </div>
-                            <div class="text-right">
-                                <p class="font-medium text-gray-900" th:text="${#numbers.formatCurrency(order.totalAmount)}">0₫</p>
-                                <span th:class="${'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + 
-                                    (order.status.name() == 'COMPLETED' ? 'bg-green-100 text-green-800' : 
-                                     order.status.name() == 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                     order.status.name() == 'PROCESSING' ? 'bg-blue-100 text-blue-800' :
-                                     order.status.name() == 'SHIPPED' ? 'bg-purple-100 text-purple-800' :
-                                     'bg-red-100 text-red-800')}"
+                            <div class="recent-item-content">
+                                <h4 class="recent-item-title" th:text="'ORDER-' + ${order.id}">ORDER-001</h4>
+                                <p class="recent-item-subtitle" th:text="${order.user != null ? order.user.fullName : 'N/A'}">Customer Name</p>
+                            </div>
+                            <div class="recent-item-meta">
+                                <p class="recent-item-value" th:text="${#numbers.formatCurrency(order.totalAmount)}">0₫</p>
+                                <span th:class="${'status-badge ' + 
+                                    (order.status.name() == 'COMPLETED' ? 'completed' : 
+                                     order.status.name() == 'PENDING' ? 'pending' :
+                                     order.status.name() == 'PROCESSING' ? 'processing' :
+                                     'cancelled')}"
                                       th:text="${order.status.getDisplayName()}">
                                     Status
                                 </span>
@@ -155,70 +211,79 @@
                     
                     <!-- No orders message -->
                     <div th:if="${stats.recentOrders == null or #lists.isEmpty(stats.recentOrders)}" 
-                         class="text-center py-8 text-gray-500">
-                        <i class="fas fa-shopping-cart text-3xl mb-2"></i>
-                        <p>Chưa có đơn hàng nào</p>
+                         class="text-center py-12">
+                        <div class="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-shopping-cart text-2xl text-gray-400"></i>
+                        </div>
+                        <p class="text-gray-500 font-medium">Chưa có đơn hàng nào</p>
+                        <p class="text-sm text-gray-400 mt-1">Đơn hàng mới sẽ xuất hiện ở đây</p>
                     </div>
                 </div>
             </div>
             
             <!-- Top Products -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-semibold text-gray-900">Sản phẩm bán chạy</h3>
-                    <a href="/admin/products" class="text-primary-600 hover:text-primary-700 text-sm font-medium transition-colors duration-200">
-                        Xem tất cả <i class="fas fa-arrow-right ml-1"></i>
+            <div class="chart-card slide-up" style="animation-delay: 0.9s;">
+                <div class="chart-header">
+                    <h3 class="chart-title">🌟 Sản phẩm bán chạy</h3>
+                    <a href="/admin/products" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-medium rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        Xem tất cả <i class="fas fa-arrow-right ml-2"></i>
                     </a>
                 </div>
                 <div class="space-y-4">
                     <!-- Product Item -->
-                    <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                        <img src="https://via.placeholder.com/60x60/ec4899/ffffff?text=🌹" alt="Product" class="w-12 h-12 rounded-lg object-cover">
-                        <div class="flex-1">
-                            <p class="font-medium text-gray-900">Hoa hồng đỏ</p>
-                            <p class="text-sm text-gray-500">Đã bán: 156 sản phẩm</p>
+                    <div class="recent-item">
+                        <div class="recent-item-avatar bg-gradient-to-br from-rose-400 to-pink-500">
+                            <span class="text-white text-lg">🌹</span>
                         </div>
-                        <div class="text-right">
-                            <p class="font-medium text-gray-900">450,000₫</p>
+                        <div class="recent-item-content">
+                            <h4 class="recent-item-title">Hoa hồng đỏ</h4>
+                            <p class="recent-item-subtitle">Đã bán: 156 sản phẩm</p>
+                        </div>
+                        <div class="recent-item-meta">
+                            <p class="recent-item-value">450,000₫</p>
                             <div class="flex items-center mt-1">
-                                <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                                    <div class="bg-primary-600 h-2 rounded-full" style="width: 85%"></div>
+                                <div class="progress-bar w-16 mr-2">
+                                    <div class="progress-fill" style="width: 85%"></div>
                                 </div>
-                                <span class="text-xs text-gray-500">85%</span>
+                                <span class="text-xs text-gray-500 font-medium">85%</span>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                        <img src="https://via.placeholder.com/60x60/ec4899/ffffff?text=🌻" alt="Product" class="w-12 h-12 rounded-lg object-cover">
-                        <div class="flex-1">
-                            <p class="font-medium text-gray-900">Hoa hướng dương</p>
-                            <p class="text-sm text-gray-500">Đã bán: 134 sản phẩm</p>
+                    <div class="recent-item">
+                        <div class="recent-item-avatar bg-gradient-to-br from-yellow-400 to-orange-500">
+                            <span class="text-white text-lg">🌻</span>
                         </div>
-                        <div class="text-right">
-                            <p class="font-medium text-gray-900">320,000₫</p>
+                        <div class="recent-item-content">
+                            <h4 class="recent-item-title">Hoa hướng dương</h4>
+                            <p class="recent-item-subtitle">Đã bán: 134 sản phẩm</p>
+                        </div>
+                        <div class="recent-item-meta">
+                            <p class="recent-item-value">320,000₫</p>
                             <div class="flex items-center mt-1">
-                                <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                                    <div class="bg-primary-600 h-2 rounded-full" style="width: 72%"></div>
+                                <div class="progress-bar w-16 mr-2">
+                                    <div class="progress-fill" style="width: 72%"></div>
                                 </div>
-                                <span class="text-xs text-gray-500">72%</span>
+                                <span class="text-xs text-gray-500 font-medium">72%</span>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                        <img src="https://via.placeholder.com/60x60/ec4899/ffffff?text=🌷" alt="Product" class="w-12 h-12 rounded-lg object-cover">
-                        <div class="flex-1">
-                            <p class="font-medium text-gray-900">Hoa tulip</p>
-                            <p class="text-sm text-gray-500">Đã bán: 98 sản phẩm</p>
+                    <div class="recent-item">
+                        <div class="recent-item-avatar bg-gradient-to-br from-purple-400 to-indigo-500">
+                            <span class="text-white text-lg">🌷</span>
                         </div>
-                        <div class="text-right">
-                            <p class="font-medium text-gray-900">280,000₫</p>
+                        <div class="recent-item-content">
+                            <h4 class="recent-item-title">Hoa tulip</h4>
+                            <p class="recent-item-subtitle">Đã bán: 98 sản phẩm</p>
+                        </div>
+                        <div class="recent-item-meta">
+                            <p class="recent-item-value">280,000₫</p>
                             <div class="flex items-center mt-1">
-                                <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                                    <div class="bg-primary-600 h-2 rounded-full" style="width: 58%"></div>
+                                <div class="progress-bar w-16 mr-2">
+                                    <div class="progress-fill" style="width: 58%"></div>
                                 </div>
-                                <span class="text-xs text-gray-500">58%</span>
+                                <span class="text-xs text-gray-500 font-medium">58%</span>
                             </div>
                         </div>
                     </div>
@@ -227,77 +292,273 @@
         </div>
     </div>
     
-    <!-- Chart.js Scripts -->
+    <!-- Modern Chart.js Scripts -->
     <script th:inline="javascript">
         // Get data from backend
         const revenueChartData = /*[[${revenueChart}]]*/ {};
         const orderStatusChartData = /*[[${orderStatusChart}]]*/ {};
         
-        // Revenue Chart
-        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-        new Chart(revenueCtx, {
+        // Modern Chart Configuration
+        Chart.defaults.font.family = "'Inter', 'system-ui', sans-serif";
+        Chart.defaults.color = '#6b7280';
+        
+        // Advanced gradient creator
+        const createGradient = (ctx, color1, color2, direction = 'vertical') => {
+            const gradient = direction === 'vertical' 
+                ? ctx.createLinearGradient(0, 0, 0, 400)
+                : ctx.createLinearGradient(0, 0, 400, 0);
+            gradient.addColorStop(0, color1);
+            gradient.addColorStop(1, color2);
+            return gradient;
+        };
+
+        // Get real data from backend
+        const dashboardData = {
+            labels: /*[[${correlationChart.labels}]]*/ ['1/10', '2/10', '3/10', '4/10', '5/10', '6/10', '7/10'],
+            revenue: /*[[${correlationChart.revenue}]]*/ [15000000, 18000000, 22000000, 19000000, 25000000, 28000000, 32000000],
+            orders: /*[[${correlationChart.orders}]]*/ [45, 52, 68, 58, 75, 82, 95],
+            customers: /*[[${correlationChart.customers}]]*/ [12, 15, 18, 16, 22, 25, 28]
+        };
+
+        // Revenue trend data for side chart
+        const revenueTrendData = {
+            labels: /*[[${revenueTrend.labels}]]*/ ['1/10', '2/10', '3/10', '4/10', '5/10', '6/10', '7/10'],
+            revenue: /*[[${revenueTrend.revenue}]]*/ [15000000, 18000000, 22000000, 19000000, 25000000, 28000000, 32000000]
+        };
+
+        // Order status data for side chart
+        const orderStatusData = {
+            completed: /*[[${orderStatusChart.completed}]]*/ 65,
+            processing: /*[[${orderStatusChart.processing}]]*/ 25,
+            pending: /*[[${orderStatusChart.pending}]]*/ 10,
+            shipped: /*[[${orderStatusChart.shipped}]]*/ 0,
+            cancelled: /*[[${orderStatusChart.cancelled}]]*/ 0
+        };
+
+        // Main Correlation Chart - Customers vs Orders
+        const mainOverviewCtx = document.getElementById('mainOverviewChart').getContext('2d');
+        const customersGradient = createGradient(mainOverviewCtx, 'rgba(139, 92, 246, 0.3)', 'rgba(139, 92, 246, 0.05)');
+        const ordersGradient = createGradient(mainOverviewCtx, 'rgba(245, 158, 11, 0.3)', 'rgba(245, 158, 11, 0.05)');
+        
+        new Chart(mainOverviewCtx, {
             type: 'line',
             data: {
-                labels: revenueChartData.months || ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'],
-                datasets: [{
-                    label: 'Doanh thu (VNĐ)',
-                    data: revenueChartData.revenues || [0, 0, 0, 0, 0, 0],
-                    borderColor: '#ec4899',
-                    backgroundColor: 'rgba(236, 72, 153, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: '#ec4899',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    pointRadius: 6
-                }]
+                labels: dashboardData.labels,
+                datasets: [
+                    {
+                        label: 'Khách hàng',
+                        data: dashboardData.customers,
+                        borderColor: '#8b5cf6',
+                        backgroundColor: customersGradient,
+                        borderWidth: 4,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#8b5cf6',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        pointHoverRadius: 12,
+                        pointHoverBackgroundColor: '#8b5cf6',
+                        pointHoverBorderColor: '#ffffff',
+                        pointHoverBorderWidth: 4,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Đơn hàng',
+                        data: dashboardData.orders,
+                        borderColor: '#f59e0b',
+                        backgroundColor: ordersGradient,
+                        borderWidth: 4,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#f59e0b',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        pointHoverRadius: 12,
+                        pointHoverBackgroundColor: '#f59e0b',
+                        pointHoverBorderColor: '#ffffff',
+                        pointHoverBorderWidth: 4,
+                        yAxisID: 'y1'
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: false
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#cbd5e1',
+                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                        borderWidth: 1,
+                        cornerRadius: 12,
+                        displayColors: true,
+                        padding: 16,
+                        titleFont: { size: 16, weight: '700' },
+                        bodyFont: { size: 14, weight: '500' },
+                        callbacks: {
+                            title: function(context) {
+                                return 'Ngày ' + context[0].label;
+                            },
+                            label: function(context) {
+                                if (context.datasetIndex === 0) {
+                                    return 'Khách hàng: ' + context.parsed.y + ' người';
+                                } else {
+                                    return 'Đơn hàng: ' + context.parsed.y + ' đơn';
+                                }
+                            }
+                        }
                     }
                 },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: '#f3f4f6'
-                        },
+                    x: {
+                        border: { display: false },
+                        grid: { display: false },
                         ticks: {
-                            color: '#6b7280'
+                            color: '#6b7280',
+                            font: { size: 12, weight: '600' },
+                            padding: 10
                         }
                     },
-                    x: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        beginAtZero: true,
+                        border: { display: false },
                         grid: {
-                            display: false
+                            color: 'rgba(0, 0, 0, 0.1)',
+                            drawBorder: false,
+                            lineWidth: 1
                         },
                         ticks: {
-                            color: '#6b7280'
+                            color: '#6b7280',
+                            font: { size: 11, weight: '500' },
+                            padding: 10,
+                            callback: function(value) {
+                                return value + ' người';
+                            }
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        border: { display: false },
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                            font: { size: 11, weight: '500' },
+                            padding: 10,
+                            callback: function(value) {
+                                return value + ' đơn';
+                            }
                         }
                     }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                animation: {
+                    duration: 2500,
+                    easing: 'easeOutQuart'
                 }
             }
         });
-        
-        // Orders Status Chart
-        const ordersCtx = document.getElementById('ordersChart').getContext('2d');
-        new Chart(ordersCtx, {
+
+        // Side Revenue Chart - Small Line Chart
+        const sideRevenueCtx = document.getElementById('sideRevenueChart').getContext('2d');
+        new Chart(sideRevenueCtx, {
+            type: 'line',
+            data: {
+                labels: revenueTrendData.labels,
+                datasets: [{
+                    data: revenueTrendData.revenue,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#cbd5e1',
+                        borderColor: '#10b981',
+                        borderWidth: 2,
+                        cornerRadius: 12,
+                        displayColors: false,
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Doanh thu: ' + new Intl.NumberFormat('vi-VN', {
+                                    style: 'currency',
+                                    currency: 'VND'
+                                }).format(context.parsed.y);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { 
+                        display: true,
+                        border: { display: false },
+                        grid: { display: false },
+                        ticks: {
+                            color: '#6b7280',
+                            font: { size: 10, weight: '500' },
+                            maxTicksLimit: 4
+                        }
+                    },
+                    y: { 
+                        display: true,
+                        border: { display: false },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                            font: { size: 10, weight: '500' },
+                            maxTicksLimit: 4,
+                            callback: function(value) {
+                                return (value / 1000000).toFixed(0) + 'M';
+                            }
+                        }
+                    }
+                },
+                elements: { point: { hoverRadius: 6 } }
+            }
+        });
+
+        // Side Orders Status Chart - Doughnut
+        const sideOrdersStatusCtx = document.getElementById('sideOrdersStatusChart').getContext('2d');
+        new Chart(sideOrdersStatusCtx, {
             type: 'doughnut',
             data: {
-                labels: ['Hoàn thành', 'Đang xử lý', 'Đang giao', 'Chờ xử lý', 'Đã hủy'],
+                labels: ['Hoàn thành', 'Đang xử lý', 'Chờ xử lý'],
                 datasets: [{
-                    data: [
-                        orderStatusChartData.completed || 0,
-                        orderStatusChartData.processing || 0,
-                        orderStatusChartData.shipped || 0,
-                        orderStatusChartData.pending || 0,
-                        orderStatusChartData.cancelled || 0
+                    data: [orderStatusData.completed, orderStatusData.processing, orderStatusData.pending],
+                    backgroundColor: [
+                        '#10b981',
+                        '#3b82f6', 
+                        '#f59e0b'
                     ],
-                    backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'],
                     borderWidth: 0,
                     cutout: '70%'
                 }]
@@ -306,12 +567,138 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: false
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#cbd5e1',
+                        borderColor: 'rgba(99, 102, 241, 0.3)',
+                        borderWidth: 2,
+                        cornerRadius: 12,
+                        displayColors: true,
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed * 100) / total).toFixed(1);
+                                return context.label + ': ' + context.parsed + ' đơn (' + percentage + '%)';
+                            }
+                        }
                     }
                 }
             }
         });
+
+        // Side Top Products Chart - Bar
+        const sideTopProductsCtx = document.getElementById('sideTopProductsChart').getContext('2d');
+        new Chart(sideTopProductsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Hoa hồng', 'Hoa tulip', 'Hoa ly'],
+                datasets: [{
+                    data: [156, 89, 67],
+                    backgroundColor: [
+                        'rgba(236, 72, 153, 0.8)',
+                        'rgba(168, 85, 247, 0.8)',
+                        'rgba(59, 130, 246, 0.8)'
+                    ],
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { display: false },
+                    y: { display: false }
+                }
+            }
+        });
+
+
+
+        // Interactive filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from siblings
+                this.parentNode.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                // Add active class to clicked button
+                this.classList.add('active');
+            });
+        });
+
+        // Main chart filter buttons
+        document.querySelectorAll('.main-filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from siblings
+                this.parentNode.querySelectorAll('.main-filter-btn').forEach(b => b.classList.remove('active'));
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                // Get period from data attribute
+                const period = parseInt(this.dataset.period);
+                
+                // Update chart data based on period
+                updateMainChart(period);
+            });
+        });
+
+        // Function to update main chart with new data from backend
+        function updateMainChart(period) {
+            // Show loading state
+            const loadingElement = document.createElement('div');
+            loadingElement.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>';
+            loadingElement.className = 'loading-overlay';
+            
+            // Fetch new data from backend
+            fetch(`/admin/api/correlation-data?period=${period}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Update main correlation chart
+                    const mainChart = Chart.getChart('mainOverviewChart');
+                    if (mainChart) {
+                        mainChart.data.labels = data.labels;
+                        mainChart.data.datasets[0].data = data.customers;
+                        mainChart.data.datasets[1].data = data.orders;
+                        mainChart.update('active');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating chart:', error);
+                    // Show error message
+                    alert('Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại.');
+                });
+
+            // Also update revenue trend chart
+            fetch(`/admin/api/revenue-trend?period=${period}`)
+                .then(response => response.json())
+                .then(data => {
+                    const revenueChart = Chart.getChart('sideRevenueChart');
+                    if (revenueChart) {
+                        revenueChart.data.labels = data.labels;
+                        revenueChart.data.datasets[0].data = data.revenue;
+                        revenueChart.update('active');
+                    }
+                    
+                    // Update revenue value display
+                    const revenueValue = document.getElementById('revenueValue');
+                    if (revenueValue && data.currentValue) {
+                        const formattedValue = new Intl.NumberFormat('vi-VN', {
+                            style: 'currency',
+                            currency: 'VND',
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0
+                        }).format(data.currentValue);
+                        revenueValue.textContent = formattedValue.replace('₫', ' ₫');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating revenue trend:', error);
+                });
+        }
     </script>
+    </div>
+    </div>
 </body>
-</html>

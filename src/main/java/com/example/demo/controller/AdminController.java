@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,12 +47,21 @@ public class AdminController extends BaseController {
         Map<String, Object> dashboardStats = dashboardService.getDashboardStats();
         model.addAttribute("stats", dashboardStats);
         
-        // Get chart data
-        Map<String, Object> revenueChartData = dashboardService.getRevenueChartData();
-        model.addAttribute("revenueChart", revenueChartData);
+        // Get chart data for main correlation chart (7 days default)
+        Map<String, Object> correlationData = dashboardService.getCorrelationChartData(7);
+        model.addAttribute("correlationChart", correlationData);
         
+        // Get revenue trend data for side chart (7 days)
+        Map<String, Object> revenueTrendData = dashboardService.getRevenueTrendData(7);
+        model.addAttribute("revenueTrend", revenueTrendData);
+        
+        // Get order status chart data for side chart
         Map<String, Object> orderStatusChartData = dashboardService.getOrderStatusChartData();
         model.addAttribute("orderStatusChart", orderStatusChartData);
+        
+        // Legacy chart data for backward compatibility
+        Map<String, Object> revenueChartData = dashboardService.getRevenueChartData();
+        model.addAttribute("revenueChart", revenueChartData);
         
         List<BreadcrumbItem> breadcrumbs = new ArrayList<>();
         breadcrumbs.add(new BreadcrumbItem("Dashboard", "/admin/dashboard"));
@@ -59,21 +70,6 @@ public class AdminController extends BaseController {
         return "layouts/admin";
     }
 
-    /**
-     * Quản lý Đơn hàng
-     */
-    @GetMapping("/orders")
-    public String orders(Model model) {
-        model.addAttribute("pageTitle", "Quản lý Đơn hàng");
-        model.addAttribute("contentTemplate", "admin/orders/index");
-        
-        List<BreadcrumbItem> breadcrumbs = new ArrayList<>();
-        breadcrumbs.add(new BreadcrumbItem("Dashboard", "/admin/dashboard"));
-        breadcrumbs.add(new BreadcrumbItem("Quản lý Đơn hàng", "/admin/orders"));
-        model.addAttribute("breadcrumbs", breadcrumbs);
-        
-        return "layouts/admin";
-    }
 
     /**
      * Quản lý Sản phẩm
@@ -185,5 +181,47 @@ public class AdminController extends BaseController {
         model.addAttribute("breadcrumbs", breadcrumbs);
         
         return "layouts/admin";
+    }
+
+    // ==================== REST API ENDPOINTS ====================
+    
+    /**
+     * API: Get correlation chart data by period
+     */
+    @GetMapping("/api/correlation-data")
+    @ResponseBody
+    public Map<String, Object> getCorrelationData(@RequestParam(defaultValue = "7") int period) {
+        log.debug("Getting correlation data for {} days", period);
+        return dashboardService.getCorrelationChartData(period);
+    }
+    
+    /**
+     * API: Get revenue trend data by period
+     */
+    @GetMapping("/api/revenue-trend")
+    @ResponseBody
+    public Map<String, Object> getRevenueTrend(@RequestParam(defaultValue = "7") int period) {
+        log.debug("Getting revenue trend data for {} days", period);
+        return dashboardService.getRevenueTrendData(period);
+    }
+    
+    /**
+     * API: Get order status chart data
+     */
+    @GetMapping("/api/order-status")
+    @ResponseBody
+    public Map<String, Object> getOrderStatus() {
+        log.debug("Getting order status chart data");
+        return dashboardService.getOrderStatusChartData();
+    }
+    
+    /**
+     * API: Get dashboard statistics
+     */
+    @GetMapping("/api/dashboard-stats")
+    @ResponseBody
+    public Map<String, Object> getDashboardStats() {
+        log.debug("Getting dashboard statistics");
+        return dashboardService.getDashboardStats();
     }
 }

@@ -27,6 +27,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.firstname LIKE %:keyword% OR u.lastname LIKE %:keyword% OR u.email LIKE %:keyword%")
     List<User> searchUsers(@Param("keyword") String keyword);
     
+    @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.addresses WHERE u.firstname LIKE %:keyword% OR u.lastname LIKE %:keyword% OR u.email LIKE %:keyword%")
+    List<User> searchUsersWithAddresses(@Param("keyword") String keyword);
+    
     @Query("SELECT u FROM User u WHERE u.role = :role ORDER BY u.createdAt DESC")
     List<User> findRecentUsersByRole(@Param("role") UserRole role);
     

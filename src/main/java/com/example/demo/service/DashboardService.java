@@ -149,4 +149,135 @@ public class DashboardService {
         
         return chartData;
     }
+
+    /**
+     * Get correlation data between customers and orders for the last 7 days
+     */
+    public Map<String, Object> getCorrelationChartData(int days) {
+        Map<String, Object> chartData = new HashMap<>();
+        
+        try {
+            List<Object[]> dailyStats = orderRepository.getDailyStatsForDays(days);
+            
+            String[] labels = new String[days];
+            Long[] orders = new Long[days];
+            Long[] customers = new Long[days];
+            BigDecimal[] revenues = new BigDecimal[days];
+            
+            // Initialize with zeros and dates
+            for (int i = 0; i < days; i++) {
+                LocalDateTime date = LocalDateTime.now().minusDays(days - 1 - i);
+                labels[i] = date.format(DateTimeFormatter.ofPattern("dd/MM"));
+                orders[i] = 0L;
+                customers[i] = 0L;
+                revenues[i] = BigDecimal.ZERO;
+            }
+            
+            // Fill with actual data
+            for (Object[] data : dailyStats) {
+                String dateStr = data[0].toString();
+                Long orderCount = ((Number) data[1]).longValue();
+                Long customerCount = ((Number) data[2]).longValue();
+                BigDecimal revenue = (BigDecimal) data[3];
+                
+                // Find matching date and update
+                for (int i = 0; i < days; i++) {
+                    if (labels[i].equals(dateStr)) {
+                        orders[i] = orderCount;
+                        customers[i] = customerCount;
+                        revenues[i] = revenue != null ? revenue : BigDecimal.ZERO;
+                        break;
+                    }
+                }
+            }
+            
+            chartData.put("labels", labels);
+            chartData.put("orders", orders);
+            chartData.put("customers", customers);
+            chartData.put("revenue", revenues);
+            
+        } catch (Exception e) {
+            log.error("Error generating correlation chart data: {}", e.getMessage(), e);
+            // Return empty data on error
+            String[] emptyLabels = new String[days];
+            Long[] emptyOrders = new Long[days];
+            Long[] emptyCustomers = new Long[days];
+            BigDecimal[] emptyRevenues = new BigDecimal[days];
+            
+            for (int i = 0; i < days; i++) {
+                LocalDateTime date = LocalDateTime.now().minusDays(days - 1 - i);
+                emptyLabels[i] = date.format(DateTimeFormatter.ofPattern("dd/MM"));
+                emptyOrders[i] = 0L;
+                emptyCustomers[i] = 0L;
+                emptyRevenues[i] = BigDecimal.ZERO;
+            }
+            
+            chartData.put("labels", emptyLabels);
+            chartData.put("orders", emptyOrders);
+            chartData.put("customers", emptyCustomers);
+            chartData.put("revenue", emptyRevenues);
+        }
+        
+        return chartData;
+    }
+
+    /**
+     * Get revenue trend data for the last N days
+     */
+    public Map<String, Object> getRevenueTrendData(int days) {
+        Map<String, Object> trendData = new HashMap<>();
+        
+        try {
+            List<Object[]> dailyRevenue = orderRepository.getDailyRevenueForDays(days);
+            
+            String[] labels = new String[days];
+            BigDecimal[] revenues = new BigDecimal[days];
+            
+            // Initialize with zeros and dates
+            for (int i = 0; i < days; i++) {
+                LocalDateTime date = LocalDateTime.now().minusDays(days - 1 - i);
+                labels[i] = date.format(DateTimeFormatter.ofPattern("dd/MM"));
+                revenues[i] = BigDecimal.ZERO;
+            }
+            
+            // Fill with actual data
+            for (Object[] data : dailyRevenue) {
+                String dateStr = data[0].toString();
+                BigDecimal revenue = (BigDecimal) data[1];
+                
+                // Find matching date and update
+                for (int i = 0; i < days; i++) {
+                    if (labels[i].equals(dateStr)) {
+                        revenues[i] = revenue != null ? revenue : BigDecimal.ZERO;
+                        break;
+                    }
+                }
+            }
+            
+            trendData.put("labels", labels);
+            trendData.put("revenue", revenues);
+            
+            // Calculate current value (latest revenue)
+            BigDecimal currentRevenue = revenues[days - 1];
+            trendData.put("currentValue", currentRevenue);
+            
+        } catch (Exception e) {
+            log.error("Error generating revenue trend data: {}", e.getMessage(), e);
+            // Return empty data on error
+            String[] emptyLabels = new String[days];
+            BigDecimal[] emptyRevenues = new BigDecimal[days];
+            
+            for (int i = 0; i < days; i++) {
+                LocalDateTime date = LocalDateTime.now().minusDays(days - 1 - i);
+                emptyLabels[i] = date.format(DateTimeFormatter.ofPattern("dd/MM"));
+                emptyRevenues[i] = BigDecimal.ZERO;
+            }
+            
+            trendData.put("labels", emptyLabels);
+            trendData.put("revenue", emptyRevenues);
+            trendData.put("currentValue", BigDecimal.ZERO);
+        }
+        
+        return trendData;
+    }
 }

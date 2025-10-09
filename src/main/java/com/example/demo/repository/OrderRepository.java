@@ -20,6 +20,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     
     List<Order> findByStatus(OrderStatus status);
     
+    Page<Order> findByStatus(OrderStatus status, Pageable pageable);
+    
     Page<Order> findByUserIdAndStatus(Long userId, OrderStatus status, Pageable pageable);
     
     @Query("SELECT o FROM Order o WHERE o.orderDate BETWEEN :startDate AND :endDate")
@@ -71,4 +73,33 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "GROUP BY TO_CHAR(order_date, 'MM/YYYY'), DATE_TRUNC('month', order_date) " +
            "ORDER BY DATE_TRUNC('month', order_date)", nativeQuery = true)
     List<Object[]> getMonthlyRevenueChart();
+    
+    // Daily statistics for correlation chart
+    @Query(value = "SELECT " +
+           "TO_CHAR(DATE_TRUNC('day', order_date), 'DD/MM') as day, " +
+           "COUNT(DISTINCT id) as order_count, " +
+           "COUNT(DISTINCT user_id) as customer_count, " +
+           "COALESCE(SUM(CASE WHEN status = 'COMPLETED' THEN total_amount ELSE 0 END), 0) as revenue " +
+           "FROM orders " +
+           "WHERE order_date >= CURRENT_DATE - INTERVAL '1 day' * ?1 " +
+           "GROUP BY DATE_TRUNC('day', order_date) " +
+           "ORDER BY DATE_TRUNC('day', order_date)", nativeQuery = true)
+    List<Object[]> getDailyStatsForDays(int days);
+    
+    // Daily revenue for trend chart
+    @Query(value = "SELECT " +
+           "TO_CHAR(DATE_TRUNC('day', order_date), 'DD/MM') as day, " +
+           "COALESCE(SUM(CASE WHEN status = 'COMPLETED' THEN total_amount ELSE 0 END), 0) as revenue " +
+           "FROM orders " +
+           "WHERE order_date >= CURRENT_DATE - INTERVAL '1 day' * ?1 " +
+           "GROUP BY DATE_TRUNC('day', order_date) " +
+           "ORDER BY DATE_TRUNC('day', order_date)", nativeQuery = true)
+    List<Object[]> getDailyRevenueForDays(int days);
+    
+    // Search orders by order number, customer name, or email
+    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.user u WHERE " +
+           "CAST(o.id AS string) LIKE CONCAT('%', :searchTerm, '%') OR " +
+           "LOWER(CONCAT(u.firstname, ' ', u.lastname)) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(u.email) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
+    Page<Order> searchOrders(@Param("searchTerm") String searchTerm, Pageable pageable);
 }
