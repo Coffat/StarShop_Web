@@ -23,7 +23,8 @@ import java.util.List;
     OrderController.class,
     ProductController.class,
     HomeController.class,
-    AccountController.class
+    AccountController.class,
+    AdminController.class
 })
 public class BaseController {
 
@@ -65,6 +66,36 @@ public class BaseController {
         return authentication != null && 
                authentication.isAuthenticated() && 
                !authentication.getName().equals("anonymousUser");
+    }
+    
+    /**
+     * Add user object to all views
+     */
+    @ModelAttribute("userObject")
+    @Transactional(readOnly = true)
+    public User addUserObject(Authentication authentication) {
+        try {
+            if (authentication != null && 
+                authentication.isAuthenticated() && 
+                !authentication.getName().equals("anonymousUser")) {
+                return userRepository.findByEmail(authentication.getName()).orElse(null);
+            }
+        } catch (Exception e) {
+            // Silently handle user object error
+        }
+        return null;
+    }
+
+    @ModelAttribute("userRole")
+    @Transactional(readOnly = true)
+    public String addUserRole(Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated() && !authentication.getName().equals("anonymousUser")) {
+            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            if (user != null) {
+                return user.getRole().name();
+            }
+        }
+        return null;
     }
     
     /**

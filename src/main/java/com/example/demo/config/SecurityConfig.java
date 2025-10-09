@@ -38,6 +38,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final com.example.demo.service.CustomUserDetailsService customUserDetailsService;
 
     @Bean
     public SessionRegistry sessionRegistry() {
@@ -94,6 +95,8 @@ public class SecurityConfig {
                 .requestMatchers("/account/**").authenticated()
                 // Order pages - require authentication
                 .requestMatchers("/orders", "/orders/**", "/checkout").authenticated()
+                // Admin pages - require ADMIN role
+                .requestMatchers("/admin/**").hasRole("ADMIN")
                 
                 // Products pages
                 .requestMatchers("/products", "/products/**").permitAll()
@@ -118,6 +121,7 @@ public class SecurityConfig {
                 
                 .anyRequest().authenticated()
             )
+            .userDetailsService(customUserDetailsService)
             .formLogin(form -> form
                 .loginPage("/login")
                 .permitAll()

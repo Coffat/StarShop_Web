@@ -51,4 +51,24 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     
     @Query("SELECT o FROM Order o WHERE o.status = :status ORDER BY o.orderDate ASC")
     List<Order> findPendingOrders(@Param("status") OrderStatus status);
+    
+    // Dashboard statistics queries
+    Long countByStatus(OrderStatus status);
+    
+    @Query("SELECT SUM(o.totalAmount) FROM Order o WHERE o.status = 'COMPLETED'")
+    BigDecimal getTotalRevenue();
+    
+    @Query("SELECT SUM(o.totalAmount) FROM Order o WHERE o.status = 'COMPLETED' " +
+           "AND YEAR(o.orderDate) = YEAR(CURRENT_DATE) AND MONTH(o.orderDate) = MONTH(CURRENT_DATE)")
+    BigDecimal getMonthlyRevenue();
+    
+    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.user ORDER BY o.orderDate DESC LIMIT 10")
+    List<Order> findTop10ByOrderByOrderDateDesc();
+    
+    @Query(value = "SELECT TO_CHAR(order_date, 'MM/YYYY') as month, SUM(total_amount) as revenue " +
+           "FROM orders WHERE status = 'COMPLETED' " +
+           "AND order_date >= CURRENT_DATE - INTERVAL '12 months' " +
+           "GROUP BY TO_CHAR(order_date, 'MM/YYYY'), DATE_TRUNC('month', order_date) " +
+           "ORDER BY DATE_TRUNC('month', order_date)", nativeQuery = true)
+    List<Object[]> getMonthlyRevenueChart();
 }

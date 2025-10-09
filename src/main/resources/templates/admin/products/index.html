@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- Products Management Content -->
+    <div class="space-y-6">
+        
+        <!-- Header Actions -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-xl font-semibold text-gray-900">Quản lý Sản phẩm</h2>
+                <p class="mt-1 text-sm text-gray-500">Quản lý tất cả sản phẩm trong cửa hàng</p>
+            </div>
+            <div class="mt-4 sm:mt-0 flex space-x-3">
+                <button class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
+                    <i class="fas fa-upload mr-2"></i>
+                    Import Excel
+                </button>
+                <button class="inline-flex items-center px-4 py-2 bg-primary-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-primary-700 transition-colors duration-200">
+                    <i class="fas fa-plus mr-2"></i>
+                    Thêm sản phẩm
+                </button>
+            </div>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-box text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Tổng sản phẩm</p>
+                        <p class="text-2xl font-semibold text-gray-900">567</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-check-circle text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Đang bán</p>
+                        <p class="text-2xl font-semibold text-gray-900">432</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Sắp hết hàng</p>
+                        <p class="text-2xl font-semibold text-gray-900">23</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-times-circle text-red-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Hết hàng</p>
+                        <p class="text-2xl font-semibold text-gray-900">12</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filters -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Danh mục</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="">Tất cả danh mục</option>
+                        <option value="hoa-sinh-nhat">Hoa sinh nhật</option>
+                        <option value="hoa-tinh-yeu">Hoa tình yêu</option>
+                        <option value="hoa-cuoi">Hoa cưới</option>
+                        <option value="hoa-khai-truong">Hoa khai trương</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="active">Đang bán</option>
+                        <option value="inactive">Ngừng bán</option>
+                        <option value="out-of-stock">Hết hàng</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Giá từ</label>
+                    <input type="number" placeholder="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Giá đến</label>
+                    <input type="number" placeholder="1000000" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
+                    <input type="text" placeholder="Tên sản phẩm, mã sản phẩm..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Products Grid -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-medium text-gray-900">Danh sách sản phẩm</h3>
+                    <div class="flex items-center space-x-2">
+                        <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                        <button class="p-2 text-gray-600 hover:text-gray-800 transition-colors duration-200">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
+                <!-- Product Card -->
+                <div class="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                    <div class="aspect-w-1 aspect-h-1 mb-4">
+                        <img src="https://via.placeholder.com/200x200/ec4899/ffffff?text=🌹" alt="Product" class="w-full h-48 object-cover rounded-lg">
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="font-medium text-gray-900 line-clamp-2">Hoa hồng đỏ cao cấp</h4>
+                        <p class="text-sm text-gray-500">#SP001</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-lg font-semibold text-primary-600">450,000₫</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Còn hàng
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm text-gray-500">
+                            <span>Tồn kho: 25</span>
+                            <span>Đã bán: 156</span>
+                        </div>
+                        <div class="flex space-x-2 pt-2">
+                            <button class="flex-1 px-3 py-2 text-xs bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                                <i class="fas fa-edit mr-1"></i>
+                                Sửa
+                            </button>
+                            <button class="px-3 py-2 text-xs bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="px-3 py-2 text-xs bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- More Product Cards -->
+                <div class="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                    <div class="aspect-w-1 aspect-h-1 mb-4">
+                        <img src="https://via.placeholder.com/200x200/ec4899/ffffff?text=🌻" alt="Product" class="w-full h-48 object-cover rounded-lg">
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="font-medium text-gray-900 line-clamp-2">Hoa hướng dương tươi</h4>
+                        <p class="text-sm text-gray-500">#SP002</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-lg font-semibold text-primary-600">320,000₫</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                Sắp hết
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm text-gray-500">
+                            <span>Tồn kho: 3</span>
+                            <span>Đã bán: 134</span>
+                        </div>
+                        <div class="flex space-x-2 pt-2">
+                            <button class="flex-1 px-3 py-2 text-xs bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                                <i class="fas fa-edit mr-1"></i>
+                                Sửa
+                            </button>
+                            <button class="px-3 py-2 text-xs bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="px-3 py-2 text-xs bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                    <div class="aspect-w-1 aspect-h-1 mb-4">
+                        <img src="https://via.placeholder.com/200x200/ec4899/ffffff?text=🌷" alt="Product" class="w-full h-48 object-cover rounded-lg">
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="font-medium text-gray-900 line-clamp-2">Hoa tulip Hà Lan</h4>
+                        <p class="text-sm text-gray-500">#SP003</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-lg font-semibold text-primary-600">280,000₫</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Hết hàng
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm text-gray-500">
+                            <span>Tồn kho: 0</span>
+                            <span>Đã bán: 98</span>
+                        </div>
+                        <div class="flex space-x-2 pt-2">
+                            <button class="flex-1 px-3 py-2 text-xs bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                                <i class="fas fa-edit mr-1"></i>
+                                Sửa
+                            </button>
+                            <button class="px-3 py-2 text-xs bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="px-3 py-2 text-xs bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                    <div class="aspect-w-1 aspect-h-1 mb-4">
+                        <img src="https://via.placeholder.com/200x200/ec4899/ffffff?text=💐" alt="Product" class="w-full h-48 object-cover rounded-lg">
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="font-medium text-gray-900 line-clamp-2">Bó hoa sinh nhật mix</h4>
+                        <p class="text-sm text-gray-500">#SP004</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-lg font-semibold text-primary-600">650,000₫</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Còn hàng
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm text-gray-500">
+                            <span>Tồn kho: 15</span>
+                            <span>Đã bán: 87</span>
+                        </div>
+                        <div class="flex space-x-2 pt-2">
+                            <button class="flex-1 px-3 py-2 text-xs bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                                <i class="fas fa-edit mr-1"></i>
+                                Sửa
+                            </button>
+                            <button class="px-3 py-2 text-xs bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="px-3 py-2 text-xs bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                <div class="flex-1 flex justify-between sm:hidden">
+                    <button class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Trước
+                    </button>
+                    <button class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Sau
+                    </button>
+                </div>
+                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm text-gray-700">
+                            Hiển thị <span class="font-medium">1</span> đến <span class="font-medium">12</span> của <span class="font-medium">567</span> sản phẩm
+                        </p>
+                    </div>
+                    <div>
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                            <button class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="bg-primary-50 border-primary-500 text-primary-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">1</button>
+                            <button class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">2</button>
+                            <button class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">3</button>
+                            <button class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
