@@ -112,6 +112,25 @@ public class AuthService {
     }
 
     /**
+     * Find user by phone number
+     * @param phone Phone number
+     * @return User entity if found, null otherwise
+     */
+    @Transactional(readOnly = true)
+    public User findUserByPhone(String phone) {
+        if (phone == null || phone.trim().isEmpty()) {
+            return null;
+        }
+        
+        try {
+            return userRepository.findByPhone(phone.trim()).orElse(null);
+        } catch (Exception e) {
+            log.error("Error finding user by phone {}: {}", phone, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Find user by ID
      * @param userId User ID
      * @return User entity if found, null otherwise

@@ -375,6 +375,7 @@
         let registrationData = {};
         let resendTimer = null;
         let resendCountdown = 60;
+        let isVerifyingOtp = false;
 
         // DOM Elements
         const registerForm = document.getElementById('registerForm');
@@ -592,6 +593,11 @@
 
         // OTP verification
         verifyOtpBtn.addEventListener('click', async () => {
+            if (isVerifyingOtp) {
+                console.log('Already verifying OTP, skipping...');
+                return;
+            }
+
             const otp = otpInput.value.trim();
             
             if (!otp || otp.length !== 6) {
@@ -599,10 +605,12 @@
                 return;
             }
 
+            isVerifyingOtp = true;
             hideOtpError();
             showLoading(verifyOtpBtn, verifyOtpBtnText, verifyOtpSpinner);
 
             try {
+                console.log('Verifying OTP:', otp, 'for email:', registrationData.email);
                 const response = await fetch('/api/auth/verify-registration', {
                     method: 'POST',
                     headers: {
@@ -614,19 +622,23 @@
                     })
                 });
 
+                console.log('OTP verification response status:', response.status);
                 const result = await response.json();
+                console.log('OTP verification response data:', result);
 
                 if (response.ok) {
                     // Registration successful
                     alert('Đăng ký thành công! Bạn sẽ được chuyển đến trang đăng nhập.');
                     window.location.href = '/login?success=register';
                 } else {
-                    showOtpError(result.message || 'Mã OTP không hợp lệ');
+                    console.log('OTP verification failed:', result.error || result.message);
+                    showOtpError(result.error || result.message || 'Mã OTP không hợp lệ');
                 }
             } catch (error) {
                 console.error('OTP verification error:', error);
                 showOtpError('Có lỗi xảy ra. Vui lòng thử lại.');
             } finally {
+                isVerifyingOtp = false;
                 hideLoading(verifyOtpBtn, verifyOtpBtnText, verifyOtpSpinner);
             }
         });
