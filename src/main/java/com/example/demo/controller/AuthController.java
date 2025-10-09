@@ -417,6 +417,20 @@ public class AuthController {
                         .body(ResponseWrapper.error("Không tìm thấy thông tin đăng ký hoặc đã hết hạn. Vui lòng đăng ký lại."));
             }
             
+            // Check if email already exists
+            if (authService.findUserByEmail(pendingReg.getEmail()) != null) {
+                log.warn("Email already exists during registration verification: {}", pendingReg.getEmail());
+                return ResponseEntity.badRequest()
+                        .body(ResponseWrapper.error("Email này đã được đăng ký. Vui lòng sử dụng email khác hoặc đăng nhập."));
+            }
+            
+            // Check if phone already exists
+            if (authService.findUserByPhone(pendingReg.getPhone()) != null) {
+                log.warn("Phone already exists during registration verification: {}", pendingReg.getPhone());
+                return ResponseEntity.badRequest()
+                        .body(ResponseWrapper.error("Số điện thoại này đã được đăng ký. Vui lòng sử dụng số khác."));
+            }
+            
             // Create new user
             User newUser = authService.registerUser(
                 pendingReg.getEmail(),
