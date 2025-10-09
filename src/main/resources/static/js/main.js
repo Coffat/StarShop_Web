@@ -239,7 +239,9 @@ function initializeSearch() {
         const html = suggestions.map(suggestion => `
             <a href="${suggestion.url}" class="suggestion-item">
                 <div class="suggestion-content">
-                    <i class="bi bi-search suggestion-icon"></i>
+                    <svg class="suggestion-icon w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
+                    </svg>
                     <div class="suggestion-text">
                         <div class="suggestion-title">${suggestion.title}</div>
                         <div class="suggestion-category">${suggestion.category}</div>
@@ -373,7 +375,7 @@ function initializeNewsletterForm() {
             }
             
             // Show loading state
-            button.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i>';
+            button.innerHTML = '<svg class="w-5 h-5 inline-block animate-spin" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0V5.36l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389A5.5 5.5 0 0 1 13.89 6.11l.311.31h-2.432a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.219Z" clip-rule="evenodd" /></svg>';
             button.disabled = true;
             
             // Simulate API call
@@ -472,7 +474,7 @@ function showToast(message, type = 'info') {
     const toastHTML = `
         <div id="${toastId}" class="toast toast-${type}" role="alert">
             <div class="toast-header">
-                <i class="bi ${getToastIcon(type)} me-2"></i>
+                ${getToastIconSVG(type)}
                 <strong class="me-auto">StarShop</strong>
                 <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
             </div>
@@ -494,12 +496,12 @@ function showToast(message, type = 'info') {
     });
 }
 
-function getToastIcon(type) {
+function getToastIconSVG(type) {
     const icons = {
-        success: 'bi-check-circle-fill text-success',
-        error: 'bi-exclamation-circle-fill text-danger',
-        warning: 'bi-exclamation-triangle-fill text-warning',
-        info: 'bi-info-circle-fill text-info'
+        success: '<svg class="w-5 h-5 inline-block text-success me-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" /></svg>',
+        error: '<svg class="w-5 h-5 inline-block text-danger me-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" /></svg>',
+        warning: '<svg class="w-5 h-5 inline-block text-warning me-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" /></svg>',
+        info: '<svg class="w-5 h-5 inline-block text-info me-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clip-rule="evenodd" /></svg>'
     };
     return icons[type] || icons.info;
 }
@@ -516,7 +518,7 @@ function addToCart(button) {
     const originalHTML = button.innerHTML;
     
     // Show loading state
-    button.innerHTML = '<i class="bi bi-hourglass"></i> Đang thêm...';
+    button.innerHTML = '<svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clip-rule="evenodd" /></svg> Đang thêm...';
     button.disabled = true;
 
     // Get CSRF token
@@ -568,7 +570,7 @@ function addToCart(button) {
     .then(data => {
         if (data && data.success && data.data && data.data.success) {
             // Success state
-            button.innerHTML = '<i class="bi bi-check"></i> Đã thêm!';
+            button.innerHTML = '<svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg> Đã thêm!';
             button.classList.add('success');
             
             showToast(data.data.message || `Đã thêm sản phẩm vào giỏ hàng`, 'success');

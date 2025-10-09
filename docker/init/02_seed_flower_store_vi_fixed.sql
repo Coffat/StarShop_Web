@@ -38,35 +38,29 @@ VALUES
 -- Thêm GHN shipping dimensions cho tất cả products
 INSERT INTO Products(name, description, price, image, stock_quantity, status, weight_g, length_cm, width_cm, height_cm, created_at, updated_at)
 VALUES
-('Bó hồng đỏ Classic', 'Bó 12 bông hồng đỏ giấy kraft, tượng trưng cho tình yêu nồng nàn và lãng mạn. Phù hợp cho các dịp đặc biệt như sinh nhật, kỷ niệm tình yêu.', 450000, '/images/products/red-rose-bouquet.jpg', 50, 'ACTIVE', 800, 60, 25, 40, NOW() - INTERVAL '60 days', NOW() - INTERVAL '60 days'),
+('Bó hồng đỏ Classic', 'Bó 12 bông hồng đỏ giấy kraft, tượng trưng cho tình yêu nồng nàn và lãng mạn. Phù hợp cho các dịp đặc biệt như sinh nhật, kỷ niệm tình yêu.', 450000, 'https://images.pexels.com/photos/34174876/pexels-photo-34174876.jpeg', 50, 'ACTIVE', 800, 60, 25, 40, NOW() - INTERVAL '60 days', NOW() - INTERVAL '60 days'),
 
-('Bó hồng phấn Sweetie', 'Hồng phấn baby kèm thiệp, mang vẻ đẹp dịu dàng và thanh lịch. Thích hợp để tặng bạn gái, vợ trong các dịp lãng mạn.', 520000, '/images/products/pink-rose-bouquet.jpg', 40, 'ACTIVE', 750, 55, 25, 38, NOW() - INTERVAL '59 days', NOW() - INTERVAL '59 days'),
+('Bó hồng phấn Sweetie', 'Hồng phấn baby kèm thiệp, mang vẻ đẹp dịu dàng và thanh lịch. Thích hợp để tặng bạn gái, vợ trong các dịp lãng mạn.', 520000, 'https://images.pexels.com/photos/3782745/pexels-photo-3782745.jpeg', 40, 'ACTIVE', 750, 55, 25, 38, NOW() - INTERVAL '59 days', NOW() - INTERVAL '59 days'),
 
-('Giỏ hoa hướng dương', 'Giỏ 8 bông hướng dương tươi, mang ý nghĩa của sự lạc quan và hy vọng. Thích hợp để tặng bạn bè, đồng nghiệp.', 600000, '/images/products/sunflower-basket.jpg', 35, 'ACTIVE', 1200, 40, 30, 35, NOW() - INTERVAL '58 days', NOW() - INTERVAL '58 days'),
+('Giỏ hoa hướng dương', 'Giỏ 8 bông hướng dương tươi, mang ý nghĩa của sự lạc quan và hy vọng. Thích hợp để tặng bạn bè, đồng nghiệp.', 600000, 'https://images.pexels.com/photos/54267/sunflower-blossom-bloom-flowers-54267.jpeg', 35, 'ACTIVE', 1200, 40, 30, 35, NOW() - INTERVAL '58 days', NOW() - INTERVAL '58 days'),
 
-('Bình tulip Hà Lan', '10 tulip phối nơ, tượng trưng cho sự giàu có và thành công. Thường được chọn cho các dịp khai trương, chúc mừng.', 750000, '/images/products/tulip-vase.jpg', 30, 'ACTIVE', 1500, 25, 25, 45, NOW() - INTERVAL '57 days', NOW() - INTERVAL '57 days'),
+('Bình tulip Hà Lan', '10 tulip phối nơ, tượng trưng cho sự giàu có và thành công. Thường được chọn cho các dịp khai trương, chúc mừng.', 750000, 'https://images.pexels.com/photos/34200702/pexels-photo-34200702.jpeg', 30, 'ACTIVE', 1500, 25, 25, 45, NOW() - INTERVAL '57 days', NOW() - INTERVAL '57 days'),
 
-('Lan hồ điệp 3 cành', 'Chậu lan sang trọng, thể hiện sự quý phái và đẳng cấp. Thường được chọn cho các sự kiện quan trọng và trang trí văn phòng.', 1200000, '/images/products/orchid-pot.jpg', 20, 'ACTIVE', 2000, 30, 30, 50, NOW() - INTERVAL '56 days', NOW() - INTERVAL '56 days'),
+('Lan hồ điệp 3 cành', 'Chậu lan sang trọng, thể hiện sự quý phái và đẳng cấp. Thường được chọn cho các sự kiện quan trọng và trang trí văn phòng.', 1200000, 'https://images.pexels.com/photos/19838583/pexels-photo-19838583.jpeg', 20, 'ACTIVE', 2000, 30, 30, 50, NOW() - INTERVAL '56 days', NOW() - INTERVAL '56 days'),
 
-('Bó cẩm chướng Pastel', 'Tone pastel nhẹ nhàng, thể hiện tình cảm chân thành và sự biết ơn. Phù hợp để tặng mẹ, bà trong các dịp đặc biệt.', 390000, '/images/products/pastel-carnation.jpg', 60, 'ACTIVE', 600, 50, 20, 35, NOW() - INTERVAL '55 days', NOW() - INTERVAL '55 days'),
+('Bó cẩm chướng Pastel', 'Tone pastel nhẹ nhàng, thể hiện tình cảm chân thành và sự biết ơn. Phù hợp để tặng mẹ, bà trong các dịp đặc biệt.', 390000, 'https://images.pexels.com/photos/136255/pexels-photo-136255.jpeg', 60, 'ACTIVE', 600, 50, 20, 35, NOW() - INTERVAL '55 days', NOW() - INTERVAL '55 days'),
 
-('Bó baby trắng', 'Baby trắng full bó, tượng trưng cho sự trong sạch và thuần khiết. Thường được dùng làm hoa phụ để tôn lên vẻ đẹp của hoa chính.', 350000, '/images/products/baby-breath-white.jpg', 70, 'ACTIVE', 400, 45, 20, 30, NOW() - INTERVAL '54 days', NOW() - INTERVAL '54 days'),
+('Hoa cưới', 'Bó cưới tone trắng kem, tượng trưng cho sự trong trắng và hạnh phúc. Được thiết kế đặc biệt cho ngày cưới.', 850000, 'https://images.pexels.com/photos/540522/pexels-photo-540522.jpeg', 12, 'ACTIVE', 1000, 50, 30, 45, NOW() - INTERVAL '51 days', NOW() - INTERVAL '51 days'),
 
-('Bó mix hoa theo mùa', 'Mix nhiều loài theo mùa, tạo nên sự đa dạng và phong phú. Thích hợp cho những người yêu thích sự đa dạng trong hoa.', 480000, '/images/products/seasonal-mix.jpg', 45, 'ACTIVE', 900, 55, 25, 40, NOW() - INTERVAL '53 days', NOW() - INTERVAL '53 days'),
+('Vòng hoa chia buồn', 'Trang trọng, lịch sự, thể hiện sự tôn trọng và chia sẻ nỗi buồn. Thường được sử dụng trong các buổi lễ tang.', 1500000, 'https://images.pexels.com/photos/33327309/pexels-photo-33327309.jpeg', 10, 'ACTIVE', 3000, 80, 80, 20, NOW() - INTERVAL '50 days', NOW() - INTERVAL '50 days'),
 
-('Giỏ hoa trái cây', 'Hoa + trái cây nhập, kết hợp giữa vẻ đẹp và dinh dưỡng. Thích hợp cho các dịp thăm bệnh, chúc sức khỏe.', 980000, '/images/products/fruit-flower-basket.jpg', 15, 'ACTIVE', 2500, 45, 35, 40, NOW() - INTERVAL '52 days', NOW() - INTERVAL '52 days'),
+('Hoa mừng khai trương', 'Kệ hoa chúc mừng, mang ý nghĩa thịnh vượng và thành công. Thích hợp cho các dịp khai trương cửa hàng, công ty.', 1800000, 'https://flowercorner.b-cdn.net/image/cache/catalog/products/August%202023/mon-qua-chuc-mung.jpg.webp', 8, 'ACTIVE', 5000, 100, 60, 150, NOW() - INTERVAL '49 days', NOW() - INTERVAL '49 days'),
 
-('Hoa cưới cô dâu', 'Bó cưới tone trắng kem, tượng trưng cho sự trong trắng và hạnh phúc. Được thiết kế đặc biệt cho ngày cưới.', 850000, '/images/products/wedding-bouquet.jpg', 12, 'ACTIVE', 1000, 50, 30, 45, NOW() - INTERVAL '51 days', NOW() - INTERVAL '51 days'),
+('Hoa Lavender', 'Hoa lavender tím nhạt với hương thơm dịu nhẹ, có tác dụng thư giãn tinh thần. Thích hợp để trang trí phòng ngủ.', 320000, 'https://images.pexels.com/photos/29554274/pexels-photo-29554274.jpeg', 25, 'ACTIVE', 300, 40, 15, 25, NOW() - INTERVAL '48 days', NOW() - INTERVAL '48 days'),
 
-('Vòng hoa chia buồn', 'Trang trọng, lịch sự, thể hiện sự tôn trọng và chia sẻ nỗi buồn. Thường được sử dụng trong các buổi lễ tang.', 1500000, '/images/products/condolence-wreath.jpg', 10, 'ACTIVE', 3000, 80, 80, 20, NOW() - INTERVAL '50 days', NOW() - INTERVAL '50 days'),
+('Hoa Peony Hồng', 'Hoa peony hồng đậm đà, tượng trưng cho sự thịnh vượng và may mắn. Thường được chọn cho các dịp cưới hỏi.', 680000, 'https://images.pexels.com/photos/18881375/pexels-photo-18881375.jpeg', 18, 'ACTIVE', 700, 50, 25, 35, NOW() - INTERVAL '47 days', NOW() - INTERVAL '47 days'),
 
-('Hoa mừng khai trương', 'Kệ hoa chúc mừng, mang ý nghĩa thịnh vượng và thành công. Thích hợp cho các dịp khai trương cửa hàng, công ty.', 1800000, '/images/products/grand-opening-arrangement.jpg', 8, 'ACTIVE', 5000, 100, 60, 150, NOW() - INTERVAL '49 days', NOW() - INTERVAL '49 days'),
-
-('Hoa Lavender', 'Hoa lavender tím nhạt với hương thơm dịu nhẹ, có tác dụng thư giãn tinh thần. Thích hợp để trang trí phòng ngủ.', 320000, '/images/products/lavender-bouquet.jpg', 25, 'ACTIVE', 300, 40, 15, 25, NOW() - INTERVAL '48 days', NOW() - INTERVAL '48 days'),
-
-('Hoa Peony Hồng', 'Hoa peony hồng đậm đà, tượng trưng cho sự thịnh vượng và may mắn. Thường được chọn cho các dịp cưới hỏi.', 680000, '/images/products/pink-peony.jpg', 18, 'ACTIVE', 700, 50, 25, 35, NOW() - INTERVAL '47 days', NOW() - INTERVAL '47 days'),
-
-('Hoa Gerbera Cam', 'Hoa gerbera cam rực rỡ, mang năng lượng tích cực và niềm vui. Thích hợp để tặng trong các dịp vui mừng.', 420000, '/images/products/orange-gerbera.jpg', 35, 'ACTIVE', 500, 45, 20, 30, NOW() - INTERVAL '46 days', NOW() - INTERVAL '46 days');
+('Hoa Gerbera Cam', 'Hoa gerbera cam rực rỡ, mang năng lượng tích cực và niềm vui. Thích hợp để tặng trong các dịp vui mừng.', 420000, 'https://images.unsplash.com/photo-1597583995844-edce63cc1cb0?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Z2VyYmVyYXxlbnwwfHwwfHx8MA%3D%3D', 35, 'ACTIVE', 500, 45, 20, 30, NOW() - INTERVAL '46 days', NOW() - INTERVAL '46 days');
 
 -- ========== 5) ADDRESSES ==========
 -- Thêm addresses cho users với GHN fields (mix OLD và NEW mode)
