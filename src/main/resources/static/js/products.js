@@ -48,7 +48,9 @@
         toast.className = `toast-notification toast-${type}`;
         toast.innerHTML = `
             <div class="toast-content">
-                <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    ${type === 'success' ? '<path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" />' : '<path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />'}
+                </svg>
                 <span>${message}</span>
             </div>
         `;
@@ -70,7 +72,7 @@
     function setLoadingState(element, loading = true) {
         if (loading) {
             element.dataset.originalContent = element.innerHTML;
-            element.innerHTML = '<i class="bi bi-hourglass"></i> Đang xử lý...';
+            element.innerHTML = '<svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clip-rule="evenodd" /></svg> Đang xử lý...';
             element.disabled = true;
         } else {
             element.innerHTML = element.dataset.originalContent || element.innerHTML;
@@ -255,10 +257,10 @@
                         const isInWishlist = data.data.isFavorite || data.data.isInWishlist;
                         
                         if (isInWishlist) {
-                            icon.className = 'bi bi-heart-fill';
+                            icon.outerHTML = '<svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="m9.653 16.915-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001Z" /></svg>';
                             button.classList.add('active');
                         } else {
-                            icon.className = 'bi bi-heart';
+                            icon.outerHTML = '<svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>';
                             button.classList.remove('active');
                         }
                     }
@@ -282,7 +284,7 @@
         // Show loading state
         const originalHTML = button.innerHTML;
         button.disabled = true;
-        button.innerHTML = '<i class="bi bi-hourglass"></i> Đang thêm...';
+        button.innerHTML = '<svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clip-rule="evenodd" /></svg> Đang thêm...';
 
         // Get CSRF token
         const csrfToken = getCsrfToken();
@@ -319,7 +321,7 @@
             
             if (data && data.success && data.data && data.data.success) {
                 // Success state
-                button.innerHTML = '<i class="bi bi-check"></i> Đã thêm!';
+                button.innerHTML = '<svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg> Đã thêm!';
                 button.classList.add('success');
                 
                 showToast(data.data.message || `Đã thêm sản phẩm vào giỏ hàng`, 'success');
@@ -371,7 +373,8 @@
         // Disable button to prevent multiple clicks
         button.disabled = true;
         const originalContent = icon.className;
-        icon.className = 'bi bi-hourglass';
+        const originalIconHTML = icon.outerHTML;
+        icon.outerHTML = '<svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clip-rule="evenodd" /></svg>';
 
         console.log('Wishlist toggle - Product ID:', productId);
 
@@ -649,7 +652,7 @@
             <div class="image-modal-backdrop" onclick="this.parentElement.remove()">
                 <img src="${imageSrc}" alt="${imageAlt}" class="image-modal-content">
                 <button class="image-modal-close" onclick="this.parentElement.parentElement.remove()">
-                    <i class="bi bi-x-lg"></i>
+                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" /></svg>
                 </button>
             </div>
         `;
