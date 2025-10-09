@@ -251,90 +251,29 @@
                 </p>
             </div>
             
-            <div class="products-grid">
-                    <div class="product-card" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
-                        <div class="product-image">
-                        <img src="/images/products/rose-bouquet-1.jpg" alt="Bó hoa hồng đỏ tình yêu">
-                        </div>
-                        <div class="product-content">
-                        <h3 class="product-title">
-                                <a href="/products/bo-hoa-hong-do-tinh-yeu">Bó hoa hồng đỏ tình yêu</a>
-                        </h3>
-                            <div class="product-price">
-                                <span class="current-price">650.000₫</span>
-                                <span class="original-price">750.000₫</span>
-                            </div>
-                        <button class="btn-quick-add" data-product-id="1">
-                                <svg class="hero-icon hero-icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M6 5v1H4.667a1.75 1.75 0 0 0-1.743 1.598l-.826 9.5A1.75 1.75 0 0 0 3.84 19h12.32a1.75 1.75 0 0 0 1.742-1.902l-.826-9.5A1.75 1.75 0 0 0 15.333 6H14V5a4 4 0 0 0-8 0Zm4-2.5A2.5 2.5 0 0 0 7.5 5v1h5V5A2.5 2.5 0 0 0 10 2.5Z" clip-rule="evenodd" />
-                                    <path d="M9.25 10.25a.75.75 0 0 1 1.5 0V12h1.75a.75.75 0 0 1 0 1.5H10.75v1.75a.75.75 0 0 1-1.5 0V13.5H7.5a.75.75 0 0 1 0-1.5h1.75v-1.75Z" />
-                                </svg>
-                            Mua ngay
-                            </button>
+            <div class="products-grid" th:if="${featuredProducts != null}">
+                <div th:each="product, iterStat : ${featuredProducts}"
+                     class="product-card"
+                     data-aos="fade-up"
+                     data-aos-duration="600"
+                     th:data-aos-delay="${iterStat.index * 100}">
+                    <div class="product-image-container">
+                        <a th:href="@{/products/{id}(id=${product.id})}" class="product-image-link">
+                            <img th:src="${product.image != null ? product.image : '/images/products/default-flower.jpg'}"
+                                 th:alt="${product.name}"
+                                 class="product-image"
+                                 loading="lazy" />
+                        </a>
                     </div>
-                </div>
-                
-                    <div class="product-card" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                        <div class="product-image">
-                        <img src="/images/products/tulip-bouquet.jpg" alt="Bó tulip Hà Lan cao cấp">
-                        </div>
-                        <div class="product-content">
+                    <div class="product-content">
                         <h3 class="product-title">
-                                <a href="/products/bo-tulip-ha-lan">Bó tulip Hà Lan cao cấp</a>
+                            <a th:href="@{/products/{id}(id=${product.id})}"
+                               class="product-title-link"
+                               th:text="${product.name}">Tên sản phẩm</a>
                         </h3>
-                            <div class="product-price">
-                                <span class="current-price">850.000₫</span>
-                            </div>
-                        <button class="btn-quick-add" data-product-id="2">
-                                <svg class="hero-icon hero-icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M6 5v1H4.667a1.75 1.75 0 0 0-1.743 1.598l-.826 9.5A1.75 1.75 0 0 0 3.84 19h12.32a1.75 1.75 0 0 0 1.742-1.902l-.826-9.5A1.75 1.75 0 0 0 15.333 6H14V5a4 4 0 0 0-8 0Zm4-2.5A2.5 2.5 0 0 0 7.5 5v1h5V5A2.5 2.5 0 0 0 10 2.5Z" clip-rule="evenodd" />
-                                    <path d="M9.25 10.25a.75.75 0 0 1 1.5 0V12h1.75a.75.75 0 0 1 0 1.5H10.75v1.75a.75.75 0 0 1-1.5 0V13.5H7.5a.75.75 0 0 1 0-1.5h1.75v-1.75Z" />
-                                </svg>
-                            Mua ngay
-                            </button>
-                    </div>
-                </div>
-                
-                    <div class="product-card" data-aos="fade-up" data-aos-duration="600" data-aos-delay="300">
-                        <div class="product-image">
-                        <img src="/images/products/sunflower-bouquet.jpg" alt="Bó hoa hướng dương rạng rỡ">
+                        <div class="product-price">
+                            <span class="current-price" th:text="${#numbers.formatCurrency(product.price)}">0₫</span>
                         </div>
-                        <div class="product-content">
-                        <h3 class="product-title">
-                                <a href="/products/bo-hoa-huong-duong">Bó hoa hướng dương rạng rỡ</a>
-                        </h3>
-                            <div class="product-price">
-                                <span class="current-price">480.000₫</span>
-                            </div>
-                        <button class="btn-quick-add" data-product-id="3">
-                                <svg class="hero-icon hero-icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M6 5v1H4.667a1.75 1.75 0 0 0-1.743 1.598l-.826 9.5A1.75 1.75 0 0 0 3.84 19h12.32a1.75 1.75 0 0 0 1.742-1.902l-.826-9.5A1.75 1.75 0 0 0 15.333 6H14V5a4 4 0 0 0-8 0Zm4-2.5A2.5 2.5 0 0 0 7.5 5v1h5V5A2.5 2.5 0 0 0 10 2.5Z" clip-rule="evenodd" />
-                                    <path d="M9.25 10.25a.75.75 0 0 1 1.5 0V12h1.75a.75.75 0 0 1 0 1.5H10.75v1.75a.75.75 0 0 1-1.5 0V13.5H7.5a.75.75 0 0 1 0-1.5h1.75v-1.75Z" />
-                                </svg>
-                            Mua ngay
-                            </button>
-                    </div>
-                </div>
-                
-                    <div class="product-card" data-aos="fade-up" data-aos-duration="600" data-aos-delay="400">
-                        <div class="product-image">
-                        <img src="/images/products/mixed-bouquet.jpg" alt="Bó hoa hỗn hợp thanh lịch">
-                        </div>
-                        <div class="product-content">
-                        <h3 class="product-title">
-                                <a href="/products/bo-hoa-hon-hop">Bó hoa hỗn hợp thanh lịch</a>
-                        </h3>
-                            <div class="product-price">
-                                <span class="current-price">720.000₫</span>
-                                <span class="original-price">900.000₫</span>
-                            </div>
-                        <button class="btn-quick-add" data-product-id="4">
-                                <svg class="hero-icon hero-icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M6 5v1H4.667a1.75 1.75 0 0 0-1.743 1.598l-.826 9.5A1.75 1.75 0 0 0 3.84 19h12.32a1.75 1.75 0 0 0 1.742-1.902l-.826-9.5A1.75 1.75 0 0 0 15.333 6H14V5a4 4 0 0 0-8 0Zm4-2.5A2.5 2.5 0 0 0 7.5 5v1h5V5A2.5 2.5 0 0 0 10 2.5Z" clip-rule="evenodd" />
-                                    <path d="M9.25 10.25a.75.75 0 0 1 1.5 0V12h1.75a.75.75 0 0 1 0 1.5H10.75v1.75a.75.75 0 0 1-1.5 0V13.5H7.5a.75.75 0 0 1 0-1.5h1.75v-1.75Z" />
-                                </svg>
-                            Mua ngay
-                            </button>
                     </div>
                 </div>
             </div>
