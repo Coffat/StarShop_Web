@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Service class for managing orders
@@ -518,77 +517,12 @@ public class OrderService {
     }
     
     /**
-     * Update order status (for admin/staff)
-     */
-    public OrderResponse updateOrderStatus(Long orderId, OrderStatus newStatus) {
-        try {
-            Optional<Order> orderOpt = orderRepository.findById(orderId);
-            if (orderOpt.isEmpty()) {
-                return OrderResponse.error("Đơn hàng không tồn tại");
-            }
-            
-            Order order = orderOpt.get();
-            OrderStatus oldStatus = order.getStatus();
-            
-            // Validate status transition
-            if (!isValidStatusTransition(oldStatus, newStatus)) {
-                return OrderResponse.error("Không thể chuyển từ trạng thái " + oldStatus + " sang " + newStatus);
-            }
-            
-            order.setStatus(newStatus);
-            orderRepository.save(order);
-            
-            logger.info("Updated order {} status from {} to {}", orderId, oldStatus, newStatus);
-            return OrderResponse.success("Cập nhật trạng thái đơn hàng thành công", OrderDTO.fromOrder(order));
-            
-        } catch (Exception e) {
-            logger.error("Error updating order {} status: {}", orderId, e.getMessage());
-            return OrderResponse.error("Có lỗi xảy ra khi cập nhật trạng thái đơn hàng");
-        }
-    }
-    
-    /**
-     * Get orders by status (for admin/staff)
-     */
-    @Transactional(readOnly = true)
-    public List<OrderDTO> getOrdersByStatus(OrderStatus status) {
-        try {
-            List<Order> orders = orderRepository.findByStatus(status);
-            return orders.stream()
-                .map(OrderDTO::fromOrder)
-                .collect(Collectors.toList());
-        } catch (Exception e) {
-            logger.error("Error getting orders by status {}: {}", status, e.getMessage());
-            throw new RuntimeException("Có lỗi xảy ra khi lấy danh sách đơn hàng");
-        }
-    }
-    
-    /**
      * Generate order number
      */
     private String generateOrderNumber(Long orderId) {
         LocalDateTime now = LocalDateTime.now();
         String dateStr = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         return "ORD" + dateStr + String.format("%06d", orderId);
-    }
-    
-    /**
-     * Validate status transition
-     */
-    private boolean isValidStatusTransition(OrderStatus from, OrderStatus to) {
-        switch (from) {
-            case PENDING:
-                return to == OrderStatus.PROCESSING || to == OrderStatus.CANCELLED;
-            case PROCESSING:
-                return to == OrderStatus.SHIPPED || to == OrderStatus.CANCELLED;
-            case SHIPPED:
-                return to == OrderStatus.COMPLETED;
-            case COMPLETED:
-            case CANCELLED:
-                return false; // Final states
-            default:
-                return false;
-        }
     }
     
     /**
@@ -621,6 +555,232 @@ public class OrderService {
         } catch (Exception e) {
             logger.error("Error in createOrderWithPayment for user {}: {}", userId, e.getMessage(), e);
             throw e; // Re-throw to trigger rollback
+        }
+    }
+
+    // ==================== ADMIN ORDER MANAGEMENT METHODS ====================
+
+    /**
+     * Get order by ID for admin
+     */
+    @Transactional(readOnly = true)
+    public OrderDTO getOrderById(Long orderId) {
+        logger.debug("Getting order by ID: {}", orderId);
+        try {
+            Order order = orderRepository.findOrderWithAllDetails(orderId);
+            if (order == null) {
+                return null;
+            }
+            return OrderDTO.fromOrder(order);
+        } catch (Exception e) {
+            logger.error("Error getting order by ID {}: {}", orderId, e.getMessage(), e);
+            throw new RuntimeException("Failed to get order", e);
+        }
+    }
+
+    /**
+     * Get all orders with pagination for admin
+     */
+    @Transactional(readOnly = true)
+    public Page<OrderDTO> getAllOrders(Pageable pageable) {
+        logger.debug("Getting all orders with pagination: {}", pageable);
+        try {
+            Page<Order> orders = orderRepository.findAll(pageable);
+            return orders.map(OrderDTO::fromOrder);
+        } catch (Exception e) {
+            logger.error("Error getting all orders: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to get orders", e);
+        }
+    }
+
+    /**
+     * Get orders by status with pagination
+     */
+    @Transactional(readOnly = true)
+    public Page<OrderDTO> getOrdersByStatus(OrderStatus status, Pageable pageable) {
+        logger.debug("Getting orders by status: {} with pagination: {}", status, pageable);
+        try {
+            Page<Order> orders = orderRepository.findByStatus(status, pageable);
+            return orders.map(OrderDTO::fromOrder);
+        } catch (Exception e) {
+            logger.error("Error getting orders by status {}: {}", status, e.getMessage(), e);
+            throw new RuntimeException("Failed to get orders by status", e);
+        }
+    }
+
+    /**
+     * Search orders by order number, customer name, or email
+     */
+    @Transactional(readOnly = true)
+    public Page<OrderDTO> searchOrders(String searchTerm, Pageable pageable) {
+        logger.debug("Searching orders with term: {} and pagination: {}", searchTerm, pageable);
+        try {
+            Page<Order> orders = orderRepository.searchOrders(searchTerm, pageable);
+            return orders.map(OrderDTO::fromOrder);
+        } catch (Exception e) {
+            logger.error("Error searching orders with term {}: {}", searchTerm, e.getMessage(), e);
+            throw new RuntimeException("Failed to search orders", e);
+        }
+    }
+
+    /**
+     * Update order status (Admin function)
+     */
+    @Transactional
+    public OrderDTO updateOrderStatus(Long orderId, OrderStatus newStatus) {
+        logger.debug("Updating order {} status to {}", orderId, newStatus);
+        try {
+            Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with ID: " + orderId));
+
+            // Validate status transition
+            if (!isValidStatusTransition(order.getStatus(), newStatus)) {
+                throw new RuntimeException("Invalid status transition from " + order.getStatus() + " to " + newStatus);
+            }
+
+            order.setStatus(newStatus);
+            order.setUpdatedAt(LocalDateTime.now());
+            
+            Order savedOrder = orderRepository.save(order);
+            logger.info("Order {} status updated to {}", orderId, newStatus);
+            
+            return OrderDTO.fromOrder(savedOrder);
+            
+        } catch (Exception e) {
+            logger.error("Error updating order status for order {}: {}", orderId, e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    /**
+     * Get order statistics for admin dashboard
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> getOrderStatistics() {
+        logger.debug("Getting order statistics");
+        try {
+            Map<String, Object> stats = new HashMap<>();
+            
+            // Total orders
+            stats.put("totalOrders", orderRepository.count());
+            
+            // Orders by status
+            for (OrderStatus status : OrderStatus.values()) {
+                stats.put(status.name().toLowerCase() + "Orders", orderRepository.countByStatus(status));
+            }
+            
+            // Total revenue (completed orders only)
+            BigDecimal totalRevenue = orderRepository.getTotalRevenue();
+            stats.put("totalRevenue", totalRevenue != null ? totalRevenue : BigDecimal.ZERO);
+            
+            // Monthly revenue
+            BigDecimal monthlyRevenue = orderRepository.getMonthlyRevenue();
+            stats.put("monthlyRevenue", monthlyRevenue != null ? monthlyRevenue : BigDecimal.ZERO);
+            
+            // Recent orders count (last 7 days)
+            LocalDateTime weekAgo = LocalDateTime.now().minusDays(7);
+            List<Order> recentOrders = orderRepository.findOrdersBetweenDates(weekAgo, LocalDateTime.now());
+            stats.put("recentOrdersCount", recentOrders.size());
+            
+            return stats;
+            
+        } catch (Exception e) {
+            logger.error("Error getting order statistics: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to get order statistics", e);
+        }
+    }
+
+    /**
+     * Admin cancel order with reason
+     */
+    @Transactional
+    public OrderDTO adminCancelOrder(Long orderId, String reason) {
+        logger.debug("Admin cancelling order {} with reason: {}", orderId, reason);
+        try {
+            Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with ID: " + orderId));
+
+            // Check if order can be cancelled
+            if (order.getStatus() == OrderStatus.COMPLETED || order.getStatus() == OrderStatus.CANCELLED) {
+                throw new RuntimeException("Cannot cancel order with status: " + order.getStatus());
+            }
+
+            order.setStatus(OrderStatus.CANCELLED);
+            order.setNotes(order.getNotes() != null ? order.getNotes() + "\n" + reason : reason);
+            order.setUpdatedAt(LocalDateTime.now());
+            
+            // Restore product stock
+            restoreProductStock(order);
+            
+            Order savedOrder = orderRepository.save(order);
+            logger.info("Order {} cancelled by admin with reason: {}", orderId, reason);
+            
+            return OrderDTO.fromOrder(savedOrder);
+            
+        } catch (Exception e) {
+            logger.error("Error admin cancelling order {}: {}", orderId, e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    /**
+     * Validate status transition
+     */
+    private boolean isValidStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) {
+        if (currentStatus == newStatus) {
+            return true;
+        }
+        
+        switch (currentStatus) {
+            case PENDING:
+                return newStatus == OrderStatus.PROCESSING || newStatus == OrderStatus.CANCELLED;
+            case PROCESSING:
+                return newStatus == OrderStatus.SHIPPED || newStatus == OrderStatus.CANCELLED;
+            case SHIPPED:
+                return newStatus == OrderStatus.COMPLETED;
+            case COMPLETED:
+            case CANCELLED:
+                return false; // Final states
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Restore product stock when order is cancelled
+     */
+    private void restoreProductStock(Order order) {
+        try {
+            for (OrderItem item : order.getOrderItems()) {
+                Product product = item.getProduct();
+                product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
+                productRepository.save(product);
+                logger.debug("Restored {} units of product {} (ID: {})", 
+                           item.getQuantity(), product.getName(), product.getId());
+            }
+        } catch (Exception e) {
+            logger.error("Error restoring product stock for order {}: {}", order.getId(), e.getMessage(), e);
+            // Don't throw exception here as it's a side effect
+        }
+    }
+
+    /**
+     * Create order directly (Admin function)
+     */
+    @Transactional
+    public OrderDTO createOrderDirect(Object request) {
+        try {
+            // For now, return a simple implementation
+            // This would need to be properly implemented based on the request structure
+            logger.info("Creating order directly via admin");
+            
+            // This is a placeholder - you would need to implement the actual logic
+            // based on your CreateOrderRequest structure
+            throw new RuntimeException("Direct order creation not yet implemented");
+            
+        } catch (Exception e) {
+            logger.error("Error creating direct order: {}", e.getMessage(), e);
+            throw e;
         }
     }
 }

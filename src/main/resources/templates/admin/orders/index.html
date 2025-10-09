@@ -1,8 +1,31 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
 <body>
     <!-- Orders Management Content -->
-    <div class="space-y-6">
+    <div class="space-y-6 p-6">
         
         <!-- Header Actions -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -15,40 +38,113 @@
                     <i class="fas fa-download mr-2"></i>
                     Xuất Excel
                 </button>
-                <button class="inline-flex items-center px-4 py-2 bg-primary-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-primary-700 transition-colors duration-200">
+                <button onclick="openCreateOrderModal()" class="inline-flex items-center px-4 py-2 bg-primary-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-primary-700 transition-colors duration-200">
                     <i class="fas fa-plus mr-2"></i>
                     Tạo đơn hàng
                 </button>
             </div>
         </div>
         
-        <!-- Filters -->
-        <div class="bg-white rounded-xl shadow-sm p-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
-                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="pending">Chờ xử lý</option>
-                        <option value="processing">Đang xử lý</option>
-                        <option value="shipped">Đã giao</option>
-                        <option value="delivered">Hoàn thành</option>
-                        <option value="cancelled">Đã hủy</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Từ ngày</label>
-                    <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Đến ngày</label>
-                    <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
-                    <input type="text" placeholder="Mã đơn hàng, tên khách hàng..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6" th:if="${orderStats}">
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-shopping-cart text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Tổng đơn hàng</p>
+                        <p class="text-2xl font-semibold text-gray-900" th:text="${orderStats.totalOrders ?: 0}">0</p>
+                    </div>
                 </div>
             </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-clock text-yellow-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Chờ xử lý</p>
+                        <p class="text-2xl font-semibold text-gray-900" th:text="${orderStats.pendingOrders ?: 0}">0</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-check-circle text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Hoàn thành</p>
+                        <p class="text-2xl font-semibold text-gray-900" th:text="${orderStats.completedOrders ?: 0}">0</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-dollar-sign text-purple-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Doanh thu</p>
+                        <p class="text-2xl font-semibold text-gray-900" th:text="${orderStats.totalRevenue != null ? #numbers.formatCurrency(orderStats.totalRevenue) : '0₫'}">0₫</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <form method="get" th:action="@{/admin/orders}">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                        <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" th:value="${currentStatus}">
+                            <option value="">Tất cả trạng thái</option>
+                            <option th:each="status : ${orderStatuses}" 
+                                    th:value="${status.name()}" 
+                                    th:text="${status.displayName}"
+                                    th:selected="${status.name() == currentStatus}">
+                            </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Sắp xếp</label>
+                        <select name="sortBy" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" th:value="${sortBy}">
+                            <option value="orderDate" th:selected="${sortBy == 'orderDate'}">Ngày đặt hàng</option>
+                            <option value="totalAmount" th:selected="${sortBy == 'totalAmount'}">Tổng tiền</option>
+                            <option value="status" th:selected="${sortBy == 'status'}">Trạng thái</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Thứ tự</label>
+                        <select name="sortDir" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" th:value="${sortDir}">
+                            <option value="desc" th:selected="${sortDir == 'desc'}">Mới nhất</option>
+                            <option value="asc" th:selected="${sortDir == 'asc'}">Cũ nhất</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
+                        <div class="flex space-x-2">
+                            <input type="text" name="search" th:value="${currentSearch}" placeholder="Mã đơn hàng, tên khách hàng..." class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
         
         <!-- Orders Table -->
@@ -66,85 +162,67 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <!-- Sample Order Row -->
-                        <tr class="hover:bg-gray-50 transition-colors duration-200">
+                        <tr th:if="${orders.empty}" class="hover:bg-gray-50">
+                            <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                                <i class="fas fa-inbox text-4xl text-gray-300 mb-4"></i>
+                                <p class="text-lg font-medium">Không có đơn hàng nào</p>
+                                <p class="text-sm">Thử thay đổi bộ lọc hoặc tìm kiếm khác</p>
+                            </td>
+                        </tr>
+                        
+                        <tr th:each="order : ${orders.content}" class="hover:bg-gray-50 transition-colors duration-200">
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">#ORD-001234</div>
+                                <div class="text-sm font-medium text-gray-900" th:text="'#' + ${order.id}">#001234</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div class="h-8 w-8 bg-primary-100 rounded-full flex items-center justify-center">
-                                        <span class="text-sm font-medium text-primary-600">NA</span>
+                                        <span class="text-sm font-medium text-primary-600" 
+                                              th:text="${order.userFullName != null ? #strings.substring(order.userFullName, 0, 2).toUpperCase() : 'NA'}">NA</span>
                                     </div>
                                     <div class="ml-3">
-                                        <div class="text-sm font-medium text-gray-900">Nguyễn Văn A</div>
-                                        <div class="text-sm text-gray-500">nguyenvana@email.com</div>
+                                        <div class="text-sm font-medium text-gray-900" th:text="${order.userFullName ?: 'N/A'}">N/A</div>
+                                        <div class="text-sm text-gray-500" th:text="${order.userEmail ?: ''}"></div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" 
+                                th:text="${order.orderDate != null ? #temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm') : 'N/A'}">
                                 15/12/2024
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" 
+                                th:text="${order.totalAmount != null ? #numbers.formatCurrency(order.totalAmount) : '0₫'}">
                                 1,250,000₫
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <span th:class="'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + 
+                                              (${order.status?.name()} == 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                                               ${order.status?.name()} == 'PROCESSING' ? 'bg-blue-100 text-blue-800' :
+                                               ${order.status?.name()} == 'SHIPPED' ? 'bg-purple-100 text-purple-800' :
+                                               ${order.status?.name()} == 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                               ${order.status?.name()} == 'CANCELLED' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800')"
+                                      th:text="${order.status?.displayName ?: 'N/A'}">
                                     Hoàn thành
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex space-x-2">
-                                    <button class="text-primary-600 hover:text-primary-900 transition-colors duration-200">
+                                    <a th:href="@{/admin/orders/{id}(id=${order.id})}" 
+                                       class="text-primary-600 hover:text-primary-900 transition-colors duration-200" 
+                                       title="Xem chi tiết">
                                         <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="text-blue-600 hover:text-blue-900 transition-colors duration-200">
+                                    </a>
+                                    <button class="text-blue-600 hover:text-blue-900 transition-colors duration-200 update-status-btn" 
+                                            th:data-order-id="${order.id}"
+                                            th:data-current-status="${order.status?.name()}"
+                                            title="Cập nhật trạng thái">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <button class="text-red-600 hover:text-red-900 transition-colors duration-200">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        <!-- More sample rows -->
-                        <tr class="hover:bg-gray-50 transition-colors duration-200">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">#ORD-001235</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="h-8 w-8 bg-primary-100 rounded-full flex items-center justify-center">
-                                        <span class="text-sm font-medium text-primary-600">TB</span>
-                                    </div>
-                                    <div class="ml-3">
-                                        <div class="text-sm font-medium text-gray-900">Trần Thị B</div>
-                                        <div class="text-sm text-gray-500">tranthib@email.com</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                14/12/2024
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                850,000₫
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                    Đang xử lý
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex space-x-2">
-                                    <button class="text-primary-600 hover:text-primary-900 transition-colors duration-200">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="text-blue-600 hover:text-blue-900 transition-colors duration-200">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="text-red-600 hover:text-red-900 transition-colors duration-200">
-                                        <i class="fas fa-trash"></i>
+                                    <button class="text-red-600 hover:text-red-900 transition-colors duration-200 cancel-order-btn" 
+                                            th:data-order-id="${order.id}"
+                                            th:if="${order.status?.name() != 'COMPLETED' && order.status?.name() != 'CANCELLED'}"
+                                            title="Hủy đơn hàng">
+                                        <i class="fas fa-times"></i>
                                     </button>
                                 </div>
                             </td>
@@ -154,37 +232,727 @@
             </div>
             
             <!-- Pagination -->
-            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6" th:if="${orders != null && !orders.empty}">
                 <div class="flex-1 flex justify-between sm:hidden">
-                    <button class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    <a th:if="${currentPage > 0}" 
+                       th:href="@{/admin/orders(page=${currentPage - 1}, size=20, sortBy=${sortBy}, sortDir=${sortDir}, status=${currentStatus}, search=${currentSearch})}"
+                       class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                         Trước
-                    </button>
-                    <button class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    </a>
+                    <a th:if="${currentPage < totalPages - 1}" 
+                       th:href="@{/admin/orders(page=${currentPage + 1}, size=20, sortBy=${sortBy}, sortDir=${sortDir}, status=${currentStatus}, search=${currentSearch})}"
+                       class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                         Sau
-                    </button>
+                    </a>
                 </div>
                 <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                     <div>
                         <p class="text-sm text-gray-700">
-                            Hiển thị <span class="font-medium">1</span> đến <span class="font-medium">10</span> của <span class="font-medium">97</span> kết quả
+                            Hiển thị 
+                            <span class="font-medium" th:text="${currentPage * 20 + 1}">1</span> 
+                            đến 
+                            <span class="font-medium" th:text="${#numbers.formatInteger((currentPage + 1) * 20 > totalElements ? totalElements : (currentPage + 1) * 20, 0)}">10</span> 
+                            của 
+                            <span class="font-medium" th:text="${totalElements}">97</span> 
+                            kết quả
                         </p>
                     </div>
-                    <div>
+                    <div th:if="${totalPages > 1}">
                         <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                            <button class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <!-- Previous button -->
+                            <a th:if="${currentPage > 0}" 
+                               th:href="@{/admin/orders(page=${currentPage - 1}, size=20, sortBy=${sortBy}, sortDir=${sortDir}, status=${currentStatus}, search=${currentSearch})}"
+                               class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                                 <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <button class="bg-primary-50 border-primary-500 text-primary-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">1</button>
-                            <button class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">2</button>
-                            <button class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">3</button>
-                            <button class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            </a>
+                            
+                            <!-- Page numbers -->
+                            <span th:each="page : ${#numbers.sequence(0, totalPages - 1)}" th:if="${page >= currentPage - 2 && page <= currentPage + 2}">
+                                <a th:if="${page != currentPage}"
+                                   th:href="@{/admin/orders(page=${page}, size=20, sortBy=${sortBy}, sortDir=${sortDir}, status=${currentStatus}, search=${currentSearch})}"
+                                   th:text="${page + 1}"
+                                   class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                </a>
+                                <span th:if="${page == currentPage}"
+                                      th:text="${page + 1}"
+                                      class="bg-primary-50 border-primary-500 text-primary-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                </span>
+                            </span>
+                            
+                            <!-- Next button -->
+                            <a th:if="${currentPage < totalPages - 1}" 
+                               th:href="@{/admin/orders(page=${currentPage + 1}, size=20, sortBy=${sortBy}, sortDir=${sortDir}, status=${currentStatus}, search=${currentSearch})}"
+                               class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                                 <i class="fas fa-chevron-right"></i>
-                            </button>
+                            </a>
                         </nav>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Update Status Modal -->
+    <div id="updateStatusModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Cập nhật trạng thái đơn hàng</h3>
+                <form id="updateStatusForm">
+                    <input type="hidden" id="updateOrderId">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Trạng thái mới</label>
+                        <select id="newStatus" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <option value="PENDING">Chờ xử lý</option>
+                            <option value="PROCESSING">Đang xử lý</option>
+                            <option value="SHIPPED">Đã giao</option>
+                            <option value="COMPLETED">Hoàn thành</option>
+                            <option value="CANCELLED">Đã hủy</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeUpdateStatusModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors duration-200">
+                            Hủy
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                            Cập nhật
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Order Modal -->
+    <div id="createOrderModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-medium text-gray-900">Tạo đơn hàng mới</h3>
+                    <button onclick="closeCreateOrderModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <form id="createOrderForm" class="space-y-6">
+                    <!-- Customer Selection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Khách hàng</label>
+                        <div class="relative">
+                            <input type="text" id="customerSearch" placeholder="Tìm kiếm khách hàng theo email hoặc tên..." 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <div id="customerDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg hidden max-h-48 overflow-y-auto">
+                                <!-- Customer search results will be populated here -->
+                            </div>
+                        </div>
+                        <input type="hidden" id="selectedCustomerId">
+                        <div id="selectedCustomer" class="mt-2 hidden">
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <div class="h-8 w-8 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                                    <span class="text-sm font-medium text-primary-600" id="customerInitials"></span>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium text-gray-900" id="customerName"></div>
+                                    <div class="text-sm text-gray-500" id="customerEmail"></div>
+                                    <div id="customerAddressStatus" class="text-xs mt-1"></div>
+                                </div>
+                                <button type="button" onclick="clearSelectedCustomer()" class="ml-auto text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Warning for customers without address -->
+                            <div id="noAddressWarning" class="mt-2 hidden">
+                                <div class="flex items-center p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-exclamation-triangle text-orange-500"></i>
+                                    </div>
+                                    <div class="ml-3 flex-1">
+                                        <div class="text-sm font-medium text-orange-800">
+                                            Khách hàng chưa có địa chỉ giao hàng
+                                        </div>
+                                        <div class="text-sm text-orange-700">
+                                            Cần thêm địa chỉ cho khách hàng trước khi tạo đơn hàng
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <button type="button" onclick="openAddAddressModal()" class="text-sm bg-orange-100 hover:bg-orange-200 text-orange-800 px-3 py-1 rounded-md transition-colors duration-200">
+                                            Thêm địa chỉ
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Selection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Sản phẩm</label>
+                        <div class="relative">
+                            <input type="text" id="productSearch" placeholder="Tìm kiếm sản phẩm..." 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <div id="productDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg hidden max-h-48 overflow-y-auto">
+                                <!-- Product search results will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Selected Products -->
+                    <div id="selectedProducts" class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-sm font-medium text-gray-700">Sản phẩm đã chọn</h4>
+                            <div class="text-sm text-gray-500" id="productCount">0 sản phẩm</div>
+                        </div>
+                        <div id="productList" class="space-y-2 max-h-40 overflow-y-auto">
+                            <!-- Selected products will be displayed here -->
+                        </div>
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div class="border-t pt-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm text-gray-600">Tạm tính:</span>
+                            <span class="text-sm font-medium" id="subtotal">0₫</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm text-gray-600">Phí vận chuyển:</span>
+                            <span class="text-sm font-medium" id="shippingFee">0₫</span>
+                        </div>
+                        <div class="flex justify-between items-center text-lg font-semibold border-t pt-2">
+                            <span>Tổng cộng:</span>
+                            <span class="text-primary-600" id="totalAmount">0₫</span>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phương thức thanh toán</label>
+                        <select id="paymentMethod" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <option value="COD">Thanh toán khi nhận hàng (COD)</option>
+                            <option value="BANK_TRANSFER">Chuyển khoản ngân hàng</option>
+                            <option value="MOMO">Ví MoMo</option>
+                        </select>
+                    </div>
+
+                    <!-- Notes -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Ghi chú</label>
+                        <textarea id="orderNotes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Ghi chú cho đơn hàng..."></textarea>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex justify-end space-x-3 pt-4 border-t">
+                        <button type="button" onclick="closeCreateOrderModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors duration-200">
+                            Hủy
+                        </button>
+                        <button type="submit" class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                            <i class="fas fa-plus mr-2"></i>
+                            Tạo đơn hàng
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Order Modal -->
+    <div id="cancelOrderModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Hủy đơn hàng</h3>
+                <form id="cancelOrderForm">
+                    <input type="hidden" id="cancelOrderId">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Lý do hủy</label>
+                        <textarea id="cancelReason" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Nhập lý do hủy đơn hàng..."></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeCancelOrderModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors duration-200">
+                            Hủy
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200">
+                            Xác nhận hủy
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update Status Modal Functions
+        function openUpdateStatusModal(orderId, currentStatus) {
+            document.getElementById('updateOrderId').value = orderId;
+            document.getElementById('newStatus').value = currentStatus;
+            document.getElementById('updateStatusModal').classList.remove('hidden');
+        }
+
+        function closeUpdateStatusModal() {
+            document.getElementById('updateStatusModal').classList.add('hidden');
+        }
+
+        // Cancel Order Modal Functions
+        function openCancelOrderModal(orderId) {
+            document.getElementById('cancelOrderId').value = orderId;
+            document.getElementById('cancelReason').value = '';
+            document.getElementById('cancelOrderModal').classList.remove('hidden');
+        }
+
+        function closeCancelOrderModal() {
+            document.getElementById('cancelOrderModal').classList.add('hidden');
+        }
+
+        // Show Toast Notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            let bgColor = 'bg-green-500 text-white';
+            
+            if (type === 'error') {
+                bgColor = 'bg-red-500 text-white';
+            } else if (type === 'info') {
+                bgColor = 'bg-blue-500 text-white';
+            } else if (type === 'warning') {
+                bgColor = 'bg-orange-500 text-white';
+            }
+            
+            toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${bgColor}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Create Order Modal Functions
+        let selectedProducts = [];
+        let selectedCustomer = null;
+
+        function openCreateOrderModal() {
+            document.getElementById('createOrderModal').classList.remove('hidden');
+            resetCreateOrderForm();
+        }
+
+        function closeCreateOrderModal() {
+            document.getElementById('createOrderModal').classList.add('hidden');
+            resetCreateOrderForm();
+        }
+
+        function resetCreateOrderForm() {
+            document.getElementById('createOrderForm').reset();
+            selectedProducts = [];
+            selectedCustomer = null;
+            document.getElementById('selectedCustomerId').value = '';
+            document.getElementById('selectedCustomer').classList.add('hidden');
+            document.getElementById('customerSearch').value = '';
+            document.getElementById('productSearch').value = '';
+            document.getElementById('customerDropdown').classList.add('hidden');
+            document.getElementById('productDropdown').classList.add('hidden');
+            updateProductList();
+            updateOrderSummary();
+        }
+
+        function clearSelectedCustomer() {
+            selectedCustomer = null;
+            document.getElementById('selectedCustomerId').value = '';
+            document.getElementById('selectedCustomer').classList.add('hidden');
+            document.getElementById('customerSearch').value = '';
+            document.getElementById('noAddressWarning').classList.add('hidden');
+            updateOrderSummary();
+        }
+
+        function openAddAddressModal() {
+            if (selectedCustomer) {
+                // Redirect to customer profile page to add address
+                const customerProfileUrl = `/admin/customers/${selectedCustomer.id}/addresses`;
+                showToast('Chuyển hướng đến trang quản lý địa chỉ khách hàng...', 'info');
+                
+                // Open in new tab so admin can add address and come back
+                window.open(customerProfileUrl, '_blank');
+            }
+        }
+
+        function updateProductList() {
+            const productList = document.getElementById('productList');
+            const productCount = document.getElementById('productCount');
+            
+            productCount.textContent = `${selectedProducts.length} sản phẩm`;
+            
+            if (selectedProducts.length === 0) {
+                productList.innerHTML = '<div class="text-center text-gray-500 py-4">Chưa có sản phẩm nào được chọn</div>';
+                return;
+            }
+            
+            productList.innerHTML = selectedProducts.map(product => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center">
+                        <img src="${product.image || '/images/default-product.jpg'}" alt="${product.name}" class="w-10 h-10 object-cover rounded mr-3">
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">${product.name}</div>
+                            <div class="text-sm text-gray-500">${formatCurrency(product.price)}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button type="button" onclick="updateProductQuantity(${product.id}, -1)" class="w-6 h-6 bg-gray-200 rounded text-xs hover:bg-gray-300">-</button>
+                        <span class="w-8 text-center text-sm">${product.quantity}</span>
+                        <button type="button" onclick="updateProductQuantity(${product.id}, 1)" class="w-6 h-6 bg-gray-200 rounded text-xs hover:bg-gray-300">+</button>
+                        <button type="button" onclick="removeProduct(${product.id})" class="text-red-500 hover:text-red-700 ml-2">
+                            <i class="fas fa-trash text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateProductQuantity(productId, change) {
+            const product = selectedProducts.find(p => p.id === productId);
+            if (product) {
+                product.quantity = Math.max(1, product.quantity + change);
+                updateProductList();
+                updateOrderSummary();
+            }
+        }
+
+        function removeProduct(productId) {
+            selectedProducts = selectedProducts.filter(p => p.id !== productId);
+            updateProductList();
+            updateOrderSummary();
+        }
+
+        function updateOrderSummary() {
+            const subtotal = selectedProducts.reduce((sum, product) => sum + (product.price * product.quantity), 0);
+            let shippingFee = 0;
+            
+            // Only calculate shipping if customer is selected
+            if (selectedCustomer && selectedCustomer.defaultAddress) {
+                shippingFee = 30000; // Default shipping fee when address is available
+            }
+            
+            const total = subtotal + shippingFee;
+            
+            document.getElementById('subtotal').textContent = formatCurrency(subtotal);
+            document.getElementById('shippingFee').textContent = shippingFee > 0 ? formatCurrency(shippingFee) : 'Chưa tính';
+            document.getElementById('totalAmount').textContent = formatCurrency(total);
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount).replace('₫', '₫');
+        }
+
+        // Search customers
+        function searchCustomers(query) {
+            if (query.length < 1) {
+                document.getElementById('customerDropdown').classList.add('hidden');
+                return;
+            }
+            
+            // Real API call to search customers
+            fetch(`/admin/orders/api/search-customers?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const dropdown = document.getElementById('customerDropdown');
+                    
+                    if (data.success && data.data && data.data.length > 0) {
+                        dropdown.innerHTML = data.data.map(customer => `
+                            <div class="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0" onclick="selectCustomer(${customer.id}, '${customer.fullName}', '${customer.email}', ${customer.hasDefaultAddress})">
+                                <div class="flex items-center">
+                                    <div class="h-8 w-8 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                                        <span class="text-sm font-medium text-primary-600">${customer.fullName.substring(0, 2).toUpperCase()}</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="text-sm font-medium text-gray-900">${customer.fullName}</div>
+                                        <div class="text-sm text-gray-500">${customer.email}</div>
+                                        ${customer.hasDefaultAddress ? 
+                                            '<div class="text-xs text-green-600"><i class="fas fa-check mr-1"></i>Có địa chỉ giao hàng</div>' : 
+                                            '<div class="text-xs text-orange-600"><i class="fas fa-exclamation-triangle mr-1"></i>Chưa có địa chỉ</div>'
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                        dropdown.classList.remove('hidden');
+                    } else {
+                        dropdown.innerHTML = '<div class="p-3 text-center text-gray-500">Không tìm thấy khách hàng</div>';
+                        dropdown.classList.remove('hidden');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error searching customers:', error);
+                    const dropdown = document.getElementById('customerDropdown');
+                    dropdown.innerHTML = '<div class="p-3 text-center text-red-500">Lỗi tìm kiếm khách hàng</div>';
+                    dropdown.classList.remove('hidden');
+                });
+        }
+
+        function selectCustomer(id, name, email, hasDefaultAddress) {
+            selectedCustomer = { 
+                id, 
+                name, 
+                email, 
+                defaultAddress: hasDefaultAddress 
+            };
+            document.getElementById('selectedCustomerId').value = id;
+            document.getElementById('customerName').textContent = name;
+            document.getElementById('customerEmail').textContent = email;
+            document.getElementById('customerInitials').textContent = name.substring(0, 2).toUpperCase();
+            
+            // Update address status
+            const addressStatus = document.getElementById('customerAddressStatus');
+            const noAddressWarning = document.getElementById('noAddressWarning');
+            
+            if (hasDefaultAddress) {
+                addressStatus.innerHTML = '<i class="fas fa-check text-green-600 mr-1"></i>Có địa chỉ giao hàng';
+                addressStatus.className = 'text-xs mt-1 text-green-600';
+                noAddressWarning.classList.add('hidden');
+            } else {
+                addressStatus.innerHTML = '<i class="fas fa-exclamation-triangle text-orange-600 mr-1"></i>Chưa có địa chỉ';
+                addressStatus.className = 'text-xs mt-1 text-orange-600';
+                noAddressWarning.classList.remove('hidden');
+            }
+            
+            document.getElementById('selectedCustomer').classList.remove('hidden');
+            document.getElementById('customerSearch').value = '';
+            document.getElementById('customerDropdown').classList.add('hidden');
+            
+            // Update shipping fee calculation
+            updateOrderSummary();
+        }
+
+        // Search products
+        function searchProducts(query) {
+            if (query.length < 2) {
+                document.getElementById('productDropdown').classList.add('hidden');
+                return;
+            }
+            
+            // Mock product search - replace with actual API call
+            const mockProducts = [
+                { id: 1, name: 'Hoa hồng đỏ', price: 50000, image: '/images/rose.jpg', stock: 100 },
+                { id: 2, name: 'Hoa tulip vàng', price: 75000, image: '/images/tulip.jpg', stock: 50 },
+                { id: 3, name: 'Hoa cúc trắng', price: 35000, image: '/images/daisy.jpg', stock: 80 }
+            ].filter(product => 
+                product.name.toLowerCase().includes(query.toLowerCase())
+            );
+            
+            const dropdown = document.getElementById('productDropdown');
+            if (mockProducts.length > 0) {
+                dropdown.innerHTML = mockProducts.map(product => `
+                    <div class="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0" onclick="addProduct(${product.id}, '${product.name}', ${product.price}, '${product.image}')">
+                        <div class="flex items-center">
+                            <img src="${product.image}" alt="${product.name}" class="w-10 h-10 object-cover rounded mr-3">
+                            <div class="flex-1">
+                                <div class="text-sm font-medium text-gray-900">${product.name}</div>
+                                <div class="text-sm text-gray-500">${formatCurrency(product.price)} - Còn ${product.stock} sản phẩm</div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                dropdown.classList.remove('hidden');
+            } else {
+                dropdown.innerHTML = '<div class="p-3 text-center text-gray-500">Không tìm thấy sản phẩm</div>';
+                dropdown.classList.remove('hidden');
+            }
+        }
+
+        function addProduct(id, name, price, image) {
+            const existingProduct = selectedProducts.find(p => p.id === id);
+            if (existingProduct) {
+                existingProduct.quantity += 1;
+            } else {
+                selectedProducts.push({ id, name, price, image, quantity: 1 });
+            }
+            
+            document.getElementById('productSearch').value = '';
+            document.getElementById('productDropdown').classList.add('hidden');
+            updateProductList();
+            updateOrderSummary();
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update Status Button Click
+            document.querySelectorAll('.update-status-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const orderId = this.dataset.orderId;
+                    const currentStatus = this.dataset.currentStatus;
+                    openUpdateStatusModal(orderId, currentStatus);
+                });
+            });
+
+            // Cancel Order Button Click
+            document.querySelectorAll('.cancel-order-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const orderId = this.dataset.orderId;
+                    openCancelOrderModal(orderId);
+                });
+            });
+
+            // Update Status Form Submit
+            document.getElementById('updateStatusForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const orderId = document.getElementById('updateOrderId').value;
+                const newStatus = document.getElementById('newStatus').value;
+                
+                fetch(`/admin/orders/api/${orderId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Cập nhật trạng thái thành công!');
+                        closeUpdateStatusModal();
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showToast(data.error || 'Có lỗi xảy ra', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Có lỗi xảy ra khi cập nhật trạng thái', 'error');
+                });
+            });
+
+            // Cancel Order Form Submit
+            document.getElementById('cancelOrderForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const orderId = document.getElementById('cancelOrderId').value;
+                const reason = document.getElementById('cancelReason').value;
+                
+                fetch(`/admin/orders/api/${orderId}/cancel`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ reason: reason })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Hủy đơn hàng thành công!');
+                        closeCancelOrderModal();
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showToast(data.error || 'Có lỗi xảy ra', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Có lỗi xảy ra khi hủy đơn hàng', 'error');
+                });
+            });
+
+            // Create Order Form Event Listeners
+            document.getElementById('customerSearch').addEventListener('input', function(e) {
+                searchCustomers(e.target.value);
+            });
+
+            document.getElementById('productSearch').addEventListener('input', function(e) {
+                searchProducts(e.target.value);
+            });
+
+            // Create Order Form Submit
+            document.getElementById('createOrderForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (!selectedCustomer) {
+                    showToast('Vui lòng chọn khách hàng', 'error');
+                    return;
+                }
+                
+                if (!selectedCustomer.defaultAddress) {
+                    showToast('Khách hàng chưa có địa chỉ giao hàng. Vui lòng thêm địa chỉ cho khách hàng trước khi tạo đơn hàng.', 'error');
+                    return;
+                }
+                
+                if (selectedProducts.length === 0) {
+                    showToast('Vui lòng chọn ít nhất một sản phẩm', 'error');
+                    return;
+                }
+                
+                const orderData = {
+                    userId: selectedCustomer.id,
+                    orderItems: selectedProducts.map(product => ({
+                        productId: product.id,
+                        quantity: product.quantity,
+                        price: product.price
+                    })),
+                    paymentMethod: document.getElementById('paymentMethod').value,
+                    notes: document.getElementById('orderNotes').value
+                };
+                
+                // Show loading state
+                const submitBtn = document.querySelector('#createOrderForm button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang tạo...';
+                submitBtn.disabled = true;
+                
+                // Create order API call
+                fetch('/admin/orders/api/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(orderData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Tạo đơn hàng thành công!');
+                        closeCreateOrderModal();
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showToast(data.error || 'Có lỗi xảy ra khi tạo đơn hàng', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Có lỗi xảy ra khi tạo đơn hàng', 'error');
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#customerSearch') && !e.target.closest('#customerDropdown')) {
+                    document.getElementById('customerDropdown').classList.add('hidden');
+                }
+                if (!e.target.closest('#productSearch') && !e.target.closest('#productDropdown')) {
+                    document.getElementById('productDropdown').classList.add('hidden');
+                }
+            });
+
+            // Close modals when clicking outside
+            document.getElementById('createOrderModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeCreateOrderModal();
+                }
+            });
+
+            document.getElementById('updateStatusModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeUpdateStatusModal();
+                }
+            });
+
+            document.getElementById('cancelOrderModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeCancelOrderModal();
+                }
+            });
+        });
+    </script>
 </body>
 </html>

@@ -50,7 +50,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf
                 .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**", "/api/cart/**", "/api/orders/**", "/api/payment/**", "/api/locations/**", "/api/addresses/**", "/api/shipping/**", "/sse/**", "/swagger-ui/**", "/v3/api-docs/**")
+                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**", "/api/cart/**", "/api/orders/**", "/api/payment/**", "/api/locations/**", "/api/addresses/**", "/api/shipping/**", "/admin/orders/api/**", "/admin/api/**", "/sse/**", "/swagger-ui/**", "/v3/api-docs/**")
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -121,6 +121,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/favorite/**").hasRole("CUSTOMER")
                 .requestMatchers("/api/messages/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/admin/orders/api/**").hasRole("ADMIN")
+                .requestMatchers("/admin/api/**").hasRole("ADMIN")
                 
                 .anyRequest().authenticated()
             )
