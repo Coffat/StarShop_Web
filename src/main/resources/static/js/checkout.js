@@ -1,6 +1,8 @@
 (function() {
 	let selectedPaymentMethod = null;
 	let cartData = null;
+	let shippingFee = 0;
+	let shippingCalculated = false;
 
 	document.addEventListener('DOMContentLoaded', function() {
 		loadCartData();
@@ -12,12 +14,14 @@
 		const addressSelect = document.getElementById('addressSelect');
 		if (addressSelect) {
 			addressSelect.addEventListener('change', function() {
-				updatePlaceOrderButton();
 				updateAddressDetails();
+				calculateShippingFee();
+				updatePlaceOrderButton();
 			});
 			// Show initial address if default is selected
 			if (addressSelect.value) {
 				updateAddressDetails();
+				calculateShippingFee();
 			}
 		}
 	});
@@ -26,14 +30,106 @@
 		const select = document.getElementById('addressSelect');
 		const detailsDiv = document.getElementById('selectedAddressDetails');
 		const detailsText = document.getElementById('addressDetailsText');
+		const shippingSection = document.getElementById('shippingFeeSection');
 		
 		if (select.value) {
 			const selectedOption = select.options[select.selectedIndex];
 			detailsText.textContent = selectedOption.text;
 			detailsDiv.style.display = 'block';
+			shippingSection.style.display = 'block';
 		} else {
 			detailsDiv.style.display = 'none';
+			shippingSection.style.display = 'none';
+			shippingFee = 0;
+			shippingCalculated = false;
 		}
+	}
+
+	function calculateShippingFee() {
+		const select = document.getElementById('addressSelect');
+		const shippingContent = document.getElementById('shippingFeeContent');
+		
+		if (!select.value) {
+			return;
+		}
+		
+		// Show loading
+		shippingContent.innerHTML = `
+			<div class="text-center">
+				<div class="spinner-border spinner-border-sm text-primary" role="status">
+					<span class="visually-hidden">Đang tính phí...</span>
+				</div>
+				<small class="text-muted ms-2">Đang tính phí vận chuyển...</small>
+			</div>
+		`;
+		
+		// Call shipping fee API
+		fetch('/api/shipping/fee', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			credentials: 'same-origin',
+			body: JSON.stringify({
+				addressId: parseInt(select.value),
+				serviceTypeId: 2 // Default GHN service type
+			})
+		})
+		.then(r => r.json())
+		.then(response => {
+			if (response.data && response.data.success) {
+				shippingFee = response.data.shippingFee || 0;
+				shippingCalculated = true;
+				
+				shippingContent.innerHTML = `
+					<div class="d-flex justify-content-between align-items-center">
+						<div>
+							<strong class="text-success">${formatCurrency(shippingFee)}</strong>
+							<br><small class="text-muted">Giao hàng nhanh (GHN)</small>
+						</div>
+						<i class="fas fa-check-circle text-success"></i>
+					</div>
+				`;
+			} else {
+				// Fallback to free shipping
+				shippingFee = 0;
+				shippingCalculated = true;
+				
+				shippingContent.innerHTML = `
+					<div class="d-flex justify-content-between align-items-center">
+						<div>
+							<strong class="text-success">Miễn phí</strong>
+							<br><small class="text-muted">${response.error || 'Không thể tính phí GHN'}</small>
+						</div>
+						<i class="fas fa-gift text-success"></i>
+					</div>
+				`;
+			}
+			
+			// Update order summary with new shipping fee
+			if (cartData) {
+				displayOrderSummary(cartData);
+			}
+		})
+		.catch(error => {
+			console.error('Error calculating shipping fee:', error);
+			// Fallback to free shipping
+			shippingFee = 0;
+			shippingCalculated = true;
+			
+			shippingContent.innerHTML = `
+				<div class="d-flex justify-content-between align-items-center">
+					<div>
+						<strong class="text-success">Miễn phí</strong>
+						<br><small class="text-muted">Không thể tính phí vận chuyển</small>
+					</div>
+					<i class="fas fa-exclamation-triangle text-warning"></i>
+				</div>
+			`;
+			
+			// Update order summary
+			if (cartData) {
+				displayOrderSummary(cartData);
+			}
+		});
 	}
 
 	function loadCartData() {
@@ -94,16 +190,23 @@
 		let html = '';
 		if (cart.items && cart.items.length > 0) {
 			let subtotal = cart.totalAmount || 0;
-			let shipping = 0;
+			let shipping = shippingFee || 0;
 			let total = subtotal + shipping;
+			
 			html = '<div class="d-flex justify-content-between mb-2">'
 				+ '<span>Tạm tính:</span>'
 				+ '<span>' + formatCurrency(subtotal) + '</span>'
 				+ '</div>'
 				+ '<div class="d-flex justify-content-between mb-2">'
-				+ '<span>Phí vận chuyển:</span>'
-				+ '<span class="text-success">Miễn phí</span>'
-				+ '</div>'
+				+ '<span>Phí vận chuyển:</span>';
+			
+			if (shipping > 0) {
+				html += '<span class="text-primary">' + formatCurrency(shipping) + '</span>';
+			} else {
+				html += '<span class="text-success">Miễn phí</span>';
+			}
+			
+			html += '</div>'
 				+ '<hr>'
 				+ '<div class="d-flex justify-content-between mb-3">'
 				+ '<strong>Tổng cộng:</strong>'
@@ -182,7 +285,8 @@
 			orderRequest: {
 				addressId: parseInt(addressSelect.value),
 				notes: document.getElementById('orderNotes').value.trim(),
-				paymentMethod: selectedPaymentMethod
+				paymentMethod: selectedPaymentMethod,
+				serviceTypeId: 2 // GHN default service type
 			},
 			paymentMethod: selectedPaymentMethod
 		};

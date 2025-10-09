@@ -59,7 +59,7 @@
                     </div>
 
                     <!-- Auth Links (Not logged in) -->
-                    <div class="auth-actions" th:if="${!isUserAuthenticated}">
+                    <div class="auth-actions" th:if="${isUserAuthenticated == null || !isUserAuthenticated}">
                         <a href="/login" class="auth-link">
                             <i class="bi bi-box-arrow-in-right"></i>
                             <span>Đăng nhập</span>
@@ -71,7 +71,7 @@
                     </div>
 
                     <!-- User Menu (Logged in) -->
-                    <div class="dropdown" th:if="${isUserAuthenticated}">
+                    <div class="dropdown" th:if="${isUserAuthenticated != null && isUserAuthenticated}">
                         <button class="btn-user dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <img th:if="${userObject != null and userObject.avatar != null}" 
                                  th:src="${userObject.avatar}" 
@@ -135,7 +135,7 @@
                     <nav class="header-nav d-none d-lg-flex">
                         <ul class="nav-menu">
                             <li class="nav-item">
-                                <a href="/" class="nav-link" th:classappend="${currentPath == '/' ? 'active' : ''}">
+                                <a href="/" class="nav-link" th:classappend="${currentPath != null and currentPath == '/' ? 'active' : ''}">
                                     <i class="bi bi-house"></i>
                                     <span>Trang chủ</span>
                                 </a>
@@ -168,31 +168,31 @@
                                 </ul>
                             </li>
                             <li class="nav-item">
-                                <a href="/products" class="nav-link" th:classappend="${#strings.startsWith(currentPath, '/products') ? 'active' : ''}">
+                                <a href="/products" class="nav-link" th:classappend="${currentPath != null and #strings.startsWith(currentPath, '/products') ? 'active' : ''}">
                                     <i class="bi bi-flower2"></i>
                                     <span>Sản phẩm</span>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="/gifts" class="nav-link" th:classappend="${#strings.startsWith(currentPath, '/gifts') ? 'active' : ''}">
+                                <a href="/gifts" class="nav-link" th:classappend="${currentPath != null and #strings.startsWith(currentPath, '/gifts') ? 'active' : ''}">
                                     <i class="bi bi-gift"></i>
                                     <span>Quà tặng</span>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="/occasions" class="nav-link" th:classappend="${#strings.startsWith(currentPath, '/occasions') ? 'active' : ''}">
+                                <a href="/occasions" class="nav-link" th:classappend="${currentPath != null and #strings.startsWith(currentPath, '/occasions') ? 'active' : ''}">
                                     <i class="bi bi-calendar-event"></i>
                                     <span>Dịp đặc biệt</span>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="/blog" class="nav-link" th:classappend="${#strings.startsWith(currentPath, '/blog') ? 'active' : ''}">
+                                <a href="/blog" class="nav-link" th:classappend="${currentPath != null and #strings.startsWith(currentPath, '/blog') ? 'active' : ''}">
                                     <i class="bi bi-journal-text"></i>
                                     <span>Blog</span>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="/contact" class="nav-link" th:classappend="${currentPath == '/contact' ? 'active' : ''}">
+                                <a href="/contact" class="nav-link" th:classappend="${currentPath != null and currentPath == '/contact' ? 'active' : ''}">
                                     <i class="bi bi-telephone"></i>
                                     <span>Liên hệ</span>
                                 </a>
@@ -204,13 +204,13 @@
                 <!-- Actions Section -->
                 <div class="actions-section">
                     <!-- Wishlist -->
-                    <a href="/wishlist" class="action-btn" title="Danh sách yêu thích" th:if="${isUserAuthenticated}">
+                    <a href="/wishlist" class="action-btn" title="Danh sách yêu thích" th:if="${isUserAuthenticated != null && isUserAuthenticated}">
                         <i class="bi bi-heart"></i>
                         <span class="action-badge" th:if="${wishlistCount > 0}" th:text="${wishlistCount}">0</span>
                     </a>
 
                     <!-- Shopping Cart -->
-                    <a href="/cart" class="action-btn" title="Giỏ hàng" th:if="${isUserAuthenticated}">
+                    <a href="/cart" class="action-btn" title="Giỏ hàng" th:if="${isUserAuthenticated != null && isUserAuthenticated}">
                         <i class="bi bi-bag"></i>
                         <span class="action-badge" th:if="${cartCount > 0}" th:text="${cartCount}">0</span>
                     </a>
@@ -254,7 +254,7 @@
     </div>
     <div class="offcanvas-body">
         <!-- User Section for Mobile -->
-        <div class="mobile-user-section" th:if="${isUserAuthenticated}">
+        <div class="mobile-user-section" th:if="${isUserAuthenticated != null && isUserAuthenticated}">
             <div class="user-info">
                 <img th:if="${userObject != null and userObject.avatar != null}" 
                      th:src="${userObject.avatar}" 
@@ -323,7 +323,7 @@
         </div>
 
         <!-- Mobile Auth Links -->
-        <div class="mobile-auth" th:if="${!isUserAuthenticated}">
+        <div class="mobile-auth" th:if="${isUserAuthenticated == null || !isUserAuthenticated}">
             <hr>
             <a href="/login" class="btn btn-outline-primary w-100 mb-2">
                 <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
@@ -334,7 +334,7 @@
         </div>
 
         <!-- Mobile User Actions -->
-        <div class="mobile-user-actions" th:if="${isUserAuthenticated}">
+        <div class="mobile-user-actions" th:if="${isUserAuthenticated != null && isUserAuthenticated}">
             <hr>
             <a href="/account/profile" class="mobile-nav-link">
                 <i class="bi bi-person"></i> Thông tin cá nhân

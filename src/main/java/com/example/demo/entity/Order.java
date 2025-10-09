@@ -48,6 +48,9 @@ public class Order extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "shipping_fee", nullable = false, precision = 10, scale = 2)
+    private BigDecimal shippingFee = BigDecimal.ZERO;
+
     // Relationships
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItem> orderItems = new ArrayList<>();
@@ -63,6 +66,7 @@ public class Order extends BaseEntity {
         this.user = user;
         this.address = address;
         this.paymentMethod = paymentMethod;
+        this.shippingFee = BigDecimal.ZERO;
     }
 
     // Helper methods
@@ -71,10 +75,28 @@ public class Order extends BaseEntity {
                 .map(item -> item.getPrice().multiply(new BigDecimal(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal deliveryFee = deliveryUnit != null ? deliveryUnit.getFee() : BigDecimal.ZERO;
+        // Use GHN shipping fee instead of delivery unit fee
+        BigDecimal deliveryFee = shippingFee != null ? shippingFee : BigDecimal.ZERO;
         BigDecimal discount = voucher != null ? voucher.calculateDiscount(subtotal) : BigDecimal.ZERO;
 
         totalAmount = subtotal.add(deliveryFee).subtract(discount);
+    }
+
+    public void calculateTotalAmountWithShippingFee(BigDecimal calculatedShippingFee) {
+        BigDecimal subtotal = orderItems.stream()
+                .map(item -> item.getPrice().multiply(new BigDecimal(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        this.shippingFee = calculatedShippingFee != null ? calculatedShippingFee : BigDecimal.ZERO;
+        BigDecimal discount = voucher != null ? voucher.calculateDiscount(subtotal) : BigDecimal.ZERO;
+
+        totalAmount = subtotal.add(this.shippingFee).subtract(discount);
+    }
+
+    public BigDecimal getSubtotal() {
+        return orderItems.stream()
+                .map(item -> item.getPrice().multiply(new BigDecimal(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public void addOrderItem(OrderItem item) {
@@ -175,5 +197,13 @@ public class Order extends BaseEntity {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public BigDecimal getShippingFee() {
+        return shippingFee;
+    }
+
+    public void setShippingFee(BigDecimal shippingFee) {
+        this.shippingFee = shippingFee;
     }
 }

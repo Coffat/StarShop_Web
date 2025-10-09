@@ -16,8 +16,15 @@ import java.util.List;
 
 /**
  * Base controller to add common model attributes to all views
+ * Excludes PaymentController to avoid lazy loading conflicts
  */
-@ControllerAdvice(basePackages = "com.example.demo.controller")
+@ControllerAdvice(assignableTypes = {
+    WishlistController.class,
+    OrderController.class,
+    ProductController.class,
+    HomeController.class,
+    AccountController.class
+})
 public class BaseController {
 
     @Autowired
@@ -54,12 +61,7 @@ public class BaseController {
      * Add authentication status to all views
      */
     @ModelAttribute("isUserAuthenticated")
-    public boolean addAuthenticationStatus(Authentication authentication, HttpServletRequest request) {
-        // Skip for payment callbacks to avoid conflicts
-        if (request.getRequestURI().startsWith("/payment/")) {
-            return false;
-        }
-        
+    public boolean addAuthenticationStatus(Authentication authentication) {
         return authentication != null && 
                authentication.isAuthenticated() && 
                !authentication.getName().equals("anonymousUser");
@@ -70,12 +72,7 @@ public class BaseController {
      */
     @ModelAttribute("cartCount")
     @Transactional(readOnly = true)
-    public Long addCartCount(Authentication authentication, HttpServletRequest request) {
-        // Skip for payment callbacks to avoid conflicts
-        if (request.getRequestURI().startsWith("/payment/")) {
-            return 0L;
-        }
-        
+    public Long addCartCount(Authentication authentication) {
         try {
             if (authentication != null && 
                 authentication.isAuthenticated() && 

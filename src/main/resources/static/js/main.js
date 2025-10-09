@@ -436,7 +436,7 @@ function initializeCartActions() {
             const button = e.target.closest('.btn-add-to-cart');
             const productId = button.dataset.productId;
             
-            addToCart(productId, button);
+            addToCart(button);
         }
         
         // Wishlist buttons
@@ -566,7 +566,7 @@ function addToCart(button) {
         return response.json();
     })
     .then(data => {
-        if (data && data.data && data.data.success) {
+        if (data && data.success && data.data && data.data.success) {
             // Success state
             button.innerHTML = '<i class="bi bi-check"></i> Đã thêm!';
             button.classList.add('success');
@@ -599,7 +599,8 @@ function addToCart(button) {
             // Error state
             button.innerHTML = originalHTML;
             button.disabled = false;
-            showToast(data.error || data.message || 'Có lỗi xảy ra khi thêm vào giỏ hàng', 'error');
+            const errorMessage = (data && data.error) || (data && data.data && data.data.message) || 'Có lỗi xảy ra khi thêm vào giỏ hàng';
+            showToast(errorMessage, 'error');
         }
     })
     .catch(error => {

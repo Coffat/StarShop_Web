@@ -67,7 +67,8 @@ public class PaymentService {
             }
             
         } catch (Exception e) {
-            log.error("Error processing payment for order {}: {}", order.getId(), e.getMessage(), e);
+            String orderId = (order != null) ? order.getId().toString() : "unknown";
+            log.error("Error processing payment for order {}: {}", orderId, e.getMessage(), e);
             return PaymentResult.error("Có lỗi xảy ra khi xử lý thanh toán");
         }
     }
@@ -108,7 +109,8 @@ public class PaymentService {
             );
             
         } catch (Exception e) {
-            log.error("Error processing COD payment for order {}: {}", order.getId(), e.getMessage(), e);
+            String orderId = (order != null) ? order.getId().toString() : "unknown";
+            log.error("Error processing COD payment for order {}: {}", orderId, e.getMessage(), e);
             return PaymentResult.error("Có lỗi xảy ra khi xử lý thanh toán COD");
         }
     }
@@ -175,7 +177,8 @@ public class PaymentService {
             java.net.http.HttpResponse<String> response = client.send(httpRequest, java.net.http.HttpResponse.BodyHandlers.ofString());
             log.info("MoMo create response: {}", response.body());
 
-            Map<String, Object> respMap = new com.fasterxml.jackson.databind.ObjectMapper().readValue(response.body(), java.util.Map.class);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> respMap = new com.fasterxml.jackson.databind.ObjectMapper().readValue(response.body(), Map.class);
             Object payUrl = respMap.get("payUrl");
             Object deeplink = respMap.get("deeplink");
             Object resultCode = respMap.get("resultCode");

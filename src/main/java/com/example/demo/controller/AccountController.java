@@ -37,6 +37,7 @@ public class AccountController {
     private final FollowRepository followRepository;
     private final AddressRepository addressRepository;
 
+
     /**
      * Serve account information page
      * Only accessible to authenticated users
@@ -158,9 +159,6 @@ public class AccountController {
             @RequestParam("firstName") String firstName,
             @RequestParam("lastName") String lastName,
             @RequestParam("phone") String phone,
-            @RequestParam("street") String street,
-            @RequestParam("city") String city,
-            @RequestParam("province") String province,
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
         
@@ -180,33 +178,6 @@ public class AccountController {
             
             // Save user
             userRepository.save(user);
-            
-            // Handle address update
-            if (street != null && !street.trim().isEmpty()) {
-                log.info("Address update requested - Street: {}, City: {}, Province: {}", street.trim(), city, province);
-                
-                // Check if user already has a default address
-                Address existingAddress = addressRepository.findDefaultAddressByUserId(user.getId()).orElse(null);
-                
-                if (existingAddress != null) {
-                    // Update existing address
-                    existingAddress.setStreet(street.trim());
-                    existingAddress.setCity(city != null ? city.trim() : "Thành phố Hồ Chí Minh");
-                    existingAddress.setProvince(province != null ? province.trim() : "TP. Hồ Chí Minh");
-                    addressRepository.save(existingAddress);
-                    log.info("Updated existing address for user: {}", user.getEmail());
-                } else {
-                    // Create new default address
-                    Address newAddress = new Address();
-                    newAddress.setStreet(street.trim());
-                    newAddress.setCity(city != null ? city.trim() : "Thành phố Hồ Chí Minh");
-                    newAddress.setProvince(province != null ? province.trim() : "TP. Hồ Chí Minh");
-                    newAddress.setIsDefault(true);
-                    newAddress.setUser(user);
-                    addressRepository.save(newAddress);
-                    log.info("Created new default address for user: {}", user.getEmail());
-                }
-            }
             
             log.info("Profile updated successfully for user: {}", authentication.getName());
             redirectAttributes.addFlashAttribute("success", "Cập nhật thông tin thành công!");

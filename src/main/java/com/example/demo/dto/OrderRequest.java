@@ -20,6 +20,9 @@ public class OrderRequest {
     
     private String voucherCode;
     
+    // GHN service type ID for shipping calculation
+    private Integer serviceTypeId;
+    
     @Size(max = 1000, message = "Notes cannot exceed 1000 characters")
     private String notes;
     
@@ -75,6 +78,14 @@ public class OrderRequest {
     
     public void setVoucherCode(String voucherCode) {
         this.voucherCode = voucherCode;
+    }
+    
+    public Integer getServiceTypeId() {
+        return serviceTypeId;
+    }
+    
+    public void setServiceTypeId(Integer serviceTypeId) {
+        this.serviceTypeId = serviceTypeId;
     }
     
     public String getNotes() {

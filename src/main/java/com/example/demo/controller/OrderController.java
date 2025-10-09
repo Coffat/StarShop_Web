@@ -675,7 +675,6 @@ public class OrderController extends BaseController {
      */
     @PostMapping("/api/orders/create-with-payment")
     @ResponseBody
-    @Transactional
     public ResponseEntity<ResponseWrapper<Map<String, Object>>> createOrderWithPayment(
             @Valid @RequestBody OrderWithPaymentRequest request,
             Authentication authentication) {
@@ -687,7 +686,7 @@ public class OrderController extends BaseController {
                     .body(ResponseWrapper.error("Vui lòng đăng nhập để sử dụng tính năng này"));
             }
             
-            user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            user = userRepository.findByEmailWithAddresses(authentication.getName()).orElse(null);
             if (user == null) {
                 return ResponseEntity.status(401)
                     .body(ResponseWrapper.error("Người dùng không hợp lệ"));
@@ -700,43 +699,36 @@ public class OrderController extends BaseController {
                     .body(ResponseWrapper.error(validationError));
             }
             
-            // Create order first
-            Order order;
-            try {
-                OrderRequest orderRequest = request.getOrderRequest();
-                logger.info("Creating order for user {} with addressId: {}, paymentMethod: {}", 
-                    user.getId(), 
-                    orderRequest.getAddressId(), 
-                    orderRequest.getPaymentMethod());
-                
-                if (orderRequest.getPaymentMethod() == null) {
-                    logger.error("PaymentMethod is null in orderRequest!");
-                    return ResponseEntity.badRequest()
-                        .body(ResponseWrapper.error("Phương thức thanh toán không hợp lệ"));
-                }
-                
-                order = orderService.createOrderFromCartEntity(user.getId(), orderRequest);
-                logger.info("Order created successfully with ID: {}", order.getId());
-            } catch (RuntimeException e) {
-                logger.error("Failed to create order for user {}: {}", user.getId(), e.getMessage(), e);
+            // Validate payment method
+            if (request.getPaymentMethod() == null) {
+                logger.error("PaymentMethod is null in request!");
                 return ResponseEntity.badRequest()
-                    .body(ResponseWrapper.error(e.getMessage()));
+                    .body(ResponseWrapper.error("Phương thức thanh toán không hợp lệ"));
             }
             
-            // Process payment
-            PaymentService.PaymentResult paymentResult = paymentService.processPayment(order, request.getPaymentMethod());
+            OrderRequest orderRequest = request.getOrderRequest();
+            logger.info("Creating order for user {} with addressId: {}, paymentMethod: {}", 
+                user.getId(), 
+                orderRequest.getAddressId(), 
+                request.getPaymentMethod());
             
-            Map<String, Object> result = new HashMap<>();
-            result.put("order", OrderDTO.fromOrder(order));
-            result.put("payment", paymentResult);
+            // Create order with payment (transactional)
+            Map<String, Object> result = orderService.createOrderWithPayment(
+                user.getId(), 
+                orderRequest, 
+                request.getPaymentMethod(),
+                paymentService
+            );
             
-            if (paymentResult.isSuccess()) {
+            Boolean success = (Boolean) result.get("success");
+            if (success != null && success) {
                 logger.info("Order created and payment processed successfully for user {}", user.getEmail());
                 return ResponseEntity.ok(ResponseWrapper.success(result));
             } else {
-                // Order created but payment failed
+                PaymentService.PaymentResult paymentResult = (PaymentService.PaymentResult) result.get("payment");
+                String errorMessage = paymentResult != null ? paymentResult.getMessage() : "Payment failed";
                 return ResponseEntity.badRequest()
-                    .body(ResponseWrapper.error(paymentResult.getMessage()));
+                    .body(ResponseWrapper.error(errorMessage));
             }
             
         } catch (Exception e) {

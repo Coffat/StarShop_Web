@@ -250,7 +250,7 @@
                     return response.json();
                 })
                 .then(data => {
-                    if (data && data.data && data.data.success) {
+                    if (data && data.success && data.data && data.data.success) {
                         const icon = button.querySelector('i');
                         const isInWishlist = data.data.isFavorite || data.data.isInWishlist;
                         
@@ -307,12 +307,17 @@
                 showToast('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng', 'warning');
                 button.innerHTML = originalHTML;
                 button.disabled = false;
-                return;
+                return null; // Return null instead of undefined
             }
             return response.json();
         })
         .then(data => {
-            if (data && data.data && data.data.success) {
+            if (!data) {
+                // Handle case when data is null (401 response)
+                return;
+            }
+            
+            if (data && data.success && data.data && data.data.success) {
                 // Success state
                 button.innerHTML = '<i class="bi bi-check"></i> Đã thêm!';
                 button.classList.add('success');
@@ -345,7 +350,8 @@
                 // Error state
                 button.innerHTML = originalHTML;
                 button.disabled = false;
-                showToast(data.error || data.message || 'Có lỗi xảy ra khi thêm vào giỏ hàng', 'error');
+                const errorMessage = (data && data.error) || (data && data.data && data.data.message) || 'Có lỗi xảy ra khi thêm vào giỏ hàng';
+                showToast(errorMessage, 'error');
             }
         })
         .catch(error => {
@@ -406,7 +412,7 @@
         })
         .then(data => {
             console.log('Full API Response:', data);
-            if (data && data.data && data.data.success) {
+            if (data && data.success && data.data && data.data.success) {
                 // Get the current wishlist status from server response
                 const isInWishlist = data.data.isFavorite || data.data.isInWishlist;
                 
@@ -452,7 +458,8 @@
                 // Revert to original state on error
                 console.log('API Error Response:', data);
                 icon.className = originalContent;
-                showToast(data.error || data.message || 'Có lỗi xảy ra', 'error');
+                const errorMessage = (data && data.error) || (data && data.data && data.data.message) || 'Có lỗi xảy ra';
+                showToast(errorMessage, 'error');
             }
         })
         .catch(error => {

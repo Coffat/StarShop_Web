@@ -132,3 +132,20 @@ ngrok:
     url: http://localhost:4040/api/tunnels
   url:
     file: .ngrok-url
+
+# GHN (Giao Hang Nhanh) Configuration
+ghn:
+  base-url: https://online-gateway.ghn.vn/shiip/public-api
+  token: ${GHN_TOKEN:cd8acb1f-9e9c-11f0-b0e8-f2157cd9069b}
+  shop-id: ${GHN_SHOP_ID:6040148}
+  service-type-id-default: 2
+  from:
+    # TODO: Fill these with actual GHN codes for HCMUTE location
+    province-id: ${GHN_FROM_PROVINCE_ID:202}   # TPHCM Province ID from GHN
+    district-id: ${GHN_FROM_DISTRICT_ID:3695}   # Thu Duc District ID from GHN  
+    ward-code: ${GHN_FROM_WARD_CODE:90745}       # Specific Ward Code from GHN
+  endpoints:
+    provinces: /master-data/province
+    districts: /master-data/district
+    wards: /master-data/ward
+    calculate-fee: /v2/shipping-order/fee

@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.dto.OrderDTO;
 import com.example.demo.dto.OrderRequest;
 import com.example.demo.dto.OrderResponse;
+import com.example.demo.dto.shipping.ShippingFeeResponse;
 import com.example.demo.entity.*;
 import com.example.demo.entity.enums.OrderStatus;
 import com.example.demo.repository.*;
@@ -17,7 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -52,6 +55,9 @@ public class OrderService {
     
     @Autowired
     private CartService cartService;
+    
+    @Autowired
+    private ShippingService shippingService;
     
     /**
      * Create order from user's cart
@@ -130,8 +136,34 @@ public class OrderService {
                 productRepository.save(product);
             }
             
-            // Calculate total amount
-            order.calculateTotalAmount();
+            // Calculate shipping fee if address is GHN-compatible
+            BigDecimal shippingFee = BigDecimal.ZERO;
+            if (address.isGhnCompatible() && shippingService.isShippingServiceAvailable()) {
+                try {
+                    ShippingFeeResponse shippingResponse = shippingService.calculateShippingFee(
+                        userId, 
+                        address.getId(), 
+                        cart.getCartItems(), 
+                        request.getServiceTypeId()
+                    );
+                    
+                    if (shippingResponse.success()) {
+                        shippingFee = shippingResponse.shippingFee();
+                        logger.info("Calculated shipping fee: {} for order", shippingFee);
+                    } else {
+                        logger.warn("Failed to calculate shipping fee: {}", shippingResponse.message());
+                        // Continue with zero shipping fee instead of failing the order
+                    }
+                } catch (Exception e) {
+                    logger.error("Error calculating shipping fee: {}", e.getMessage());
+                    // Continue with zero shipping fee
+                }
+            } else {
+                logger.info("Using legacy delivery unit or address not GHN-compatible");
+            }
+            
+            // Calculate total amount with shipping fee
+            order.calculateTotalAmountWithShippingFee(shippingFee);
             
             // Save order
             order = orderRepository.save(order);
@@ -556,6 +588,39 @@ public class OrderService {
                 return false; // Final states
             default:
                 return false;
+        }
+    }
+    
+    /**
+     * Create order with payment processing (transactional)
+     */
+    @Transactional
+    public Map<String, Object> createOrderWithPayment(Long userId, OrderRequest orderRequest, 
+                                                     com.example.demo.entity.enums.PaymentMethod paymentMethod,
+                                                     PaymentService paymentService) {
+        try {
+            // Create order
+            Order order = createOrderFromCartEntity(userId, orderRequest);
+            logger.info("Order created successfully with ID: {}", order.getId());
+            
+            // Process payment
+            PaymentService.PaymentResult paymentResult = paymentService.processPayment(order, paymentMethod);
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("order", OrderDTO.fromOrder(order));
+            result.put("payment", paymentResult);
+            result.put("success", paymentResult.isSuccess());
+            
+            if (!paymentResult.isSuccess()) {
+                // If payment fails, the transaction will rollback automatically
+                throw new RuntimeException("Payment failed: " + paymentResult.getMessage());
+            }
+            
+            return result;
+            
+        } catch (Exception e) {
+            logger.error("Error in createOrderWithPayment for user {}: {}", userId, e.getMessage(), e);
+            throw e; // Re-throw to trigger rollback
         }
     }
 }

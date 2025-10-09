@@ -47,15 +47,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf
+                .csrf(csrf -> csrf
                 .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**", "/api/cart/**", "/api/orders/**", "/api/payment/**", "/sse/**", "/swagger-ui/**", "/v3/api-docs/**")
+                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**", "/api/cart/**", "/api/orders/**", "/api/payment/**", "/api/locations/**", "/api/addresses/**", "/api/shipping/**", "/sse/**", "/swagger-ui/**", "/v3/api-docs/**")
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 // Configure fixation first so we don't need to call back with .and()
                 .sessionFixation(sessionFixation -> sessionFixation.migrateSession())
-                .invalidSessionUrl("/login?expired")
                 // Configure concurrency last; avoid deprecated .and()
                 .maximumSessions(1)
                     .sessionRegistry(sessionRegistry())
@@ -63,7 +62,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints as per rules.mdc
                 .requestMatchers("/", "/health", "/info", "/error").permitAll()
-                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/forgot-password", "/api/auth/verify-otp", "/api/auth/reset-password").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/verify-registration", "/api/auth/forgot-password", "/api/auth/verify-otp", "/api/auth/reset-password").permitAll()
                 // Payment callbacks - MUST BE FIRST to avoid authentication
                 .requestMatchers("/payment/momo/**").permitAll()
                 
@@ -88,6 +87,9 @@ public class SecurityConfig {
                 // WebSocket endpoints
                 .requestMatchers("/ws/**").permitAll()
                 
+                // Location APIs - public access for address forms
+                .requestMatchers("/api/locations/**").permitAll()
+                
                 // Account pages - require authentication
                 .requestMatchers("/account/**").authenticated()
                 // Order pages - require authentication
@@ -104,6 +106,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/products/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/orders/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/payment/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
+                .requestMatchers("/api/addresses/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
+                .requestMatchers("/api/shipping/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/sse/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/cart/**").hasRole("CUSTOMER")
                 .requestMatchers("/api/reviews/**").hasRole("CUSTOMER")

@@ -6,7 +6,11 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "follows",
        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "product_id"}))
-public class Follow extends BaseEntity {
+public class Follow {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -29,6 +33,14 @@ public class Follow extends BaseEntity {
     }
 
     // Getters and Setters
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public User getUser() {
         return user;

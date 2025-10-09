@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Custom OAuth2 User Service to handle Google and Facebook login
@@ -169,7 +168,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         user.setLastname(nameParts.length > 1 ? nameParts[1] : "");
         user.setEmail(email);
         user.setPhone(defaultPhone);
-        user.setPassword(""); // OAuth2 users don't have passwords
+        user.setPassword("oauth2_user_no_password"); // OAuth2 users don't have passwords - dummy password to satisfy constraint
         user.setAvatar(avatar);
         user.setRole(UserRole.CUSTOMER);
         

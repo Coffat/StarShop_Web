@@ -42,6 +42,13 @@ public class OtpService {
         String emailKey = email.toLowerCase();
         OtpData otpData = otpStorage.get(emailKey);
         
+        // Debug logging
+        logger.info("OTP verification attempt for email: {}, inputOtp: {}", email, inputOtp);
+        logger.info("Stored OTP data exists: {}", otpData != null);
+        if (otpData != null) {
+            logger.info("Stored OTP: {}, Expiry: {}, Attempts: {}", otpData.otp, otpData.expiryTime, otpData.attempts);
+        }
+        
         if (otpData == null) {
             logger.warn("OTP verification failed - no OTP found for email: {}", email);
             return new OtpVerificationResult(false, "Không tìm thấy mã OTP. Vui lòng yêu cầu mã mới.");
@@ -64,15 +71,21 @@ public class OtpService {
         // Increment attempt counter
         otpData.attempts++;
         
-        // Verify OTP
-        if (otpData.otp.equals(inputOtp)) {
+        // Verify OTP - trim whitespace and ensure exact match
+        String trimmedInputOtp = inputOtp.trim();
+        String storedOtp = otpData.otp.trim();
+        
+        logger.info("Comparing OTPs - Input: '{}' (length: {}), Stored: '{}' (length: {})", 
+                   trimmedInputOtp, trimmedInputOtp.length(), storedOtp, storedOtp.length());
+        
+        if (storedOtp.equals(trimmedInputOtp)) {
             // OTP is correct, remove from storage
             otpStorage.remove(emailKey);
             logger.info("OTP verification successful for email: {}", email);
             return new OtpVerificationResult(true, "Xác thực thành công!");
         } else {
-            logger.warn("OTP verification failed - incorrect OTP for email: {} (attempt {}/{})", 
-                       email, otpData.attempts, MAX_ATTEMPTS);
+            logger.warn("OTP verification failed - incorrect OTP for email: {} (attempt {}/{}). Expected: '{}', Got: '{}'", 
+                       email, otpData.attempts, MAX_ATTEMPTS, storedOtp, trimmedInputOtp);
             
             int remainingAttempts = MAX_ATTEMPTS - otpData.attempts;
             String message = remainingAttempts > 0 

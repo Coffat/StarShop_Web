@@ -30,6 +30,19 @@ public class Product extends BaseEntity {
     @Column(nullable = false)
     private ProductStatus status = ProductStatus.ACTIVE;
 
+    // GHN Shipping Dimensions (for shipping fee calculation)
+    @Column(name = "weight_g")
+    private Integer weightG = 500; // Default 500g
+
+    @Column(name = "length_cm")
+    private Integer lengthCm = 20; // Default 20cm
+
+    @Column(name = "width_cm")
+    private Integer widthCm = 20; // Default 20cm
+
+    @Column(name = "height_cm")
+    private Integer heightCm = 30; // Default 30cm
+
     // Relationships
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<AttributeValue> attributeValues = new ArrayList<>();
@@ -55,6 +68,11 @@ public class Product extends BaseEntity {
         this.description = description;
         this.price = price;
         this.image = image;
+        // Set default shipping dimensions
+        this.weightG = 500;
+        this.lengthCm = 20;
+        this.widthCm = 20;
+        this.heightCm = 30;
     }
 
     // Helper methods
@@ -176,5 +194,56 @@ public class Product extends BaseEntity {
 
     public void setStatus(ProductStatus status) {
         this.status = status;
+    }
+
+    // GHN Shipping Dimensions getters and setters
+    public Integer getWeightG() {
+        return weightG;
+    }
+
+    public void setWeightG(Integer weightG) {
+        this.weightG = weightG;
+    }
+
+    public Integer getLengthCm() {
+        return lengthCm;
+    }
+
+    public void setLengthCm(Integer lengthCm) {
+        this.lengthCm = lengthCm;
+    }
+
+    public Integer getWidthCm() {
+        return widthCm;
+    }
+
+    public void setWidthCm(Integer widthCm) {
+        this.widthCm = widthCm;
+    }
+
+    public Integer getHeightCm() {
+        return heightCm;
+    }
+
+    public void setHeightCm(Integer heightCm) {
+        this.heightCm = heightCm;
+    }
+
+    // Helper method for total shipping weight calculation
+    public int getTotalWeightForQuantity(int quantity) {
+        return (weightG != null ? weightG : 500) * quantity;
+    }
+
+    // Helper method to get max dimensions (for multiple items)
+    public int getMaxLength() {
+        return lengthCm != null ? lengthCm : 20;
+    }
+
+    public int getMaxWidth() {
+        return widthCm != null ? widthCm : 20;
+    }
+
+    public int getMaxHeight() {
+        return heightCm != null ? heightCm : 30;
     }
 }

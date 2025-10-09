@@ -34,12 +34,25 @@ CREATE TABLE Addresses (
     city VARCHAR(100) NOT NULL,
     province VARCHAR(100) NOT NULL,
     is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    -- GHN Address Integration (2-level & 3-level support)
+    province_id INT,
+    district_id INT,
+    ward_code VARCHAR(20),
+    address_detail VARCHAR(255),
+    province_name VARCHAR(100),
+    district_name VARCHAR(100),
+    ward_name VARCHAR(100),
+    address_mode VARCHAR(8) DEFAULT 'OLD' CHECK (address_mode IN ('OLD', 'NEW')),
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
 );
-COMMENT ON TABLE Addresses IS 'User delivery addresses';
+COMMENT ON TABLE Addresses IS 'User delivery addresses with GHN support (OLD=3-level, NEW=2-level)';
 CREATE INDEX idx_addresses_user_id ON Addresses(user_id);
+CREATE INDEX idx_addresses_district_id ON Addresses(district_id);
+CREATE INDEX idx_addresses_ward_code ON Addresses(ward_code);
+-- Unique constraint: each user can only have ONE default address
+CREATE UNIQUE INDEX ux_addresses_user_default ON Addresses(user_id) WHERE is_default = TRUE;
 
 -- Table: Products
 CREATE TABLE Products (
@@ -50,12 +63,17 @@ CREATE TABLE Products (
     image VARCHAR(255) DEFAULT NULL,
     stock_quantity INTEGER DEFAULT 0,
     status product_status DEFAULT 'ACTIVE',
+    -- GHN Shipping Dimensions (for shipping fee calculation)
+    weight_g INT DEFAULT 500 CHECK (weight_g > 0),
+    length_cm INT DEFAULT 20 CHECK (length_cm > 0),
+    width_cm INT DEFAULT 20 CHECK (width_cm > 0),
+    height_cm INT DEFAULT 30 CHECK (height_cm > 0),
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     CHECK (price >= 0),
     CHECK (stock_quantity >= 0)
 );
-COMMENT ON TABLE Products IS 'Flower products catalog';
+COMMENT ON TABLE Products IS 'Flower products catalog with shipping dimensions for GHN';
 CREATE INDEX idx_products_name ON Products(name);
 
 -- Table: ProductAttributes
@@ -127,13 +145,15 @@ CREATE TABLE Orders (
     address_id BIGINT NOT NULL,
     payment_method payment_method NOT NULL DEFAULT 'COD',
     notes TEXT DEFAULT NULL,
+    -- GHN Shipping Fee (tracked separately for transparency)
+    shipping_fee NUMERIC(10,2) NOT NULL DEFAULT 0.00 CHECK (shipping_fee >= 0),
     FOREIGN KEY (user_id) REFERENCES Users(id),
     FOREIGN KEY (delivery_unit_id) REFERENCES DeliveryUnits(id),
     FOREIGN KEY (voucher_id) REFERENCES Vouchers(id),
     FOREIGN KEY (address_id) REFERENCES Addresses(id),
     CHECK (total_amount >= 0)
 );
-COMMENT ON TABLE Orders IS 'Customer orders with status and payment info';
+COMMENT ON TABLE Orders IS 'Customer orders with status, payment info, and GHN shipping fee';
 CREATE INDEX idx_orders_user_id ON Orders(user_id);
 CREATE INDEX idx_orders_status ON Orders(status);
 CREATE INDEX idx_orders_user_status ON Orders(user_id, status);
