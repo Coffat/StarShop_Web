@@ -4,11 +4,15 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.security.core.Authentication;
+import org.springframework.ui.Model;
+
+import com.example.demo.service.ProductService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,10 +20,13 @@ import java.util.Map;
 @Controller
 @Slf4j
 @Tag(name = "🏠 System", description = "System health check and information APIs")
+@RequiredArgsConstructor
 public class HomeController {
 
+    private final ProductService productService;
+
     @GetMapping({"/", "/home"})
-    public String home(Authentication authentication) {
+    public String home(Authentication authentication, Model model) {
         log.info("Home page accessed");
         
         if (authentication != null && authentication.isAuthenticated() && !authentication.getName().equals("anonymousUser")) {
@@ -27,7 +34,9 @@ public class HomeController {
         } else {
             log.info("Home accessed by guest user");
         }
-        
+        // Featured products for homepage
+        model.addAttribute("featuredProducts", productService.getFeaturedProducts());
+
         return "home";
     }
 
