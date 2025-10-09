@@ -34,8 +34,16 @@ public enum UserRole {
             return CUSTOMER; // default value
         }
         
+        // Try direct enum name match (case insensitive)
         for (UserRole role : UserRole.values()) {
-            if (role.value.equalsIgnoreCase(value) || role.name().equalsIgnoreCase(value)) {
+            if (role.name().equalsIgnoreCase(value)) {
+                return role;
+            }
+        }
+        
+        // Try value match (case insensitive)
+        for (UserRole role : UserRole.values()) {
+            if (role.value.equalsIgnoreCase(value)) {
                 return role;
             }
         }

@@ -28,6 +28,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(username)
             .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         
+        // Debug logging
+        log.debug("Found user: {} with role: {} (enum: {})", username, user.getRole(), user.getRole().name());
+        
         String authority = "ROLE_" + user.getRole().name();
         log.debug("User {} has authority: {}", username, authority);
         
@@ -35,6 +38,10 @@ public class CustomUserDetailsService implements UserDetailsService {
             .username(user.getEmail())
             .password(user.getPassword())
             .authorities(authority)
+            .accountExpired(false)
+            .accountLocked(false)
+            .credentialsExpired(false)
+            .disabled(false)
             .build();
     }
 }
