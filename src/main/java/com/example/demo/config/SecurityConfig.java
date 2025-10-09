@@ -91,6 +91,9 @@ public class SecurityConfig {
                 // Location APIs - public access for address forms
                 .requestMatchers("/api/locations/**").permitAll()
                 
+                // Debug endpoints - for troubleshooting (remove in production)
+                .requestMatchers("/debug/**").permitAll()
+                
                 // Account pages - require authentication
                 .requestMatchers("/account/**").authenticated()
                 // Order pages - require authentication
