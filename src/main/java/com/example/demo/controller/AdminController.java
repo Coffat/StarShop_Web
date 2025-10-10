@@ -71,21 +71,6 @@ public class AdminController extends BaseController {
     }
 
 
-    /**
-     * Quản lý Sản phẩm
-     */
-    @GetMapping("/products")
-    public String products(Model model) {
-        model.addAttribute("pageTitle", "Quản lý Sản phẩm");
-        model.addAttribute("contentTemplate", "admin/products/index");
-        
-        List<BreadcrumbItem> breadcrumbs = new ArrayList<>();
-        breadcrumbs.add(new BreadcrumbItem("Dashboard", "/admin/dashboard"));
-        breadcrumbs.add(new BreadcrumbItem("Quản lý Sản phẩm", "/admin/products"));
-        model.addAttribute("breadcrumbs", breadcrumbs);
-        
-        return "layouts/admin";
-    }
 
     /**
      * Quản lý Voucher

@@ -1,21 +1,30 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.Product;
+import com.example.demo.entity.enums.ProductStatus;
 import com.example.demo.dto.ProductDetailDTO;
 import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 /**
  * Product Service for handling product business logic
@@ -29,6 +38,9 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ReviewRepository reviewRepository;
+    
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
 
     /**
      * Find all products with pagination
@@ -244,6 +256,212 @@ public class ProductService {
         
         log.info("Getting products sorted by: {} {}", sortBy, direction);
         return productRepository.findAll(sortedPageable);
+    }
+
+    // ==================== ADMIN METHODS ====================
+
+    /**
+     * Get all products with pagination (Admin)
+     */
+    public Page<Product> getAllProducts(Pageable pageable) {
+        log.info("Admin: Fetching all products with pagination");
+        return productRepository.findAll(pageable);
+    }
+
+    /**
+     * Get product by ID (Admin)
+     */
+    public Optional<Product> getProductById(Long productId) {
+        log.info("Admin: Fetching product by ID: {}", productId);
+        return productRepository.findById(productId);
+    }
+
+    /**
+     * Get products by status (Admin)
+     */
+    public Page<Product> getProductsByStatus(ProductStatus status, Pageable pageable) {
+        log.info("Admin: Fetching products by status: {}", status);
+        return productRepository.findByStatus(status, pageable);
+    }
+
+    /**
+     * Get product statistics for admin dashboard
+     */
+    public Map<String, Object> getProductStatistics() {
+        log.info("Admin: Calculating product statistics");
+        
+        Map<String, Object> stats = new HashMap<>();
+        
+        // Total products
+        long totalProducts = productRepository.count();
+        stats.put("totalProducts", totalProducts);
+        
+        // Active products
+        long activeProducts = productRepository.countByStatus(ProductStatus.ACTIVE);
+        stats.put("activeProducts", activeProducts);
+        
+        // Out of stock products
+        long outOfStockProducts = productRepository.countByStatus(ProductStatus.OUT_OF_STOCK);
+        stats.put("outOfStockProducts", outOfStockProducts);
+        
+        // Low stock products (less than 10)
+        long lowStockProducts = productRepository.countByStockQuantityLessThan(10);
+        stats.put("lowStockProducts", lowStockProducts);
+        
+        return stats;
+    }
+
+    /**
+     * Create new product (Admin)
+     */
+    @Transactional
+    public Product createProduct(String name, String description, BigDecimal price, 
+                               Integer stockQuantity, ProductStatus status, 
+                               MultipartFile image, Integer weightG, 
+                               Integer lengthCm, Integer widthCm, Integer heightCm) {
+        
+        log.info("Admin: Creating new product: {}", name);
+        
+        Product product = new Product();
+        product.setName(name);
+        product.setDescription(description);
+        product.setPrice(price);
+        product.setStockQuantity(stockQuantity);
+        product.setStatus(status);
+        product.setWeightG(weightG);
+        product.setLengthCm(lengthCm);
+        product.setWidthCm(widthCm);
+        product.setHeightCm(heightCm);
+        
+        // Handle image upload
+        if (image != null && !image.isEmpty()) {
+            try {
+                String imagePath = saveImage(image);
+                product.setImage(imagePath);
+            } catch (IOException e) {
+                log.error("Failed to save image for product: {}", name, e);
+                // Continue without image
+            }
+        }
+        
+        Product savedProduct = productRepository.save(product);
+        log.info("Admin: Successfully created product with ID: {}", savedProduct.getId());
+        
+        return savedProduct;
+    }
+
+    /**
+     * Update product (Admin)
+     */
+    @Transactional
+    public Product updateProduct(Long productId, String name, String description, 
+                               BigDecimal price, Integer stockQuantity, ProductStatus status,
+                               MultipartFile image, Integer weightG, 
+                               Integer lengthCm, Integer widthCm, Integer heightCm) {
+        
+        log.info("Admin: Updating product ID: {}", productId);
+        
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + productId));
+        
+        product.setName(name);
+        product.setDescription(description);
+        product.setPrice(price);
+        product.setStockQuantity(stockQuantity);
+        product.setStatus(status);
+        product.setWeightG(weightG);
+        product.setLengthCm(lengthCm);
+        product.setWidthCm(widthCm);
+        product.setHeightCm(heightCm);
+        
+        // Handle image upload
+        if (image != null && !image.isEmpty()) {
+            try {
+                String imagePath = saveImage(image);
+                product.setImage(imagePath);
+            } catch (IOException e) {
+                log.error("Failed to save image for product: {}", name, e);
+                // Continue with existing image
+            }
+        }
+        
+        Product updatedProduct = productRepository.save(product);
+        log.info("Admin: Successfully updated product ID: {}", productId);
+        
+        return updatedProduct;
+    }
+
+    /**
+     * Update product status (Admin)
+     */
+    @Transactional
+    public Product updateProductStatus(Long productId, ProductStatus status) {
+        log.info("Admin: Updating product status for ID: {} to {}", productId, status);
+        
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + productId));
+        
+        product.setStatus(status);
+        Product updatedProduct = productRepository.save(product);
+        
+        log.info("Admin: Successfully updated product status for ID: {}", productId);
+        return updatedProduct;
+    }
+
+    /**
+     * Update product stock (Admin)
+     */
+    @Transactional
+    public Product updateProductStock(Long productId, Integer stockQuantity) {
+        log.info("Admin: Updating product stock for ID: {} to {}", productId, stockQuantity);
+        
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + productId));
+        
+        product.setStockQuantity(stockQuantity);
+        Product updatedProduct = productRepository.save(product);
+        
+        log.info("Admin: Successfully updated product stock for ID: {}", productId);
+        return updatedProduct;
+    }
+
+    /**
+     * Delete product (Admin)
+     */
+    @Transactional
+    public void deleteProduct(Long productId) {
+        log.info("Admin: Deleting product ID: {}", productId);
+        
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + productId));
+        
+        productRepository.delete(product);
+        log.info("Admin: Successfully deleted product ID: {}", productId);
+    }
+
+    /**
+     * Save uploaded image file
+     */
+    private String saveImage(MultipartFile image) throws IOException {
+        // Create upload directory if not exists
+        Path uploadPath = Paths.get(uploadDir);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+        
+        // Generate unique filename
+        String originalFilename = image.getOriginalFilename();
+        String extension = originalFilename != null && originalFilename.contains(".") 
+            ? originalFilename.substring(originalFilename.lastIndexOf("."))
+            : ".jpg";
+        
+        String filename = "product_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + extension;
+        
+        // Save file
+        Path filePath = uploadPath.resolve(filename);
+        Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        
+        return "/uploads/" + filename;
     }
 
     /**

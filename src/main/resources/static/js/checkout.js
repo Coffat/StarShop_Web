@@ -307,6 +307,10 @@
 				}
 				if (payment.success) {
 					alert('Đơn hàng đã được tạo thành công!');
+					// Update cart count to 0 since cart is cleared after order
+					if (typeof updateCartCount === 'function') {
+						updateCartCount(0);
+					}
 					window.location.href = '/orders';
 					return;
 				}

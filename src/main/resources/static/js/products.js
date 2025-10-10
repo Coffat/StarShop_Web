@@ -38,6 +38,38 @@
         };
     }
 
+    // Helper function to safely set class on icon (SVG or regular element)
+    function setIconClass(iconElement, className) {
+        if (!iconElement) return;
+        
+        try {
+            if (iconElement.tagName === 'SVG') {
+                iconElement.setAttribute('class', className);
+            } else {
+                iconElement.className = className;
+            }
+        } catch (error) {
+            console.warn('Error setting icon class:', error);
+            // Fallback: try setAttribute for all elements
+            try {
+                iconElement.setAttribute('class', className);
+            } catch (fallbackError) {
+                console.error('Failed to set class even with setAttribute:', fallbackError);
+            }
+        }
+    }
+    
+    // Helper function to safely get class from icon
+    function getIconClass(iconElement) {
+        if (!iconElement) return '';
+        
+        if (iconElement.tagName === 'SVG') {
+            return iconElement.getAttribute('class') || '';
+        } else {
+            return iconElement.className || '';
+        }
+    }
+
     function showToast(message, type = 'success') {
         // Remove existing toasts
         const existingToasts = document.querySelectorAll('.toast-notification');
@@ -327,8 +359,13 @@
                 showToast(data.data.message || `Đã thêm sản phẩm vào giỏ hàng`, 'success');
                 
                 // Update cart count in header (realtime)
-                if (data.data.totalItems !== undefined) {
-                    updateCartCount(data.data.totalItems);
+                const totalItems = data.data.totalItems;
+                if (totalItems !== undefined) {
+                    if (typeof updateCartCount === 'function') {
+                        updateCartCount(totalItems);
+                    } else if (typeof window.updateCartCount === 'function') {
+                        window.updateCartCount(totalItems);
+                    }
                 }
                 
                 // Reset button after delay
@@ -365,16 +402,34 @@
     }
 
     function handleWishlistToggle(button) {
-        const productId = button.dataset.productId;
-        const icon = button.querySelector('i');
+        if (!button) {
+            console.error('Button is null or undefined');
+            return;
+        }
         
-        if (!productId || !icon) return;
+        const productId = button.dataset ? button.dataset.productId : null;
+        let icon = button.querySelector('svg') || button.querySelector('i');
+        
+        if (!productId) {
+            console.error('Product ID not found on button:', button);
+            console.error('Button dataset:', button.dataset);
+            console.error('Button attributes:', Array.from(button.attributes || []).map(attr => ({name: attr.name, value: attr.value})));
+            return;
+        }
+        
+        if (!icon) {
+            console.error('Icon not found in button:', button);
+            return;
+        }
 
         // Disable button to prevent multiple clicks
         button.disabled = true;
-        const originalContent = icon.className;
+        const originalContent = getIconClass(icon);
         const originalIconHTML = icon.outerHTML;
         icon.outerHTML = '<svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clip-rule="evenodd" /></svg>';
+        
+        // Re-get icon reference after replacing outerHTML
+        icon = button.querySelector('svg') || button.querySelector('i');
 
         console.log('Wishlist toggle - Product ID:', productId);
 
@@ -403,7 +458,7 @@
                 console.log('User not authenticated');
                 showToast('Vui lòng đăng nhập để sử dụng tính năng yêu thích', 'warning');
                 // Revert to original state
-                icon.className = originalContent;
+                setIconClass(icon, originalContent);
                 button.disabled = false;
                 return;
             }
@@ -415,7 +470,7 @@
         })
         .then(data => {
             console.log('Full API Response:', data);
-            if (data && data.success && data.data && data.data.success) {
+            if (data && data.data && !data.error) {
                 // Get the current wishlist status from server response
                 const isInWishlist = data.data.isFavorite || data.data.isInWishlist;
                 
@@ -428,18 +483,33 @@
                 
                 // Update UI based on server response (database truth)
                 if (isInWishlist) {
-                    icon.className = 'bi bi-heart-fill';
+                    // SVG elements need setAttribute instead of className
+                    if (icon.tagName === 'SVG') {
+                        setIconClass(icon, 'w-5 h-5 text-red-500');
+                        icon.innerHTML = '<path d="m9.653 16.915-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001Z" />';
+                    } else {
+                        setIconClass(icon, 'bi bi-heart-fill');
+                    }
                     button.classList.add('active');
                 } else {
-                    icon.className = 'bi bi-heart';
+                    // SVG elements need setAttribute instead of className
+                    if (icon.tagName === 'SVG') {
+                        setIconClass(icon, 'w-5 h-5');
+                        icon.innerHTML = '<path d="m9.653 16.915-.005-.003-.019-.10a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001Z" />';
+                    } else {
+                        setIconClass(icon, 'bi bi-heart');
+                    }
                     button.classList.remove('active');
                 }
                 
-                // Generate correct message based on ACTUAL status
-                const message = isInWishlist ? 'Đã thêm vào danh sách yêu thích' : 'Đã xóa khỏi danh sách yêu thích';
+                // Use message from server or generate fallback
+                const serverMessage = data.data.message;
+                const fallbackMessage = isInWishlist ? 'Đã thêm vào danh sách yêu thích' : 'Đã xóa khỏi danh sách yêu thích';
+                const message = serverMessage || fallbackMessage;
                 
-                console.log('Frontend generated message:', message);
-                console.log('UI Updated - Icon class:', icon.className, 'Button active:', button.classList.contains('active'));
+                console.log('Server message:', serverMessage);
+                console.log('Final message:', message);
+                console.log('UI Updated - Icon class:', getIconClass(icon), 'Button active:', button.classList.contains('active'));
                 console.log('=== END DEBUG ===');
                 showToast(message, 'success');
                 
@@ -460,14 +530,14 @@
             } else {
                 // Revert to original state on error
                 console.log('API Error Response:', data);
-                icon.className = originalContent;
+                setIconClass(icon, originalContent);
                 const errorMessage = (data && data.error) || (data && data.data && data.data.message) || 'Có lỗi xảy ra';
                 showToast(errorMessage, 'error');
             }
         })
         .catch(error => {
             // Revert to original state on error
-            icon.className = originalContent;
+            setIconClass(icon, originalContent);
             showToast('Có lỗi xảy ra khi thực hiện yêu cầu', 'error');
         })
         .finally(() => {
@@ -476,19 +546,7 @@
         });
     }
 
-    function updateCartCount() {
-        const cartCountElements = document.querySelectorAll('.cart-count');
-        cartCountElements.forEach(element => {
-            const currentCount = parseInt(element.textContent) || 0;
-            element.textContent = currentCount + 1;
-            
-            // Add animation
-            element.style.transform = 'scale(1.2)';
-            setTimeout(() => {
-                element.style.transform = 'scale(1)';
-            }, 200);
-        });
-    }
+    // Removed duplicate updateCartCount function - using the one with parameter below
 
     function initializeQuickView() {
         document.addEventListener('click', function(e) {
@@ -872,9 +930,14 @@
     // Make some functions globally accessible for inline event handlers
     window.changeSorting = changeSorting;
     
-    window.addToCart = function(button) {
-        handleAddToCart(button);
-    };
+    // Use main.js addToCart function if available, otherwise use local handleAddToCart
+    if (typeof window.addToCartFromMain === 'function') {
+        window.addToCart = window.addToCartFromMain;
+    } else {
+        window.addToCart = function(button) {
+            handleAddToCart(button);
+        };
+    }
     
     window.toggleWishlist = function(button) {
         handleWishlistToggle(button);
@@ -933,28 +996,21 @@
     }
 
     function updateWishlistCount(count) {
-        const wishlistCountElements = document.querySelectorAll('.wishlist-count, .action-badge');
+        const wishlistCountElements = document.querySelectorAll('.wishlist-count');
         wishlistCountElements.forEach(element => {
+            element.textContent = count;
             if (count > 0) {
-                element.textContent = count;
-                element.style.display = 'block';
+                element.classList.remove('hidden');
+                element.style.display = 'flex';
             } else {
+                element.classList.add('hidden');
                 element.style.display = 'none';
             }
         });
+        console.log(`Updated wishlist count to: ${count}`);
     }
 
-    function updateCartCount(count) {
-        const cartCountElements = document.querySelectorAll('.cart-count, .cart-badge');
-        cartCountElements.forEach(element => {
-            if (count > 0) {
-                element.textContent = count;
-                element.style.display = 'block';
-            } else {
-                element.style.display = 'none';
-            }
-        });
-    }
+    // updateCartCount function is now available globally from main.js
 
     // ================================
     // DOM READY
