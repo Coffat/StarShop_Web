@@ -48,4 +48,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     @Query("SELECT COUNT(p) FROM Product p WHERE p.stockQuantity < :threshold")
     long countByStockQuantityLessThan(@Param("threshold") Integer threshold);
+    
+    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.reviews WHERE p.id = :productId")
+    Optional<Product> findByIdWithReviews(@Param("productId") Long productId);
 }

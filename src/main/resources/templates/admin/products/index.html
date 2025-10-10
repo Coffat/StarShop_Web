@@ -778,6 +778,27 @@
                 });
         }
         
+        // Helper functions for status
+        function getStatusText(status) {
+            const statusMap = {
+                'ACTIVE': 'Đang bán',
+                'INACTIVE': 'Không hoạt động',
+                'OUT_OF_STOCK': 'Hết hàng',
+                'DISCONTINUED': 'Ngừng bán'
+            };
+            return statusMap[status] || status;
+        }
+        
+        function getStatusClass(status) {
+            const classMap = {
+                'ACTIVE': 'bg-green-100 text-green-800',
+                'INACTIVE': 'bg-gray-100 text-gray-800',
+                'OUT_OF_STOCK': 'bg-red-100 text-red-800',
+                'DISCONTINUED': 'bg-yellow-100 text-yellow-800'
+            };
+            return classMap[status] || 'bg-gray-100 text-gray-800';
+        }
+
         // Populate modal with product data
         function populateProductModal(product) {
             // Hide loading, show content
