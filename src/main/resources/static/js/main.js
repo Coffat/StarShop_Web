@@ -20,6 +20,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
 });
 
+const CONFIG = {
+    ANIMATION_DURATION: 300,
+    TOAST_DURATION: 3000
+};
+
 // AOS (Animate On Scroll) initialization
 function initializeAOS() {
     // Check if AOS is available
@@ -459,76 +464,106 @@ function validateEmail(email) {
     return re.test(email);
 }
 
-function showToast(message, type = 'info') {
-    // Create toast container if it doesn't exist
-    let toastContainer = document.querySelector('.toast-container');
-    if (!toastContainer) {
-        toastContainer = document.createElement('div');
-        toastContainer.className = 'fixed top-4 right-4 z-50 space-y-2';
-        toastContainer.style.zIndex = '9999';
-        document.body.appendChild(toastContainer);
-    }
+// function showToast(message, type = 'info') {
+//     // Create toast container if it doesn't exist
+//     let toastContainer = document.querySelector('.toast-container');
+//     if (!toastContainer) {
+//         toastContainer = document.createElement('div');
+//         toastContainer.className = 'fixed top-4 right-4 z-50 space-y-2';
+//         toastContainer.style.zIndex = '9999';
+//         document.body.appendChild(toastContainer);
+//     }
     
-    // Check if a toast with the same message already exists
-    const existingToasts = toastContainer.querySelectorAll('.toast-message');
-    for (let existingToast of existingToasts) {
-        if (existingToast.textContent.trim() === message.trim()) {
-            return; // Don't create duplicate toast
-        }
-    }
+//     // Check if a toast with the same message already exists
+//     const existingToasts = toastContainer.querySelectorAll('.toast-message');
+//     for (let existingToast of existingToasts) {
+//         if (existingToast.textContent.trim() === message.trim()) {
+//             return; // Don't create duplicate toast
+//         }
+//     }
     
-    // Toast colors for different types
-    const toastColors = {
-        success: 'bg-green-500 text-white',
-        error: 'bg-red-500 text-white', 
-        warning: 'bg-yellow-500 text-black',
-        info: 'bg-blue-500 text-white'
-    };
+//     // Toast colors for different types
+//     const toastColors = {
+//         success: 'bg-green-500 text-white',
+//         error: 'bg-red-500 text-white', 
+//         warning: 'bg-yellow-500 text-black',
+//         info: 'bg-blue-500 text-white'
+//     };
     
-    // Create toast
-    const toastId = 'toast-' + Date.now();
-    const toastHTML = `
-        <div id="${toastId}" class="flex items-center p-4 rounded-lg shadow-lg ${toastColors[type] || toastColors.info} transform translate-x-full transition-transform duration-300 ease-in-out">
-            ${getToastIconSVG(type)}
-            <div class="flex-1">
-                <div class="font-semibold">StarShop</div>
-                <div class="text-sm toast-message">${message}</div>
-            </div>
-            <button type="button" class="ml-3 text-white hover:text-gray-200" onclick="document.getElementById('${toastId}').remove()">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
+//     // Create toast
+//     const toastId = 'toast-' + Date.now();
+//     const toastHTML = `
+//         <div id="${toastId}" class="flex items-center p-4 rounded-lg shadow-lg ${toastColors[type] || toastColors.info} transform translate-x-full transition-transform duration-300 ease-in-out">
+//             ${getToastIconSVG(type)}
+//             <div class="flex-1">
+//                 <div class="font-semibold">StarShop</div>
+//                 <div class="text-sm toast-message">${message}</div>
+//             </div>
+//             <button type="button" class="ml-3 text-white hover:text-gray-200" onclick="document.getElementById('${toastId}').remove()">
+//                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+//                 </svg>
+//             </button>
+//         </div>
+//     `;
+    
+//     toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+    
+//     // Show toast with animation
+//     const toastElement = document.getElementById(toastId);
+//     setTimeout(() => {
+//         toastElement.classList.remove('translate-x-full');
+//     }, 100);
+    
+//     // Auto remove after 5 seconds
+//     setTimeout(() => {
+//         if (toastElement) {
+//             toastElement.classList.add('translate-x-full');
+//             setTimeout(() => {
+//                 toastElement.remove();
+//             }, 300);
+//         }
+//     }, 5000);
+// }
+
+// function getToastIconSVG(type) {
+//     const icons = {
+//         success: '<svg class="w-5 h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" /></svg>',
+//         error: '<svg class="w-5 h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" /></svg>',
+//         warning: '<svg class="w-5 h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" /></svg>',
+//         info: '<svg class="w-5 h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clip-rule="evenodd" /></svg>'
+//     };
+//     return icons[type] || icons.info;
+// }
+function showToast(message, type = 'success') {
+    // Remove existing toasts
+    const existingToasts = document.querySelectorAll('.toast-notification');
+    existingToasts.forEach(toast => toast.remove());
+
+    // Create new toast
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    toast.innerHTML = `
+        <div class="toast-content">
+            <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                ${type === 'success' ? '<path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" />' : '<path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />'}
+            </svg>
+            <span>${message}</span>
         </div>
     `;
-    
-    toastContainer.insertAdjacentHTML('beforeend', toastHTML);
-    
-    // Show toast with animation
-    const toastElement = document.getElementById(toastId);
-    setTimeout(() => {
-        toastElement.classList.remove('translate-x-full');
-    }, 100);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        if (toastElement) {
-            toastElement.classList.add('translate-x-full');
-            setTimeout(() => {
-                toastElement.remove();
-            }, 300);
-        }
-    }, 5000);
-}
 
-function getToastIconSVG(type) {
-    const icons = {
-        success: '<svg class="w-5 h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" /></svg>',
-        error: '<svg class="w-5 h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" /></svg>',
-        warning: '<svg class="w-5 h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" /></svg>',
-        info: '<svg class="w-5 h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clip-rule="evenodd" /></svg>'
-    };
-    return icons[type] || icons.info;
+    document.body.appendChild(toast);
+
+    // Show toast
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+
+    // Hide toast after duration
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), CONFIG.ANIMATION_DURATION);
+    }, CONFIG.TOAST_DURATION);
 }
 
 function addToCart(button) {
