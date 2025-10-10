@@ -24,7 +24,8 @@ import java.util.List;
     ProductController.class,
     HomeController.class,
     AccountController.class,
-    AdminController.class
+    AdminController.class,
+    AdminProductController.class
 })
 public class BaseController {
 

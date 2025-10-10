@@ -15,6 +15,7 @@ public class ResponseWrapper<T> {
     
     private T data;
     private String error;
+    private String message;
     
     /**
      * Create successful response with data
@@ -22,7 +23,17 @@ public class ResponseWrapper<T> {
      * @return ResponseWrapper with data and null error
      */
     public static <T> ResponseWrapper<T> success(T data) {
-        return new ResponseWrapper<>(data, null);
+        return new ResponseWrapper<>(data, null, null);
+    }
+    
+    /**
+     * Create successful response with data and message
+     * @param data Response data
+     * @param message Success message
+     * @return ResponseWrapper with data and message
+     */
+    public static <T> ResponseWrapper<T> success(T data, String message) {
+        return new ResponseWrapper<>(data, null, message);
     }
     
     /**
@@ -31,6 +42,6 @@ public class ResponseWrapper<T> {
      * @return ResponseWrapper with null data and error message
      */
     public static <T> ResponseWrapper<T> error(String error) {
-        return new ResponseWrapper<>(null, error);
+        return new ResponseWrapper<>(null, error, null);
     }
 }
