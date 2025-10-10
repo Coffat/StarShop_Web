@@ -464,44 +464,69 @@ function showToast(message, type = 'info') {
     let toastContainer = document.querySelector('.toast-container');
     if (!toastContainer) {
         toastContainer = document.createElement('div');
-        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
-        toastContainer.style.zIndex = '1080';
+        toastContainer.className = 'fixed top-4 right-4 z-50 space-y-2';
+        toastContainer.style.zIndex = '9999';
         document.body.appendChild(toastContainer);
     }
+    
+    // Check if a toast with the same message already exists
+    const existingToasts = toastContainer.querySelectorAll('.toast-message');
+    for (let existingToast of existingToasts) {
+        if (existingToast.textContent.trim() === message.trim()) {
+            return; // Don't create duplicate toast
+        }
+    }
+    
+    // Toast colors for different types
+    const toastColors = {
+        success: 'bg-green-500 text-white',
+        error: 'bg-red-500 text-white', 
+        warning: 'bg-yellow-500 text-black',
+        info: 'bg-blue-500 text-white'
+    };
     
     // Create toast
     const toastId = 'toast-' + Date.now();
     const toastHTML = `
-        <div id="${toastId}" class="toast toast-${type}" role="alert">
-            <div class="toast-header">
-                ${getToastIconSVG(type)}
-                <strong class="me-auto">StarShop</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        <div id="${toastId}" class="flex items-center p-4 rounded-lg shadow-lg ${toastColors[type] || toastColors.info} transform translate-x-full transition-transform duration-300 ease-in-out">
+            ${getToastIconSVG(type)}
+            <div class="flex-1">
+                <div class="font-semibold">StarShop</div>
+                <div class="text-sm toast-message">${message}</div>
             </div>
-            <div class="toast-body">
-                ${message}
-            </div>
+            <button type="button" class="ml-3 text-white hover:text-gray-200" onclick="document.getElementById('${toastId}').remove()">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
         </div>
     `;
     
     toastContainer.insertAdjacentHTML('beforeend', toastHTML);
     
-    // Show toast
-    const toast = new bootstrap.Toast(document.getElementById(toastId));
-    toast.show();
+    // Show toast with animation
+    const toastElement = document.getElementById(toastId);
+    setTimeout(() => {
+        toastElement.classList.remove('translate-x-full');
+    }, 100);
     
-    // Remove toast element after it's hidden
-    document.getElementById(toastId).addEventListener('hidden.bs.toast', function() {
-        this.remove();
-    });
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (toastElement) {
+            toastElement.classList.add('translate-x-full');
+            setTimeout(() => {
+                toastElement.remove();
+            }, 300);
+        }
+    }, 5000);
 }
 
 function getToastIconSVG(type) {
     const icons = {
-        success: '<svg class="w-5 h-5 inline-block text-success me-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" /></svg>',
-        error: '<svg class="w-5 h-5 inline-block text-danger me-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" /></svg>',
-        warning: '<svg class="w-5 h-5 inline-block text-warning me-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" /></svg>',
-        info: '<svg class="w-5 h-5 inline-block text-info me-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clip-rule="evenodd" /></svg>'
+        success: '<svg class="w-5 h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" /></svg>',
+        error: '<svg class="w-5 h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" /></svg>',
+        warning: '<svg class="w-5 h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" /></svg>',
+        info: '<svg class="w-5 h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clip-rule="evenodd" /></svg>'
     };
     return icons[type] || icons.info;
 }
@@ -568,42 +593,36 @@ function addToCart(button) {
         return response.json();
     })
     .then(data => {
-        if (data && data.success && data.data && data.data.success) {
-            // Success state
-            button.innerHTML = '<svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg> Đã thêm!';
-            button.classList.add('success');
-            
-            showToast(data.data.message || `Đã thêm sản phẩm vào giỏ hàng`, 'success');
-            
-            // Update cart count in header (realtime)
-            if (data.data.totalItems !== undefined) {
-                updateCartCount(data.data.totalItems);
-            }
-            
-            // Reset button after delay
-            setTimeout(() => {
-                button.innerHTML = originalHTML;
-                button.classList.remove('success');
-                button.disabled = false;
-            }, 1500);
-            
-            // Track analytics
-            if (typeof gtag !== 'undefined') {
-                gtag('event', 'add_to_cart', {
-                    'currency': 'VND',
-                    'items': [{
-                        'item_id': productId,
-                        'quantity': parseInt(quantity)
-                    }]
-                });
-            }
-        } else {
-            // Error state
+        if (!data) {
+            return; // Already handled 401 case
+        }
+        
+        // Always try to refresh cart count and show success
+        fetch('/api/cart/count', { credentials: 'same-origin' })
+            .then(response => response.json())
+            .then(countData => {
+                const totalItems = countData.data !== undefined ? countData.data : countData;
+                if (typeof updateCartCount === 'function') {
+                    updateCartCount(totalItems);
+                }
+                
+                // Show success message only after cart count is updated
+                showToast('Đã thêm sản phẩm vào giỏ hàng', 'success');
+            })
+            .catch(() => {
+                console.log('Could not refresh cart count');
+                // Still show success even if count refresh fails
+                showToast('Đã thêm sản phẩm vào giỏ hàng', 'success');
+            });
+        
+        // Update button state
+        button.innerHTML = '<svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg> Đã thêm!';
+        
+        // Reset button after delay
+        setTimeout(() => {
             button.innerHTML = originalHTML;
             button.disabled = false;
-            const errorMessage = (data && data.error) || (data && data.data && data.data.message) || 'Có lỗi xảy ra khi thêm vào giỏ hàng';
-            showToast(errorMessage, 'error');
-        }
+        }, 1500);
     })
     .catch(error => {
         console.error('Error adding to cart:', error);
@@ -613,81 +632,119 @@ function addToCart(button) {
     });
 }
 
-// DEPRECATED: Wishlist functionality moved to products.js
-// This function is commented out to avoid duplicate handlers
-/*
-function toggleWishlist(productId, button) {
-    const icon = button.querySelector('i');
+function toggleWishlist(button) {
+    const productId = button.dataset.productId;
+    
+    if (!productId) {
+        showToast('Không thể thêm sản phẩm vào danh sách yêu thích', 'error');
+        return;
+    }
     
     // Disable button to prevent multiple clicks
     button.disabled = true;
-    const originalContent = icon.className;
-    icon.className = 'bi bi-hourglass';
+    const originalHTML = button.innerHTML;
     
-        // Get CSRF token
-        const csrfToken = getCsrfToken();
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
-        
-        // API call - let server determine the action based on database
-        fetch('/api/wishlist/toggle', {
+    // Show loading state
+    button.innerHTML = '<svg class="w-5 h-5 inline-block animate-spin" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clip-rule="evenodd" /></svg>';
+    
+    // Get CSRF token
+    const csrfToken = getCsrfToken();
+    const csrfHeaderElement = document.querySelector('meta[name="_csrf_header"]');
+    const csrfHeader = csrfHeaderElement ? csrfHeaderElement.getAttribute('content') : 'X-CSRF-TOKEN';
+    
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+    };
+    
+    if (csrfToken && csrfHeader) {
+        headers[csrfHeader] = csrfToken;
+    }
+    
+    // API call to toggle wishlist
+    fetch('/api/wishlist/toggle', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            [csrfHeader]: csrfToken
-        },
-        credentials: 'same-origin', // Include cookies for authentication
-        body: JSON.stringify({ productId: productId })
+        headers: headers,
+        credentials: 'same-origin',
+        body: JSON.stringify({ productId: parseInt(productId) })
     })
     .then(response => {
         if (response.status === 401) {
-            // User not authenticated
             showToast('Vui lòng đăng nhập để sử dụng tính năng yêu thích', 'warning');
-            // Revert to original state
-            icon.className = originalContent;
+            button.innerHTML = originalHTML;
             button.disabled = false;
             return;
         }
+        
+        if (response.status === 403) {
+            showToast('Lỗi bảo mật: Vui lòng refresh trang và thử lại', 'error');
+            button.innerHTML = originalHTML;
+            button.disabled = false;
+            return;
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         return response.json();
     })
     .then(data => {
-        if (data && data.data && data.data.success) {
-            // Update UI based on server response (database truth)
+        // Early return from error handling above
+        if (!data) return;
+        
+        console.log('Wishlist API response:', data);
+        
+        if (data && data.success && data.data && data.data.success) {
+            // Update UI based on server response
             if (data.data.isFavorite) {
-                icon.className = 'bi bi-heart-fill';
                 button.classList.add('active');
+                button.innerHTML = '<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="m9.653 16.915-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001Z" /></svg>';
+                showToast('Đã thêm vào danh sách yêu thích', 'success');
             } else {
-                icon.className = 'bi bi-heart';
                 button.classList.remove('active');
+                button.innerHTML = originalHTML;
+                showToast('Đã xóa khỏi danh sách yêu thích', 'success');
             }
             
-            updateWishlistCount(data.data.favoriteCount);
-            showToast(data.data.isFavorite ? 'Đã thêm vào danh sách yêu thích' : 'Đã xóa khỏi danh sách yêu thích', 'success');
+            // Update wishlist count - try both favoriteCount and userWishlistCount
+            const wishlistCount = data.data.favoriteCount || data.data.userWishlistCount;
+            if (wishlistCount !== undefined) {
+                updateWishlistCount(wishlistCount);
+            }
         } else {
-            // Revert to original state on error
-            icon.className = originalContent;
-            showToast(data.error || data.message || 'Có lỗi xảy ra', 'error');
+            button.innerHTML = originalHTML;
+            const errorMessage = (data && data.error) || (data && data.data && data.data.message) || 'Có lỗi xảy ra';
+            showToast(errorMessage, 'error');
+            console.error('Wishlist error:', errorMessage, data);
         }
     })
     .catch(error => {
-        // Revert to original state on error
-        icon.className = originalContent;
+        console.error('Error toggling wishlist:', error);
+        button.innerHTML = originalHTML;
         showToast('Có lỗi xảy ra khi thực hiện yêu cầu', 'error');
     })
     .finally(() => {
-        // Re-enable button
         button.disabled = false;
     });
 }
-*/
 
 function updateCartCount(count) {
-    const cartCountElements = document.querySelectorAll('.cart-count, .cart-badge, .action-badge');
+    const cartCountElements = document.querySelectorAll('.cart-count');
+    
     cartCountElements.forEach(element => {
+        element.textContent = count;
         if (count > 0) {
-            element.textContent = count;
-            element.style.display = 'block';
+            element.classList.remove('hidden');
+            element.style.display = 'flex';
+            
+            // Add animation
+            element.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                element.style.transform = 'scale(1)';
+            }, 200);
         } else {
+            element.classList.add('hidden');
             element.style.display = 'none';
         }
     });
@@ -696,14 +753,21 @@ function updateCartCount(count) {
 function updateWishlistCount(count) {
     const wishlistCountElements = document.querySelectorAll('.wishlist-count');
     wishlistCountElements.forEach(element => {
+        element.textContent = count;
         if (count > 0) {
-            element.textContent = count;
-            element.style.display = 'block';
+            element.classList.remove('hidden');
+            element.style.display = 'flex';
         } else {
+            element.classList.add('hidden');
             element.style.display = 'none';
         }
     });
 }
+
+// Make functions globally accessible immediately after definition
+window.updateCartCount = updateCartCount;
+window.updateWishlistCount = updateWishlistCount;
+window.addToCartFromMain = addToCart;
 
 function getCsrfToken() {
     // Try to get CSRF token from cookie first (Spring Security default)
@@ -741,6 +805,10 @@ style.textContent = `
     .animate-on-scroll.animate-in {
         opacity: 1;
         transform: translateY(0);
+    }
+    
+    .cart-count, .wishlist-count {
+        transition: transform 0.2s ease-in-out;
     }
     
     .header-wrapper.scrolled {
@@ -995,3 +1063,30 @@ function testSearchToggle() {
         console.log('Classes after manual add:', searchCollapse.className);
     }
 }
+
+// Load initial cart count
+function loadCartCount() {
+    fetch('/api/cart/count', {
+        method: 'GET',
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        }
+        return null;
+    })
+    .then(data => {
+        if (data && data.success && data.data !== undefined) {
+            updateCartCount(data.data);
+        }
+    })
+    .catch(error => {
+        console.log('Could not load cart count:', error);
+    });
+}
+
+// Load cart count on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadCartCount();
+});

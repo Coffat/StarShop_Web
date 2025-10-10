@@ -126,7 +126,7 @@ public class AuthController {
                 // Set token in httpOnly cookie for security
                 Cookie authCookie = new Cookie("authToken", token);
                 authCookie.setHttpOnly(true);
-                authCookie.setSecure(true); // Use HTTPS in production
+                authCookie.setSecure(false); // Set to false for localhost development
                 authCookie.setPath("/");
                 authCookie.setMaxAge(24 * 60 * 60); // 24 hours
                 response.addCookie(authCookie);
@@ -783,5 +783,48 @@ public class AuthController {
         
         public String getResetToken() { return resetToken; }
         public void setResetToken(String resetToken) { this.resetToken = resetToken; }
+    }
+
+    // Debug endpoint để test authentication
+    @GetMapping("/debug/status")
+    public ResponseEntity<Map<String, Object>> debugStatus() {
+        Map<String, Object> result = new HashMap<>();
+        result.put("auth_service", "available");
+        result.put("timestamp", LocalDateTime.now().toString());
+        result.put("message", "Authentication debug endpoint working");
+        return ResponseEntity.ok(result);
+    }
+
+    // Temporary endpoint để tạo test user
+    @PostMapping("/debug/create-user")
+    public ResponseEntity<Map<String, Object>> createTestUser() {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            // Tạo user qua AuthService
+            String email = "vuthang@example.com";
+            String password = "88888888";
+            String firstName = "Vũ Toàn";
+            String lastName = "Thắng";
+            
+            // Check if user exists
+            User existingUser = authService.findUserByEmail(email);
+            if (existingUser != null) {
+                result.put("message", "User already exists");
+                result.put("user_id", existingUser.getId());
+                result.put("user_email", existingUser.getEmail());
+                return ResponseEntity.ok(result);
+            }
+            
+            // Create new user (this would normally be done via registration)
+            // For now, just return info that user creation is needed
+            result.put("message", "User creation endpoint - implement user creation logic here");
+            result.put("email", email);
+            result.put("status", "needs_implementation");
+            
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            result.put("error", e.getMessage());
+            return ResponseEntity.status(500).body(result);
+        }
     }
 }

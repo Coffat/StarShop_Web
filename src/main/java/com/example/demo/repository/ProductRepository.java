@@ -1,6 +1,7 @@
 package com.example.demo.repository;
 
 import com.example.demo.entity.Product;
+import com.example.demo.entity.enums.ProductStatus;
 import com.example.demo.dto.ProductDetailDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,4 +39,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT new com.example.demo.dto.ProductDetailDTO(p, AVG(r.rating), COUNT(r)) " +
            "FROM Product p LEFT JOIN p.reviews r WHERE p.id = :productId GROUP BY p")
     Optional<ProductDetailDTO> findProductDetailById(@Param("productId") Long productId);
+    
+    // Admin methods
+    Page<Product> findByStatus(ProductStatus status, Pageable pageable);
+    
+    @Query("SELECT COUNT(p) FROM Product p WHERE p.status = :status")
+    long countByStatus(@Param("status") ProductStatus status);
+    
+    @Query("SELECT COUNT(p) FROM Product p WHERE p.stockQuantity < :threshold")
+    long countByStockQuantityLessThan(@Param("threshold") Integer threshold);
 }
