@@ -273,7 +273,7 @@ public class ProductService {
      */
     public Optional<Product> getProductById(Long productId) {
         log.info("Admin: Fetching product by ID: {}", productId);
-        return productRepository.findById(productId);
+        return productRepository.findByIdWithReviews(productId);
     }
 
     /**
