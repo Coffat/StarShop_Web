@@ -267,73 +267,7 @@
       }
     });
   }
-  // Removed duplicate updateCartCount function - using the one with parameter below
 
-//   function initializeQuickView() {
-//     document.addEventListener("click", function (e) {
-//       if (
-//         e.target.matches(".btn-quick-view") ||
-//         e.target.closest(".btn-quick-view")
-//       ) {
-//         e.preventDefault();
-//         const button = e.target.matches(".btn-quick-view")
-//           ? e.target
-//           : e.target.closest(".btn-quick-view");
-//         const productId = button.dataset.productId;
-
-//         if (productId) {
-//           openQuickView(productId);
-//         }
-//       }
-//     });
-//   }
-
-  function openQuickView(productId) {
-    const modal = document.getElementById("quickViewModal");
-    const modalContent = document.getElementById("quickViewContent");
-
-    if (!modal || !modalContent) return;
-
-    // Show loading spinner
-    modalContent.innerHTML = `
-            <div class="loading-spinner">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Đang tải...</span>
-                </div>
-                <p class="mt-3 text-center">Đang tải thông tin sản phẩm...</p>
-            </div>
-        `;
-
-    // Show modal
-    const bootstrapModal = new bootstrap.Modal(modal);
-    bootstrapModal.show();
-
-    // TODO: Load product data via AJAX
-    setTimeout(() => {
-      modalContent.innerHTML = `
-                <div class="quick-view-content">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <img src="/images/products/default-flower.jpg" 
-                                 alt="Product" 
-                                 class="img-fluid rounded">
-                        </div>
-                        <div class="col-md-6">
-                            <h4>Tên sản phẩm</h4>
-                            <p class="text-muted">Mô tả ngắn gọn về sản phẩm...</p>
-                            <div class="price mb-3">
-                                <span class="h4 text-primary">500.000₫</span>
-                            </div>
-                            <div class="d-grid gap-2">
-                                <button class="btn btn-primary">Thêm vào giỏ hàng</button>
-                                <a href="/products/${productId}" class="btn btn-outline-primary">Xem chi tiết</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-    }, 800);
-  }
 
   // ================================
   // PRODUCT DETAIL PAGE

@@ -43,6 +43,7 @@
                     <div class="main-image-container">
                         <img th:src="${product.image != null ? product.image : '/images/products/default-flower.jpg'}" 
                              th:alt="${product.name}" 
+                             th:title="${product.name}"
                              class="main-image" 
                              id="mainProductImage">
                         
@@ -60,6 +61,7 @@
                         <div class="thumbnail-item active">
                             <img th:src="${product.image != null ? product.image : '/images/products/default-flower.jpg'}" 
                                  th:alt="${product.name}" 
+                                 th:title="${product.name}"
                                  class="thumbnail-image">
                         </div>
                         <!-- More thumbnails would go here -->
@@ -372,6 +374,7 @@
                         <a th:href="@{/products/{id}(id=${relatedProduct.id})}" class="product-image-link">
                             <img th:src="${relatedProduct.image != null ? relatedProduct.image : '/images/products/default-flower.jpg'}" 
                                  th:alt="${relatedProduct.name}" 
+                                 th:title="${relatedProduct.name}"
                                  class="product-image"
                                  loading="lazy">
                         </a>
