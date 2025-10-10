@@ -408,6 +408,7 @@ CREATE OR REPLACE VIEW product_summary AS
 SELECT 
     p.id,
     p.name,
+    c.value as catalog_name,
     p.price,
     p.stock_quantity,
     p.status,
@@ -425,7 +426,8 @@ SELECT
         WHEN p.status = 'ACTIVE' AND p.stock_quantity = 0 THEN 'Out of Stock'
         ELSE 'Unavailable'
     END as availability_status
-FROM products p;
+FROM products p
+LEFT JOIN catalogs c ON p.catalog_id = c.id;
 
 -- View for audit trail with user-friendly format
 CREATE OR REPLACE VIEW product_audit_summary AS
