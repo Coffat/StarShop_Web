@@ -1,67 +1,7 @@
 /* ================================
    PRODUCTS PAGE CSS - PROFESSIONAL
-   Consistent with home.css design
+   Consistent with design system
    ================================ */
-
-/* ================================
-   TOAST NOTIFICATIONS
-   ================================ */
-
-.toast-notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--white);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-xl);
-    padding: 1rem;
-    z-index: 9999;
-    transform: translateX(100%);
-    opacity: 0;
-    transition: all var(--transition-normal);
-    border-left: 4px solid var(--success);
-}
-
-.toast-notification.toast-success {
-    border-left-color: var(--success);
-}
-
-.toast-notification.toast-error {
-    border-left-color: var(--danger);
-}
-
-.toast-notification.toast-warning {
-    border-left-color: var(--warning);
-}
-
-.toast-notification.show {
-    transform: translateX(0);
-    opacity: 1;
-}
-
-.toast-content {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    color: var(--gray-700);
-    font-weight: var(--font-weight-medium);
-}
-
-.toast-content i {
-    font-size: 1.25rem;
-}
-
-.toast-success .toast-content i {
-    color: var(--success);
-}
-
-.toast-error .toast-content i {
-    color: var(--danger);
-}
-
-.toast-warning .toast-content i {
-    color: var(--warning);
-}
 
 /* ================================
    BREADCRUMB NAVIGATION
@@ -459,6 +399,7 @@
     align-items: center;
     justify-content: center;
     font-size: 1rem;
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
 }
 
@@ -516,6 +457,7 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    line-clamp: 2; /* Standard property */
 }
 
 .product-title-link:hover {

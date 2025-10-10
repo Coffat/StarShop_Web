@@ -73,37 +73,6 @@
     }
   }
 
-  // function showToast(message, type = 'success') {
-  //     // Remove existing toasts
-  //     const existingToasts = document.querySelectorAll('.toast-notification');
-  //     existingToasts.forEach(toast => toast.remove());
-
-  //     // Create new toast
-  //     const toast = document.createElement('div');
-  //     toast.className = `toast-notification toast-${type}`;
-  //     toast.innerHTML = `
-  //         <div class="toast-content">
-  //             <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-  //                 ${type === 'success' ? '<path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" />' : '<path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />'}
-  //             </svg>
-  //             <span>${message}</span>
-  //         </div>
-  //     `;
-
-  //     document.body.appendChild(toast);
-
-  //     // Show toast
-  //     requestAnimationFrame(() => {
-  //         toast.classList.add('show');
-  //     });
-
-  //     // Hide toast after duration
-  //     setTimeout(() => {
-  //         toast.classList.remove('show');
-  //         setTimeout(() => toast.remove(), CONFIG.ANIMATION_DURATION);
-  //     }, CONFIG.TOAST_DURATION);
-  // }
-
   function setLoadingState(element, loading = true) {
     if (loading) {
       element.dataset.originalContent = element.innerHTML;
@@ -183,10 +152,10 @@
     initializeViewToggle();
 
     // Product actions
-    initializeProductActions();
+    // initializeProductActions();
 
     // Quick view functionality
-    initializeQuickView();
+    // initializeQuickView();
 
     // Load initial favorite status
     loadInitialFavoriteStatus();
@@ -196,7 +165,7 @@
     productCards.forEach((card, index) => {
       // Gán độ trễ tăng dần cho mỗi sản phẩm (50ms, 100ms, 150ms...)
       // Điều này giúp hiệu ứng xuất hiện nối tiếp nhau một cách mượt mà
-      card.setAttribute("data-aos-delay", (index % 10) * 50);
+      card.setAttribute("data-aos-delay", (index % 10) * 100);
     });
   }
 
@@ -248,41 +217,6 @@
       if (listButton) listButton.click();
     }
   }
-
-  function initializeProductActions() {
-    console.log("Products.js: Initializing product actions...");
-
-    // Add to cart buttons
-    document.addEventListener("click", function (e) {
-      if (
-        e.target.matches(".btn-add-to-cart") ||
-        e.target.closest(".btn-add-to-cart")
-      ) {
-        e.preventDefault();
-        const button = e.target.matches(".btn-add-to-cart")
-          ? e.target
-          : e.target.closest(".btn-add-to-cart");
-        handleAddToCart(button);
-      }
-    });
-
-    // Wishlist buttons
-    console.log("Products.js: Setting up wishlist event listeners...");
-    document.addEventListener("click", function (e) {
-      if (
-        e.target.matches(".btn-wishlist") ||
-        e.target.closest(".btn-wishlist")
-      ) {
-        console.log("Products.js: Wishlist button clicked!");
-        e.preventDefault();
-        const button = e.target.matches(".btn-wishlist")
-          ? e.target
-          : e.target.closest(".btn-wishlist");
-        handleWishlistToggle(button);
-      }
-    });
-  }
-
   function loadInitialFavoriteStatus() {
     const wishlistButtons = document.querySelectorAll(".btn-wishlist");
 
@@ -333,269 +267,26 @@
       }
     });
   }
-
-  // function handleAddToCart(button) {
-  //     const productId = button.dataset.productId;
-  //     const quantity = document.getElementById('quantity')?.value || 1;
-
-  //     if (!productId) {
-  //         showToast('Không thể thêm sản phẩm vào giỏ hàng', 'error');
-  //         return;
-  //     }
-
-  //     // Show loading state
-  //     const originalHTML = button.innerHTML;
-  //     button.disabled = true;
-  //     button.innerHTML = '<svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clip-rule="evenodd" /></svg> Đang thêm...';
-
-  //     // Get CSRF token
-  //     const csrfToken = getCsrfToken();
-  //     const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
-
-  //     // API call to add to cart
-  //     fetch('/api/cart/add', {
-  //         method: 'POST',
-  //         headers: {
-  //             'Content-Type': 'application/json',
-  //             'X-Requested-With': 'XMLHttpRequest',
-  //             [csrfHeader]: csrfToken
-  //         },
-  //         credentials: 'same-origin',
-  //         body: JSON.stringify({
-  //             productId: parseInt(productId),
-  //             quantity: parseInt(quantity)
-  //         })
-  //     })
-  //     .then(response => {
-  //         if (response.status === 401) {
-  //             showToast('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng', 'warning');
-  //             button.innerHTML = originalHTML;
-  //             button.disabled = false;
-  //             return null; // Return null instead of undefined
-  //         }
-  //         return response.json();
-  //     })
-  //     .then(data => {
-  //         if (!data) {
-  //             // Handle case when data is null (401 response)
-  //             return;
-  //         }
-
-  //         if (data && data.success && data.data && data.data.success) {
-  //             // Success state
-  //             button.innerHTML = '<svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg> Đã thêm!';
-  //             button.classList.add('success');
-
-  //             showToast(data.data.message || `Đã thêm sản phẩm vào giỏ hàng`, 'success');
-
-  //             // Update cart count in header (realtime)
-  //             const totalItems = data.data.totalItems;
-  //             if (totalItems !== undefined) {
-  //                 if (typeof updateCartCount === 'function') {
-  //                     updateCartCount(totalItems);
-  //                 } else if (typeof window.updateCartCount === 'function') {
-  //                     window.updateCartCount(totalItems);
-  //                 }
-  //             }
-
-  //             // Reset button after delay
-  //             setTimeout(() => {
-  //                 button.innerHTML = originalHTML;
-  //                 button.classList.remove('success');
-  //                 button.disabled = false;
-  //             }, 1500);
-
-  //             // Track analytics
-  //             if (typeof gtag !== 'undefined') {
-  //                 gtag('event', 'add_to_cart', {
-  //                     'currency': 'VND',
-  //                     'items': [{
-  //                         'item_id': productId,
-  //                         'quantity': parseInt(quantity)
-  //                     }]
-  //                 });
-  //             }
-  //         } else {
-  //             // Error state
-  //             button.innerHTML = originalHTML;
-  //             button.disabled = false;
-  //             const errorMessage = (data && data.error) || (data && data.data && data.data.message) || 'Có lỗi xảy ra khi thêm vào giỏ hàng';
-  //             showToast(errorMessage, 'error');
-  //         }
-  //     })
-  //     .catch(error => {
-  //         console.error('Error adding to cart:', error);
-  //         button.innerHTML = originalHTML;
-  //         button.disabled = false;
-  //         showToast('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng', 'error');
-  //     });
-  // }
-
-  // function handleWishlistToggle(button) {
-  //     if (!button) {
-  //         console.error('Button is null or undefined');
-  //         return;
-  //     }
-
-  //     const productId = button.dataset ? button.dataset.productId : null;
-  //     let icon = button.querySelector('svg') || button.querySelector('i');
-
-  //     if (!productId) {
-  //         console.error('Product ID not found on button:', button);
-  //         console.error('Button dataset:', button.dataset);
-  //         console.error('Button attributes:', Array.from(button.attributes || []).map(attr => ({name: attr.name, value: attr.value})));
-  //         return;
-  //     }
-
-  //     if (!icon) {
-  //         console.error('Icon not found in button:', button);
-  //         return;
-  //     }
-
-  //     // Disable button to prevent multiple clicks
-  //     button.disabled = true;
-  //     const originalContent = getIconClass(icon);
-  //     const originalIconHTML = icon.outerHTML;
-  //     icon.outerHTML = '<svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clip-rule="evenodd" /></svg>';
-
-  //     // Re-get icon reference after replacing outerHTML
-  //     icon = button.querySelector('svg') || button.querySelector('i');
-
-  //     console.log('Wishlist toggle - Product ID:', productId);
-
-  //     // Get CSRF token
-  //     const csrfToken = getCsrfToken();
-  //     const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
-
-  //     console.log('CSRF Token:', csrfToken);
-  //     console.log('CSRF Header:', csrfHeader);
-
-  //     // API call to toggle wishlist - let server determine the action
-  //     fetch('/api/wishlist/toggle', {
-  //         method: 'POST',
-  //         headers: {
-  //             'Content-Type': 'application/json',
-  //             'X-Requested-With': 'XMLHttpRequest',
-  //             [csrfHeader]: csrfToken
-  //         },
-  //         credentials: 'same-origin', // Include cookies for authentication
-  //         body: JSON.stringify({ productId: productId })
-  //     })
-  //     .then(response => {
-  //         console.log('API Response Status:', response.status);
-  //         if (response.status === 401) {
-  //             // User not authenticated
-  //             console.log('User not authenticated');
-  //             showToast('Vui lòng đăng nhập để sử dụng tính năng yêu thích', 'warning');
-  //             // Revert to original state
-  //             setIconClass(icon, originalContent);
-  //             button.disabled = false;
-  //             return;
-  //         }
-  //         if (!response.ok) {
-  //             console.log('API Error:', response.status, response.statusText);
-  //             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-  //         }
-  //         return response.json();
-  //     })
-  //     .then(data => {
-  //         console.log('Full API Response:', data);
-  //         if (data && data.data && !data.error) {
-  //             // Get the current wishlist status from server response
-  //             const isInWishlist = data.data.isFavorite || data.data.isInWishlist;
-
-  //             console.log('=== WISHLIST TOGGLE DEBUG ===');
-  //             console.log('Server response:', data);
-  //             console.log('isInWishlist from server:', data.data.isInWishlist);
-  //             console.log('isFavorite (backward compatibility):', data.data.isFavorite);
-  //             console.log('Final isInWishlist value:', isInWishlist);
-  //             console.log('Message from server:', data.data.message);
-
-  //             // Update UI based on server response (database truth)
-  //             if (isInWishlist) {
-  //                 // SVG elements need setAttribute instead of className
-  //                 if (icon.tagName === 'SVG') {
-  //                     setIconClass(icon, 'w-5 h-5 text-red-500');
-  //                     icon.innerHTML = '<path d="m9.653 16.915-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001Z" />';
-  //                 } else {
-  //                     setIconClass(icon, 'bi bi-heart-fill');
-  //                 }
-  //                 button.classList.add('active');
-  //             } else {
-  //                 // SVG elements need setAttribute instead of className
-  //                 if (icon.tagName === 'SVG') {
-  //                     setIconClass(icon, 'w-5 h-5');
-  //                     icon.innerHTML = '<path d="m9.653 16.915-.005-.003-.019-.10a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001Z" />';
-  //                 } else {
-  //                     setIconClass(icon, 'bi bi-heart');
-  //                 }
-  //                 button.classList.remove('active');
-  //             }
-
-  //             // Use message from server or generate fallback
-  //             const serverMessage = data.data.message;
-  //             const fallbackMessage = isInWishlist ? 'Đã thêm vào danh sách yêu thích' : 'Đã xóa khỏi danh sách yêu thích';
-  //             const message = serverMessage || fallbackMessage;
-
-  //             console.log('Server message:', serverMessage);
-  //             console.log('Final message:', message);
-  //             console.log('UI Updated - Icon class:', getIconClass(icon), 'Button active:', button.classList.contains('active'));
-  //             console.log('=== END DEBUG ===');
-  //             showToast(message, 'success');
-
-  //             // Update wishlist count in header (realtime)
-  //             if (data.data.userWishlistCount !== undefined) {
-  //                 updateWishlistCount(data.data.userWishlistCount);
-  //             } else if (data.data.favoriteCount !== undefined) {
-  //                 // Fallback to old field name
-  //                 updateWishlistCount(data.data.favoriteCount);
-  //             }
-
-  //             // Track analytics
-  //             if (typeof gtag !== 'undefined') {
-  //                 gtag('event', isInWishlist ? 'add_to_wishlist' : 'remove_from_wishlist', {
-  //                     'item_id': productId
-  //                 });
-  //             }
-  //         } else {
-  //             // Revert to original state on error
-  //             console.log('API Error Response:', data);
-  //             setIconClass(icon, originalContent);
-  //             const errorMessage = (data && data.error) || (data && data.data && data.data.message) || 'Có lỗi xảy ra';
-  //             showToast(errorMessage, 'error');
-  //         }
-  //     })
-  //     .catch(error => {
-  //         // Revert to original state on error
-  //         setIconClass(icon, originalContent);
-  //         showToast('Có lỗi xảy ra khi thực hiện yêu cầu', 'error');
-  //     })
-  //     .finally(() => {
-  //         // Re-enable button
-  //         button.disabled = false;
-  //     });
-  // }
-
   // Removed duplicate updateCartCount function - using the one with parameter below
 
-  function initializeQuickView() {
-    document.addEventListener("click", function (e) {
-      if (
-        e.target.matches(".btn-quick-view") ||
-        e.target.closest(".btn-quick-view")
-      ) {
-        e.preventDefault();
-        const button = e.target.matches(".btn-quick-view")
-          ? e.target
-          : e.target.closest(".btn-quick-view");
-        const productId = button.dataset.productId;
+//   function initializeQuickView() {
+//     document.addEventListener("click", function (e) {
+//       if (
+//         e.target.matches(".btn-quick-view") ||
+//         e.target.closest(".btn-quick-view")
+//       ) {
+//         e.preventDefault();
+//         const button = e.target.matches(".btn-quick-view")
+//           ? e.target
+//           : e.target.closest(".btn-quick-view");
+//         const productId = button.dataset.productId;
 
-        if (productId) {
-          openQuickView(productId);
-        }
-      }
-    });
-  }
+//         if (productId) {
+//           openQuickView(productId);
+//         }
+//       }
+//     });
+//   }
 
   function openQuickView(productId) {
     const modal = document.getElementById("quickViewModal");
@@ -972,14 +663,6 @@
   window.changeSorting = changeSorting;
 
   // Use main.js addToCart function if available, otherwise use local handleAddToCart
-  if (typeof window.addToCartFromMain === "function") {
-    window.addToCart = window.addToCartFromMain;
-  } else {
-    window.addToCart = function (button) {
-      handleAddToCart(button);
-    };
-  }
-
   window.toggleWishlist = function (button) {
     handleWishlistToggle(button);
   };
@@ -1035,24 +718,6 @@
     const token = document.querySelector('meta[name="_csrf"]');
     return token ? token.getAttribute("content") : "";
   }
-
-  // function updateWishlistCount(count) {
-  //     const wishlistCountElements = document.querySelectorAll('.wishlist-count');
-  //     wishlistCountElements.forEach(element => {
-  //         element.textContent = count;
-  //         if (count > 0) {
-  //             element.classList.remove('hidden');
-  //             element.style.display = 'flex';
-  //         } else {
-  //             element.classList.add('hidden');
-  //             element.style.display = 'none';
-  //         }
-  //     });
-  //     console.log(`Updated wishlist count to: ${count}`);
-  // }
-
-  // updateCartCount function is now available globally from main.js
-
   // ================================
   // DOM READY
   // ================================

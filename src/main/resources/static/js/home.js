@@ -18,6 +18,21 @@ function initializeFloatingPetals() {
         petal.style.animationDelay = `${delay}ms`;
     });
 }
+// Page performance monitoring
+window.addEventListener('load', function() {
+    document.body.classList.add('page-loaded');
+    
+    // Performance metrics
+    if (window.performance && window.performance.timing) {
+        const loadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
+        console.log(`Home page load time: ${loadTime}ms`);
+    }
+});
+
+// Error handling
+window.addEventListener('error', function(e) {
+    console.error('Home page JavaScript error:', e.error);
+});
 
 // Product actions - simplified
 // function initializeProductActions() {
@@ -115,19 +130,3 @@ function initializeFloatingPetals() {
 //         }, 300);
 //     }, 3000);
 // }
-
-// Page performance monitoring
-window.addEventListener('load', function() {
-    document.body.classList.add('page-loaded');
-    
-    // Performance metrics
-    if (window.performance && window.performance.timing) {
-        const loadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
-        console.log(`Home page load time: ${loadTime}ms`);
-    }
-});
-
-// Error handling
-window.addEventListener('error', function(e) {
-    console.error('Home page JavaScript error:', e.error);
-});
