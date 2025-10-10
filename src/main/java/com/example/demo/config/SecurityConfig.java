@@ -207,46 +207,65 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationSuccessHandler oauth2SuccessHandler() {
-        return (HttpServletRequest request, HttpServletResponse response, 
-                org.springframework.security.core.Authentication authentication) -> {
-            try {
-                OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
-                String email = oauth2User.getAttribute("email");
-                
-                if (email == null || email.isEmpty()) {
-                    response.sendRedirect("/login?error=oauth2_no_email");
-                    return;
+        return new AuthenticationSuccessHandler() {
+            @Override
+            public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, 
+                    org.springframework.security.core.Authentication authentication) throws IOException {
+                try {
+                    System.out.println("OAuth2 Success Handler: CALLED - Starting OAuth2 success processing");
+                    
+                    OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+                    String email = oauth2User.getAttribute("email");
+                    System.out.println("OAuth2 Success Handler: Email extracted: " + email);
+                    
+                    if (email == null || email.isEmpty()) {
+                        System.out.println("OAuth2 Success Handler: No email found, redirecting to error");
+                        response.sendRedirect("/login?error=oauth2_no_email");
+                        return;
+                    }
+                    
+                    // Find user (should exist after CustomOAuth2UserService processing)
+                    User user = userRepository.findByEmail(email).orElse(null);
+                    System.out.println("OAuth2 Success Handler: User found: " + (user != null ? user.getEmail() : "NULL"));
+                    if (user == null) {
+                        System.out.println("OAuth2 Success Handler: User not found, redirecting to error");
+                        response.sendRedirect("/login?error=oauth2_user_not_found");
+                        return;
+                    }
+                    
+                    // Check JwtService dependency
+                    System.out.println("OAuth2 Success Handler: JwtService available: " + (jwtService != null));
+                    
+                    // Generate JWT token
+                    System.out.println("OAuth2 Success Handler: Generating JWT token for user: " + user.getEmail());
+                    String token = jwtService.generateToken(user.getEmail(), user.getRole(), user.getId());
+                    System.out.println("OAuth2 Success Handler: JWT token generated: " + (token != null ? "SUCCESS" : "FAILED"));
+                    System.out.println("OAuth2 Success Handler: Token length: " + (token != null ? token.length() : "NULL"));
+                    
+                    // Create JWT cookie (same as in AuthController)
+                    jakarta.servlet.http.Cookie authCookie = new jakarta.servlet.http.Cookie("authToken", token);
+                    authCookie.setHttpOnly(true);
+                    authCookie.setSecure(false); // Set to false for localhost development
+                    authCookie.setPath("/");
+                    authCookie.setMaxAge(24 * 60 * 60); // 24 hours
+                    response.addCookie(authCookie);
+                    System.out.println("OAuth2 Success Handler: JWT cookie added to response");
+                    
+                    // Set authentication in session
+                    request.getSession().setAttribute("authToken", token);
+                    request.getSession().setAttribute("userEmail", user.getEmail());
+                    request.getSession().setAttribute("userRole", user.getRole().name());
+                    request.getSession().setAttribute("userId", user.getId());
+                    
+                    // Redirect to home page
+                    System.out.println("OAuth2 Success Handler: Redirecting to home page");
+                    response.sendRedirect("/?oauth2=success");
+                    
+                } catch (Exception e) {
+                    System.out.println("OAuth2 Success Handler: EXCEPTION occurred: " + e.getMessage());
+                    e.printStackTrace();
+                    response.sendRedirect("/login?error=oauth2_processing");
                 }
-                
-                // Find user (should exist after CustomOAuth2UserService processing)
-                User user = userRepository.findByEmail(email).orElse(null);
-                if (user == null) {
-                    response.sendRedirect("/login?error=oauth2_user_not_found");
-                    return;
-                }
-                
-                // Generate JWT token
-                String token = jwtService.generateToken(user.getEmail(), user.getRole(), user.getId());
-                
-                // Create JWT cookie (same as in AuthController)
-                jakarta.servlet.http.Cookie authCookie = new jakarta.servlet.http.Cookie("authToken", token);
-                authCookie.setHttpOnly(true);
-                authCookie.setSecure(false); // Set to false for localhost development
-                authCookie.setPath("/");
-                authCookie.setMaxAge(24 * 60 * 60); // 24 hours
-                response.addCookie(authCookie);
-                
-                // Set authentication in session
-                request.getSession().setAttribute("authToken", token);
-                request.getSession().setAttribute("userEmail", user.getEmail());
-                request.getSession().setAttribute("userRole", user.getRole().name());
-                request.getSession().setAttribute("userId", user.getId());
-                
-                // Redirect to home page
-                response.sendRedirect("/?oauth2=success");
-                
-            } catch (Exception e) {
-                response.sendRedirect("/login?error=oauth2_processing");
             }
         };
     }
