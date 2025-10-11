@@ -25,7 +25,10 @@ import java.util.List;
     HomeController.class,
     AccountController.class,
     AdminController.class,
-    AdminProductController.class
+    AdminProductController.class,
+    BlogController.class,
+    VoucherPageController.class,
+    CartController.class
 })
 public class BaseController {
 

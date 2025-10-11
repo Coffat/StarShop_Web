@@ -106,6 +106,16 @@ public class SecurityConfig {
                 // Categories page
                 .requestMatchers("/categories").permitAll()
                 
+                // Vouchers page - public access
+                .requestMatchers("/vouchers").permitAll()
+                
+                // Blog page - public access
+                .requestMatchers("/blog", "/blog/**").permitAll()
+                
+                // Voucher API - public access for viewing available vouchers
+                .requestMatchers("/api/vouchers/available", "/api/vouchers/validate/**").permitAll()
+                .requestMatchers("/api/vouchers/apply").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
+                
                 // Protected API endpoints as per rules.mdc
                 .requestMatchers("/api/users/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/products/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")

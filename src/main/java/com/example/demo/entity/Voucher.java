@@ -17,6 +17,12 @@ public class Voucher extends BaseEntity {
     @Column(nullable = false, unique = true, length = 50)
     private String code;
 
+    @Column(length = 255)
+    private String name;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     @Column(name = "discount_value", nullable = false, precision = 10, scale = 2)
     private BigDecimal discountValue;
 
@@ -29,6 +35,9 @@ public class Voucher extends BaseEntity {
 
     @Column(name = "min_order_value", precision = 10, scale = 2)
     private BigDecimal minOrderValue = BigDecimal.ZERO;
+
+    @Column(name = "max_discount_amount", precision = 10, scale = 2)
+    private BigDecimal maxDiscountAmount;
 
     @Column(name = "max_uses")
     private Integer maxUses;
@@ -149,5 +158,29 @@ public class Voucher extends BaseEntity {
 
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public BigDecimal getMaxDiscountAmount() {
+        return maxDiscountAmount;
+    }
+
+    public void setMaxDiscountAmount(BigDecimal maxDiscountAmount) {
+        this.maxDiscountAmount = maxDiscountAmount;
     }
 }

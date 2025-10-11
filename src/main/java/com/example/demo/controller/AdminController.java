@@ -69,6 +69,7 @@ public class AdminController extends BaseController {
     public String vouchers(Model model) {
         model.addAttribute("pageTitle", "Quản lý Voucher");
         model.addAttribute("contentTemplate", "admin/vouchers/index");
+        model.addAttribute("currentPath", "/admin/vouchers");
         
         List<BreadcrumbItem> breadcrumbs = new ArrayList<>();
         breadcrumbs.add(new BreadcrumbItem("Dashboard", "/admin/dashboard"));
@@ -79,32 +80,34 @@ public class AdminController extends BaseController {
     }
 
     /**
-     * Quản lý Tài chính
+     * Quản lý Nhân viên
      */
-    @GetMapping("/finance")
-    public String finance(Model model) {
-        model.addAttribute("pageTitle", "Quản lý Tài chính");
-        model.addAttribute("contentTemplate", "admin/finance/index");
+    @GetMapping("/employees")
+    public String employees(Model model) {
+        model.addAttribute("pageTitle", "Quản lý Nhân viên");
+        model.addAttribute("contentTemplate", "admin/employees/index");
+        model.addAttribute("currentPath", "/admin/employees");
         
         List<BreadcrumbItem> breadcrumbs = new ArrayList<>();
         breadcrumbs.add(new BreadcrumbItem("Dashboard", "/admin/dashboard"));
-        breadcrumbs.add(new BreadcrumbItem("Quản lý Tài chính", "/admin/finance"));
+        breadcrumbs.add(new BreadcrumbItem("Quản lý Nhân viên", "/admin/employees"));
         model.addAttribute("breadcrumbs", breadcrumbs);
         
         return "layouts/admin";
     }
 
     /**
-     * Quản lý Người dùng
+     * Quản lý Người dùng (Khách hàng)
      */
     @GetMapping("/users")
     public String users(Model model) {
-        model.addAttribute("pageTitle", "Quản lý Người dùng");
+        model.addAttribute("pageTitle", "Quản lý Khách hàng");
         model.addAttribute("contentTemplate", "admin/users/index");
+        model.addAttribute("currentPath", "/admin/users");
         
         List<BreadcrumbItem> breadcrumbs = new ArrayList<>();
         breadcrumbs.add(new BreadcrumbItem("Dashboard", "/admin/dashboard"));
-        breadcrumbs.add(new BreadcrumbItem("Quản lý Người dùng", "/admin/users"));
+        breadcrumbs.add(new BreadcrumbItem("Quản lý Khách hàng", "/admin/users"));
         model.addAttribute("breadcrumbs", breadcrumbs);
         
         return "layouts/admin";

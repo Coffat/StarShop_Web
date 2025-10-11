@@ -35,6 +35,28 @@ public class User extends BaseEntity {
     @Convert(converter = UserRoleConverter.class)
     private UserRole role = UserRole.CUSTOMER;
 
+    // Employee-specific fields
+    @Column(name = "employee_code", unique = true, length = 20)
+    private String employeeCode;
+
+    @Column(name = "hire_date")
+    private java.time.LocalDate hireDate;
+
+    @Column(length = 100)
+    private String position;
+
+    @Column(length = 100)
+    private String department;
+
+    @Column(name = "salary_per_hour", precision = 10, scale = 2)
+    private java.math.BigDecimal salaryPerHour;
+
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
+    @Column(name = "last_login")
+    private java.time.LocalDateTime lastLogin;
+
     // Relationships
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Address> addresses = new ArrayList<>();
@@ -219,5 +241,61 @@ public class User extends BaseEntity {
 
     public void setSalaries(List<Salary> salaries) {
         this.salaries = salaries;
+    }
+
+    public String getEmployeeCode() {
+        return employeeCode;
+    }
+
+    public void setEmployeeCode(String employeeCode) {
+        this.employeeCode = employeeCode;
+    }
+
+    public java.time.LocalDate getHireDate() {
+        return hireDate;
+    }
+
+    public void setHireDate(java.time.LocalDate hireDate) {
+        this.hireDate = hireDate;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+
+    public java.math.BigDecimal getSalaryPerHour() {
+        return salaryPerHour;
+    }
+
+    public void setSalaryPerHour(java.math.BigDecimal salaryPerHour) {
+        this.salaryPerHour = salaryPerHour;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public java.time.LocalDateTime getLastLogin() {
+        return lastLogin;
+    }
+
+    public void setLastLogin(java.time.LocalDateTime lastLogin) {
+        this.lastLogin = lastLogin;
     }
 }
