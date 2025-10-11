@@ -98,39 +98,26 @@
         "image": "VARCHAR(255) DEFAULT NULL",
         "stock_quantity": "INTEGER DEFAULT 0",
         "status": "product_status DEFAULT 'active'",
+        "catalog_id": "BIGINT",
         "created_at": "TIMESTAMP NOT NULL",
         "updated_at": "TIMESTAMP"
       },
-      "indexes": ["name", "stock_quantity"],
+      "foreign_keys": {
+        "catalog_id": "Catalogs(id) ON DELETE SET NULL"
+      },
+      "indexes": ["name", "stock_quantity", "catalog_id"],
       "business_rules": ["Giá >= 0", "Số lượng tồn kho >= 0"]
     },
-    "ProductAttributes": {
-      "description": "Loại thuộc tính sản phẩm (ví dụ: màu sắc, kích thước)",
+    "Catalogs": {
+      "description": "Danh mục sản phẩm (Categories)",
       "primary_key": "id",
       "columns": {
         "id": "BIGSERIAL PRIMARY KEY",
-        "name": "VARCHAR(100) UNIQUE NOT NULL",
+        "value": "VARCHAR(100) UNIQUE NOT NULL",
         "created_at": "TIMESTAMP NOT NULL",
         "updated_at": "TIMESTAMP"
       },
-      "indexes": ["name"]
-    },
-    "AttributeValues": {
-      "description": "Giá trị cụ thể cho thuộc tính sản phẩm",
-      "primary_key": "id",
-      "foreign_keys": {
-        "attribute_id": "ProductAttributes(id) ON DELETE CASCADE",
-        "product_id": "Products(id) ON DELETE CASCADE"
-      },
-      "columns": {
-        "id": "BIGSERIAL PRIMARY KEY",
-        "attribute_id": "BIGINT NOT NULL",
-        "product_id": "BIGINT NOT NULL",
-        "value": "VARCHAR(255) NOT NULL",
-        "created_at": "TIMESTAMP NOT NULL",
-        "updated_at": "TIMESTAMP"
-      },
-      "unique_constraints": ["(attribute_id, product_id, value)"]
+      "indexes": ["value"]
     },
     "DeliveryUnits": {
       "description": "Đơn vị vận chuyển",
@@ -364,8 +351,9 @@
       "description": "Người dùng có thể có nhiều địa chỉ, đơn hàng, đánh giá, theo dõi sản phẩm và gửi tin nhắn"
     },
     "product_management": {
-      "Products": ["AttributeValues", "OrderItems", "CartItems", "Reviews", "Follows"],
-      "description": "Sản phẩm có thể có nhiều thuộc tính, xuất hiện trong đơn hàng và giỏ hàng, được đánh giá và theo dõi"
+      "Products": ["OrderItems", "CartItems", "Reviews", "Follows"],
+      "Catalogs": ["Products"],
+      "description": "Sản phẩm thuộc danh mục, xuất hiện trong đơn hàng và giỏ hàng, được đánh giá và theo dõi"
     },
     "order_management": {
       "Orders": ["OrderItems", "Transactions"],
@@ -374,10 +362,6 @@
     "cart_management": {
       "Carts": ["CartItems"],
       "description": "Giỏ hàng chứa nhiều sản phẩm"
-    },
-    "attribute_management": {
-      "ProductAttributes": ["AttributeValues"],
-      "description": "Thuộc tính sản phẩm có nhiều giá trị cho các sản phẩm khác nhau"
     }
   },
   "business_logic": {

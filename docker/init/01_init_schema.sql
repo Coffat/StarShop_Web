@@ -3,8 +3,6 @@ CREATE TYPE user_role AS ENUM ('CUSTOMER', 'STAFF', 'ADMIN');
 CREATE TYPE order_status AS ENUM ('PENDING', 'PROCESSING', 'SHIPPED', 'COMPLETED', 'CANCELLED');
 CREATE TYPE discount_type AS ENUM ('PERCENTAGE', 'FIXED');
 CREATE TYPE payment_method AS ENUM ('COD', 'MOMO', 'BANK_TRANSFER', 'CREDIT_CARD');
-CREATE TYPE transaction_type AS ENUM ('PAYMENT', 'REFUND');
-CREATE TYPE transaction_status AS ENUM ('SUCCESS', 'FAILED');
 CREATE TYPE product_status AS ENUM ('ACTIVE', 'INACTIVE', 'OUT_OF_STOCK', 'DISCONTINUED');
 CREATE TYPE salary_status AS ENUM ('PENDING', 'PAID', 'OVERDUE');
 
@@ -54,6 +52,16 @@ CREATE INDEX idx_addresses_ward_code ON Addresses(ward_code);
 -- Unique constraint: each user can only have ONE default address
 CREATE UNIQUE INDEX ux_addresses_user_default ON Addresses(user_id) WHERE is_default = TRUE;
 
+-- Table: Catalogs (Danh mục sản phẩm)
+CREATE TABLE Catalogs (
+    id BIGSERIAL PRIMARY KEY,
+    value VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT NULL
+);
+COMMENT ON TABLE Catalogs IS 'Product catalogs/categories (e.g., Tình yêu, Khai trương, Hoa cưới, Đám tang)';
+CREATE INDEX idx_catalogs_value ON Catalogs(value);
+
 -- Table: Products
 CREATE TABLE Products (
     id BIGSERIAL PRIMARY KEY,
@@ -68,38 +76,16 @@ CREATE TABLE Products (
     length_cm INT DEFAULT 20 CHECK (length_cm > 0),
     width_cm INT DEFAULT 20 CHECK (width_cm > 0),
     height_cm INT DEFAULT 30 CHECK (height_cm > 0),
+    catalog_id BIGINT,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     CHECK (price >= 0),
-    CHECK (stock_quantity >= 0)
+    CHECK (stock_quantity >= 0),
+    FOREIGN KEY (catalog_id) REFERENCES Catalogs(id) ON DELETE SET NULL
 );
 COMMENT ON TABLE Products IS 'Flower products catalog with shipping dimensions for GHN';
 CREATE INDEX idx_products_name ON Products(name);
-
--- Table: ProductAttributes
-CREATE TABLE ProductAttributes (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(100) UNIQUE NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP
-);
-COMMENT ON TABLE ProductAttributes IS 'Product attribute types (e.g., color, size)';
-CREATE INDEX idx_productattributes_name ON ProductAttributes(name);
-
--- Table: AttributeValues
-CREATE TABLE AttributeValues (
-    id BIGSERIAL PRIMARY KEY,
-    attribute_id BIGINT NOT NULL,
-    product_id BIGINT NOT NULL,
-    value VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP,
-    FOREIGN KEY (attribute_id) REFERENCES ProductAttributes(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES Products(id) ON DELETE CASCADE,
-    UNIQUE (attribute_id, product_id, value)
-);
-COMMENT ON TABLE AttributeValues IS 'Specific values for product attributes';
-CREATE UNIQUE INDEX idx_attributevalues_unique ON AttributeValues(attribute_id, product_id, value);
+CREATE INDEX idx_products_catalog_id ON Products(catalog_id);
 
 -- Table: DeliveryUnits
 CREATE TABLE DeliveryUnits (
@@ -247,26 +233,6 @@ COMMENT ON TABLE Messages IS 'User-to-user messaging';
 CREATE INDEX idx_messages_conversation ON Messages(sender_id, receiver_id, sent_at);
 CREATE INDEX idx_messages_sent_at ON Messages(sent_at);
 
--- Table: Transactions
-CREATE TABLE Transactions (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    order_id BIGINT DEFAULT NULL,
-    amount NUMERIC(10,2) NOT NULL,
-    type transaction_type NOT NULL,
-    status transaction_status NOT NULL DEFAULT 'FAILED',
-    transaction_reference VARCHAR(255) DEFAULT NULL,
-    notes TEXT DEFAULT NULL,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES Users(id),
-    FOREIGN KEY (order_id) REFERENCES Orders(id),
-    CHECK (amount > 0)
-);
-COMMENT ON TABLE Transactions IS 'Payment/refund transactions';
-CREATE INDEX idx_transactions_order_id ON Transactions(order_id);
-CREATE INDEX idx_transactions_created_at ON Transactions(created_at);
-
 -- Table: TimeSheets
 CREATE TABLE TimeSheets (
     id BIGSERIAL PRIMARY KEY,
@@ -307,4 +273,5 @@ CREATE INDEX idx_follows_product_id ON Follows(product_id);
 CREATE INDEX idx_products_stock_quantity ON Products(stock_quantity);
 CREATE INDEX idx_vouchers_is_active ON Vouchers(is_active);
 CREATE INDEX idx_deliveryunits_is_active ON DeliveryUnits(is_active);
-CREATE INDEX idx_transactions_transaction_reference ON Transactions(transaction_reference);
+CREATE INDEX idx_orders_total_amount ON Orders(total_amount);
+CREATE INDEX idx_orders_shipping_fee ON Orders(shipping_fee);

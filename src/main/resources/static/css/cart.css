@@ -1,5 +1,9 @@
-/* Cart Page Styles */
+/* ================================
+   CART PAGE CSS - Tailwind Migration Complete
+   Only essential utilities used in templates remain
+   ================================ */
 
+/* Cart item image - used in cart templates */
 .cart-item-image {
     width: 80px;
     height: 80px;
@@ -8,6 +12,7 @@
     border: 1px solid #dee2e6;
 }
 
+/* Quantity controls - used in cart forms */
 .quantity-controls {
     display: flex;
     align-items: center;
@@ -29,6 +34,7 @@
     box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
 
+/* Empty cart state */
 .empty-cart {
     padding: 3rem 0;
 }
@@ -36,32 +42,6 @@
 .empty-cart i {
     font-size: 5rem;
     color: #6c757d;
-}
-
-.table th {
-    border-top: none;
-    font-weight: 600;
-    color: #495057;
-}
-
-.table td {
-    vertical-align: middle;
-}
-
-.subtotal {
-    font-size: 1.1rem;
-}
-
-.cart-summary {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 1.5rem;
-}
-
-.btn-success.w-100 {
-    padding: 12px;
-    font-weight: 600;
-    font-size: 1.1rem;
 }
 
 /* Responsive Design */
@@ -79,10 +59,6 @@
         width: 50px;
     }
     
-    .table-responsive {
-        font-size: 0.9rem;
-    }
-    
     .empty-cart i {
         font-size: 3rem;
     }
@@ -94,37 +70,8 @@
         gap: 5px;
     }
     
-    .quantity-controls .btn {
-        padding: 2px 6px;
-        font-size: 0.8rem;
-    }
-    
     .cart-item-image {
         width: 50px;
         height: 50px;
     }
-}
-
-/* Animation for cart updates */
-.cart-item-updating {
-    opacity: 0.6;
-    transition: opacity 0.3s ease;
-}
-
-.cart-item-updated {
-    background-color: #d4edda;
-    transition: background-color 0.5s ease;
-}
-
-/* Success state for buttons */
-.btn.success {
-    background-color: #198754;
-    border-color: #198754;
-    color: white;
-}
-
-/* Loading state */
-.btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
 }

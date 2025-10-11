@@ -1,8 +1,10 @@
 package com.example.demo.service;
 
+import com.example.demo.entity.Catalog;
 import com.example.demo.entity.Product;
 import com.example.demo.entity.enums.ProductStatus;
 import com.example.demo.dto.ProductDetailDTO;
+import com.example.demo.repository.CatalogRepository;
 import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ReviewRepository reviewRepository;
+    private final CatalogRepository catalogRepository;
     
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
@@ -168,22 +171,6 @@ public class ProductService {
     public List<Product> getProductsWithReviews() {
         log.info("Fetching products with reviews");
         return productRepository.findAllWithReviews();
-    }
-
-    /**
-     * Find products by attribute value
-     * @param attributeId Attribute ID
-     * @param value Attribute value
-     * @return List of matching products
-     */
-    public List<Product> findByAttributeValue(Long attributeId, String value) {
-        if (attributeId == null || value == null || value.trim().isEmpty()) {
-            log.warn("Invalid attribute search parameters: attributeId={}, value={}", attributeId, value);
-            return List.of();
-        }
-        
-        log.info("Finding products by attribute {} with value: {}", attributeId, value);
-        return productRepository.findByAttributeValue(attributeId, value.trim());
     }
 
     /**
@@ -318,7 +305,8 @@ public class ProductService {
     public Product createProduct(String name, String description, BigDecimal price, 
                                Integer stockQuantity, ProductStatus status, 
                                MultipartFile image, Integer weightG, 
-                               Integer lengthCm, Integer widthCm, Integer heightCm) {
+                               Integer lengthCm, Integer widthCm, Integer heightCm,
+                               Long catalogId) {
         
         log.info("Admin: Creating new product: {}", name);
         
@@ -332,6 +320,13 @@ public class ProductService {
         product.setLengthCm(lengthCm);
         product.setWidthCm(widthCm);
         product.setHeightCm(heightCm);
+        
+        // Set catalog
+        if (catalogId != null) {
+            Catalog catalog = catalogRepository.findById(catalogId)
+                .orElseThrow(() -> new RuntimeException("Catalog not found with id: " + catalogId));
+            product.setCatalog(catalog);
+        }
         
         // Handle image upload
         if (image != null && !image.isEmpty()) {
@@ -357,7 +352,8 @@ public class ProductService {
     public Product updateProduct(Long productId, String name, String description, 
                                BigDecimal price, Integer stockQuantity, ProductStatus status,
                                MultipartFile image, Integer weightG, 
-                               Integer lengthCm, Integer widthCm, Integer heightCm) {
+                               Integer lengthCm, Integer widthCm, Integer heightCm,
+                               Long catalogId) {
         
         log.info("Admin: Updating product ID: {}", productId);
         
@@ -373,6 +369,15 @@ public class ProductService {
         product.setLengthCm(lengthCm);
         product.setWidthCm(widthCm);
         product.setHeightCm(heightCm);
+        
+        // Update catalog
+        if (catalogId != null) {
+            Catalog catalog = catalogRepository.findById(catalogId)
+                .orElseThrow(() -> new RuntimeException("Catalog not found with id: " + catalogId));
+            product.setCatalog(catalog);
+        } else {
+            product.setCatalog(null);
+        }
         
         // Handle image upload
         if (image != null && !image.isEmpty()) {
@@ -437,6 +442,17 @@ public class ProductService {
         
         productRepository.delete(product);
         log.info("Admin: Successfully deleted product ID: {}", productId);
+    }
+
+    /**
+     * Find products by catalog
+     * @param catalogId Catalog ID
+     * @param pageable Pagination information
+     * @return Page of products in the catalog
+     */
+    public Page<Product> findByCatalog(Long catalogId, Pageable pageable) {
+        log.info("Fetching products by catalog ID: {}", catalogId);
+        return productRepository.findByCatalogId(catalogId, pageable);
     }
 
     /**
