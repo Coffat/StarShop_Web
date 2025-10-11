@@ -33,8 +33,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p LEFT JOIN p.orderItems oi GROUP BY p ORDER BY COUNT(oi) DESC")
     List<Product> findBestSellingProducts(Pageable pageable);
     
-    @Query("SELECT DISTINCT p FROM Product p JOIN p.attributeValues av WHERE av.attribute.id = :attributeId AND av.value = :value")
-    List<Product> findByAttributeValue(@Param("attributeId") Long attributeId, @Param("value") String value);
+    // Query by catalog
+    List<Product> findByCatalogId(Long catalogId);
+    
+    Page<Product> findByCatalogId(Long catalogId, Pageable pageable);
+    
+    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.catalog WHERE p.id = :productId")
+    Optional<Product> findByIdWithCatalog(@Param("productId") Long productId);
     
     @Query("SELECT new com.example.demo.dto.ProductDetailDTO(p, AVG(r.rating), COUNT(r)) " +
            "FROM Product p LEFT JOIN p.reviews r WHERE p.id = :productId GROUP BY p")

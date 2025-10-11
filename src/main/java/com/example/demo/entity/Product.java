@@ -44,10 +44,11 @@ public class Product extends BaseEntity {
     @Column(name = "height_cm")
     private Integer heightCm = 30; // Default 30cm
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "catalog_id")
+    private Catalog catalog;
+
     // Relationships
-    @JsonIgnore
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<AttributeValue> attributeValues = new ArrayList<>();
 
     @JsonIgnore
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
@@ -145,12 +146,12 @@ public class Product extends BaseEntity {
         this.image = image;
     }
 
-    public List<AttributeValue> getAttributeValues() {
-        return attributeValues;
+    public Catalog getCatalog() {
+        return catalog;
     }
 
-    public void setAttributeValues(List<AttributeValue> attributeValues) {
-        this.attributeValues = attributeValues;
+    public void setCatalog(Catalog catalog) {
+        this.catalog = catalog;
     }
 
     public List<OrderItem> getOrderItems() {
