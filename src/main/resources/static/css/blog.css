@@ -1,61 +1,15 @@
-/* Blog Page Styles */
+/* ================================
+   BLOG PAGE CSS - Tailwind Migration Complete
+   Only essential utilities remain
+   ================================ */
 
-/* Line clamp utility */
+/* Line clamp utility - used in blog cards */
 .line-clamp-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
-}
-
-/* Smooth scrolling */
-html {
-    scroll-behavior: smooth;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-    width: 10px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #F06292;
-    border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #EC407A;
-}
-
-/* Animation delays for AOS */
-[data-aos] {
-    pointer-events: auto;
-}
-
-/* Hover effects for blog cards */
-.group:hover img {
-    transform: scale(1.1);
-}
-
-/* Category badge colors */
-.bg-primary {
-    background-color: #F06292;
-}
-
-.bg-primary-hover {
-    background-color: #EC407A;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .container {
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
+    line-clamp: 3; /* Standard property for compatibility */
 }
 
 /* Print styles */

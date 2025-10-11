@@ -43,6 +43,7 @@
                     <div class="main-image-container">
                         <img th:src="${product.image != null ? product.image : '/images/products/default-flower.jpg'}" 
                              th:alt="${product.name}" 
+                             th:title="${product.name}"
                              class="main-image" 
                              id="mainProductImage">
                         
@@ -60,6 +61,7 @@
                         <div class="thumbnail-item active">
                             <img th:src="${product.image != null ? product.image : '/images/products/default-flower.jpg'}" 
                                  th:alt="${product.name}" 
+                                 th:title="${product.name}"
                                  class="thumbnail-image">
                         </div>
                         <!-- More thumbnails would go here -->
@@ -139,7 +141,6 @@
                         <div class="action-buttons">
                             <button class="btn-add-to-cart primary" 
                                     th:data-product-id="${product.id}"
-                                    onclick="addToCart(this)"
                                     sec:authorize="isAuthenticated()">
                                 <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M6 5v1H4.667a1.75 1.75 0 0 0-1.743 1.598l-.826 9.5A1.75 1.75 0 0 0 3.84 19h12.32a1.75 1.75 0 0 0 1.742-1.902l-.826-9.5A1.75 1.75 0 0 0 15.333 6H14V5a4 4 0 0 0-8 0Zm4-2.5A2.5 2.5 0 0 0 7.5 5v1h5V5A2.5 2.5 0 0 0 10 2.5Z" clip-rule="evenodd" />
@@ -373,6 +374,7 @@
                         <a th:href="@{/products/{id}(id=${relatedProduct.id})}" class="product-image-link">
                             <img th:src="${relatedProduct.image != null ? relatedProduct.image : '/images/products/default-flower.jpg'}" 
                                  th:alt="${relatedProduct.name}" 
+                                 th:title="${relatedProduct.name}"
                                  class="product-image"
                                  loading="lazy">
                         </a>
@@ -395,7 +397,7 @@
     </section>
 </th:block>
 
-<script>
+<!-- <script>
 // Quantity controls
 function increaseQuantity() {
     const input = document.getElementById('quantity');
@@ -480,7 +482,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-</script>
+</script> -->
 
 <style>
 /* Image Modal Styles */
