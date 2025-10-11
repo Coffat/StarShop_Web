@@ -1,8 +1,11 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.AdminProductDTO;
 import com.example.demo.dto.ResponseWrapper;
+import com.example.demo.entity.Catalog;
 import com.example.demo.entity.Product;
 import com.example.demo.entity.enums.ProductStatus;
+import com.example.demo.repository.CatalogRepository;
 import com.example.demo.service.ProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +25,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/admin/products")
@@ -32,6 +34,9 @@ public class AdminProductController {
 
     @Autowired
     private ProductService productService;
+    
+    @Autowired
+    private CatalogRepository catalogRepository;
 
     /**
      * Admin Products Management Page
@@ -330,19 +335,42 @@ public class AdminProductController {
      */
     @GetMapping("/api/{productId}")
     @ResponseBody
-    public ResponseEntity<ResponseWrapper<Product>> getProduct(@PathVariable Long productId) {
+    public ResponseEntity<ResponseWrapper<AdminProductDTO>> getProduct(@PathVariable Long productId) {
         try {
-            Optional<Product> productOpt = productService.getProductById(productId);
+            Map<String, Object> result = productService.getProductByIdWithRating(productId);
             
-            if (productOpt.isEmpty()) {
+            if (result == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(ResponseWrapper.error("Không tìm thấy sản phẩm"));
             }
             
-            return ResponseEntity.ok(ResponseWrapper.success(productOpt.get()));
+            Product product = (Product) result.get("product");
+            Double averageRating = (Double) result.get("averageRating");
+            Long reviewCount = (Long) result.get("reviewCount");
+            
+            AdminProductDTO dto = AdminProductDTO.fromEntityWithRating(product, averageRating, reviewCount);
+            
+            return ResponseEntity.ok(ResponseWrapper.success(dto));
         } catch (Exception e) {
+            log.error("Error fetching product {}: {}", productId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ResponseWrapper.error("Lỗi khi tải sản phẩm: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * Get all catalogs for dropdown
+     */
+    @GetMapping("/api/catalogs")
+    @ResponseBody
+    public ResponseEntity<ResponseWrapper<List<Catalog>>> getCatalogs() {
+        try {
+            List<Catalog> catalogs = catalogRepository.findAll();
+            return ResponseEntity.ok(ResponseWrapper.success(catalogs));
+        } catch (Exception e) {
+            log.error("Error fetching catalogs: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ResponseWrapper.error("Lỗi khi tải danh mục: " + e.getMessage()));
         }
     }
 

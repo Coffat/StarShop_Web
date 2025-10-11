@@ -3,8 +3,6 @@ package com.example.demo.controller;
 import com.example.demo.service.DashboardService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -32,14 +30,6 @@ public class AdminController extends BaseController {
     @GetMapping({"", "/", "/dashboard"})
     @Transactional(readOnly = true)
     public String dashboard(Model model) {
-        // Debug authentication
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        log.debug("Admin dashboard access attempt:");
-        log.debug("- Authentication: {}", auth);
-        log.debug("- Principal: {}", auth != null ? auth.getPrincipal() : "null");
-        log.debug("- Authorities: {}", auth != null ? auth.getAuthorities() : "null");
-        log.debug("- Is authenticated: {}", auth != null ? auth.isAuthenticated() : "false");
-        
         model.addAttribute("pageTitle", "Dashboard");
         model.addAttribute("contentTemplate", "admin/dashboard/index");
         

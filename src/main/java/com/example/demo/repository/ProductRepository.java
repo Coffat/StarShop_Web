@@ -56,4 +56,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     @Query("SELECT p FROM Product p LEFT JOIN FETCH p.reviews WHERE p.id = :productId")
     Optional<Product> findByIdWithReviews(@Param("productId") Long productId);
+    
+    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.catalog WHERE p.id = :productId")
+    Optional<Product> findByIdWithCatalogEager(@Param("productId") Long productId);
+    
+    @Query("SELECT AVG(r.rating) FROM Review r WHERE r.product.id = :productId")
+    Double getAverageRatingByProductId(@Param("productId") Long productId);
+    
+    @Query("SELECT COUNT(r) FROM Review r WHERE r.product.id = :productId")
+    Long getReviewCountByProductId(@Param("productId") Long productId);
 }

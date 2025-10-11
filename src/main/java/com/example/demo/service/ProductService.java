@@ -260,7 +260,30 @@ public class ProductService {
      */
     public Optional<Product> getProductById(Long productId) {
         log.info("Admin: Fetching product by ID: {}", productId);
-        return productRepository.findByIdWithReviews(productId);
+        return productRepository.findByIdWithCatalogEager(productId);
+    }
+    
+    /**
+     * Get product by ID with rating info (Admin)
+     */
+    public Map<String, Object> getProductByIdWithRating(Long productId) {
+        log.info("Admin: Fetching product by ID with rating: {}", productId);
+        
+        Optional<Product> productOpt = productRepository.findByIdWithCatalogEager(productId);
+        if (productOpt.isEmpty()) {
+            return null;
+        }
+        
+        Product product = productOpt.get();
+        Double averageRating = productRepository.getAverageRatingByProductId(productId);
+        Long reviewCount = productRepository.getReviewCountByProductId(productId);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("product", product);
+        result.put("averageRating", averageRating != null ? averageRating : 0.0);
+        result.put("reviewCount", reviewCount != null ? reviewCount : 0L);
+        
+        return result;
     }
 
     /**
