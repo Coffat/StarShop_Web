@@ -169,7 +169,6 @@ public class JwtService {
             boolean isValid = tokenEmail.equals(email) && !isTokenExpired(token);
             
             if (isValid) {
-                log.debug("JWT token validation successful for user: {}", email);
             } else {
                 log.warn("JWT token validation failed for user: {}", email);
             }
@@ -192,7 +191,6 @@ public class JwtService {
             boolean isValid = !isTokenExpired(token);
             
             if (isValid) {
-                log.debug("JWT token validation successful");
             } else {
                 log.warn("JWT token is expired");
             }

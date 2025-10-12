@@ -15,7 +15,7 @@ public class UserRoleConverter implements AttributeConverter<UserRole, String> {
         if (userRole == null) {
             return null;
         }
-        return userRole.getValue(); // Returns lowercase string (e.g., "customer")
+        return userRole.name(); // Returns uppercase enum name (e.g., "CUSTOMER")
     }
 
     @Override

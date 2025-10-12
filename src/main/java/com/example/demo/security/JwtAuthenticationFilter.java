@@ -42,25 +42,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Try to get JWT from Authorization header first
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
-            log.debug("JWT token found in Authorization header");
         } else {
             // Try to get JWT from cookie
             jwt = getJwtFromCookie(request);
-            if (jwt != null) {
-                log.debug("JWT token found in cookie");
-            }
         }
         
         // Skip filter if no JWT token found
         if (jwt == null) {
-            log.debug("No JWT token found, continuing without authentication for path: {}", request.getRequestURI());
             
             // Check if there's a session-based authentication
             String sessionToken = (String) request.getSession().getAttribute("authToken");
             String sessionEmail = (String) request.getSession().getAttribute("userEmail");
             
             if (sessionToken != null && sessionEmail != null) {
-                log.debug("Found session-based authentication, trying to validate token for user: {}", sessionEmail);
                 try {
                     if (jwtService.validateToken(sessionToken)) {
                         var userRole = jwtService.extractRole(sessionToken);
@@ -77,8 +71,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         request.setAttribute("userId", userId);
                         request.setAttribute("userRole", userRole);
                         
-                        SecurityContextHolder.getContext().setAuthentication(authToken);
-                        log.info("Session-based JWT authentication successful for user: {}", sessionEmail);
+                    // Also set session attributes for Thymeleaf access
+                    request.getSession().setAttribute("userId", userId);
+                    request.getSession().setAttribute("userRole", userRole.name());
+                    log.info("Set session attributes - userId: {}, userRole: {}", userId, userRole.name());
+                    
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                    log.info("Session-based JWT authentication successful for user: {}", sessionEmail);
                     }
                 } catch (Exception e) {
                     log.warn("Session token validation failed: {}", e.getMessage());
@@ -92,21 +91,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             // Extract email from JWT token
             userEmail = jwtService.extractEmail(jwt);
-            log.debug("Extracted email from JWT: {}", userEmail);
             
             // If token is valid and user is not already authenticated
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                log.debug("User email found and no existing authentication, validating token...");
                 
                 // Validate token
                 if (jwtService.validateToken(jwt)) {
-                    log.debug("JWT token is valid, setting up authentication...");
                     
                     // Extract user role from token
                     var userRole = jwtService.extractRole(jwt);
                     var userId = jwtService.extractUserId(jwt);
-                    
-                    log.debug("Extracted user details - ID: {}, Role: {}", userId, userRole);
                     
                     // Create authority based on user role
                     List<SimpleGrantedAuthority> authorities = List.of(
@@ -124,6 +118,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     request.setAttribute("userId", userId);
                     request.setAttribute("userRole", userRole);
                     
+                    // Also set session attributes for Thymeleaf access
+                    request.getSession().setAttribute("userId", userId);
+                    request.getSession().setAttribute("userRole", userRole.name());
+                    log.info("Set session attributes from JWT - userId: {}, userRole: {}", userId, userRole.name());
+                    
                     // Set authentication in security context
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                     
@@ -137,9 +136,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             } else if (userEmail == null) {
                 log.warn("Could not extract email from JWT token");
-            } else {
-                log.debug("User already authenticated: {}", 
-                    SecurityContextHolder.getContext().getAuthentication().getName());
             }
             
         } catch (Exception e) {
@@ -155,18 +151,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * Extract JWT token from authToken cookie
      */
     private String getJwtFromCookie(HttpServletRequest request) {
-        log.debug("Checking cookies for JWT token...");
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
-                log.debug("Found cookie: {} = {}", cookie.getName(), 
-                    cookie.getValue().length() > 20 ? cookie.getValue().substring(0, 20) + "..." : cookie.getValue());
                 if ("authToken".equals(cookie.getName())) {
-                    log.debug("Found authToken cookie with value length: {}", cookie.getValue().length());
                     return cookie.getValue();
                 }
             }
-        } else {
-            log.debug("No cookies found in request");
         }
         return null;
     }

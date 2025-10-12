@@ -157,7 +157,6 @@ public class AuthService {
      */
     @Transactional(readOnly = true)
     public boolean validateCredentials(String email, String password) {
-        log.debug("Validating credentials for email: {}", email);
         
         try {
             if (email == null || email.trim().isEmpty() || password == null || password.trim().isEmpty()) {

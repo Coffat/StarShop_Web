@@ -128,8 +128,14 @@ public class EmployeeService {
         employee.setPhone(request.getPhone());
         employee.setPassword(passwordEncoder.encode(request.getPassword()));
         employee.setRole(request.getRole());
-        employee.setPosition(request.getPosition());
-        employee.setDepartment(request.getDepartment());
+        // Set default position and department for staff
+        if (request.getRole() == UserRole.STAFF) {
+            employee.setPosition("Nhân viên");
+            employee.setDepartment("Bán hàng");
+        } else if (request.getRole() == UserRole.ADMIN) {
+            employee.setPosition("Quản trị viên");
+            employee.setDepartment("Quản lý");
+        }
         employee.setSalaryPerHour(request.getSalaryPerHour());
         employee.setHireDate(request.getHireDate() != null ? request.getHireDate() : java.time.LocalDate.now());
         employee.setIsActive(true);
@@ -178,12 +184,14 @@ public class EmployeeService {
                 throw new IllegalArgumentException("Vai trò không hợp lệ cho nhân viên");
             }
             employee.setRole(request.getRole());
-        }
-        if (request.getPosition() != null) {
-            employee.setPosition(request.getPosition());
-        }
-        if (request.getDepartment() != null) {
-            employee.setDepartment(request.getDepartment());
+            // Update position and department based on role
+            if (request.getRole() == UserRole.STAFF) {
+                employee.setPosition("Nhân viên");
+                employee.setDepartment("Bán hàng");
+            } else if (request.getRole() == UserRole.ADMIN) {
+                employee.setPosition("Quản trị viên");
+                employee.setDepartment("Quản lý");
+            }
         }
         if (request.getSalaryPerHour() != null) {
             employee.setSalaryPerHour(request.getSalaryPerHour());

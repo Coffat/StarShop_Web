@@ -1,5 +1,7 @@
 package com.example.demo.entity;
 
+import com.example.demo.entity.enums.MessageType;
+import com.example.demo.entity.enums.MessageTypeConverter;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -12,7 +14,7 @@ public class Message extends BaseEntity {
     private User sender;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "receiver_id", nullable = false)
+    @JoinColumn(name = "receiver_id", nullable = true)
     private User receiver;
 
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -23,6 +25,19 @@ public class Message extends BaseEntity {
 
     @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;
+
+    @Column(name = "conversation_id", length = 100)
+    private Long conversationId;
+
+    @Column(name = "message_type", length = 20)
+    @Convert(converter = MessageTypeConverter.class)
+    private MessageType messageType = MessageType.TEXT;
+
+    @Column(name = "is_ai_generated")
+    private Boolean isAiGenerated = false;
+
+    @Column(name = "attachments", columnDefinition = "TEXT")
+    private String attachments; // JSON string for file attachments
 
     // Constructors
     public Message() {
@@ -74,5 +89,37 @@ public class Message extends BaseEntity {
 
     public void setIsRead(Boolean isRead) {
         this.isRead = isRead;
+    }
+
+    public Long getConversationId() {
+        return conversationId;
+    }
+
+    public void setConversationId(Long conversationId) {
+        this.conversationId = conversationId;
+    }
+
+    public MessageType getMessageType() {
+        return messageType;
+    }
+
+    public void setMessageType(MessageType messageType) {
+        this.messageType = messageType;
+    }
+
+    public Boolean getIsAiGenerated() {
+        return isAiGenerated;
+    }
+
+    public void setIsAiGenerated(Boolean isAiGenerated) {
+        this.isAiGenerated = isAiGenerated;
+    }
+
+    public String getAttachments() {
+        return attachments;
+    }
+
+    public void setAttachments(String attachments) {
+        this.attachments = attachments;
     }
 }

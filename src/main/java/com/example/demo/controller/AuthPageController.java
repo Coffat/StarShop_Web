@@ -94,4 +94,5 @@ public class AuthPageController {
         cookie.setPath("/");
         return cookie;
     }
+
 }

@@ -28,7 +28,8 @@ import java.util.List;
     AdminProductController.class,
     BlogController.class,
     VoucherPageController.class,
-    CartController.class
+    CartController.class,
+    StaffController.class
 })
 public class BaseController {
 
@@ -190,5 +191,27 @@ public class BaseController {
             model.addAttribute("breadcrumbs", breadcrumbs);
         }
         breadcrumbs.add(new BreadcrumbItem(title, url));
+    }
+    
+    /**
+     * Get user ID from session (for chat and staff controllers)
+     */
+    protected Long getUserIdFromSession(jakarta.servlet.http.HttpSession session) {
+        return (Long) session.getAttribute("userId");
+    }
+    
+    /**
+     * Get user ID from authentication
+     */
+    protected Long getUserIdFromAuthentication(Authentication authentication) {
+        if (authentication != null && 
+            authentication.isAuthenticated() && 
+            !authentication.getName().equals("anonymousUser")) {
+            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            if (user != null) {
+                return user.getId();
+            }
+        }
+        return null;
     }
 }

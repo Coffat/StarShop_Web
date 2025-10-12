@@ -1,0 +1,448 @@
+<!-- Staff Timesheet Management Content -->
+<div class="space-y-6" x-data="staffTimesheet()" x-init="init()">
+    
+    <!-- Current Shift Status Card -->
+    <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-xl font-bold mb-2">Ca làm việc hiện tại</h2>
+                <template x-if="currentShift && currentShift.activeShift">
+                    <div>
+                        <p class="text-lg">
+                            <i class="fas fa-clock mr-2"></i>
+                            Check-in lúc: <span class="font-semibold" x-text="formatTime(currentShift.checkIn)"></span>
+                        </p>
+                        <p class="mt-2 text-blue-100">
+                            Đã làm việc: <span class="font-bold text-white" x-text="currentWorkingHours"></span> giờ
+                        </p>
+                    </div>
+                </template>
+                <template x-if="!currentShift || !currentShift.activeShift">
+                    <p class="text-blue-100">Bạn chưa check-in hôm nay</p>
+                </template>
+            </div>
+            <div>
+                <template x-if="currentShift && currentShift.activeShift">
+                    <button @click="checkOut()" 
+                            class="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all shadow-lg">
+                        <i class="fas fa-sign-out-alt mr-2"></i>
+                        Check-out
+                    </button>
+                </template>
+                <template x-if="!currentShift || !currentShift.activeShift">
+                    <button @click="checkIn()" 
+                            class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all shadow-lg">
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        Check-in
+                    </button>
+                </template>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Hôm nay</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2" x-text="todayHours + ' giờ'"></p>
+                </div>
+                <div class="bg-blue-100 rounded-full p-3">
+                    <i class="fas fa-calendar-day text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Tuần này</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2" x-text="weekHours + ' giờ'"></p>
+                </div>
+                <div class="bg-green-100 rounded-full p-3">
+                    <i class="fas fa-calendar-week text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Tháng này</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2" x-text="monthHours + ' giờ'"></p>
+                </div>
+                <div class="bg-purple-100 rounded-full p-3">
+                    <i class="fas fa-calendar-alt text-purple-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Month Selector and Calendar -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900">
+                <i class="fas fa-calendar mr-2 text-primary-600"></i>
+                Bảng chấm công tháng
+            </h3>
+            <div class="flex items-center space-x-4">
+                <button @click="previousMonth()" 
+                        class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="font-semibold text-gray-900" x-text="currentMonthText"></span>
+                <button @click="nextMonth()" 
+                        :disabled="isCurrentMonth"
+                        class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <template x-if="loading">
+                <div class="flex items-center justify-center p-12">
+                    <div class="spinner"></div>
+                </div>
+            </template>
+            
+            <template x-if="!loading">
+                <!-- Calendar Grid -->
+                <div class="grid grid-cols-7 gap-2">
+                    <!-- Day Headers -->
+                    <template x-for="day in ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']">
+                        <div class="text-center font-semibold text-gray-700 py-2" x-text="day"></div>
+                    </template>
+                    
+                    <!-- Calendar Days -->
+                    <template x-for="day in calendarDays" :key="day.date">
+                        <div :class="{
+                            'bg-gray-50': !day.isCurrentMonth,
+                            'bg-primary-50 border-2 border-primary-500': day.isToday,
+                            'bg-green-50': day.hasWork && !day.isToday,
+                            'cursor-pointer hover:bg-gray-100': day.hasWork
+                        }" 
+                        @click="day.hasWork && showDayDetail(day)"
+                        class="calendar-day border border-gray-200 rounded-lg p-3 text-center transition-all">
+                            <div class="font-semibold text-gray-900 mb-1" x-text="day.dayNumber"></div>
+                            <template x-if="day.hasWork">
+                                <div class="text-xs">
+                                    <div class="text-green-600 font-semibold" x-text="day.hoursWorked + 'h'"></div>
+                                    <div class="text-gray-500 text-xs" x-text="day.checkIn"></div>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </div>
+    </div>
+    
+    <!-- Timesheet List -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">
+                <i class="fas fa-list mr-2 text-primary-600"></i>
+                Chi tiết chấm công
+            </h3>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check-in</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check-out</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Giờ làm</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <template x-if="timesheetRecords.length === 0">
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                                <i class="fas fa-calendar-times text-gray-300 text-4xl mb-3"></i>
+                                <p>Chưa có dữ liệu chấm công</p>
+                            </td>
+                        </tr>
+                    </template>
+                    
+                    <template x-for="record in timesheetRecords" :key="record.timesheetId">
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900" x-text="formatDate(record.date)"></div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900" x-text="formatTime(record.checkIn)"></div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <template x-if="record.checkOut">
+                                    <div class="text-sm text-gray-900" x-text="formatTime(record.checkOut)"></div>
+                                </template>
+                                <template x-if="!record.checkOut">
+                                    <span class="text-sm text-yellow-600 font-medium">Đang làm</span>
+                                </template>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-semibold text-gray-900" x-text="record.hoursWorked || '0.0' + ' giờ'"></div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-600" x-text="record.notes || '-'"></div>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+function staffTimesheet() {
+    return {
+        staffId: /*[[${staffId}]]*/ null,
+        currentShift: null,
+        timesheetRecords: [],
+        currentYear: new Date().getFullYear(),
+        currentMonth: new Date().getMonth() + 1,
+        loading: false,
+        todayHours: 0,
+        weekHours: 0,
+        monthHours: 0,
+        currentWorkingHours: '0.0',
+        workingInterval: null,
+        
+        get currentMonthText() {
+            const months = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+                           'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+            return `${months[this.currentMonth - 1]} ${this.currentYear}`;
+        },
+        
+        get isCurrentMonth() {
+            const now = new Date();
+            return this.currentYear === now.getFullYear() && this.currentMonth === (now.getMonth() + 1);
+        },
+        
+        get calendarDays() {
+            const firstDay = new Date(this.currentYear, this.currentMonth - 1, 1);
+            const lastDay = new Date(this.currentYear, this.currentMonth, 0);
+            const firstDayOfWeek = firstDay.getDay();
+            const daysInMonth = lastDay.getDate();
+            
+            const days = [];
+            const today = new Date();
+            
+            // Previous month days
+            const prevMonthLastDay = new Date(this.currentYear, this.currentMonth - 1, 0).getDate();
+            for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+                days.push({
+                    dayNumber: prevMonthLastDay - i,
+                    isCurrentMonth: false,
+                    isToday: false,
+                    hasWork: false
+                });
+            }
+            
+            // Current month days
+            for (let i = 1; i <= daysInMonth; i++) {
+                const date = new Date(this.currentYear, this.currentMonth - 1, i);
+                const dateStr = date.toISOString().split('T')[0];
+                const record = this.timesheetRecords.find(r => r.date === dateStr);
+                
+                days.push({
+                    dayNumber: i,
+                    date: dateStr,
+                    isCurrentMonth: true,
+                    isToday: date.toDateString() === today.toDateString(),
+                    hasWork: !!record,
+                    hoursWorked: record ? record.hoursWorked : 0,
+                    checkIn: record ? this.formatTime(record.checkIn) : null
+                });
+            }
+            
+            // Next month days to fill grid
+            const remainingDays = 42 - days.length;
+            for (let i = 1; i <= remainingDays; i++) {
+                days.push({
+                    dayNumber: i,
+                    isCurrentMonth: false,
+                    isToday: false,
+                    hasWork: false
+                });
+            }
+            
+            return days;
+        },
+        
+        async init() {
+            await this.loadCurrentShift();
+            await this.loadMonthlyTimesheet();
+            await this.loadSummary();
+            this.startWorkingTimer();
+        },
+        
+        async loadCurrentShift() {
+            try {
+                const response = await fetch('/api/staff/shift/current');
+                const data = await response.json();
+                if (data.success && data.data) {
+                    this.currentShift = data.data;
+                    this.calculateWorkingHours();
+                }
+            } catch (error) {
+                console.error('Error loading current shift:', error);
+            }
+        },
+        
+        async loadMonthlyTimesheet() {
+            this.loading = true;
+            try {
+                const response = await fetch(`/api/staff/timesheet/month?year=${this.currentYear}&month=${this.currentMonth}`);
+                const data = await response.json();
+                if (data.success) {
+                    this.timesheetRecords = data.data || [];
+                }
+            } catch (error) {
+                console.error('Error loading timesheet:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+        
+        async loadSummary() {
+            try {
+                const response = await fetch('/api/staff/dashboard');
+                const data = await response.json();
+                if (data.success && data.data) {
+                    this.todayHours = data.data.todayHoursWorked || 0;
+                    this.weekHours = data.data.weekHoursWorked || 0;
+                    this.monthHours = data.data.monthHoursWorked || 0;
+                }
+            } catch (error) {
+                console.error('Error loading summary:', error);
+            }
+        },
+        
+        async checkIn() {
+            try {
+                const response = await fetch('/api/staff/check-in', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    this.currentShift = data.data;
+                    alert('Check-in thành công!');
+                    this.startWorkingTimer();
+                    await this.loadMonthlyTimesheet();
+                } else {
+                    alert(data.message || 'Check-in thất bại');
+                }
+            } catch (error) {
+                console.error('Error checking in:', error);
+                alert('Đã xảy ra lỗi khi check-in');
+            }
+        },
+        
+        async checkOut() {
+            if (!confirm('Bạn có chắc muốn check-out?')) return;
+            
+            try {
+                const response = await fetch('/api/staff/check-out', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert(`Check-out thành công! Bạn đã làm việc ${data.data.hoursWorked} giờ hôm nay.`);
+                    this.currentShift = null;
+                    this.stopWorkingTimer();
+                    await this.loadMonthlyTimesheet();
+                    await this.loadSummary();
+                } else {
+                    alert(data.message || 'Check-out thất bại');
+                }
+            } catch (error) {
+                console.error('Error checking out:', error);
+                alert('Đã xảy ra lỗi khi check-out');
+            }
+        },
+        
+        previousMonth() {
+            if (this.currentMonth === 1) {
+                this.currentMonth = 12;
+                this.currentYear--;
+            } else {
+                this.currentMonth--;
+            }
+            this.loadMonthlyTimesheet();
+        },
+        
+        nextMonth() {
+            if (this.isCurrentMonth) return;
+            
+            if (this.currentMonth === 12) {
+                this.currentMonth = 1;
+                this.currentYear++;
+            } else {
+                this.currentMonth++;
+            }
+            this.loadMonthlyTimesheet();
+        },
+        
+        showDayDetail(day) {
+            const record = this.timesheetRecords.find(r => r.date === day.date);
+            if (record) {
+                alert(`Chi tiết ngày ${this.formatDate(record.date)}:\n` +
+                      `Check-in: ${this.formatTime(record.checkIn)}\n` +
+                      `Check-out: ${record.checkOut ? this.formatTime(record.checkOut) : 'Đang làm'}\n` +
+                      `Giờ làm: ${record.hoursWorked || 0} giờ\n` +
+                      `Ghi chú: ${record.notes || 'Không có'}`);
+            }
+        },
+        
+        startWorkingTimer() {
+            if (this.workingInterval) {
+                clearInterval(this.workingInterval);
+            }
+            
+            this.workingInterval = setInterval(() => {
+                this.calculateWorkingHours();
+            }, 60000); // Update every minute
+            
+            this.calculateWorkingHours();
+        },
+        
+        stopWorkingTimer() {
+            if (this.workingInterval) {
+                clearInterval(this.workingInterval);
+                this.workingInterval = null;
+            }
+            this.currentWorkingHours = '0.0';
+        },
+        
+        calculateWorkingHours() {
+            if (!this.currentShift || !this.currentShift.checkIn) return;
+            
+            const checkInTime = new Date(this.currentShift.checkIn);
+            const now = new Date();
+            const diffMs = now - checkInTime;
+            const hours = (diffMs / (1000 * 60 * 60)).toFixed(1);
+            this.currentWorkingHours = hours;
+        },
+        
+        formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('vi-VN');
+        },
+        
+        formatTime(dateTimeStr) {
+            if (!dateTimeStr) return '';
+            const date = new Date(dateTimeStr);
+            return date.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'});
+        }
+    }
+}
+</script>
+

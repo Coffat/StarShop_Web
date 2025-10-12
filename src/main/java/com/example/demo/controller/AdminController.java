@@ -169,7 +169,6 @@ public class AdminController extends BaseController {
     @GetMapping("/api/correlation-data")
     @ResponseBody
     public Map<String, Object> getCorrelationData(@RequestParam(defaultValue = "7") int period) {
-        log.debug("Getting correlation data for {} days", period);
         return dashboardService.getCorrelationChartData(period);
     }
     
@@ -179,7 +178,6 @@ public class AdminController extends BaseController {
     @GetMapping("/api/revenue-trend")
     @ResponseBody
     public Map<String, Object> getRevenueTrend(@RequestParam(defaultValue = "7") int period) {
-        log.debug("Getting revenue trend data for {} days", period);
         return dashboardService.getRevenueTrendData(period);
     }
     
@@ -189,7 +187,6 @@ public class AdminController extends BaseController {
     @GetMapping("/api/order-status")
     @ResponseBody
     public Map<String, Object> getOrderStatus() {
-        log.debug("Getting order status chart data");
         return dashboardService.getOrderStatusChartData();
     }
     
@@ -199,7 +196,7 @@ public class AdminController extends BaseController {
     @GetMapping("/api/dashboard-stats")
     @ResponseBody
     public Map<String, Object> getDashboardStats() {
-        log.debug("Getting dashboard statistics");
         return dashboardService.getDashboardStats();
     }
+    
 }

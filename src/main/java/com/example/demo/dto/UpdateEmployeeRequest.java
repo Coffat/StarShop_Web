@@ -30,12 +30,6 @@ public class UpdateEmployeeRequest {
     
     private UserRole role;
     
-    @Size(max = 100, message = "Chức vụ không được vượt quá 100 ký tự")
-    private String position;
-    
-    @Size(max = 100, message = "Phòng ban không được vượt quá 100 ký tự")
-    private String department;
-    
     @DecimalMin(value = "0.0", message = "Lương giờ phải lớn hơn hoặc bằng 0")
     private BigDecimal salaryPerHour;
     

@@ -52,7 +52,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf
                 .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**", "/api/cart/**", "/api/orders/**", "/api/payment/**", "/api/locations/**", "/api/addresses/**", "/api/shipping/**", "/admin/orders/api/**", "/admin/products/api/**", "/admin/api/**", "/sse/**", "/swagger-ui/**", "/v3/api-docs/**")
+                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**", "/api/cart/**", "/api/orders/**", "/api/payment/**", "/api/locations/**", "/api/addresses/**", "/api/shipping/**", "/admin/orders/api/**", "/admin/products/api/**", "/admin/api/**", "/api/staff/**", "/sse/**", "/swagger-ui/**", "/v3/api-docs/**")
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -97,6 +97,8 @@ public class SecurityConfig {
                 .requestMatchers("/account/**").authenticated()
                 // Order pages - require authentication
                 .requestMatchers("/orders", "/orders/**", "/checkout").authenticated()
+                // Staff pages - require STAFF role
+                .requestMatchers("/staff/**").hasRole("STAFF")
                 // Admin pages - require ADMIN role
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 
@@ -129,6 +131,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/reviews/**").hasRole("CUSTOMER")
                 .requestMatchers("/api/favorite/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/messages/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
+                .requestMatchers("/api/chat/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
+                .requestMatchers("/api/staff/**").hasAnyRole("STAFF", "ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/admin/orders/api/**").hasRole("ADMIN")
                 .requestMatchers("/admin/products/api/**").hasRole("ADMIN")
@@ -148,7 +152,7 @@ public class SecurityConfig {
             )
             .rememberMe(remember -> remember
                 .key("unique-and-secret")
-                .tokenValiditySeconds(86400)
+                .tokenValiditySeconds(3600) // 1 hour instead of 24 hours
                 .userDetailsService(username -> {
                     // Simple UserDetails implementation for remember-me
                     User user = userRepository.findByEmail(username).orElse(null);
@@ -176,6 +180,17 @@ public class SecurityConfig {
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
                 .deleteCookies("authToken", "JSESSIONID", "SPRING_SECURITY_REMEMBER_ME_COOKIE")
+                .addLogoutHandler((request, response, authentication) -> {
+                    // Clear session attributes before session invalidation
+                    if (request.getSession(false) != null) {
+                        request.getSession().removeAttribute("authToken");
+                        request.getSession().removeAttribute("userEmail");
+                        request.getSession().removeAttribute("userRole");
+                        request.getSession().removeAttribute("userId");
+                    }
+                    // Clear SecurityContext
+                    org.springframework.security.core.context.SecurityContextHolder.clearContext();
+                })
                 .permitAll()
             )
             .exceptionHandling(exceptions -> exceptions
@@ -240,7 +255,7 @@ public class SecurityConfig {
                     authCookie.setHttpOnly(true);
                     authCookie.setSecure(false); // Set to false for localhost development
                     authCookie.setPath("/");
-                    authCookie.setMaxAge(24 * 60 * 60); // 24 hours
+                    authCookie.setMaxAge(4 * 60 * 60); // 4 hours instead of 24 hours
                     response.addCookie(authCookie);
                     
                     // Set authentication in session as backup
@@ -262,6 +277,8 @@ public class SecurityConfig {
                     String redirectUrl = "/";
                     if (user.getRole() == com.example.demo.entity.enums.UserRole.ADMIN) {
                         redirectUrl = "/admin/dashboard";
+                    } else if (user.getRole() == com.example.demo.entity.enums.UserRole.STAFF) {
+                        redirectUrl = "/staff/dashboard";
                     }
                     
                     log.info("Form login successful for user: {} with role: {}", user.getEmail(), user.getRole());
@@ -307,7 +324,7 @@ public class SecurityConfig {
                     authCookie.setHttpOnly(true);
                     authCookie.setSecure(false); // Set to false for localhost development
                     authCookie.setPath("/");
-                    authCookie.setMaxAge(24 * 60 * 60); // 24 hours
+                    authCookie.setMaxAge(4 * 60 * 60); // 4 hours instead of 24 hours
                     response.addCookie(authCookie);
                     
                     // Set authentication in session
@@ -329,6 +346,8 @@ public class SecurityConfig {
                     String redirectUrl = "/";
                     if (user.getRole() == com.example.demo.entity.enums.UserRole.ADMIN) {
                         redirectUrl = "/admin/dashboard";
+                    } else if (user.getRole() == com.example.demo.entity.enums.UserRole.STAFF) {
+                        redirectUrl = "/staff/dashboard";
                     }
                     
                     log.info("OAuth2 login successful for user: {} with role: {}", user.getEmail(), user.getRole());

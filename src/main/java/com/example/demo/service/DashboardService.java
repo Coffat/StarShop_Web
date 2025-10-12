@@ -60,7 +60,6 @@ public class DashboardService {
             // Recent orders
             stats.put("recentOrders", orderRepository.findTop10ByOrderByOrderDateDesc());
             
-            log.debug("Dashboard stats generated successfully");
             
         } catch (Exception e) {
             log.error("Error generating dashboard stats: {}", e.getMessage(), e);
