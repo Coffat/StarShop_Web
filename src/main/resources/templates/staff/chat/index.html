@@ -31,7 +31,8 @@
             </template>
             
             <template x-for="conv in conversations" :key="conv.id.toString()">
-                <div @click="selectConversation(conv)"
+                <div @click="selectConversation(conv)" 
+                     @click.prevent="selectConversation(conv)"
                      :class="{'bg-primary-50 border-l-4 border-primary-500': selectedConversation && selectedConversation.id === conv.id}"
                      class="conversation-item p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors">
                     <div class="flex items-start space-x-3">
@@ -146,71 +147,123 @@
                 </div>
                 
                 <!-- Messages Area -->
-                <div class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50 chat-scrollbar" 
+                <div class="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-gray-50 to-white chat-scrollbar" 
                      id="messagesContainer"
                      @scroll="handleScroll"
                      style="height: calc(100vh - 300px); max-height: calc(100vh - 300px); min-height: 400px;">
                     <template x-if="loadingMessages">
                         <div class="flex items-center justify-center p-8">
-                            <div class="spinner"></div>
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
                         </div>
                     </template>
                     
                     <template x-for="msg in messages" :key="msg.id.toString()">
-                        <div :class="msg.senderId === staffId ? 'flex justify-end' : 'flex justify-start'">
-                            <div :class="{
-                                'message-sent': msg.senderId === staffId,
-                                'message-received': msg.senderId !== staffId && msg.messageType === 'TEXT',
-                                'message-system': msg.messageType === 'SYSTEM',
-                                'message-ai': msg.isAiGenerated
-                            }" class="message-bubble">
-                                <template x-if="msg.messageType !== 'SYSTEM'">
-                                    <div class="flex items-start space-x-2">
-                                        <div class="flex-1">
-                                            <p class="text-sm" x-text="msg.content"></p>
-                                            <div class="message-time mt-1" 
-                                                 x-text="formatMessageTime(msg.sentAt)"></div>
+                        <div>
+                            <!-- System Message (Center) -->
+                            <template x-if="msg.messageType === 'SYSTEM'">
+                                <div class="flex justify-center w-full mb-4">
+                                    <div class="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full text-sm font-medium shadow-sm">
+                                        <i class="fas fa-info-circle mr-2"></i>
+                                        <span x-text="msg.content"></span>
+                                    </div>
+                                </div>
+                            </template>
+                            
+                            <!-- Staff Message (Right) -->
+                            <template x-if="msg.senderId === staffId && msg.messageType !== 'SYSTEM'">
+                                <div class="flex justify-end mb-4">
+                                    <div class="flex items-end space-x-2 max-w-xs lg:max-w-md">
+                                        <div class="flex flex-col items-end">
+                                            <div class="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-3 rounded-2xl rounded-br-md shadow-lg">
+                                                <p class="text-sm leading-relaxed" x-text="msg.content"></p>
+                                            </div>
+                                            <span class="text-xs text-gray-500 mt-1 px-2" x-text="formatMessageTime(msg.sentAt)"></span>
+                                        </div>
+                                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
+                                            S
                                         </div>
                                     </div>
-                                </template>
-                                <template x-if="msg.messageType === 'SYSTEM'">
-                                    <p class="text-sm" x-text="msg.content"></p>
-                                </template>
-                            </div>
+                                </div>
+                            </template>
+                            
+                            <!-- AI Message (Left with special styling) -->
+                            <template x-if="msg.isAiGenerated && msg.senderId !== staffId">
+                                <div class="flex justify-start mb-4">
+                                    <div class="flex items-end space-x-2 max-w-xs lg:max-w-md">
+                                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold">
+                                            🤖
+                                        </div>
+                                        <div class="flex flex-col items-start">
+                                            <div class="bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-800 px-4 py-3 rounded-2xl rounded-bl-md shadow-lg border border-purple-200">
+                                                <p class="text-sm leading-relaxed" x-text="msg.content"></p>
+                                            </div>
+                                            <span class="text-xs text-gray-500 mt-1 px-2" x-text="formatMessageTime(msg.sentAt)"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            
+                            <!-- Customer Message (Left) -->
+                            <template x-if="msg.senderId !== staffId && msg.messageType === 'TEXT' && !msg.isAiGenerated">
+                                <div class="flex justify-start mb-4">
+                                    <div class="flex items-end space-x-2 max-w-xs lg:max-w-md">
+                                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white text-sm font-semibold">
+                                            <span x-text="selectedConversation.customerName.charAt(0)"></span>
+                                        </div>
+                                        <div class="flex flex-col items-start">
+                                            <div class="bg-white text-gray-800 px-4 py-3 rounded-2xl rounded-bl-md shadow-lg border border-gray-100">
+                                                <p class="text-sm leading-relaxed" x-text="msg.content"></p>
+                                            </div>
+                                            <span class="text-xs text-gray-500 mt-1 px-2" x-text="formatMessageTime(msg.sentAt)"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </template>
                     
                     <!-- Typing Indicator -->
                     <template x-if="isTyping">
-                        <div class="flex justify-start">
-                            <div class="typing-indicator">
-                                <span></span>
-                                <span></span>
-                                <span></span>
+                        <div class="flex justify-start mb-4">
+                            <div class="flex items-end space-x-2">
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white text-sm font-semibold">
+                                    <span x-text="selectedConversation.customerName.charAt(0)"></span>
+                                </div>
+                                <div class="bg-white px-4 py-3 rounded-2xl rounded-bl-md shadow-lg border border-gray-100">
+                                    <div class="flex space-x-1">
+                                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </template>
                 </div>
                 
                 <!-- Message Input -->
-                <div class="p-4 border-t border-gray-200 bg-white flex-shrink-0">
+                <div class="p-4 bg-white border-t border-gray-200 flex-shrink-0">
                     <div class="flex items-end space-x-3">
-                        <div class="flex-1">
+                        <div class="flex-1 relative">
                             <textarea x-model="messageText"
                                      @keydown.enter.prevent="sendMessage()"
                                      @input="handleTyping()"
                                      placeholder="Nhập tin nhắn..."
-                                     rows="2"
-                                     class="message-input w-full"></textarea>
+                                     rows="1"
+                                     class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                                     style="min-height: 44px; max-height: 120px;"></textarea>
+                            <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
+                                <i class="fas fa-paperclip"></i>
+                            </div>
                         </div>
                         <button @click="sendMessage()"
                                 :disabled="!messageText.trim() || sendingMessage"
-                                class="send-button px-6 py-3 rounded-full text-white font-medium flex items-center space-x-2">
+                                class="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
                             <template x-if="!sendingMessage">
-                                <i class="fas fa-paper-plane"></i>
+                                <i class="fas fa-paper-plane text-lg"></i>
                             </template>
                             <template x-if="sendingMessage">
-                                <i class="fas fa-spinner fa-spin"></i>
+                                <i class="fas fa-spinner fa-spin text-lg"></i>
                             </template>
                         </button>
                     </div>
@@ -309,8 +362,10 @@ function staffChat() {
         isTyping: false,
         typingTimeout: null,
         stompClient: null,
+        currentSubscription: null,
         
         async init() {
+            console.log('🚀 Initializing chat system...');
             await this.loadConversations();
             this.connectWebSocket();
             
@@ -318,14 +373,23 @@ function staffChat() {
             const urlParams = new URLSearchParams(window.location.search);
             const convId = urlParams.get('conversation');
             if (convId) {
+                console.log('🔗 Found conversation ID in URL:', convId);
                 const conv = this.conversations.find(c => c.id == convId);
                 if (conv) {
-                    this.selectConversation(conv);
+                    console.log('✅ Found conversation in list:', conv);
+                    await this.selectConversation(conv);
+                } else {
+                    console.log('❌ Conversation not found in list');
                 }
             }
             
             // Setup real-time updates like Messenger/Zalo
             this.setupRealTimeUpdates();
+            
+            // Cleanup processed messages periodically to prevent memory leak
+            this.setupProcessedMessagesCleanup();
+            
+            console.log('✅ Chat system initialized');
         },
         
         async loadConversations() {
@@ -343,9 +407,20 @@ function staffChat() {
                 const data = await response.json();
                 if (data.data && !data.error) {
                     this.conversations = data.data || [];
-                    console.log('Loaded conversations:', this.conversations);
+                    console.log('✅ Loaded conversations:', this.conversations.length, 'conversations');
+                    console.log('✅ Conversations data:', this.conversations);
+                    
+                    // Debug each conversation
+                    this.conversations.forEach((conv, index) => {
+                        console.log(`📋 Conversation ${index}:`, {
+                            id: conv.id,
+                            idType: typeof conv.id,
+                            customerName: conv.customerName,
+                            status: conv.status
+                        });
+                    });
                 } else {
-                    console.error('Error loading conversations:', data.error);
+                    console.error('❌ Error loading conversations:', data.error);
                 }
             } catch (error) {
                 console.error('Error loading conversations:', error);
@@ -355,31 +430,107 @@ function staffChat() {
         },
         
         async selectConversation(conv) {
-            this.selectedConversation = conv;
-            await this.loadMessages(conv.id);
+            console.log('🎯 selectConversation called:', conv);
+            console.log('🎯 Conversation ID:', conv?.id);
+            console.log('🎯 Conversation type:', typeof conv?.id);
+            
+            // Validate conversation object
+            if (!conv || !conv.id) {
+                console.error('❌ Invalid conversation object:', conv);
+                return;
+            }
+            
+            // Ensure conversation ID is a number
+            const conversationId = parseInt(conv.id);
+            if (isNaN(conversationId)) {
+                console.error('❌ Invalid conversation ID:', conv.id);
+                return;
+            }
+            
+            console.log('✅ Valid conversation ID:', conversationId);
+            
+            // Unsubscribe from previous conversation if exists
+            if (this.currentSubscription && this.stompClient && this.stompClient.connected) {
+                try {
+                    this.currentSubscription.unsubscribe();
+                    console.log('✅ Unsubscribed from previous conversation');
+                } catch (error) {
+                    console.error('Error unsubscribing from previous conversation:', error);
+                }
+            }
+            
+            // Create a clean conversation object with ALL fields to avoid reference issues
+            this.selectedConversation = {
+                id: conversationId,
+                customerId: conv.customerId,
+                customerName: conv.customerName,
+                customerEmail: conv.customerEmail,
+                customerPhone: conv.customerPhone,
+                customerAvatar: conv.customerAvatar,
+                lastMessage: conv.lastMessage,
+                lastMessageAt: conv.lastMessageAt,
+                lastMessageSender: conv.lastMessageSender,
+                status: conv.status,
+                priority: conv.priority,
+                unreadCount: conv.unreadCount,
+                createdAt: conv.createdAt,
+                assignedStaffId: conv.assignedStaffId,
+                assignedStaffName: conv.assignedStaffName
+            };
+            
+            console.log('✅ Set selectedConversation:', this.selectedConversation);
+            console.log('✅ Customer ID:', this.selectedConversation.customerId);
+            
+            // Clear current messages before loading new ones
+            this.messages = [];
+            
+            await this.loadMessages(conversationId);
             
             // Mark as read when staff opens the conversation
-            this.markAsRead(conv.id);
+            this.markAsRead(conversationId);
             
-            // Subscribe to this conversation
+            // Update unread count immediately in UI
+            this.updateUnreadCountAfterMarkAsRead(conversationId);
+            
+            // Subscribe to this specific conversation
             if (this.stompClient && this.stompClient.connected) {
                 try {
-                    this.stompClient.subscribe('/topic/chat/' + conv.id, (message) => {
+                    this.currentSubscription = this.stompClient.subscribe('/topic/chat/' + conversationId, (message) => {
                         const msg = JSON.parse(message.body);
+                        console.log('📨 Received message for specific conversation:', msg);
                         this.handleIncomingMessage(msg);
                     });
+                    console.log('✅ Subscribed to conversation:', conversationId);
                 } catch (error) {
                     console.error('Error subscribing to conversation:', error);
                 }
             }
             
-            // Scroll to bottom
+            // Force scroll to bottom after loading messages
+            setTimeout(() => {
+                this.scrollToBottom();
+            }, 200);
+            
+            // Also scroll after next tick
             this.$nextTick(() => {
                 this.scrollToBottom();
             });
         },
         
         async loadMessages(conversationId) {
+            console.log('📥 Loading messages for conversation:', conversationId);
+            console.log('📥 ConversationId type:', typeof conversationId);
+            
+            // Validate conversationId
+            if (!conversationId || isNaN(parseInt(conversationId))) {
+                console.error('❌ Invalid conversationId for loadMessages:', conversationId);
+                return;
+            }
+            
+            // Ensure conversationId is a number
+            const validConversationId = parseInt(conversationId);
+            console.log('📥 Valid conversationId:', validConversationId);
+            
             this.loadingMessages = true;
             try {
                 const csrf = this.getCsrfToken();
@@ -388,54 +539,110 @@ function staffChat() {
                     headers[csrf.header] = csrf.token;
                 }
                 
-                const response = await fetch(`/api/chat/conversations/${conversationId}/messages?page=0&size=100`, {
+                const url = `/api/chat/conversations/${validConversationId}/messages?page=0&size=100`;
+                console.log('📥 Fetching URL:', url);
+                
+                const response = await fetch(url, {
                     headers: headers
                 });
+                
+                console.log('📥 Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
+                console.log('📥 Response data:', data);
+                
                 if (data.data && !data.error) {
                     this.messages = (data.data || []).reverse();
+                    console.log('✅ Loaded messages:', this.messages.length, 'messages');
+                    console.log('✅ Messages:', this.messages);
+                    
+                    // Force scroll to bottom after messages are loaded
+                    setTimeout(() => {
+                        this.scrollToBottom();
+                    }, 100);
                 } else {
-                    console.error('Error loading messages:', data.error);
+                    console.error('❌ Error loading messages:', data.error);
+                    this.messages = [];
                 }
             } catch (error) {
-                console.error('Error loading messages:', error);
+                console.error('❌ Error loading messages:', error);
+                this.messages = [];
             } finally {
                 this.loadingMessages = false;
+                
+                // Final scroll to bottom after loading is complete
+                setTimeout(() => {
+                    this.scrollToBottom();
+                }, 300);
             }
         },
         
         async sendMessage() {
             if (!this.messageText.trim() || !this.selectedConversation || this.sendingMessage) return;
             
+            const messageContent = this.messageText.trim();
             this.sendingMessage = true;
+            
+            // Create optimistic message for immediate display
+            const optimisticMessage = {
+                id: 'temp_' + Date.now(), // Temporary ID
+                conversationId: this.selectedConversation.id,
+                senderId: this.staffId,
+                receiverId: this.selectedConversation.customerId,
+                content: messageContent,
+                messageType: 'TEXT',
+                sentAt: new Date().toISOString(),
+                isRead: false,
+                isOptimistic: true // Flag to identify optimistic messages
+            };
+            
+            // Add optimistic message to UI immediately
+            this.messages.push(optimisticMessage);
+            this.messageText = '';
+            
+            // Scroll to bottom immediately
+            this.$nextTick(() => this.scrollToBottom());
+            
             try {
                 const messageDTO = {
                     conversationId: this.selectedConversation.id.toString(),
                     senderId: this.staffId,
                     receiverId: this.selectedConversation.customerId,
-                    content: this.messageText.trim(),
+                    content: messageContent,
                     messageType: 'TEXT'
                 };
+                
+                let sentMessage = null;
                 
                 // Send via WebSocket if connected
                 if (this.stompClient && this.stompClient.connected) {
                     try {
                         this.stompClient.send('/app/chat.send', {}, JSON.stringify(messageDTO));
+                        // For WebSocket, we'll get the response via handleIncomingMessage
+                        // The optimistic message will be replaced when we receive the real message
                     } catch (error) {
                         console.error('Error sending via WebSocket:', error);
                         // Fallback to REST API
-                        await this.sendMessageViaRest(messageDTO);
+                        sentMessage = await this.sendMessageViaRest(messageDTO);
                     }
                 } else {
                     // Fallback to REST API
-                    await this.sendMessageViaRest(messageDTO);
+                    sentMessage = await this.sendMessageViaRest(messageDTO);
                 }
                 
-                this.messageText = '';
-                this.$nextTick(() => this.scrollToBottom());
+                // If we got a response from REST API, replace optimistic message
+                if (sentMessage) {
+                    this.replaceOptimisticMessage(optimisticMessage.id, sentMessage);
+                }
                 
             } catch (error) {
                 console.error('Error sending message:', error);
+                // Remove optimistic message on error
+                this.removeOptimisticMessage(optimisticMessage.id);
                 alert('Không thể gửi tin nhắn');
             } finally {
                 this.sendingMessage = false;
@@ -443,18 +650,69 @@ function staffChat() {
         },
         
         handleIncomingMessage(msg) {
-            if (this.selectedConversation && msg.conversationId == this.selectedConversation.id) {
-                this.messages.push(msg);
-                this.$nextTick(() => this.scrollToBottom());
-                
-                // Mark as read if message is from customer (not from staff)
-                if (msg.senderId !== this.staffId) {
-                    this.markAsRead(this.selectedConversation.id);
+            console.log('🔔 handleIncomingMessage called:', msg);
+            console.log('Current staffId:', this.staffId);
+            console.log('Message senderId:', msg.senderId);
+            console.log('Is from customer:', msg.senderId != this.staffId);
+            console.log('Selected conversation:', this.selectedConversation);
+            
+            // ⚠️ CRITICAL: Prevent duplicate processing from multiple WebSocket subscriptions
+            // Message can be received from both /topic/chat/{conversationId} and /topic/chat/staff
+            const messageProcessedKey = `processed_${msg.id}`;
+            if (this[messageProcessedKey]) {
+                console.log('⚠️ Message already processed, skipping duplicate processing');
+                return;
+            }
+            
+            // Mark this message as processed to prevent duplicate
+            this[messageProcessedKey] = true;
+            
+            // Check if this message is already in the messages array to avoid duplicates
+            const messageExists = this.messages.some(m => m.id === msg.id);
+            if (messageExists) {
+                console.log('⚠️ Message already exists in chat, skipping duplicate');
+                return;
+            }
+            
+            // If this is a message from staff (current user), check if we have an optimistic message to replace
+            if (msg.senderId === this.staffId) {
+                const optimisticIndex = this.messages.findIndex(m => m.isOptimistic && m.content === msg.content);
+                if (optimisticIndex !== -1) {
+                    console.log('🔄 Replacing optimistic message with real message');
+                    this.messages[optimisticIndex] = msg;
+                    this.$nextTick(() => this.scrollToBottom());
+                    return;
                 }
             }
             
-            // Update conversation in list without reloading entire list
-            this.updateConversationInList(msg.conversationId, msg);
+            // Determine if staff is viewing this conversation
+            const isViewingConversation = this.selectedConversation && msg.conversationId == this.selectedConversation.id;
+            console.log('Is viewing conversation:', isViewingConversation);
+            
+            // Update conversation list BEFORE adding message to chat
+            // This ensures unread count is updated correctly
+            this.updateConversationInList(msg.conversationId, msg, isViewingConversation);
+            
+            // If staff is currently viewing this conversation, add message to chat
+            if (isViewingConversation) {
+                console.log('✅ Staff is viewing this conversation, adding message to chat');
+                this.messages.push(msg);
+                this.$nextTick(() => this.scrollToBottom());
+                
+                // If message is from customer, mark as read immediately (staff is viewing)
+                if (msg.senderId != this.staffId) {
+                    console.log('Message from customer, marking as read immediately');
+                    // Mark as read immediately since staff is viewing
+                    this.markAsRead(this.selectedConversation.id);
+                }
+            } else {
+                console.log('❌ Staff is NOT viewing this conversation');
+                // Staff is not viewing this conversation, show notification
+                if (msg.senderId != this.staffId) {
+                    console.log('Showing notification for new message');
+                    this.showNotification(`Tin nhắn mới từ ${msg.senderName || 'Khách hàng'}`);
+                }
+            }
         },
         
         async markAsRead(conversationId) {
@@ -471,6 +729,10 @@ function staffChat() {
                     method: 'PUT',
                     headers: headers
                 });
+                
+                // Update unread count immediately in UI
+                this.updateUnreadCountAfterMarkAsRead(conversationId);
+                
             } catch (error) {
                 console.error('Error marking as read:', error);
             }
@@ -501,9 +763,10 @@ function staffChat() {
             });
             const data = await response.json();
             if (data.data && !data.error) {
-                this.messages.push(data.data);
+                return data.data; // Return the message data
             } else {
                 console.error('Error sending message:', data.error);
+                throw new Error(data.error || 'Failed to send message');
             }
         },
         
@@ -679,6 +942,13 @@ function staffChat() {
                         this.handleChatUpdate(update);
                     });
                     
+                    // Subscribe to all chat messages for staff
+                    this.stompClient.subscribe('/topic/chat/staff', (message) => {
+                        const msg = JSON.parse(message.body);
+                        console.log('Received message for staff:', msg);
+                        this.handleIncomingMessage(msg);
+                    });
+                    
                 }, (error) => {
                     console.error('WebSocket error:', error);
                     // Exponential backoff for reconnection
@@ -707,37 +977,87 @@ function staffChat() {
             }, 300000); // Refresh every 5 minutes only when no conversation selected
         },
         
+        setupProcessedMessagesCleanup() {
+            // Cleanup processed message flags every 5 minutes to prevent memory leak
+            setInterval(() => {
+                const keys = Object.keys(this).filter(key => key.startsWith('processed_'));
+                if (keys.length > 100) { // Only cleanup if we have many processed messages
+                    keys.forEach(key => {
+                        delete this[key];
+                    });
+                    console.log(`🧹 Cleaned up ${keys.length} processed message flags`);
+                }
+            }, 300000); // Cleanup every 5 minutes
+        },
+        
         handleConversationUpdate(update) {
             // Update conversation in the list without full reload (like Messenger/Zalo)
+            console.log('🔄 handleConversationUpdate called:', update);
+            console.log('🔄 Update type:', update.updateType);
+            console.log('🔄 Update data:', update.data);
+            
             const index = this.conversations.findIndex(c => c.id === update.conversationId);
             if (index !== -1) {
-                // Update specific conversation data
-                this.conversations[index] = { ...this.conversations[index], ...update.data };
+                console.log('🔄 Found conversation at index:', index);
+                console.log('🔄 Current conversation ID:', this.conversations[index].id);
                 
-                // Move updated conversation to top (like Messenger/Zalo)
-                if (update.updateType === 'new_message') {
-                    const updatedConv = this.conversations.splice(index, 1)[0];
-                    this.conversations.unshift(updatedConv);
+                // ⚠️ IMPORTANT: Do NOT spread update.data directly!
+                // update.data might be a ChatMessageDTO with its own 'id' field (message ID)
+                // which would overwrite the conversation ID!
+                
+                // Instead, only update specific fields we know are safe
+                if (update.updateType === 'new_message' && update.data) {
+                    // Update last message info from ChatMessageDTO
+                    this.conversations[index].lastMessageContent = update.data.content;
+                    this.conversations[index].lastMessageSenderId = update.data.senderId;
+                    this.conversations[index].lastMessageAt = update.data.sentAt;
+                    
+                    console.log('🔄 Updated last message info');
+                    console.log('🔄 Conversation ID after update:', this.conversations[index].id);
+                    
+                    // Move updated conversation to top (like Messenger/Zalo)
+                    if (index > 0) {
+                        const updatedConv = this.conversations.splice(index, 1)[0];
+                        this.conversations.unshift(updatedConv);
+                        console.log('🔄 Moved conversation to top');
+                    }
+                } else {
+                    // For other update types, safely update only known conversation fields
+                    if (update.data.status) {
+                        this.conversations[index].status = update.data.status;
+                    }
+                    if (update.data.priority) {
+                        this.conversations[index].priority = update.data.priority;
+                    }
+                    console.log('🔄 Updated conversation status/priority');
                 }
+                
+                console.log('🔄 Final conversation ID:', this.conversations[index].id);
             } else if (update.updateType === 'new_conversation') {
+                console.log('🔄 New conversation, checking if exists...');
                 // Only reload conversations if it's truly a new conversation
                 // Don't reload if it's just an update to existing conversation
                 // Check if conversation already exists in our list
                 const exists = this.conversations.some(c => c.id === update.conversationId);
                 if (!exists) {
+                    console.log('🔄 Conversation does not exist, loading conversations...');
                     this.loadConversations();
+                } else {
+                    console.log('🔄 Conversation already exists, skipping reload');
                 }
             }
         },
         
         handleChatUpdate(update) {
             // Handle general chat updates (like Messenger/Zalo)
+            console.log('📢 handleChatUpdate called:', update);
             switch (update.type) {
                 case 'message_sent':
-                    // Don't reload entire conversation list, just update specific conversation
-                    if (update.data && update.data.conversationId) {
-                        this.updateConversationInList(update.data.conversationId, update.data);
-                    }
+                    // ⚠️ REMOVED: Don't call updateConversationInList here!
+                    // This causes duplicate processing because the same message is already processed
+                    // in handleIncomingMessage from /topic/chat/staff subscription
+                    console.log('📢 Message sent update received, but skipping to avoid duplicate processing');
+                    console.log('📢 Message is already processed in handleIncomingMessage');
                     break;
                 case 'conversation_status_changed':
                     // Update conversation status
@@ -762,25 +1082,74 @@ function staffChat() {
             }
         },
         
-        updateConversationInList(conversationId, messageData) {
+        updateConversationInList(conversationId, messageData, isViewingConversation = false) {
+            console.log('📝 updateConversationInList called:', { 
+                conversationId, 
+                messageData, 
+                staffId: this.staffId,
+                isViewingConversation 
+            });
+            
             // Update specific conversation without reloading entire list
-            const index = this.conversations.findIndex(c => c.id === conversationId);
+            const index = this.conversations.findIndex(c => c.id == conversationId);
+            console.log('📝 Found conversation at index:', index);
+            
             if (index !== -1) {
+                console.log('📝 Current conversation ID:', this.conversations[index].id);
+                console.log('📝 Current unread count:', this.conversations[index].unreadCount);
+                
+                // ⚠️ IMPORTANT: Preserve conversation ID!
+                const originalConvId = this.conversations[index].id;
+                
                 // Update last message info
                 this.conversations[index].lastMessageContent = messageData.content;
                 this.conversations[index].lastMessageSenderId = messageData.senderId;
                 this.conversations[index].lastMessageAt = messageData.sentAt;
                 
-                // Update unread count if message is from customer
-                if (messageData.senderId !== this.staffId) {
-                    this.conversations[index].unreadCount = (this.conversations[index].unreadCount || 0) + 1;
+                console.log('📝 Message from:', messageData.senderId, 'Staff ID:', this.staffId);
+                console.log('📝 Is from customer:', messageData.senderId != this.staffId);
+                console.log('📝 Is viewing conversation:', isViewingConversation);
+                
+                // Update unread count logic:
+                // - If message is from customer AND staff is NOT viewing: increase unread count
+                // - If message is from customer AND staff IS viewing: don't increase (will be marked as read)
+                // - If message is from staff: reset to 0
+                if (messageData.senderId != this.staffId) {
+                    // Message from customer
+                    if (!isViewingConversation) {
+                        // Staff is NOT viewing this conversation - increase unread count
+                        const oldCount = this.conversations[index].unreadCount || 0;
+                        this.conversations[index].unreadCount = oldCount + 1;
+                        console.log(`✅ Increased unread count for conversation ${conversationId}: ${oldCount} -> ${this.conversations[index].unreadCount}`);
+                        
+                        // Force Alpine.js to update the UI
+                        this.$forceUpdate();
+                    } else {
+                        // Staff IS viewing this conversation - don't increase, will be marked as read
+                        console.log(`📝 Staff is viewing conversation ${conversationId}, not increasing unread count (will be marked as read)`);
+                    }
+                } else {
+                    // Message from staff - reset unread count to 0 (staff just replied)
+                    console.log(`📝 Message from staff, resetting unread count to 0`);
+                    this.conversations[index].unreadCount = 0;
+                    this.$forceUpdate();
                 }
                 
-                // Move conversation to top if it's not already selected
-                if (!this.selectedConversation || this.selectedConversation.id !== conversationId) {
+                // ⚠️ CRITICAL: Ensure conversation ID is preserved after updates
+                this.conversations[index].id = originalConvId;
+                console.log('📝 Preserved conversation ID:', this.conversations[index].id);
+                console.log('📝 Final unread count:', this.conversations[index].unreadCount);
+                
+                // Move conversation to top if it has a new message
+                if (index > 0) {
                     const updatedConv = this.conversations.splice(index, 1)[0];
+                    // Double-check ID is preserved
+                    updatedConv.id = originalConvId;
                     this.conversations.unshift(updatedConv);
+                    console.log('✅ Moved conversation to top with ID:', updatedConv.id);
                 }
+            } else {
+                console.log('❌ Conversation not found in list:', conversationId);
             }
         },
         
@@ -797,18 +1166,82 @@ function staffChat() {
             }
         },
         
+        updateUnreadCountAfterStaffMessage() {
+            // When staff sends a message, reset unread count for this conversation
+            if (this.selectedConversation) {
+                const index = this.conversations.findIndex(c => c.id === this.selectedConversation.id);
+                if (index !== -1) {
+                    // Reset unread count to 0 since staff just replied
+                    this.conversations[index].unreadCount = 0;
+                }
+            }
+        },
+        
+        updateUnreadCountAfterMarkAsRead(conversationId) {
+            // When staff marks conversation as read, reset unread count
+            const index = this.conversations.findIndex(c => c.id == conversationId);
+            if (index !== -1) {
+                // Reset unread count to 0 since staff marked as read
+                const oldCount = this.conversations[index].unreadCount;
+                this.conversations[index].unreadCount = 0;
+                console.log(`✅ Reset unread count for conversation ${conversationId}: ${oldCount} -> 0`);
+                // Force Alpine.js to update the UI
+                this.$forceUpdate();
+            } else {
+                console.log(`❌ Conversation ${conversationId} not found when trying to reset unread count`);
+            }
+        },
+        
+        forceUpdateUI() {
+            // Force Alpine.js to update the UI
+            this.$forceUpdate();
+            console.log('🔄 Forced UI update');
+        },
+        
+        // Debug method to test conversation selection
+        debugSelectConversation(convId) {
+            console.log('🔍 Debug: Testing conversation selection for ID:', convId);
+            const conv = this.conversations.find(c => c.id == convId);
+            if (conv) {
+                console.log('🔍 Found conversation:', conv);
+                this.selectConversation(conv);
+            } else {
+                console.log('🔍 Conversation not found in list');
+                console.log('🔍 Available conversations:', this.conversations.map(c => ({ id: c.id, name: c.customerName })));
+            }
+        },
+        
         showNotification(message) {
-            // Create notification element
+            // Create notification element with better styling
             const notification = document.createElement('div');
-            notification.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-            notification.textContent = message;
+            notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center space-x-2 animate-pulse';
+            notification.innerHTML = `
+                <i class="fas fa-bell"></i>
+                <span>${message}</span>
+            `;
             
             document.body.appendChild(notification);
+            
+            // Add sound notification (optional)
+            try {
+                const audio = new Audio('/sounds/notification.mp3');
+                audio.play().catch(() => {
+                    // Ignore if audio file doesn't exist
+                });
+            } catch (e) {
+                // Ignore audio errors
+            }
             
             // Remove after 5 seconds
             setTimeout(() => {
                 if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
                 }
             }, 5000);
         },
@@ -817,11 +1250,16 @@ function staffChat() {
             this.$nextTick(() => {
                 const container = document.getElementById('messagesContainer');
                 if (container) {
-                    // Smooth scroll to bottom
-                    container.scrollTo({
-                        top: container.scrollHeight,
-                        behavior: 'smooth'
-                    });
+                    // Force scroll to bottom immediately
+                    container.scrollTop = container.scrollHeight;
+                    
+                    // Also try smooth scroll as backup
+                    setTimeout(() => {
+                        container.scrollTo({
+                            top: container.scrollHeight,
+                            behavior: 'smooth'
+                        });
+                    }, 100);
                 }
             });
         },
@@ -874,6 +1312,23 @@ function staffChat() {
                 'URGENT': 'Khẩn cấp'
             };
             return map[priority] || priority;
+        },
+        
+        // Helper functions for optimistic messages
+        replaceOptimisticMessage(optimisticId, realMessage) {
+            const index = this.messages.findIndex(m => m.id === optimisticId);
+            if (index !== -1) {
+                this.messages[index] = realMessage;
+                console.log('✅ Replaced optimistic message with real message');
+            }
+        },
+        
+        removeOptimisticMessage(optimisticId) {
+            const index = this.messages.findIndex(m => m.id === optimisticId);
+            if (index !== -1) {
+                this.messages.splice(index, 1);
+                console.log('❌ Removed failed optimistic message');
+            }
         }
     }
 }

@@ -282,36 +282,46 @@ function displayChatWidgetMessage(message) {
         return;
     }
     
-    // Create message element
+    // Create message element with modern design
     const messageDiv = document.createElement('div');
-    messageDiv.className = 'flex mb-4 ' + (isOwn ? 'justify-end' : 'justify-start');
+    messageDiv.className = 'flex mb-6 ' + (isOwn ? 'justify-end' : 'justify-start');
     messageDiv.setAttribute('data-message-id', message.id);
     
-    const bubbleDiv = document.createElement('div');
-    bubbleDiv.className = 'max-w-xs ' + (isOwn ? 'message-sent' : 'message-received');
-    
-    const contentP = document.createElement('p');
-    contentP.className = 'text-sm';
-    contentP.textContent = message.content;
-    
-    const timeDiv = document.createElement('div');
-    timeDiv.className = 'message-time mt-1';
-    
-    const time = new Date(message.sentAt);
-    const timeStr = time.getHours().toString().padStart(2, '0') + ':' + time.getMinutes().toString().padStart(2, '0');
-    timeDiv.textContent = timeStr;
-    
     if (isOwn) {
-        const readIcon = document.createElement('i');
-        readIcon.className = message.isRead ? 'fas fa-check-double ml-1 text-blue-300' : 'fas fa-check ml-1';
-        timeDiv.appendChild(readIcon);
+        // Customer message (right side)
+        messageDiv.innerHTML = `
+            <div class="flex items-end space-x-2 max-w-xs">
+                <div class="flex flex-col items-end">
+                    <div class="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-3 rounded-2xl rounded-br-md shadow-lg">
+                        <p class="text-sm leading-relaxed">${message.content}</p>
+                    </div>
+                    <span class="text-xs text-gray-500 mt-1 px-2">
+                        ${formatMessageTime(message.sentAt)}
+                        ${message.isRead ? '✓✓' : '✓'}
+                    </span>
+                </div>
+                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
+                    ${chatWidgetUserName ? chatWidgetUserName.charAt(0).toUpperCase() : 'C'}
+                </div>
+            </div>
+        `;
     } else {
-        timeDiv.textContent = message.senderName || 'Staff';
+        // Staff message (left side)
+        messageDiv.innerHTML = `
+            <div class="flex items-end space-x-2 max-w-xs">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white text-sm font-semibold">
+                    🌸
+                </div>
+                <div class="flex flex-col items-start">
+                    <div class="bg-white text-gray-800 px-4 py-3 rounded-2xl rounded-bl-md shadow-lg border border-gray-100">
+                        <p class="text-sm leading-relaxed">${message.content}</p>
+                    </div>
+                    <span class="text-xs text-gray-500 mt-1 px-2">${message.senderName || 'StarShop Support'}</span>
+                </div>
+            </div>
+        `;
     }
     
-    bubbleDiv.appendChild(contentP);
-    bubbleDiv.appendChild(timeDiv);
-    messageDiv.appendChild(bubbleDiv);
     messagesContainer.appendChild(messageDiv);
     
     // Scroll to bottom
@@ -322,6 +332,15 @@ function displayChatWidgetMessage(message) {
     if (!isOwn && chatWindow.style.display === 'none') {
         showChatWidgetNotification();
     }
+}
+
+/**
+ * Format message time
+ */
+function formatMessageTime(dateTime) {
+    if (!dateTime) return '';
+    const date = new Date(dateTime);
+    return date.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'});
 }
 
 /**

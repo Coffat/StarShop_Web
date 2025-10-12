@@ -223,6 +223,9 @@ public class WebSocketService {
             String conversationTopic = "/topic/chat/" + chatMessage.getConversationId();
             messagingTemplate.convertAndSend(conversationTopic, chatMessage);
             
+            // Send to staff topic for real-time updates
+            messagingTemplate.convertAndSend("/topic/chat/staff", chatMessage);
+            
             // Also send to receiver's personal queue
             if (chatMessage.getReceiverId() != null) {
                 String userQueue = "/user/queue/chat";
