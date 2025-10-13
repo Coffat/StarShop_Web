@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -109,5 +110,16 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
         @Param("search") String search,
         @Param("statuses") List<ConversationStatus> statuses,
         Pageable pageable);
+    
+    /**
+     * Find idle conversations (for auto-close)
+     * Find conversations with specific status and last message before threshold
+     */
+    @Query("SELECT c FROM Conversation c WHERE c.status = :status " +
+           "AND c.lastMessageAt < :before " +
+           "ORDER BY c.lastMessageAt ASC")
+    List<Conversation> findIdleConversations(
+        @Param("status") ConversationStatus status,
+        @Param("before") LocalDateTime before);
 }
 

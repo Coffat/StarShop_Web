@@ -149,8 +149,9 @@ async function performCheckOut() {
  * Connect to WebSocket for real-time updates
  */
 function connectWebSocket() {
+    console.log('🔌 Attempting WebSocket connection, STAFF_ID:', STAFF_ID, 'type:', typeof STAFF_ID);
     if (!STAFF_ID) {
-        console.log('Staff ID not available, skipping WebSocket connection');
+        console.error('❌ Staff ID not available, skipping WebSocket connection');
         return;
     }
     
@@ -162,7 +163,10 @@ function connectWebSocket() {
         stompClient.debug = null;
         
         stompClient.connect({}, function(frame) {
-            console.log('WebSocket connected for staff dashboard');
+            console.log('✅ WebSocket connected for staff dashboard');
+            
+            // Make stompClient globally available AFTER connected
+            window.stompClient = stompClient;
             
             // Subscribe to personal notifications
             stompClient.subscribe('/topic/messages/' + STAFF_ID, function(message) {
@@ -170,11 +174,7 @@ function connectWebSocket() {
                 handleWebSocketNotification(notification);
             });
             
-            // Subscribe to staff broadcasts
-            stompClient.subscribe('/topic/staff/notifications', function(message) {
-                const notification = JSON.parse(message.body);
-                handleWebSocketNotification(notification);
-            });
+            // Note: /topic/staff/notifications is now handled by staff-notifications.js Alpine component
             
             // Subscribe to new conversations
             stompClient.subscribe('/topic/staff/conversations', function(message) {

@@ -43,6 +43,7 @@ public class StaffController extends BaseController {
             model.addAttribute("pageTitle", "Dashboard - Staff Portal");
             model.addAttribute("currentPath", "/staff/dashboard");
             model.addAttribute("dashboard", dashboard);
+            model.addAttribute("staffId", staffId);  // Required for WebSocket and notifications
             model.addAttribute("contentTemplate", "staff/dashboard/index");
             
             return "layouts/staff";
@@ -60,8 +61,11 @@ public class StaffController extends BaseController {
     @GetMapping("/chat")
     public String chat(Model model, Authentication authentication) {
         try {
+            log.info("Chat page requested, authentication: {}", authentication != null ? authentication.getName() : "null");
             Long staffId = getUserIdFromAuthentication(authentication);
+            log.info("Retrieved staff ID: {}", staffId);
             if (staffId == null) {
+                log.warn("Staff ID is null, redirecting to login");
                 return "redirect:/login";
             }
             log.info("Loading chat interface for staff ID: {}", staffId);

@@ -126,29 +126,51 @@ public class WebSocketService {
     }
 
     /**
-     * Send broadcast message to all users
+     * Send broadcast message to all staff members
      * @param message Broadcast message
      * @param type Message type
      */
     public void sendBroadcast(String message, String type) {
+        sendBroadcast(message, type, null);
+    }
+    
+    /**
+     * Send broadcast message to all staff members with conversation context
+     * @param message Broadcast message
+     * @param type Message type
+     * @param conversationId Related conversation ID (optional)
+     */
+    public void sendBroadcast(String message, String type, Long conversationId) {
         if (message == null) {
             log.warn("Cannot send broadcast: message is null");
             return;
         }
         
         try {
-            NotificationPayload payload = new NotificationPayload(
-                type != null ? type : "broadcast",
-                message,
-                LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-            );
+            // Create notification with conversation context
+            java.util.Map<String, Object> payload = new java.util.HashMap<>();
+            payload.put("type", type != null ? type : "broadcast");
+            payload.put("message", message);
+            payload.put("conversationId", conversationId);
+            payload.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             
-            messagingTemplate.convertAndSend("/topic/notifications", payload);
+            // ENHANCED: Add priority level for critical errors
+            if ("critical_error".equals(type)) {
+                payload.put("priority", "critical");
+                payload.put("requiresAcknowledgment", true);
+                
+                // Also send to dedicated critical alerts topic
+                messagingTemplate.convertAndSend("/topic/critical-alerts", payload);
+                log.error("🚨 CRITICAL ALERT sent to staff: {}", message);
+            }
             
-            log.info("Broadcast message sent: {}", message);
+            // Send to staff notifications topic
+            messagingTemplate.convertAndSend("/topic/staff/notifications", payload);
+            
+            log.info("Broadcast notification sent to staff: {} (conversation: {})", message, conversationId);
             
         } catch (Exception e) {
-            log.error("Error sending broadcast message: {}", e.getMessage(), e);
+            log.error("Error sending broadcast notification: {}", e.getMessage(), e);
         }
     }
 
@@ -156,7 +178,7 @@ public class WebSocketService {
      * Send conversation update to staff
      * @param conversationId Conversation ID
      * @param updateType Type of update (new_message, status_change, etc.)
-     * @param data Update data
+     * @param data Update data (can be ChatMessageDTO or null)
      */
     public void sendConversationUpdate(Long conversationId, String updateType, Object data) {
         if (conversationId == null) {
@@ -179,6 +201,16 @@ public class WebSocketService {
         } catch (Exception e) {
             log.error("Error sending conversation update: {}", e.getMessage(), e);
         }
+    }
+    
+    /**
+     * Overloaded method for ChatMessageDTO specifically
+     * @param conversationId Conversation ID
+     * @param updateType Type of update
+     * @param chatMessage Chat message data
+     */
+    public void sendConversationUpdate(Long conversationId, String updateType, ChatMessageDTO chatMessage) {
+        sendConversationUpdate(conversationId, updateType, (Object) chatMessage);
     }
 
     /**
@@ -219,29 +251,32 @@ public class WebSocketService {
         }
         
         try {
-            // Send to conversation topic (both participants subscribed)
+            // PRIMARY: Send to conversation topic (both customer and staff subscribe to this)
             String conversationTopic = "/topic/chat/" + chatMessage.getConversationId();
             messagingTemplate.convertAndSend(conversationTopic, chatMessage);
+            log.info("Chat message sent to conversation topic {}: {}", conversationTopic, chatMessage.getContent());
             
-            // Only send to staff topic if message is from customer (not AI)
-            // AI messages should only go to customer, not to staff dashboard
-            if (chatMessage.getIsAiGenerated() == null || !chatMessage.getIsAiGenerated()) {
-                // Send to staff topic for real-time updates
-                messagingTemplate.convertAndSend("/topic/chat/staff", chatMessage);
-            }
+            // SECONDARY: Send to staff topic for staff interface updates 
+            // (staff interface subscribes to both for comprehensive coverage)
+            messagingTemplate.convertAndSend("/topic/chat/staff", chatMessage);
+            log.info("Chat message sent to staff topic: {}", chatMessage.getContent());
             
-            // Also send to receiver's personal queue
+            // TERTIARY: Send to receiver's personal queue if receiver exists
             if (chatMessage.getReceiverId() != null) {
                 messagingTemplate.convertAndSendToUser(
                     chatMessage.getReceiverId().toString(), 
                     "/queue/chat", 
                     chatMessage
                 );
+                log.info("Chat message sent to personal queue for user {}", chatMessage.getReceiverId());
             }
             
-            log.info("Chat message sent to conversation {}: {} (AI: {})", 
-                chatMessage.getConversationId(), chatMessage.getContent(), 
-                chatMessage.getIsAiGenerated());
+            log.info("Chat message sent to conversation {}: {} (AI: {}, Sender: {}, Receiver: {})", 
+                chatMessage.getConversationId(), 
+                chatMessage.getContent().substring(0, Math.min(50, chatMessage.getContent().length())), 
+                chatMessage.getIsAiGenerated(),
+                chatMessage.getSenderId(),
+                chatMessage.getReceiverId());
             
         } catch (Exception e) {
             log.error("Error sending chat message: {}", e.getMessage(), e);

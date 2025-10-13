@@ -116,19 +116,22 @@ function loadOrCreateConversation() {
         .then(response => response.json())
         .then(data => {
             if (data.data && data.data.length > 0) {
-                // Use the first open conversation
-                const openConversation = data.data.find(c => c.status === 'OPEN' || c.status === 'IN_PROGRESS' || c.status === 'PENDING_STAFF');
-                if (openConversation) {
-                    chatWidgetConversationId = openConversation.id;
+                // Use the first active conversation (OPEN or ASSIGNED)
+                const activeConversation = data.data.find(c => c.status === 'OPEN' || c.status === 'ASSIGNED');
+                if (activeConversation) {
+                    chatWidgetConversationId = activeConversation.id;
                     loadChatWidgetMessages(chatWidgetConversationId);
                     subscribeToChatWidgetConversation(chatWidgetConversationId);
+                    console.log('✅ Loaded existing conversation:', activeConversation.id, 'Status:', activeConversation.status);
                 } else {
                     // Create new conversation
                     createNewConversation();
+                    console.log('📝 No active conversation found, will create new one');
                 }
             } else {
                 // Create new conversation
                 createNewConversation();
+                console.log('📝 No conversations found, will create new one');
             }
         })
         .catch(error => {
@@ -210,7 +213,7 @@ function toggleChatWidget() {
 }
 
 /**
- * Send message from widget
+ * Send message from widget with streaming support
  */
 function sendWidgetMessage() {
     const input = document.getElementById('chatWidgetInput');
@@ -220,7 +223,8 @@ function sendWidgetMessage() {
         return;
     }
     
-    // Allow sending first message even without conversation ID
+    // Clear input immediately for better UX
+    input.value = '';
     
     // Create message object
     const message = {
@@ -228,6 +232,18 @@ function sendWidgetMessage() {
         content: content,
         messageType: 'TEXT'
     };
+    
+    // Display user message immediately
+    displayChatWidgetMessage({
+        id: 'temp-' + Date.now(),
+        senderId: chatWidgetUserId,
+        content: content,
+        sentAt: new Date().toISOString(),
+        isRead: false
+    });
+    
+    // Show typing indicator for AI response
+    showTypingIndicator();
     
     // Get CSRF token
     const csrf = getCsrfToken();
@@ -241,7 +257,23 @@ function sendWidgetMessage() {
     // Determine which API to use
     const apiEndpoint = chatWidgetConversationId ? '/api/chat/messages' : '/api/chat/messages/first';
     
-    // Send via REST API
+    // Check if streaming is supported and enabled
+    const supportsStreaming = window.EventSource && chatWidgetConversationId;
+    
+    if (supportsStreaming) {
+        // Try streaming approach
+        sendMessageWithStreaming(message, headers, apiEndpoint);
+    } else {
+        // Fallback to regular approach
+        sendMessageRegular(message, headers, apiEndpoint);
+    }
+}
+
+/**
+ * Send message with streaming response
+ */
+function sendMessageWithStreaming(message, headers, apiEndpoint) {
+    // Send message first
     fetch(apiEndpoint, {
         method: 'POST',
         headers: headers,
@@ -250,29 +282,166 @@ function sendWidgetMessage() {
     .then(response => response.json())
     .then(data => {
         if (data.data) {
-            // Message sent successfully
-            input.value = '';
-            
-            // If this was the first message, set conversation ID
+            // Update conversation ID if needed
             if (!chatWidgetConversationId && data.data.conversationId) {
                 chatWidgetConversationId = data.data.conversationId;
                 subscribeToChatWidgetConversation(chatWidgetConversationId);
             }
             
-            // Display message immediately (will be confirmed via WebSocket)
-            displayChatWidgetMessage(data.data);
-            
-            // Scroll to bottom
-            scrollChatWidgetToBottom();
+            // Start streaming response
+            startStreamingResponse(chatWidgetConversationId);
         } else {
+            hideTypingIndicator();
             console.error('Error sending message:', data.error);
-            alert('Không thể gửi tin nhắn. Vui lòng thử lại.');
+            displayChatWidgetMessage({
+                id: 'error-' + Date.now(),
+                senderId: 'system',
+                content: 'Không thể gửi tin nhắn. Vui lòng thử lại.',
+                sentAt: new Date().toISOString(),
+                senderName: 'System'
+            });
         }
     })
     .catch(error => {
         console.error('Error sending message:', error);
-        alert('Không thể gửi tin nhắn. Vui lòng thử lại.');
+        hideTypingIndicator();
+        // Fallback to regular approach
+        sendMessageRegular(message, headers, apiEndpoint);
     });
+}
+
+/**
+ * Send message with regular (non-streaming) response
+ */
+function sendMessageRegular(message, headers, apiEndpoint) {
+    fetch(apiEndpoint, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(message)
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideTypingIndicator();
+        
+        if (data.data) {
+            // Update conversation ID if needed
+            if (!chatWidgetConversationId && data.data.conversationId) {
+                chatWidgetConversationId = data.data.conversationId;
+                subscribeToChatWidgetConversation(chatWidgetConversationId);
+            }
+            
+            // AI response will come via WebSocket
+            console.log('Message sent, waiting for AI response via WebSocket');
+        } else {
+            console.error('Error sending message:', data.error);
+            displayChatWidgetMessage({
+                id: 'error-' + Date.now(),
+                senderId: 'system',
+                content: 'Không thể gửi tin nhắn. Vui lòng thử lại.',
+                sentAt: new Date().toISOString(),
+                senderName: 'System'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error sending message:', error);
+        hideTypingIndicator();
+        displayChatWidgetMessage({
+            id: 'error-' + Date.now(),
+            senderId: 'system',
+            content: 'Có lỗi xảy ra. Vui lòng thử lại.',
+            sentAt: new Date().toISOString(),
+            senderName: 'System'
+        });
+    });
+}
+
+/**
+ * Start streaming response using EventSource
+ */
+function startStreamingResponse(conversationId) {
+    const eventSource = new EventSource(`/api/chat/stream/${conversationId}`);
+    let streamingMessageId = 'streaming-' + Date.now();
+    let accumulatedContent = '';
+    
+    // Create placeholder message for streaming content
+    const placeholderMessage = {
+        id: streamingMessageId,
+        senderId: 'ai',
+        content: '',
+        sentAt: new Date().toISOString(),
+        senderName: 'Hoa AI'
+    };
+    
+    eventSource.onmessage = function(event) {
+        try {
+            const data = JSON.parse(event.data);
+            
+            if (data.type === 'chunk') {
+                // Hide typing indicator on first chunk
+                if (accumulatedContent === '') {
+                    hideTypingIndicator();
+                    displayChatWidgetMessage(placeholderMessage);
+                }
+                
+                // Accumulate content
+                accumulatedContent += data.content;
+                
+                // Update the streaming message
+                updateStreamingMessage(streamingMessageId, accumulatedContent);
+                
+            } else if (data.type === 'complete') {
+                // Streaming complete
+                eventSource.close();
+                hideTypingIndicator();
+                
+                // Replace with final message
+                if (data.finalMessage) {
+                    replaceStreamingMessage(streamingMessageId, data.finalMessage);
+                }
+                
+            } else if (data.type === 'error') {
+                // Streaming error
+                eventSource.close();
+                hideTypingIndicator();
+                console.error('Streaming error:', data.message);
+                
+                // Show error message
+                if (accumulatedContent === '') {
+                    displayChatWidgetMessage({
+                        id: 'error-' + Date.now(),
+                        senderId: 'system',
+                        content: 'Có lỗi xảy ra khi tạo phản hồi. Vui lòng thử lại.',
+                        sentAt: new Date().toISOString(),
+                        senderName: 'System'
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error parsing streaming data:', error);
+        }
+    };
+    
+    eventSource.onerror = function(error) {
+        console.error('EventSource error:', error);
+        eventSource.close();
+        hideTypingIndicator();
+        
+        // Fallback: the response will come via WebSocket
+        setTimeout(() => {
+            if (accumulatedContent === '') {
+                console.log('Streaming failed, waiting for WebSocket response');
+            }
+        }, 1000);
+    };
+    
+    // Close EventSource after 30 seconds (timeout)
+    setTimeout(() => {
+        if (eventSource.readyState !== EventSource.CLOSED) {
+            eventSource.close();
+            hideTypingIndicator();
+        }
+    }, 30000);
 }
 
 /**
@@ -282,11 +451,25 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
     const messagesContainer = document.getElementById('chatWidgetMessages');
     const isOwn = message.senderId === chatWidgetUserId;
     
-    // Check if message already exists (skip for initial load)
+    // Enhanced duplicate check to prevent duplicate messages
     if (!skipDuplicateCheck) {
+        // Check by message ID first
         const existingMessage = messagesContainer.querySelector(`[data-message-id="${message.id}"]`);
         if (existingMessage) {
+            console.log('Duplicate message detected by ID:', message.id);
             return;
+        }
+        
+        // Also check for recent duplicate content to prevent streaming duplicates
+        const recentMessages = messagesContainer.querySelectorAll('.flex.mb-4');
+        const lastFewMessages = Array.from(recentMessages).slice(-3); // Check last 3 messages
+        
+        for (const recentMsg of lastFewMessages) {
+            const contentDiv = recentMsg.querySelector('.text-sm.leading-relaxed');
+            if (contentDiv && contentDiv.innerHTML.trim() === parseMarkdown(message.content).trim()) {
+                console.log('Duplicate message detected by content:', message.content.substring(0, 50));
+                return;
+            }
         }
     }
     
@@ -354,11 +537,15 @@ function formatMessageTime(dateTime) {
 /**
  * Parse basic markdown to HTML
  * Supports: images, links, bold text, lists, line breaks
+ * OPTIMIZED: Handles escaped newlines and ensures proper formatting
  */
 function parseMarkdown(text) {
     if (!text) return '';
     
     let html = text;
+    
+    // Fix escaped newlines from JSON (\\n -> actual newline)
+    html = html.replace(/\\n/g, '\n');
     
     // Parse images first: ![alt](url)
     html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, function(match, alt, url) {
@@ -388,9 +575,11 @@ function parseMarkdown(text) {
     // Parse line breaks (but not inside lists)
     html = html.replace(/\n(?![<ul>|<li>])/g, '<br>');
     
-    // Clean up extra br tags around lists
+    // Clean up extra br tags around lists and images
     html = html.replace(/<br>\s*<ul>/g, '<ul>');
     html = html.replace(/<\/ul>\s*<br>/g, '</ul>');
+    html = html.replace(/<br>\s*<img/g, '<img');
+    html = html.replace(/\/>\s*<br>/g, '/>');
     
     return html;
 }
@@ -455,3 +644,82 @@ function updateChatWidgetStatus(status) {
     }
 }
 
+/**
+ * Show typing indicator
+ */
+function showTypingIndicator() {
+    const messagesContainer = document.getElementById('chatWidgetMessages');
+    
+    // Remove existing typing indicator
+    const existingIndicator = messagesContainer.querySelector('.typing-indicator');
+    if (existingIndicator) {
+        existingIndicator.remove();
+    }
+    
+    // Create typing indicator
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'flex justify-start mb-4 typing-indicator';
+    typingDiv.innerHTML = `
+        <div class="flex items-start space-x-2 max-w-md">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+                🌸
+            </div>
+            <div class="flex flex-col items-start">
+                <div class="bg-white text-gray-800 px-4 py-3 rounded-2xl rounded-bl-md shadow-lg border border-gray-100">
+                    <div class="flex space-x-1">
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                    </div>
+                </div>
+                <span class="text-xs text-gray-500 mt-1 px-2">Hoa AI đang trả lời...</span>
+            </div>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(typingDiv);
+    scrollChatWidgetToBottom();
+}
+
+/**
+ * Hide typing indicator
+ */
+function hideTypingIndicator() {
+    const messagesContainer = document.getElementById('chatWidgetMessages');
+    const typingIndicator = messagesContainer.querySelector('.typing-indicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
+}
+
+/**
+ * Update streaming message content
+ */
+function updateStreamingMessage(messageId, content) {
+    const messagesContainer = document.getElementById('chatWidgetMessages');
+    const messageElement = messagesContainer.querySelector(`[data-message-id="${messageId}"]`);
+    
+    if (messageElement) {
+        const contentDiv = messageElement.querySelector('.text-sm.leading-relaxed');
+        if (contentDiv) {
+            contentDiv.innerHTML = parseMarkdown(content);
+            scrollChatWidgetToBottom();
+        }
+    }
+}
+
+/**
+ * Replace streaming message with final message
+ */
+function replaceStreamingMessage(streamingMessageId, finalMessage) {
+    const messagesContainer = document.getElementById('chatWidgetMessages');
+    const streamingElement = messagesContainer.querySelector(`[data-message-id="${streamingMessageId}"]`);
+    
+    if (streamingElement) {
+        // Remove the streaming message
+        streamingElement.remove();
+        
+        // Display the final message
+        displayChatWidgetMessage(finalMessage);
+    }
+}

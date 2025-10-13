@@ -30,12 +30,14 @@ public class AiChatService {
 
     private final GeminiClient geminiClient;
     private final AiPromptService promptService;
+    private final AiGenerationProfileService profileService;
     private final StoreConfigService storeConfigService;
     private final PiiDetectionService piiDetectionService;
     private final RoutingDecisionRepository routingDecisionRepository;
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
     private final WebSocketService webSocketService;
+    private final HandoffService handoffService;
 
     /**
      * Analyze customer message using AI
@@ -52,28 +54,9 @@ public class AiChatService {
                 log.warn("⚠️ PII DETECTED in conversation {}: {}", conversationId, 
                     piiDetectionService.getPIITypes(customerMessage));
                 
-                // Send urgent notification to ALL staff
-                try {
-                    Conversation conversation = conversationRepository.findById(conversationId).orElse(null);
-                    if (conversation != null && conversation.getCustomer() != null) {
-                        String customerName = conversation.getCustomer().getFullName();
-                        String piiTypes = piiDetectionService.getPIITypes(customerMessage);
-                        
-                        // Send broadcast notification to all staff
-                        webSocketService.sendBroadcast(
-                            String.format("🚨 PHÁT HIỆN THÔNG TIN CÁ NHÂN từ khách hàng %s (Loại: %s)", 
-                                customerName, piiTypes),
-                            "pii_alert"
-                        );
-                        
-                        log.info("PII alert sent to all staff for conversation {}", conversationId);
-                    }
-                } catch (Exception e) {
-                    log.error("Error sending PII notification", e);
-                }
-                
+                // Return handoff result - HandoffService will send all notifications
                 return createHandoffResult(IntentType.OTHER, 0.5, 
-                    "Mình xin phép chuyển bạn cho nhân viên để xử lý thông tin cá nhân nhé 💬",
+                    "Vui lòng chờ, mình đang kết nối tới nhân viên cửa hàng để hỗ trợ bạn nhé! 💬",
                     HandoffReason.PII_DETECTED);
             }
 
@@ -84,14 +67,43 @@ public class AiChatService {
             String systemPrompt = promptService.generateSystemPrompt();
             String userMessage = promptService.generateUserMessage(customerMessage, conversationHistory);
             
-            // Call Gemini API
-            AiAnalysisResult result = geminiClient.analyzeMessage(systemPrompt, userMessage);
+            // Use analysis profile for consistent, fast analysis
+            AiGenerationProfileService.GenerationProfile analysisProfile = profileService.getAnalysisProfile();
+            
+            // Call Gemini API with profile
+            AiAnalysisResult result = geminiClient.analyzeMessageWithProfile(systemPrompt, userMessage, analysisProfile);
             
             if (result == null) {
                 log.error("Failed to get AI analysis, forcing handoff");
-                return createHandoffResult(IntentType.OTHER, 0.0,
+                AiAnalysisResult handoffResult = createHandoffResult(IntentType.OTHER, 0.0,
                     "Xin lỗi bạn, mình đang gặp chút vấn đề kỹ thuật. Để mình chuyển cho nhân viên hỗ trợ bạn nhé 💬",
                     HandoffReason.AI_ERROR);
+                
+                // CRITICAL FIX: Immediately notify staff about technical issues
+                try {
+                    handoffService.addToQueue(
+                        conversationId,
+                        HandoffReason.AI_ERROR,
+                        customerMessage,
+                        "🚨 Lỗi hệ thống AI - cần xử lý ngay",
+                        8 // High priority for technical errors
+                    );
+                    log.info("Staff notified about AI technical error for conversation {}", conversationId);
+                } catch (Exception e) {
+                    log.error("CRITICAL: Failed to notify staff about AI error", e);
+                    // Send emergency broadcast notification
+                    try {
+                        webSocketService.sendBroadcast(
+                            "🚨 LỖI NGHIÊM TRỌNG: AI system error - conversation " + conversationId + " cần xử lý ngay!",
+                            "critical_error",
+                            conversationId
+                        );
+                    } catch (Exception fallbackError) {
+                        log.error("EMERGENCY: All notification systems failed!", fallbackError);
+                    }
+                }
+                
+                return handoffResult;
             }
 
             // Calculate processing time
@@ -115,170 +127,337 @@ public class AiChatService {
     
     /**
      * Generate final AI response after tool execution
-     * This creates a context-aware, detailed response based on actual product data
+     * ENHANCED: Uses generation profiles and updated prompts with conditional CTA
      */
     public String generateFinalResponse(Long conversationId, String customerMessage, 
                                        String toolResults, AiAnalysisResult initialAnalysis) {
+        return generateFinalResponse(conversationId, customerMessage, toolResults, initialAnalysis, null);
+    }
+
+    /**
+     * Generate final AI response with optional streaming support
+     * ENHANCED: Supports streaming for real-time user experience
+     */
+    public String generateFinalResponse(Long conversationId, String customerMessage, 
+                                       String toolResults, AiAnalysisResult initialAnalysis,
+                                       GeminiClient.StreamingCallback streamCallback) {
+        long startTime = System.currentTimeMillis();
+        
         try {
             log.info("Generating final AI response with tool results for conversation {}", conversationId);
+            
+            // Get intent type for profile selection
+            IntentType intent = initialAnalysis.getIntentType();
+            
+            // Get appropriate generation profile for the intent
+            AiGenerationProfileService.GenerationProfile profile = profileService.getProfileForIntent(intent);
             
             // Get conversation history
             String conversationHistory = getConversationHistory(conversationId);
             
-            // Build enhanced prompt for final response
-            StringBuilder finalPrompt = new StringBuilder();
-            finalPrompt.append("BẠN LÀ: Hoa AI - chuyên viên tư vấn hoa chuyên nghiệp\n\n");
+            // Use the new prompt with intent-aware rules
+            String finalPrompt = promptService.generateFinalResponsePrompt(
+                customerMessage, 
+                toolResults, 
+                conversationHistory, 
+                initialAnalysis.getReply(),
+                intent.name()
+            );
             
-            finalPrompt.append("LỊCH SỬ HỘI THOẠI:\n");
-            if (conversationHistory != null && !conversationHistory.isEmpty()) {
-                finalPrompt.append(conversationHistory).append("\n\n");
+            // VERY STRICT system prompt to ensure plain text output
+            String systemPrompt = "You are a Vietnamese flower consultant. " +
+                "CRITICAL: Output ONLY conversational text in Vietnamese. " +
+                "DO NOT use JSON format like {\"content\":\"...\"}. " +
+                "DO NOT use any brackets, braces, or structured data. " +
+                "Write naturally like you're chatting with a customer. " +
+                "Use markdown for images: ![name](url) and **bold** for product names.";
+            
+            // Generate with streaming support if callback provided
+            com.example.demo.dto.gemini.GeminiResponse response;
+            if (streamCallback != null) {
+                log.debug("🌊 Using STREAMING generation for conversation {}", conversationId);
+                response = geminiClient.generateContentWithStreaming(
+                    systemPrompt, 
+                    finalPrompt,
+                    profile,
+                    streamCallback
+                );
+            } else {
+                log.debug("📝 Using NON-STREAMING generation for conversation {}", conversationId);
+                response = geminiClient.generateFinalResponseWithProfile(
+                    systemPrompt, 
+                    finalPrompt,
+                    profile
+                );
             }
             
-            finalPrompt.append("KHÁCH HÀNG VỪA HỎI: ").append(customerMessage).append("\n\n");
-            
-            finalPrompt.append("KẾT QUẢ TÌM KIẾM SẢN PHẨM:\n");
-            finalPrompt.append(toolResults).append("\n\n");
-            
-            finalPrompt.append("NHIỆM VỤ:\n");
-            finalPrompt.append("1. Phân tích KỸ mục đích/ngữ cảnh của khách (ví dụ: tặng mẹ, tặng người yêu, sinh nhật...)\n");
-            finalPrompt.append("2. Dựa trên danh sách sản phẩm TÌM THẤY, tư vấn 2-3 sản phẩm PHÙ HỢP NHẤT\n");
-            finalPrompt.append("3. Giải thích NGẮN GỌN nhưng ẤM ÁP tại sao sản phẩm phù hợp\n");
-            finalPrompt.append("4. Hiển thị ảnh: ![Tên](url) và giá\n");
-            finalPrompt.append("5. Dùng emoji phù hợp (💕 🌸 ✨) để thân thiện\n\n");
-            
-            finalPrompt.append("QUY TẮC TƯ VẤN:\n");
-            finalPrompt.append("- Nếu sản phẩm KHỚP đúng yêu cầu → tư vấn nhiệt tình\n");
-            finalPrompt.append("- Nếu sản phẩm TƯƠNG TỰ (hoa khác nhưng phù hợp mục đích) → giải thích khéo: \"Hiện shop chưa có [X], nhưng [Y] cũng rất phù hợp để [mục đích] vì [lý do]\"\n");
-            finalPrompt.append("- Nếu giá CAO HƠN yêu cầu → gợi ý điều chỉnh hoặc sản phẩm rẻ hơn\n");
-            finalPrompt.append("- KHÔNG bao giờ nói \"không có\" rồi dừng → luôn tìm cách tư vấn\n");
-            finalPrompt.append("- Gọi khách là \"bạn\", tự xưng là \"mình\"\n\n");
-            
-            finalPrompt.append("VÍ DỤ TƯ VẤN TỐT (NGẮN GỌN):\n");
-            finalPrompt.append("\"Tặng mẹ thì hoa hồng phấn rất phù hợp nè bạn! 💕\n\n");
-            finalPrompt.append("* **Bó hồng phấn Sweetie** - 520,000đ\n");
-            finalPrompt.append("![Bó hồng phấn](url)\n");
-            finalPrompt.append("Hồng phấn tượng trưng cho tình thương dịu dàng - hoàn hảo để tặng mẹ ạ!\n\n");
-            finalPrompt.append("Bạn muốn mình tư vấn thêm không ạ? 😊\"\n\n");
-            
-            finalPrompt.append("CHÚ Ý QUAN TRỌNG: \n");
-            finalPrompt.append("- ⚠️ KHÔNG BAO GIỜ trả về JSON format (không có {}, [], \"key\":\"value\")\n");
-            finalPrompt.append("- ⚠️ KHÔNG copy nguyên phần 'TOOL_RESULT' hay 'HƯỚNG DẪN'\n");
-            finalPrompt.append("- Chỉ viết TEXT thuần túy với markdown (*, **, ![]())\n");
-            finalPrompt.append("- Response phải NGẮN GỌN (2-4 câu + bullet list sản phẩm)\n\n");
-            
-            finalPrompt.append("BẮT ĐẦU TƯ VẤN (TEXT ONLY, NO JSON):\n");
-            
-            // Call Gemini to generate final response
-            String systemPrompt = "Tư vấn hoa NGẮN GỌN, ẤM ÁP. Chỉ trả TEXT với markdown (* list, ** bold, ![](url)). KHÔNG BAO GIỜ trả JSON!";
-            
-            com.example.demo.dto.gemini.GeminiResponse response = geminiClient.generateContentWithSystemPrompt(
-                systemPrompt, 
-                finalPrompt.toString()
-            );
+            long processingTime = System.currentTimeMillis() - startTime;
             
             if (response != null && response.isSuccessful()) {
                 String finalResponse = response.getTextResponse();
-                log.info("Generated final response: {} chars", finalResponse.length());
+                log.info("✅ Generated final response: {} chars in {}ms", finalResponse.length(), processingTime);
                 
-                // Clean up JSON wrapper if AI returned JSON format
-                finalResponse = cleanJsonWrapper(finalResponse);
+                // Clean up any accidental JSON or metadata
+                finalResponse = cleanResponseText(finalResponse);
                 
-                // Clean up any TOOL_RESULT prefix if AI accidentally included it
-                finalResponse = finalResponse.replaceAll("(?i)TOOL_RESULT:\\s*", "");
-                finalResponse = finalResponse.replaceAll("(?i)HƯỚNG DẪN:.*", "");
+                // QUALITY VALIDATION: Check if response is complete and adequate
+                if (!isResponseComplete(finalResponse, customerMessage, toolResults)) {
+                    log.warn("⚠️ Response quality check failed, using enhanced fallback");
+                    finalResponse = createEnhancedFallbackResponse(toolResults, initialAnalysis.getReply(), customerMessage);
+                }
+                
+                // Log profile usage for monitoring
+                profileService.logProfileUsage(intent, profile, processingTime);
                 
                 return finalResponse.trim();
             } else {
                 log.warn("Failed to generate final response, using fallback");
-                // Fallback: clean tool results and show simple message
-                String cleanToolResults = toolResults
-                    .replaceAll("(?i)TOOL_RESULT:\\s*Tìm thấy \\d+ sản phẩm:\\s*", "")
-                    .replaceAll("(?i)HƯỚNG DẪN:.*", "")
-                    .trim();
-                
-                return initialAnalysis.getReply() + "\n\n" + 
-                    "Mình tìm thấy một số sản phẩm cho bạn nè:\n\n" + cleanToolResults;
+                return createEnhancedFallbackResponse(toolResults, initialAnalysis.getReply(), customerMessage);
             }
             
         } catch (Exception e) {
             log.error("Error generating final response", e);
-            // Fallback: clean tool results
-            String cleanToolResults = toolResults
-                .replaceAll("(?i)TOOL_RESULT:\\s*Tìm thấy \\d+ sản phẩm:\\s*", "")
-                .replaceAll("(?i)HƯỚNG DẪN:.*", "")
-                .trim();
-            
-            return initialAnalysis.getReply() + "\n\n" + 
-                "Mình tìm thấy một số sản phẩm cho bạn nè:\n\n" + cleanToolResults;
+            return createFallbackResponse(toolResults, initialAnalysis.getReply());
         }
     }
     
     /**
-     * Clean JSON wrapper if AI accidentally returned JSON format
-     * Extract content from: {"messages":[{"content":"..."}]} or similar
+     * Clean up response text - remove any JSON, metadata, or instructions
+     * OPTIMIZED: Faster, simpler cleanup + validation
      */
-    private String cleanJsonWrapper(String response) {
+    private String cleanResponseText(String response) {
         if (response == null || response.isEmpty()) {
             return response;
         }
         
         String cleaned = response.trim();
         
-        // Check if response starts with JSON
+        // Remove common metadata prefixes
+        cleaned = cleaned.replaceAll("(?i)^TOOL_RESULT:\\s*", "");
+        cleaned = cleaned.replaceAll("(?i)^KẾT QUẢ:\\s*", "");
+        cleaned = cleaned.replaceAll("(?i)HƯỚNG DẪN:.*$", "");
+        
+        // If response starts with JSON, try to extract text
         if (cleaned.startsWith("{") || cleaned.startsWith("[")) {
-            try {
-                // Try to extract content from JSON structure
-                // Pattern 1: {"messages":[{"role":"assistant","content":"..."}]}
-                if (cleaned.contains("\"content\"")) {
-                    int contentStart = cleaned.indexOf("\"content\"");
-                    if (contentStart > 0) {
-                        contentStart = cleaned.indexOf(":", contentStart) + 1;
-                        contentStart = cleaned.indexOf("\"", contentStart) + 1;
-                        int contentEnd = cleaned.lastIndexOf("\"");
-                        
-                        if (contentStart > 0 && contentEnd > contentStart) {
-                            String extracted = cleaned.substring(contentStart, contentEnd);
-                            // Unescape JSON string
-                            extracted = extracted
-                                .replace("\\n", "\n")
-                                .replace("\\\"", "\"")
-                                .replace("\\\\", "\\")
-                                .replace("\\/", "/");
-                            
-                            log.info("Extracted content from JSON wrapper");
-                            return extracted;
-                        }
-                    }
+            log.warn("⚠️ AI returned JSON, extracting text...");
+            cleaned = extractTextFromJson(cleaned);
+        }
+        
+        // Validate: If response has product names but no images, log warning
+        if (cleaned.contains("**") && !cleaned.contains("![")) {
+            log.warn("⚠️ AI response contains product names but NO IMAGES!");
+        }
+        
+        return cleaned.trim();
+    }
+    
+    /**
+     * Extract human-readable text from JSON response
+     * ENHANCED: Better extraction with logging
+     */
+    private String extractTextFromJson(String json) {
+        try {
+            log.info("🔍 Attempting to extract text from JSON: {}", json.substring(0, Math.min(200, json.length())));
+            
+            // Try common patterns first
+            String content = extractJsonField(json, "content");
+            if (content != null && content.length() > 20) {
+                log.info("✅ Extracted from 'content' field: {} chars", content.length());
+                return content;
+            }
+            
+            String reply = extractJsonField(json, "reply");
+            if (reply != null && reply.length() > 20) {
+                log.info("✅ Extracted from 'reply' field: {} chars", reply.length());
+                return reply;
+            }
+            
+            // Try to extract any long text value from JSON
+            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\"([^\"]{30,})\"");
+            java.util.regex.Matcher matcher = pattern.matcher(json);
+            
+            while (matcher.find()) {
+                String text = matcher.group(1);
+                // Skip technical fields
+                if (!text.contains("product_search") && !text.contains("tool_requests") && 
+                    !text.contains("http://") && text.length() > 30) {
+                    log.info("✅ Extracted long text value: {} chars", text.length());
+                    return text.replace("\\n", "\n");
                 }
-                
-                // Pattern 2: {"reply":"..."}
-                if (cleaned.contains("\"reply\"")) {
-                    int replyStart = cleaned.indexOf("\"reply\"");
-                    if (replyStart > 0) {
-                        replyStart = cleaned.indexOf(":", replyStart) + 1;
-                        replyStart = cleaned.indexOf("\"", replyStart) + 1;
-                        int replyEnd = cleaned.indexOf("\"", replyStart);
-                        
-                        if (replyStart > 0 && replyEnd > replyStart) {
-                            String extracted = cleaned.substring(replyStart, replyEnd);
-                            extracted = extracted
-                                .replace("\\n", "\n")
-                                .replace("\\\"", "\"")
-                                .replace("\\\\", "\\");
-                            
-                            log.info("Extracted reply from JSON");
-                            return extracted;
-                        }
-                    }
-                }
-                
-            } catch (Exception e) {
-                log.warn("Failed to parse JSON wrapper, returning as-is", e);
+            }
+            
+            // If still JSON, show error message
+            log.error("❌ Could not extract clean text from JSON");
+            return "Xin lỗi bạn, mình gặp lỗi khi tạo câu trả lời. Bạn có thể mô tả lại yêu cầu không ạ? 🙏";
+            
+        } catch (Exception e) {
+            log.error("Failed to extract from JSON", e);
+            return "Xin lỗi bạn, mình gặp lỗi khi tạo câu trả lời. Bạn có thể mô tả lại yêu cầu không ạ? 🙏";
+        }
+    }
+    
+    /**
+     * Check if AI response is complete and adequate
+     * ENHANCED: Quality validation to prevent incomplete responses
+     */
+    private boolean isResponseComplete(String response, String customerMessage, String toolResults) {
+        if (response == null || response.trim().isEmpty()) {
+            log.warn("❌ Response is null or empty");
+            return false;
+        }
+        
+        String trimmedResponse = response.trim();
+        
+        // Check minimum length
+        if (trimmedResponse.length() < 30) {
+            log.warn("❌ Response too short: {} chars", trimmedResponse.length());
+            return false;
+        }
+        
+        // Check if response ends abruptly (common signs of incomplete generation)
+        if (trimmedResponse.endsWith("...") || 
+            trimmedResponse.endsWith(",") ||
+            trimmedResponse.endsWith("và") ||
+            trimmedResponse.endsWith("hoặc") ||
+            trimmedResponse.endsWith("nhưng")) {
+            log.warn("❌ Response appears to end abruptly");
+            return false;
+        }
+        
+        // Check if response contains product recommendations when tool results have products
+        if (toolResults != null && toolResults.contains("sản phẩm") && 
+            !trimmedResponse.toLowerCase().contains("sản phẩm") &&
+            !trimmedResponse.contains("**")) {
+            log.warn("❌ Tool results contain products but response doesn't mention them");
+            return false;
+        }
+        
+        // Check for generic error responses that indicate AI confusion
+        String lowerResponse = trimmedResponse.toLowerCase();
+        if (lowerResponse.contains("không hiểu") || 
+            lowerResponse.contains("không thể trả lời") ||
+            lowerResponse.contains("xin lỗi, mình không") ||
+            lowerResponse.startsWith("tôi")) { // AI shouldn't use "tôi"
+            log.warn("❌ Response indicates AI confusion or inappropriate language");
+            return false;
+        }
+        
+        log.info("✅ Response passed quality validation");
+        return true;
+    }
+    
+    /**
+     * Create enhanced fallback response with better customer experience
+     * ENHANCED: More intelligent fallback based on context
+     */
+    private String createEnhancedFallbackResponse(String toolResults, String initialReply, String customerMessage) {
+        StringBuilder response = new StringBuilder();
+        
+        // Start with acknowledgment
+        response.append(initialReply != null && !initialReply.trim().isEmpty() ? 
+            initialReply : "Mình hiểu bạn đang tìm kiếm thông tin về hoa.");
+        
+        if (!response.toString().endsWith(".") && !response.toString().endsWith("!")) {
+            response.append(".");
+        }
+        response.append("\n\n");
+        
+        // Add tool results if available
+        if (toolResults != null && !toolResults.trim().isEmpty()) {
+            String cleanToolResults = toolResults
+                .replaceAll("(?i)TOOL_RESULT:\\s*Tìm thấy \\d+ sản phẩm:\\s*", "")
+                .replaceAll("(?i)HƯỚNG DẪN:.*", "")
+                .trim();
+            
+            if (!cleanToolResults.isEmpty()) {
+                response.append("Mình tìm thấy một số sản phẩm phù hợp cho bạn:\n\n");
+                response.append(cleanToolResults).append("\n\n");
             }
         }
         
-        // If not JSON or failed to parse, return as-is
-        return cleaned;
+        // Add helpful next steps based on customer message content
+        String lowerMessage = customerMessage.toLowerCase();
+        if (lowerMessage.contains("sinh nhật") || lowerMessage.contains("birthday")) {
+            response.append("💝 Để tư vấn chính xác hơn về hoa sinh nhật, ");
+        } else if (lowerMessage.contains("cưới") || lowerMessage.contains("wedding")) {
+            response.append("💒 Để tư vấn về hoa cưới phù hợp, ");
+        } else if (lowerMessage.contains("tang") || lowerMessage.contains("chia buồn")) {
+            response.append("🕯️ Để tư vấn về hoa tang lễ trang trọng, ");
+        } else if (lowerMessage.contains("giá") || lowerMessage.contains("bao nhiêu")) {
+            response.append("💰 Để biết thông tin giá cả chính xác, ");
+        } else {
+            response.append("🌸 Để được tư vấn chi tiết hơn, ");
+        }
+        
+        response.append("bạn có thể mô tả rõ hơn nhu cầu hoặc để mình chuyển cho nhân viên hỗ trợ bạn nhé!");
+        
+        return response.toString();
+    }
+    
+    /**
+     * Create fallback response when AI generation fails
+     */
+    private String createFallbackResponse(String toolResults, String initialReply) {
+        String cleanToolResults = toolResults
+            .replaceAll("(?i)TOOL_RESULT:\\s*Tìm thấy \\d+ sản phẩm:\\s*", "")
+            .replaceAll("(?i)HƯỚNG DẪN:.*", "")
+            .trim();
+        
+        return initialReply + "\n\n" + 
+            "Mình tìm thấy một số sản phẩm cho bạn nè:\n\n" + cleanToolResults;
+    }
+    
+    /**
+     * Extract a field value from JSON string
+     */
+    private String extractJsonField(String json, String fieldName) {
+        try {
+            String pattern = "\"" + fieldName + "\"\\s*:\\s*\"";
+            int start = json.indexOf(pattern);
+            if (start < 0) {
+                // Try without quotes (for nested objects)
+                pattern = "\"" + fieldName + "\"\\s*:\\s*\\{";
+                start = json.indexOf(pattern);
+                if (start < 0) return null;
+                
+                start += pattern.length() - 1;
+                int depth = 1;
+                StringBuilder nested = new StringBuilder("{");
+                for (int i = start + 1; i < json.length() && depth > 0; i++) {
+                    char c = json.charAt(i);
+                    nested.append(c);
+                    if (c == '{') depth++;
+                    else if (c == '}') depth--;
+                }
+                return nested.toString();
+            }
+            
+            start += pattern.length();
+            int end = start;
+            boolean escaped = false;
+            
+            while (end < json.length()) {
+                char c = json.charAt(end);
+                if (escaped) {
+                    escaped = false;
+                } else if (c == '\\') {
+                    escaped = true;
+                } else if (c == '"') {
+                    break;
+                }
+                end++;
+            }
+            
+            if (end >= json.length()) return null;
+            
+            String value = json.substring(start, end);
+            return value.replace("\\n", "\n")
+                       .replace("\\\"", "\"")
+                       .replace("\\\\", "\\")
+                       .replace("\\/", "/");
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**
@@ -437,4 +616,3 @@ public class AiChatService {
         return reply;
     }
 }
-

@@ -44,9 +44,29 @@ public class HandoffService {
         log.info("Adding conversation {} to handoff queue - Reason: {}", conversationId, reason);
         
         // Check if already in queue
-        if (handoffQueueRepository.existsByConversationId(conversationId)) {
-            log.warn("Conversation {} already in handoff queue", conversationId);
-            return handoffQueueRepository.findByConversationId(conversationId).orElse(null);
+        Optional<HandoffQueue> existingHandoff = handoffQueueRepository.findByConversationId(conversationId);
+        if (existingHandoff.isPresent()) {
+            HandoffQueue handoff = existingHandoff.get();
+            log.info("Conversation {} already in handoff queue, updating and re-notifying staff", conversationId);
+            
+            // Update with latest message and reason (e.g., new PII detected)
+            handoff.setCustomerMessage(customerMessage);
+            handoff.setAiContext(aiContext);
+            handoff.setHandoffReason(reason);
+            
+            // Update priority if new reason is more urgent
+            Integer newPriority = priority != null ? priority : determinePriority(reason);
+            if (newPriority > handoff.getPriority()) {
+                handoff.setPriority(newPriority);
+                log.info("Increased priority to {} for conversation {}", newPriority, conversationId);
+            }
+            
+            HandoffQueue updated = handoffQueueRepository.save(handoff);
+            
+            // Re-notify staff (important for new PII messages)
+            notifyStaffAboutNewHandoff(updated);
+            
+            return updated;
         }
 
         Conversation conversation = conversationRepository.findById(conversationId)
@@ -294,8 +314,41 @@ public class HandoffService {
      */
     private void notifyStaffAboutNewHandoff(HandoffQueue handoff) {
         try {
-            // Send notification to all online staff
-            webSocketService.notifyStaffNewHandoff(handoff.getConversation().getId());
+            Conversation conversation = handoff.getConversation();
+            Long conversationId = conversation.getId();
+            String customerName = conversation.getCustomer().getFullName();
+            HandoffReason reason = handoff.getHandoffReason();
+            
+            // 1. Send notification to handoff queue topic (for staff dashboard)
+            webSocketService.notifyStaffNewHandoff(conversationId);
+            
+            // 2. Send notification to staff bell with appropriate message
+            String notificationMessage;
+            String notificationType;
+            
+            if (reason == HandoffReason.PII_DETECTED) {
+                notificationMessage = String.format("🚨 %s cần hỗ trợ với thông tin cá nhân", customerName);
+                notificationType = "pii_alert";
+            } else if (reason == HandoffReason.PAYMENT_ISSUE) {
+                notificationMessage = String.format("💳 %s cần hỗ trợ về thanh toán", customerName);
+                notificationType = "new_conversation";
+            } else if (reason == HandoffReason.ORDER_INQUIRY) {
+                notificationMessage = String.format("📦 %s cần hỗ trợ về đơn hàng", customerName);
+                notificationType = "new_conversation";
+            } else {
+                notificationMessage = String.format("🔔 %s cần hỗ trợ", customerName);
+                notificationType = "new_conversation";
+            }
+            
+            webSocketService.sendBroadcast(
+                notificationMessage,
+                notificationType,
+                conversationId
+            );
+            
+            log.info("Staff notifications sent for conversation {} (reason: {})", 
+                conversationId, reason);
+                
         } catch (Exception e) {
             log.error("Error notifying staff about new handoff", e);
         }

@@ -30,7 +30,7 @@ public class RoutingService {
         if (piiDetectionService.containsPII(messageContent)) {
             log.info("PII detected, routing to staff");
             return RoutingDecision.handoffToStaff(HandoffReason.PII_DETECTED, 
-                "Phát hiện thông tin cá nhân");
+                "Vui lòng chờ, mình đang kết nối tới nhân viên cửa hàng để hỗ trợ bạn nhé! 💬");
         }
 
         // Check if AI is enabled

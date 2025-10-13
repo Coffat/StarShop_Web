@@ -5,6 +5,7 @@ import com.example.demo.dto.ResponseWrapper;
 import com.example.demo.dto.StaffCheckInDTO;
 import com.example.demo.dto.StaffDashboardDTO;
 import com.example.demo.service.ChatService;
+import com.example.demo.service.ConversationSupervisorService;
 import com.example.demo.service.StaffService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -38,6 +39,7 @@ public class StaffApiController extends BaseController {
 
     private final StaffService staffService;
     private final ChatService chatService;
+    private final ConversationSupervisorService conversationSupervisorService;
 
     /**
      * Check in staff member
@@ -252,6 +254,32 @@ public class StaffApiController extends BaseController {
             log.error("Error reopening conversation", e);
             return ResponseEntity.badRequest()
                 .body(new ResponseWrapper<>(null, "Không thể mở lại cuộc hội thoại: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Return conversation to AI
+     * Staff can hand off back to AI assistant after 30 seconds if customer doesn't respond
+     */
+    @Operation(summary = "Return to AI", description = "Queue conversation to return to AI after 30 seconds if customer doesn't message")
+    @PostMapping("/conversations/{id}/return-to-ai")
+    public ResponseEntity<ResponseWrapper<String>> returnToAi(
+            @PathVariable Long id,
+            Authentication authentication) {
+        try {
+            Long staffId = getUserIdFromAuthentication(authentication);
+            if (staffId == null) {
+                return ResponseEntity.status(401).body(new ResponseWrapper<>(null, "Unauthorized"));
+            }
+            log.info("Staff {} returning conversation {} to AI", staffId, id);
+            
+            conversationSupervisorService.queueReturnToAi(id);
+            return ResponseEntity.ok(new ResponseWrapper<>("success", "Sẽ trao lại cho Hoa AI sau 30 giây nếu khách không nhắn tin"));
+            
+        } catch (Exception e) {
+            log.error("Error returning conversation to AI", e);
+            return ResponseEntity.badRequest()
+                .body(new ResponseWrapper<>(null, "Không thể trao lại cho AI: " + e.getMessage()));
         }
     }
 

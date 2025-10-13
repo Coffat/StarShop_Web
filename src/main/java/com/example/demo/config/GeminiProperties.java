@@ -14,9 +14,10 @@ public class GeminiProperties {
     private String apiKey;
     private String baseUrl;
     private String model = "gemini-2.5-flash";
-    private Double temperature = 0.7;
-    private Integer maxTokens = 1024;
-    private Integer timeoutSeconds = 30;
+    private Double temperature = 0.9; // Higher = faster, more creative responses
+    private Double topP = 0.85; // Default topP for nucleus sampling
+    private Integer maxTokens = 800; // Reduced for faster responses
+    private Integer timeoutSeconds = 15; // Reduced timeout for better UX
 
     // Getters and Setters
     public String getApiKey() {
@@ -51,6 +52,14 @@ public class GeminiProperties {
         this.temperature = temperature;
     }
 
+    public Double getTopP() {
+        return topP;
+    }
+
+    public void setTopP(Double topP) {
+        this.topP = topP;
+    }
+
     public Integer getMaxTokens() {
         return maxTokens;
     }
@@ -81,4 +90,3 @@ public class GeminiProperties {
         return baseUrl + "/models/" + model + ":generateContent?key=" + apiKey;
     }
 }
-

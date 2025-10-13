@@ -130,12 +130,31 @@
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
+                            
+                            <!-- Nút AI - trao lại cho AI sau 30s -->
+                            <template x-if="selectedConversation && selectedConversation.status === 'ASSIGNED' && selectedConversation.assignedStaffId && Number(selectedConversation.assignedStaffId) === Number(staffId)">
+                                <button @click="returnToAi()"
+                                        class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-md"
+                                        title="Trao lại cho AI sau 30 giây nếu khách không nhắn tin"
+                                        :disabled="returningToAi">
+                                    <template x-if="!returningToAi">
+                                        <span><i class="fas fa-robot mr-2"></i>AI</span>
+                                    </template>
+                                    <template x-if="returningToAi">
+                                        <span><i class="fas fa-spinner fa-spin mr-2"></i>Đang xử lý...</span>
+                                    </template>
+                                </button>
+                            </template>
+                            
+                            <!-- Nút Đóng -->
                             <template x-if="selectedConversation.status !== 'CLOSED'">
                                 <button @click="closeConversation()" 
                                         class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
                                     <i class="fas fa-times mr-2"></i>Đóng
                                 </button>
                             </template>
+                            
+                            <!-- Nút Mở lại -->
                             <template x-if="selectedConversation.status === 'CLOSED'">
                                 <button @click="reopenConversation()" 
                                         class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
@@ -195,7 +214,7 @@
                                         </div>
                                         <div class="flex flex-col items-start">
                                             <div class="bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-800 px-4 py-3 rounded-2xl rounded-bl-md shadow-lg border border-purple-200">
-                                                <p class="text-sm leading-relaxed" x-text="msg.content"></p>
+                                                <div class="text-sm leading-relaxed" x-html="parseMarkdown(msg.content)"></div>
                                             </div>
                                             <span class="text-xs text-gray-500 mt-1 px-2" x-text="formatMessageTime(msg.sentAt)"></span>
                                         </div>
@@ -347,10 +366,10 @@
     </div>
 </div>
 
-<script th:inline="javascript">
+<script th:inline="none">
 function staffChat() {
     return {
-        staffId: /*[[${staffId}]]*/ null,
+        staffId: Number(/*[[${staffId}]]*/ 10), // Force number type
         conversations: [],
         selectedConversation: null,
         messages: [],
@@ -359,6 +378,7 @@ function staffChat() {
         loading: false,
         loadingMessages: false,
         sendingMessage: false,
+        returningToAi: false, // Flag to prevent duplicate AI return calls
         isTyping: false,
         typingTimeout: null,
         stompClient: null,
@@ -426,6 +446,39 @@ function staffChat() {
                 console.error('Error loading conversations:', error);
             } finally {
                 this.loading = false;
+            }
+        },
+        
+        /**
+         * Reload current conversation data (for UI updates after status changes)
+         */
+        async reloadCurrentConversation() {
+            if (!this.selectedConversation) {
+                console.log('⚠️ No conversation selected, skipping reload');
+                return;
+            }
+            
+            const conversationId = this.selectedConversation.id;
+            console.log('🔄 Reloading conversation data for:', conversationId);
+            
+            try {
+                // Reload conversation list to get updated data
+                await this.loadConversations();
+                
+                // Find the updated conversation in the list
+                const updatedConv = this.conversations.find(c => c.id == conversationId);
+                
+                if (updatedConv) {
+                    // Update selectedConversation with new data
+                    this.selectedConversation = updatedConv;
+                    console.log('✅ Conversation data reloaded:', updatedConv);
+                    console.log('✅ New status:', updatedConv.status);
+                    console.log('✅ New assignedStaffId:', updatedConv.assignedStaffId);
+                } else {
+                    console.log('⚠️ Conversation not found in list after reload');
+                }
+            } catch (error) {
+                console.error('Error reloading conversation:', error);
             }
         },
         
@@ -681,6 +734,15 @@ function staffChat() {
                     console.log('🔄 Replacing optimistic message with real message');
                     this.messages[optimisticIndex] = msg;
                     this.$nextTick(() => this.scrollToBottom());
+                    
+                    // CRITICAL: Update selectedConversation status when staff sends message
+                    // This ensures AI button appears immediately without page reload
+                    if (this.selectedConversation && this.selectedConversation.id == msg.conversationId) {
+                        console.log('🔄 Updating selectedConversation status to ASSIGNED after staff message');
+                        this.selectedConversation.status = 'ASSIGNED';
+                        this.selectedConversation.assignedStaffId = this.staffId;
+                        console.log('✅ Updated selectedConversation:', this.selectedConversation);
+                    }
                     return;
                 }
             }
@@ -698,6 +760,12 @@ function staffChat() {
                 console.log('✅ Staff is viewing this conversation, adding message to chat');
                 this.messages.push(msg);
                 this.$nextTick(() => this.scrollToBottom());
+                
+                // If this is a system message or AI message, reload conversation data to update UI
+                if (msg.isAiGenerated || msg.senderName === 'Hệ thống') {
+                    console.log('🔄 System/AI message detected, reloading conversation data...');
+                    this.reloadCurrentConversation();
+                }
                 
                 // If message is from customer, mark as read immediately (staff is viewing)
                 if (msg.senderId != this.staffId) {
@@ -725,6 +793,12 @@ function staffChat() {
                     headers[csrf.header] = csrf.token;
                 }
                 
+                // Add JWT token from cookie for authentication
+                const authToken = this.getCookie('authToken');
+                if (authToken) {
+                    headers['Authorization'] = 'Bearer ' + authToken;
+                }
+                
                 await fetch(`/api/chat/conversations/${conversationId}/read`, {
                     method: 'PUT',
                     headers: headers
@@ -745,6 +819,13 @@ function staffChat() {
                 token: token ? token.getAttribute('content') : null,
                 header: header ? header.getAttribute('content') : null
             };
+        },
+        
+        getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
         },
         
         async sendMessageViaRest(messageDTO) {
@@ -828,6 +909,76 @@ function staffChat() {
             }
         },
         
+        async returnToAi() {
+            console.log('🤖 returnToAi() called');
+            console.log('🤖 selectedConversation:', this.selectedConversation);
+            
+            // PREVENT DUPLICATE CALLS
+            if (this.returningToAi) {
+                console.log('🤖 Already processing AI return, ignoring duplicate call');
+                return;
+            }
+            
+            if (!this.selectedConversation) {
+                console.error('❌ No conversation selected');
+                alert('Chưa chọn cuộc hội thoại');
+                return;
+            }
+            
+            // Set flag to prevent duplicate calls
+            this.returningToAi = true;
+            
+            if (!confirm('Trao lại cuộc hội thoại này cho Hoa AI?\n\nSau 30 giây, nếu khách không nhắn tin thì AI sẽ tiếp tục hỗ trợ. Nếu khách nhắn tin trong 30 giây, bạn sẽ tiếp tục xử lý.')) {
+                console.log('🤖 User cancelled AI return');
+                this.returningToAi = false; // Reset flag
+                return;
+            }
+            
+            console.log('🤖 Starting AI return process...');
+            
+            try {
+                const csrf = this.getCsrfToken();
+                console.log('🤖 CSRF token:', csrf);
+                
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                if (csrf.token) {
+                    headers[csrf.header] = csrf.token;
+                }
+                
+                const url = `/api/staff/conversations/${this.selectedConversation.id}/return-to-ai`;
+                console.log('🤖 API URL:', url);
+                console.log('🤖 Headers:', headers);
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: headers
+                });
+                
+                console.log('🤖 Response status:', response.status);
+                console.log('🤖 Response ok:', response.ok);
+                
+                const data = await response.json();
+                console.log('🤖 Response data:', data);
+                
+                if (response.ok && (data.data || data.message)) {
+                    this.showNotification('✅ Sẽ trao lại cho Hoa AI sau 30 giây nếu khách không nhắn tin');
+                    console.log('✅ Queued conversation for AI return');
+                } else {
+                    console.error('❌ Error returning to AI:', data.error || data.message);
+                    alert('Không thể trao lại cho AI: ' + (data.error || data.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('❌ Exception in returnToAi:', error);
+                alert('Lỗi khi trao lại cho AI: ' + error.message);
+            } finally {
+                // ALWAYS reset flag to allow future calls
+                this.returningToAi = false;
+                console.log('🤖 Reset returningToAi flag');
+            }
+        },
+        
         async searchConversations() {
             if (!this.searchQuery.trim()) {
                 // Don't reload if we already have conversations loaded
@@ -892,16 +1043,28 @@ function staffChat() {
                 clearTimeout(this.typingTimeout);
             }
             
-            if (this.stompClient && this.stompClient.connected && this.selectedConversation) {
-                try {
-                    this.stompClient.send('/app/chat.typing', {}, JSON.stringify({
-                        conversationId: this.selectedConversation.id.toString(),
-                        userId: this.staffId,
-                        userName: 'Staff'
-                    }));
-                } catch (error) {
-                    console.error('Error sending typing indicator:', error);
-                }
+            // Validate required data before sending
+            if (!this.stompClient || !this.stompClient.connected || !this.selectedConversation || !this.staffId) {
+                console.warn('Cannot send typing indicator: missing required data', {
+                    connected: this.stompClient?.connected,
+                    selectedConversation: !!this.selectedConversation,
+                    staffId: this.staffId
+                });
+                return;
+            }
+            
+            try {
+                const typingData = {
+                    conversationId: this.selectedConversation.id.toString(),
+                    userId: this.staffId.toString(), // Ensure it's a string
+                    userName: 'Staff'
+                };
+                
+                console.debug('Sending typing indicator:', typingData);
+                
+                this.stompClient.send('/app/chat.typing', {}, JSON.stringify(typingData));
+            } catch (error) {
+                console.error('Error sending typing indicator:', error);
             }
             
             this.typingTimeout = setTimeout(() => {
@@ -1122,8 +1285,7 @@ function staffChat() {
                         this.conversations[index].unreadCount = oldCount + 1;
                         console.log(`✅ Increased unread count for conversation ${conversationId}: ${oldCount} -> ${this.conversations[index].unreadCount}`);
                         
-                        // Force Alpine.js to update the UI
-                        this.$forceUpdate();
+                        // Alpine.js automatically updates UI (reactive)
                     } else {
                         // Staff IS viewing this conversation - don't increase, will be marked as read
                         console.log(`📝 Staff is viewing conversation ${conversationId}, not increasing unread count (will be marked as read)`);
@@ -1132,7 +1294,7 @@ function staffChat() {
                     // Message from staff - reset unread count to 0 (staff just replied)
                     console.log(`📝 Message from staff, resetting unread count to 0`);
                     this.conversations[index].unreadCount = 0;
-                    this.$forceUpdate();
+                    // Alpine.js automatically updates UI (reactive)
                 }
                 
                 // ⚠️ CRITICAL: Ensure conversation ID is preserved after updates
@@ -1185,17 +1347,15 @@ function staffChat() {
                 const oldCount = this.conversations[index].unreadCount;
                 this.conversations[index].unreadCount = 0;
                 console.log(`✅ Reset unread count for conversation ${conversationId}: ${oldCount} -> 0`);
-                // Force Alpine.js to update the UI
-                this.$forceUpdate();
+                // Alpine.js automatically updates UI (reactive)
             } else {
                 console.log(`❌ Conversation ${conversationId} not found when trying to reset unread count`);
             }
         },
         
         forceUpdateUI() {
-            // Force Alpine.js to update the UI
-            this.$forceUpdate();
-            console.log('🔄 Forced UI update');
+            // Alpine.js automatically updates UI - this method is no longer needed
+            console.log('🔄 UI auto-updates (Alpine reactive)');
         },
         
         // Debug method to test conversation selection
@@ -1208,6 +1368,38 @@ function staffChat() {
             } else {
                 console.log('🔍 Conversation not found in list');
                 console.log('🔍 Available conversations:', this.conversations.map(c => ({ id: c.id, name: c.customerName })));
+            }
+        },
+        
+        // Global method to select conversation by ID (called from notifications)
+        selectConversationById(conversationId) {
+            console.log('🔔 Selecting conversation from notification:', conversationId);
+            
+            // Find conversation in list
+            const conv = this.conversations.find(c => c.id == conversationId);
+            
+            if (conv) {
+                // Select the conversation
+                this.selectConversation(conv);
+                
+                // Scroll to top of conversation list to show selected
+                const convList = document.querySelector('.chat-scrollbar');
+                if (convList) {
+                    convList.scrollTop = 0;
+                }
+            } else {
+                // Conversation not in list yet, load it
+                console.log('🔔 Conversation not in list, loading conversations...');
+                this.loadConversations().then(() => {
+                    const foundConv = this.conversations.find(c => c.id == conversationId);
+                    if (foundConv) {
+                        this.selectConversation(foundConv);
+                    } else {
+                        console.error('❌ Conversation still not found after reload:', conversationId);
+                        // Show error to user
+                        alert('Không tìm thấy cuộc hội thoại này');
+                    }
+                });
             }
         },
         
@@ -1295,6 +1487,58 @@ function staffChat() {
             return date.toLocaleString('vi-VN');
         },
         
+        parseMarkdown(text) {
+            if (!text) return '';
+            
+            let html = text;
+            
+            // Fix escaped newlines from JSON (\\n -> actual newline)
+            html = html.replace(/\\n/g, '\n');
+            
+            // Parse images first: ![alt](url) - using safer regex construction
+            const imageRegex = new RegExp('!\\[([^\\]]*)\\]\\(([^)]+)\\)', 'g');
+            html = html.replace(imageRegex, function(match, alt, url) {
+                const safeAlt = alt.replace(/"/g, '&quot;');
+                return '<img src="' + url + '" alt="' + safeAlt + '" class="max-w-full h-auto rounded-lg my-2 cursor-pointer message-image-hover" style="max-width: 200px;" onclick="window.open(\'' + url + '\', \'_blank\')" />';
+            });
+            
+            // Parse links: [text](url) - using safer regex construction
+            const linkRegex = new RegExp('\\[([^\\]]+)\\]\\(([^)]+)\\)', 'g');
+            html = html.replace(linkRegex, function(match, text, url) {
+                return '<a href="' + url + '" target="_blank" class="text-blue-600 hover:underline">' + text + '</a>';
+            });
+            
+            // Parse bold: **text**
+            const boldRegex = new RegExp('\\*\\*([^*]+)\\*\\*', 'g');
+            html = html.replace(boldRegex, '<strong>$1</strong>');
+            
+            // Parse bullet lists: * item or - item
+            const listRegex = new RegExp('^[\\*\\-]\\s+(.+)$', 'gm');
+            html = html.replace(listRegex, '<li class="ml-4 mb-1">• $1</li>');
+            
+            // Wrap consecutive list items in ul
+            const ulRegex = new RegExp('(<li[^>]*>.*?<\\/li>\\s*)+', 'g');
+            html = html.replace(ulRegex, function(match) {
+                return '<ul class="my-2 space-y-1">' + match + '</ul>';
+            });
+            
+            // Parse numbered list items: 1️⃣, 2️⃣, etc.
+            const emojiRegex = new RegExp('(\\d)️⃣', 'g');
+            html = html.replace(emojiRegex, '<span class="font-bold text-pink-600">$1️⃣</span>');
+            
+            // Parse line breaks (but not inside lists)
+            const brRegex = new RegExp('\\n(?![<ul>|<li>])', 'g');
+            html = html.replace(brRegex, '<br>');
+            
+            // Clean up extra br tags around lists and images
+            html = html.replace(/<br>\s*<ul>/g, '<ul>');
+            html = html.replace(/<\/ul>\s*<br>/g, '</ul>');
+            html = html.replace(/<br>\s*<img/g, '<img');
+            html = html.replace(/\/>\s*<br>/g, '/>');
+            
+            return html;
+        },
+        
         getStatusText(status) {
             const map = {
                 'OPEN': 'Chưa xử lý',
@@ -1332,5 +1576,5 @@ function staffChat() {
         }
     }
 }
-</script>
 
+</script>

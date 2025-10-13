@@ -11,8 +11,8 @@ import com.example.demo.entity.enums.UserRole;
 import com.example.demo.repository.ConversationRepository;
 import com.example.demo.repository.MessageRepository;
 import com.example.demo.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
  * Following rules.mdc specifications for business logic tier
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 @Transactional
 public class ChatService {
@@ -47,6 +46,33 @@ public class ChatService {
     private final AiToolExecutorService aiToolExecutorService;
     private final HandoffService handoffService;
     private final StoreConfigService storeConfigService;
+    private final ConversationSupervisorService conversationSupervisorService;
+    
+    // Constructor with @Lazy for ConversationSupervisorService to break circular dependency
+    public ChatService(
+            ConversationRepository conversationRepository,
+            MessageRepository messageRepository,
+            UserRepository userRepository,
+            WebSocketService webSocketService,
+            PasswordEncoder passwordEncoder,
+            RoutingService routingService,
+            AiChatService aiChatService,
+            AiToolExecutorService aiToolExecutorService,
+            HandoffService handoffService,
+            StoreConfigService storeConfigService,
+            @Lazy ConversationSupervisorService conversationSupervisorService) {
+        this.conversationRepository = conversationRepository;
+        this.messageRepository = messageRepository;
+        this.userRepository = userRepository;
+        this.webSocketService = webSocketService;
+        this.passwordEncoder = passwordEncoder;
+        this.routingService = routingService;
+        this.aiChatService = aiChatService;
+        this.aiToolExecutorService = aiToolExecutorService;
+        this.handoffService = handoffService;
+        this.storeConfigService = storeConfigService;
+        this.conversationSupervisorService = conversationSupervisorService;
+    }
 
     /**
      * Start a new conversation for a customer
@@ -161,19 +187,46 @@ public class ChatService {
     public ChatMessageDTO sendMessage(ChatMessageDTO messageDTO) {
         log.info("Sending message in conversation: {}", messageDTO.getConversationId());
         
+        // Validate required fields
+        if (messageDTO.getSenderId() == null) {
+            throw new RuntimeException("SenderId is required");
+        }
+        
+        if (messageDTO.getConversationId() == null) {
+            throw new RuntimeException("ConversationId is required");
+        }
+        
         User sender = userRepository.findById(messageDTO.getSenderId())
             .orElseThrow(() -> new RuntimeException("Sender not found"));
         
         Conversation conversation = conversationRepository.findById(messageDTO.getConversationId())
             .orElseThrow(() -> new RuntimeException("Conversation not found"));
         
+        // ============ STAFF MESSAGE HANDLING ============
+        // If staff/admin sends message, assign conversation to them and set status to ASSIGNED
+        if (sender.getRole() == UserRole.STAFF || sender.getRole() == UserRole.ADMIN) {
+            log.info("Staff/Admin message detected, assigning conversation {} to staff {}", 
+                conversation.getId(), sender.getId());
+            
+            // Assign conversation to staff if not already assigned to them
+            if (conversation.getAssignedStaff() == null || 
+                !conversation.getAssignedStaff().getId().equals(sender.getId())) {
+                conversation.assignToStaff(sender);
+                conversationRepository.save(conversation);
+                log.info("Conversation {} assigned to staff {}", conversation.getId(), sender.getId());
+            }
+        }
+        
         // Determine receiver based on conversation
         User receiver = null;
         if (messageDTO.getReceiverId() != null) {
+            // Only call findById if receiverId is not null
             receiver = userRepository.findById(messageDTO.getReceiverId())
                 .orElse(null);
-        } else {
-            // If no receiver specified, find the other participant in the conversation
+        }
+        
+        // If no receiver found yet, find the other participant in the conversation
+        if (receiver == null) {
             if (sender.getId().equals(conversation.getCustomer().getId())) {
                 // Customer is sending, receiver is assigned staff (if any)
                 receiver = conversation.getAssignedStaff();
@@ -207,115 +260,131 @@ public class ChatService {
         // Send general chat update (like Messenger/Zalo)
         webSocketService.sendChatUpdate("message_sent", resultDTO);
         
+        // ============ CANCEL AI RETURN IF PENDING ============
+        // If customer sends message while staff is waiting to return to AI, cancel the return
+        if (sender.getRole() == UserRole.CUSTOMER && conversation.getAssignedStaff() != null) {
+            boolean canceled = conversationSupervisorService.cancelIfPendingByCustomerMessage(conversation.getId());
+            if (canceled) {
+                log.info("Cancelled AI return for conversation {} due to customer message", conversation.getId());
+                // Continue with staff handling (don't do AI routing)
+                return resultDTO;
+            }
+        }
+        
         // ============ AI ROUTING FOR CUSTOMER MESSAGES ============
-        // If message is from customer and conversation has no assigned staff, try AI routing
-        if (sender.getRole() == UserRole.CUSTOMER && conversation.getAssignedStaff() == null) {
-            log.info("Customer message detected, attempting AI routing for conversation {}", conversation.getId());
-            
-            try {
-                // Route message through AI
-                RoutingService.RoutingDecision decision = routingService.routeMessage(
-                    conversation.getId(), 
-                    messageDTO.getContent()
-                );
+        // CRITICAL FIX: Only allow AI routing if conversation is OPEN status (not ASSIGNED)
+        // If message is from customer and conversation is OPEN (no staff assigned), try AI routing
+        if (sender.getRole() == UserRole.CUSTOMER) {
+            if (conversation.getStatus() == ConversationStatus.OPEN && conversation.getAssignedStaff() == null) {
+                log.info("Customer message in OPEN conversation detected, attempting AI routing for conversation {}", conversation.getId());
                 
-                if (decision.isHandleByAi()) {
-                    // AI can handle this message
-                    log.info("AI handling message for conversation {}", conversation.getId());
-                    
-                    com.example.demo.dto.AiAnalysisResult analysis = decision.getAiAnalysis();
-                    
-                    // Execute tools if requested and generate smart response
-                    String aiReply;
-                    if (analysis.hasToolRequests()) {
-                        log.info("Executing tools and generating context-aware response");
-                        String toolResults = aiToolExecutorService.executeTools(analysis);
-                        
-                        // Generate final smart response based on tool results
-                        aiReply = aiChatService.generateFinalResponse(
-                            conversation.getId(), 
-                            messageDTO.getContent(),
-                            toolResults,
-                            analysis
-                        );
-                    } else {
-                        // No tools needed, use initial reply
-                        aiReply = analysis.getReply();
-                    }
-                    
-                    // Add handoff suggestion if needed
-                    if (decision.isSuggestHandoff()) {
-                        aiReply += "\n\n_Bạn có muốn mình chuyển cho nhân viên để được hỗ trợ tốt hơn không?_ 💬";
-                    }
-                    
-                    // Create AI response message
-                    Message aiMessage = new Message();
-                    // Get or create AI system user
-                    User aiUser = getOrCreateAiUser();
-                    aiMessage.setSender(aiUser);
-                    aiMessage.setReceiver(sender);
-                    aiMessage.setContent(aiReply);
-                    aiMessage.setConversationId(conversation.getId());
-                    aiMessage.setMessageType(MessageType.TEXT);
-                    aiMessage.setIsAiGenerated(true);
-                    
-                    Message savedAiMessage = messageRepository.save(aiMessage);
-                    
-                    // Update conversation
-                    conversation.setLastMessageAt(savedAiMessage.getSentAt());
-                    conversationRepository.save(conversation);
-                    
-                    // Send AI response via WebSocket
-                    ChatMessageDTO aiMessageDTO = convertMessageToDTO(savedAiMessage);
-                    aiMessageDTO.setSenderName("Hoa AI 🌸");
-                    webSocketService.sendChatMessage(aiMessageDTO);
-                    
-                    log.info("AI response sent for conversation {}", conversation.getId());
-                    
-                } else {
-                    // Need to handoff to staff
-                    log.info("Handing off conversation {} to staff - Reason: {}", 
-                        conversation.getId(), decision.getHandoffReason());
-                    
-                    // Add to handoff queue
-                    handoffService.addToQueue(
-                        conversation.getId(),
-                        decision.getHandoffReason(),
-                        messageDTO.getContent(),
-                        decision.getContext(),
-                        null // priority will be determined by reason
+                try {
+                    // Route message through AI
+                    RoutingService.RoutingDecision decision = routingService.routeMessage(
+                        conversation.getId(), 
+                        messageDTO.getContent()
                     );
                     
-                    // Send system message to customer
-                    String handoffMessage = decision.getContext() != null ? 
-                        decision.getContext() : 
-                        "Mình xin phép chuyển bạn cho nhân viên để được hỗ trợ tốt hơn nhé 💬";
+                    if (decision.isHandleByAi()) {
+                        // AI can handle this message
+                        log.info("AI handling message for conversation {}", conversation.getId());
+                        
+                        com.example.demo.dto.AiAnalysisResult analysis = decision.getAiAnalysis();
+                        
+                        // Execute tools if requested and generate smart response
+                        String aiReply;
+                        if (analysis.hasToolRequests()) {
+                            log.info("Executing tools and generating context-aware response");
+                            String toolResults = aiToolExecutorService.executeTools(analysis);
+                            
+                            // Generate final smart response based on tool results
+                            aiReply = aiChatService.generateFinalResponse(
+                                conversation.getId(), 
+                                messageDTO.getContent(),
+                                toolResults,
+                                analysis
+                            );
+                        } else {
+                            // No tools needed, use initial reply
+                            aiReply = analysis.getReply();
+                        }
+                        
+                        // Add handoff suggestion if needed
+                        if (decision.isSuggestHandoff()) {
+                            aiReply += "\n\n_Bạn có muốn mình chuyển cho nhân viên để được hỗ trợ tốt hơn không?_ 💬";
+                        }
+                        
+                        // Create AI response message
+                        Message aiMessage = new Message();
+                        // Get or create AI system user
+                        User aiUser = getOrCreateAiUser();
+                        aiMessage.setSender(aiUser);
+                        aiMessage.setReceiver(sender);
+                        aiMessage.setContent(aiReply);
+                        aiMessage.setConversationId(conversation.getId());
+                        aiMessage.setMessageType(MessageType.TEXT);
+                        aiMessage.setIsAiGenerated(true);
+                        
+                        Message savedAiMessage = messageRepository.save(aiMessage);
+                        
+                        // Update conversation
+                        conversation.setLastMessageAt(savedAiMessage.getSentAt());
+                        conversationRepository.save(conversation);
+                        
+                        // Send AI response via WebSocket
+                        ChatMessageDTO aiMessageDTO = convertMessageToDTO(savedAiMessage);
+                        aiMessageDTO.setSenderName("Hoa AI 🌸");
+                        webSocketService.sendChatMessage(aiMessageDTO);
+                        
+                        log.info("AI response sent for conversation {}", conversation.getId());
+                        
+                    } else {
+                        // Need to handoff to staff
+                        log.info("Handing off conversation {} to staff - Reason: {}", 
+                            conversation.getId(), decision.getHandoffReason());
+                        
+                        // Add to handoff queue
+                        handoffService.addToQueue(
+                            conversation.getId(),
+                            decision.getHandoffReason(),
+                            messageDTO.getContent(),
+                            decision.getContext(),
+                            null // priority will be determined by reason
+                        );
+                        
+                        // Send system message to customer
+                        String handoffMessage = decision.getContext() != null ? 
+                            decision.getContext() : 
+                            "Mình xin phép chuyển bạn cho nhân viên để được hỗ trợ tốt hơn nhé 💬";
+                        
+                        Message systemMessage = new Message();
+                        User systemUser = getOrCreateSystemUser();
+                        systemMessage.setSender(systemUser);
+                        systemMessage.setReceiver(sender);
+                        systemMessage.setContent(handoffMessage);
+                        systemMessage.setConversationId(conversation.getId());
+                        systemMessage.setMessageType(MessageType.SYSTEM);
+                        systemMessage.setIsAiGenerated(true);
+                        
+                        Message savedSystemMessage = messageRepository.save(systemMessage);
+                        
+                        // Send system message via WebSocket
+                        ChatMessageDTO systemMessageDTO = convertMessageToDTO(savedSystemMessage);
+                        systemMessageDTO.setSenderName("Hệ thống");
+                        webSocketService.sendChatMessage(systemMessageDTO);
+                        
+                        // Note: HandoffService.addToQueue() already sends staff notifications
+                    }
                     
-                    Message systemMessage = new Message();
-                    User systemUser = getOrCreateSystemUser();
-                    systemMessage.setSender(systemUser);
-                    systemMessage.setReceiver(sender);
-                    systemMessage.setContent(handoffMessage);
-                    systemMessage.setConversationId(conversation.getId());
-                    systemMessage.setMessageType(MessageType.SYSTEM);
-                    systemMessage.setIsAiGenerated(true);
-                    
-                    Message savedSystemMessage = messageRepository.save(systemMessage);
-                    
-                    // Send system message via WebSocket
-                    ChatMessageDTO systemMessageDTO = convertMessageToDTO(savedSystemMessage);
-                    systemMessageDTO.setSenderName("Hệ thống");
-                    webSocketService.sendChatMessage(systemMessageDTO);
-                    
-                    // Notify staff about conversation in queue
-                    webSocketService.sendNotification(null, 
-                        "Cuộc hội thoại từ " + sender.getFullName() + " cần hỗ trợ", 
-                        "new_conversation");
+                } catch (Exception e) {
+                    log.error("Error in AI routing", e);
+                    // Continue without AI - message already sent
                 }
-                
-            } catch (Exception e) {
-                log.error("Error in AI routing", e);
-                // Continue without AI - message already sent
+            } else if (conversation.getStatus() == ConversationStatus.ASSIGNED) {
+                log.info("Customer message in ASSIGNED conversation {} - staff is handling, skipping AI", conversation.getId());
+            } else {
+                log.info("Customer message in conversation {} with status {} - skipping AI (closed or other)", 
+                    conversation.getId(), conversation.getStatus());
             }
         }
         
@@ -470,12 +539,7 @@ public class ChatService {
                 systemMessageDTO.setSenderName("Hệ thống");
                 webSocketService.sendChatMessage(systemMessageDTO);
                 
-                // Notify staff about new conversation in queue
-                if (isNewConversation) {
-                    webSocketService.sendNotification(null, 
-                        "Cuộc hội thoại mới từ " + sender.getFullName() + " cần hỗ trợ", 
-                        "new_conversation");
-                }
+                // Note: HandoffService.addToQueue() already sends staff notifications
             }
             
         } catch (Exception e) {
@@ -490,13 +554,8 @@ public class ChatService {
                     "Lỗi hệ thống AI",
                     5 // medium priority
                 );
+                // Note: HandoffService.addToQueue() already sends staff notifications
                 
-                // Notify staff
-                if (isNewConversation) {
-                    webSocketService.sendNotification(null, 
-                        "Cuộc hội thoại mới từ " + sender.getFullName(), 
-                        "new_conversation");
-                }
             } catch (Exception fallbackError) {
                 log.error("Error in fallback handoff", fallbackError);
             }
@@ -750,10 +809,14 @@ public class ChatService {
         dto.setSenderName(message.getSender().getFullName());
         dto.setSenderAvatar(message.getSender().getAvatar());
         
-        // Handle null receiver (for customer messages when no staff assigned)
+        // FIXED: Set receiverId correctly - receiver is different from sender
         if (message.getReceiver() != null) {
             dto.setReceiverId(message.getReceiver().getId());
             dto.setReceiverName(message.getReceiver().getFullName());
+        } else {
+            // If no explicit receiver, infer from conversation context
+            // This helps with WebSocket routing
+            dto.setReceiverId(null);
         }
         
         dto.setConversationId(message.getConversationId());
@@ -799,4 +862,3 @@ public class ChatService {
         });
     }
 }
-

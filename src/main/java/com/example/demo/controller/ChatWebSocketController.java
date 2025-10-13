@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.ChatMessageDTO;
+import com.example.demo.entity.User;
+import com.example.demo.repository.UserRepository;
 import com.example.demo.service.ChatService;
 import com.example.demo.service.WebSocketService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class ChatWebSocketController {
 
     private final ChatService chatService;
     private final WebSocketService webSocketService;
+    private final UserRepository userRepository;
 
     /**
      * Handle sending chat messages via WebSocket
@@ -36,6 +39,41 @@ public class ChatWebSocketController {
             log.info("Received chat message via WebSocket from user: {}, conversation: {}", 
                 principal != null ? principal.getName() : "unknown", 
                 message.getConversationId());
+            
+            // IMPORTANT: Ensure senderId is set from authenticated user
+            // If senderId is null, try to get it from the authenticated principal
+            if (message.getSenderId() == null) {
+                log.warn("SenderId is null in message payload, attempting to get from authenticated principal");
+                
+                if (principal != null && principal.getName() != null) {
+                    try {
+                        String userEmail = principal.getName();
+                        log.info("Looking up user by email: {}", userEmail);
+                        
+                        User authenticatedUser = userRepository.findByEmail(userEmail).orElse(null);
+                        if (authenticatedUser != null) {
+                            message.setSenderId(authenticatedUser.getId());
+                            log.info("Set senderId from authenticated user: {}", authenticatedUser.getId());
+                        } else {
+                            log.error("Authenticated user not found in database: {}", userEmail);
+                            throw new RuntimeException("Authenticated user not found");
+                        }
+                    } catch (Exception e) {
+                        log.error("Error looking up authenticated user", e);
+                        throw new RuntimeException("SenderId is required and could not be determined from authentication");
+                    }
+                } else {
+                    log.error("No principal found and senderId is null");
+                    throw new RuntimeException("SenderId is required and no authenticated user found");
+                }
+            } else {
+                log.info("Message senderId from payload: {}", message.getSenderId());
+            }
+            
+            // Validate that we now have a senderId
+            if (message.getSenderId() == null) {
+                throw new RuntimeException("SenderId is still null after attempting to set from authentication");
+            }
             
             // Send message through chat service
             ChatMessageDTO sentMessage = chatService.sendMessage(message);
@@ -55,32 +93,69 @@ public class ChatWebSocketController {
     @MessageMapping("/chat.typing")
     public void handleTyping(@Payload Map<String, Object> typingData, Principal principal) {
         try {
+            // Validate input data first
+            if (typingData == null) {
+                log.warn("Typing data is null");
+                return;
+            }
+            
             // Handle both String and Number types for conversationId and userId
             Object conversationIdObj = typingData.get("conversationId");
             Object userIdObj = typingData.get("userId");
             
-            Long conversationId;
-            Long userId;
-            
-            if (conversationIdObj instanceof String) {
-                conversationId = Long.parseLong((String) conversationIdObj);
-            } else if (conversationIdObj instanceof Number) {
-                conversationId = ((Number) conversationIdObj).longValue();
-            } else {
-                log.error("Invalid conversationId type: {}", conversationIdObj.getClass());
+            // Early validation for null objects
+            if (conversationIdObj == null) {
+                log.warn("ConversationId is null in typing data: {}", typingData);
                 return;
             }
             
-            if (userIdObj instanceof String) {
-                userId = Long.parseLong((String) userIdObj);
-            } else if (userIdObj instanceof Number) {
-                userId = ((Number) userIdObj).longValue();
-            } else {
-                log.error("Invalid userId type: {}", userIdObj.getClass());
+            if (userIdObj == null) {
+                log.warn("UserId is null in typing data: {}", typingData);
+                return;
+            }
+            
+            Long conversationId;
+            Long userId;
+            
+            // Parse conversationId with proper error handling
+            try {
+                if (conversationIdObj instanceof String) {
+                    conversationId = Long.parseLong((String) conversationIdObj);
+                } else if (conversationIdObj instanceof Number) {
+                    conversationId = ((Number) conversationIdObj).longValue();
+                } else {
+                    log.error("Invalid conversationId type: {}, value: {}", 
+                        conversationIdObj.getClass().getSimpleName(), conversationIdObj);
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                log.error("Cannot parse conversationId: {}", conversationIdObj, e);
+                return;
+            }
+            
+            // Parse userId with proper error handling
+            try {
+                if (userIdObj instanceof String) {
+                    userId = Long.parseLong((String) userIdObj);
+                } else if (userIdObj instanceof Number) {
+                    userId = ((Number) userIdObj).longValue();
+                } else {
+                    log.error("Invalid userId type: {}, value: {}", 
+                        userIdObj.getClass().getSimpleName(), userIdObj);
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                log.error("Cannot parse userId: {}", userIdObj, e);
                 return;
             }
             
             String userName = (String) typingData.get("userName");
+            if (userName == null) {
+                userName = "Unknown User";
+            }
+            
+            log.debug("Processing typing indicator - conversationId: {}, userId: {}, userName: {}", 
+                conversationId, userId, userName);
             
             // Broadcast typing indicator to conversation
             webSocketService.sendTypingIndicator(conversationId.toString(), userId, userName);
@@ -153,7 +228,6 @@ public class ChatWebSocketController {
             Long conversationId = ((Number) readData.get("conversationId")).longValue();
             Long userId = ((Number) readData.get("userId")).longValue();
             
-            
             chatService.markMessagesAsRead(conversationId, userId);
             
         } catch (Exception e) {
@@ -161,4 +235,3 @@ public class ChatWebSocketController {
         }
     }
 }
-
