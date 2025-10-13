@@ -236,5 +236,55 @@ public class VoucherService {
             .totalOrderValue(totalOrderValue)
             .build();
     }
+    
+    /**
+     * Get active promotions for AI chat
+     * Returns simplified promotion info for AI to present to customers
+     */
+    @Transactional(readOnly = true)
+    public List<PromotionSummaryDTO> getActivePromotionsForAi() {
+        log.info("Getting active promotions for AI");
+        
+        try {
+            LocalDate today = LocalDate.now();
+            
+            // Get active vouchers that are not expired and still have uses left
+            List<Voucher> activeVouchers = voucherRepository.findAll().stream()
+                .filter(v -> v.getIsActive())
+                .filter(v -> v.getExpiryDate().isAfter(today) || v.getExpiryDate().isEqual(today))
+                .filter(v -> v.getMaxUses() == null || v.getUses() < v.getMaxUses())
+                .collect(Collectors.toList());
+            
+            return activeVouchers.stream()
+                .map(this::convertToPromotionSummary)
+                .collect(Collectors.toList());
+                
+        } catch (Exception e) {
+            log.error("Error getting active promotions for AI", e);
+            return List.of();
+        }
+    }
+    
+    /**
+     * Convert Voucher to PromotionSummaryDTO
+     */
+    private PromotionSummaryDTO convertToPromotionSummary(Voucher voucher) {
+        PromotionSummaryDTO dto = new PromotionSummaryDTO();
+        dto.setCode(voucher.getCode());
+        dto.setName(voucher.getName());
+        dto.setDescription(voucher.getDescription());
+        dto.setDiscountType(voucher.getDiscountType());
+        dto.setDiscountValue(voucher.getDiscountValue());
+        dto.setMinOrderValue(voucher.getMinOrderValue());
+        dto.setExpiryDate(voucher.getExpiryDate());
+        
+        // Calculate remaining uses
+        if (voucher.getMaxUses() != null) {
+            int remaining = voucher.getMaxUses() - voucher.getUses();
+            dto.setRemainingUses(remaining);
+        }
+        
+        return dto;
+    }
 }
 

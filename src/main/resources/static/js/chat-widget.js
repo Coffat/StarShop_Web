@@ -148,25 +148,31 @@ function createNewConversation() {
  * Load messages for conversation
  */
 function loadChatWidgetMessages(conversationId) {
-    fetch('/api/chat/conversations/' + conversationId + '/messages')
+    // Load with pagination to get ALL messages (increase page size)
+    fetch('/api/chat/conversations/' + conversationId + '/messages?page=0&size=100')
         .then(response => response.json())
         .then(data => {
             if (data.data) {
                 const messagesContainer = document.getElementById('chatWidgetMessages');
-                // Clear existing messages except welcome message
-                const welcomeMessage = messagesContainer.querySelector('.message-received');
+                // Clear ALL existing messages
                 messagesContainer.innerHTML = '';
-                if (welcomeMessage) {
-                    messagesContainer.appendChild(welcomeMessage);
-                }
                 
-                // Display messages
-                data.data.forEach(message => {
-                    displayChatWidgetMessage(message);
+                // Sort messages by sentAt ascending (oldest first)
+                const sortedMessages = data.data.sort((a, b) => {
+                    return new Date(a.sentAt) - new Date(b.sentAt);
                 });
                 
-                // Scroll to bottom
-                scrollChatWidgetToBottom();
+                // Display messages in order
+                sortedMessages.forEach(message => {
+                    displayChatWidgetMessage(message, true); // true = skip duplicate check for initial load
+                });
+                
+                console.log(`Loaded ${sortedMessages.length} messages`);
+                
+                // Scroll to bottom after loading
+                setTimeout(() => {
+                    scrollChatWidgetToBottom();
+                }, 100);
             }
         })
         .catch(error => {
@@ -272,19 +278,21 @@ function sendWidgetMessage() {
 /**
  * Display message in chat widget
  */
-function displayChatWidgetMessage(message) {
+function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
     const messagesContainer = document.getElementById('chatWidgetMessages');
     const isOwn = message.senderId === chatWidgetUserId;
     
-    // Check if message already exists
-    const existingMessage = messagesContainer.querySelector(`[data-message-id="${message.id}"]`);
-    if (existingMessage) {
-        return;
+    // Check if message already exists (skip for initial load)
+    if (!skipDuplicateCheck) {
+        const existingMessage = messagesContainer.querySelector(`[data-message-id="${message.id}"]`);
+        if (existingMessage) {
+            return;
+        }
     }
     
-    // Create message element with modern design
+    // Create message element with MODERN BEAUTIFUL design
     const messageDiv = document.createElement('div');
-    messageDiv.className = 'flex mb-6 ' + (isOwn ? 'justify-end' : 'justify-start');
+    messageDiv.className = 'flex mb-4 animate-fade-in ' + (isOwn ? 'justify-end' : 'justify-start');
     messageDiv.setAttribute('data-message-id', message.id);
     
     if (isOwn) {
@@ -293,7 +301,7 @@ function displayChatWidgetMessage(message) {
             <div class="flex items-end space-x-2 max-w-xs">
                 <div class="flex flex-col items-end">
                     <div class="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-3 rounded-2xl rounded-br-md shadow-lg">
-                        <p class="text-sm leading-relaxed">${message.content}</p>
+                        <div class="text-sm leading-relaxed">${parseMarkdown(message.content)}</div>
                     </div>
                     <span class="text-xs text-gray-500 mt-1 px-2">
                         ${formatMessageTime(message.sentAt)}
@@ -306,15 +314,15 @@ function displayChatWidgetMessage(message) {
             </div>
         `;
     } else {
-        // Staff message (left side)
+        // Staff/AI message (left side) - parse markdown for images and links
         messageDiv.innerHTML = `
-            <div class="flex items-end space-x-2 max-w-xs">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white text-sm font-semibold">
+            <div class="flex items-start space-x-2 max-w-md">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
                     🌸
                 </div>
-                <div class="flex flex-col items-start">
-                    <div class="bg-white text-gray-800 px-4 py-3 rounded-2xl rounded-bl-md shadow-lg border border-gray-100">
-                        <p class="text-sm leading-relaxed">${message.content}</p>
+                <div class="flex flex-col items-start flex-1">
+                    <div class="bg-white text-gray-800 px-4 py-3 rounded-2xl rounded-bl-md shadow-lg border border-gray-100 w-full">
+                        <div class="text-sm leading-relaxed">${parseMarkdown(message.content)}</div>
                     </div>
                     <span class="text-xs text-gray-500 mt-1 px-2">${message.senderName || 'StarShop Support'}</span>
                 </div>
@@ -341,6 +349,50 @@ function formatMessageTime(dateTime) {
     if (!dateTime) return '';
     const date = new Date(dateTime);
     return date.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'});
+}
+
+/**
+ * Parse basic markdown to HTML
+ * Supports: images, links, bold text, lists, line breaks
+ */
+function parseMarkdown(text) {
+    if (!text) return '';
+    
+    let html = text;
+    
+    // Parse images first: ![alt](url)
+    html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, function(match, alt, url) {
+        const safeAlt = alt.replace(/"/g, '&quot;');
+        return `<img src="${url}" alt="${safeAlt}" class="max-w-full h-auto rounded-lg my-2 cursor-pointer message-image-hover" style="max-width: 200px;" onclick="window.open('${url}', '_blank')" />`;
+    });
+    
+    // Parse links: [text](url)
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, text, url) {
+        return `<a href="${url}" target="_blank" class="text-blue-600 hover:underline">${text}</a>`;
+    });
+    
+    // Parse bold: **text**
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    
+    // Parse bullet lists: * item or - item
+    html = html.replace(/^[\*\-]\s+(.+)$/gm, '<li class="ml-4 mb-1">• $1</li>');
+    
+    // Wrap consecutive list items in ul
+    html = html.replace(/(<li[^>]*>.*?<\/li>\s*)+/g, function(match) {
+        return '<ul class="my-2 space-y-1">' + match + '</ul>';
+    });
+    
+    // Parse numbered list items: 1️⃣, 2️⃣, etc.
+    html = html.replace(/(\d)️⃣/g, '<span class="font-bold text-pink-600">$1️⃣</span>');
+    
+    // Parse line breaks (but not inside lists)
+    html = html.replace(/\n(?![<ul>|<li>])/g, '<br>');
+    
+    // Clean up extra br tags around lists
+    html = html.replace(/<br>\s*<ul>/g, '<ul>');
+    html = html.replace(/<\/ul>\s*<br>/g, '</ul>');
+    
+    return html;
 }
 
 /**

@@ -55,6 +55,15 @@ public class ConversationDTO {
     // Internal notes
     private String notes;
     
+    // AI Handoff information
+    private String handoffReason;
+    private String aiContext;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime enqueuedAt;
+    
+    private Integer waitTimeSeconds;
+    
     // Helper methods
     public boolean isUnassigned() {
         return status == ConversationStatus.OPEN;
@@ -66,6 +75,15 @@ public class ConversationDTO {
     
     public boolean isClosed() {
         return status == ConversationStatus.CLOSED;
+    }
+    
+    public String getWaitTimeFormatted() {
+        if (waitTimeSeconds == null) {
+            return "N/A";
+        }
+        long minutes = waitTimeSeconds / 60;
+        long seconds = waitTimeSeconds % 60;
+        return String.format("%d:%02d", minutes, seconds);
     }
 }
 

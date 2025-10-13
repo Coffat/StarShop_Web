@@ -24,6 +24,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p WHERE p.name LIKE %:keyword% OR p.description LIKE %:keyword%")
     Page<Product> searchProducts(@Param("keyword") String keyword, Pageable pageable);
     
+    // Enhanced search for AI - includes catalog
+    @Query("SELECT p FROM Product p LEFT JOIN p.catalog c WHERE " +
+           "LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(c.value) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    Page<Product> searchProductsForAi(@Param("keyword") String keyword, Pageable pageable);
+    
     @Query("SELECT p FROM Product p LEFT JOIN FETCH p.reviews")
     List<Product> findAllWithReviews();
     

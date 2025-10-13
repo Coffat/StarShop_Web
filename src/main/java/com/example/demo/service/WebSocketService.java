@@ -223,12 +223,15 @@ public class WebSocketService {
             String conversationTopic = "/topic/chat/" + chatMessage.getConversationId();
             messagingTemplate.convertAndSend(conversationTopic, chatMessage);
             
-            // Send to staff topic for real-time updates
-            messagingTemplate.convertAndSend("/topic/chat/staff", chatMessage);
+            // Only send to staff topic if message is from customer (not AI)
+            // AI messages should only go to customer, not to staff dashboard
+            if (chatMessage.getIsAiGenerated() == null || !chatMessage.getIsAiGenerated()) {
+                // Send to staff topic for real-time updates
+                messagingTemplate.convertAndSend("/topic/chat/staff", chatMessage);
+            }
             
             // Also send to receiver's personal queue
             if (chatMessage.getReceiverId() != null) {
-                String userQueue = "/user/queue/chat";
                 messagingTemplate.convertAndSendToUser(
                     chatMessage.getReceiverId().toString(), 
                     "/queue/chat", 
@@ -236,8 +239,9 @@ public class WebSocketService {
                 );
             }
             
-            log.info("Chat message sent to conversation {}: {}", 
-                chatMessage.getConversationId(), chatMessage.getContent());
+            log.info("Chat message sent to conversation {}: {} (AI: {})", 
+                chatMessage.getConversationId(), chatMessage.getContent(), 
+                chatMessage.getIsAiGenerated());
             
         } catch (Exception e) {
             log.error("Error sending chat message: {}", e.getMessage(), e);
@@ -275,6 +279,52 @@ public class WebSocketService {
             
         } catch (Exception e) {
             log.error("Error notifying staff {}: {}", staffId, e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Notify staff about new handoff in queue
+     */
+    public void notifyStaffNewHandoff(Long conversationId) {
+        try {
+            NotificationPayload payload = new NotificationPayload(
+                "new_handoff",
+                "Có cuộc hội thoại mới cần hỗ trợ từ AI",
+                LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            );
+            payload.setConversationId(conversationId);
+            
+            messagingTemplate.convertAndSend("/topic/handoff-queue", payload);
+            log.info("New handoff notification sent for conversation {}", conversationId);
+            
+        } catch (Exception e) {
+            log.error("Error notifying staff about new handoff", e);
+        }
+    }
+
+    /**
+     * Notify specific staff about conversation assignment
+     */
+    public void notifyStaffAssignment(Long staffId, Long conversationId) {
+        try {
+            NotificationPayload payload = new NotificationPayload(
+                "conversation_assigned",
+                "Bạn đã được gán cuộc hội thoại mới",
+                LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            );
+            payload.setConversationId(conversationId);
+            
+            messagingTemplate.convertAndSendToUser(
+                staffId.toString(),
+                "/queue/assignments",
+                payload
+            );
+            
+            log.info("Assignment notification sent to staff {} for conversation {}", 
+                staffId, conversationId);
+            
+        } catch (Exception e) {
+            log.error("Error notifying staff about assignment", e);
         }
     }
 
@@ -363,11 +413,20 @@ public class WebSocketService {
         public final String type;
         public final String message;
         public final String timestamp;
+        private Long conversationId;
         
         public NotificationPayload(String type, String message, String timestamp) {
             this.type = type;
             this.message = message;
             this.timestamp = timestamp;
+        }
+        
+        public Long getConversationId() {
+            return conversationId;
+        }
+        
+        public void setConversationId(Long conversationId) {
+            this.conversationId = conversationId;
         }
     }
     
