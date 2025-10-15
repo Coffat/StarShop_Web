@@ -133,6 +133,9 @@ CREATE TABLE Orders (
     notes TEXT DEFAULT NULL,
     -- GHN Shipping Fee (tracked separately for transparency)
     shipping_fee NUMERIC(10,2) NOT NULL DEFAULT 0.00 CHECK (shipping_fee >= 0),
+    -- JPA Auditing columns (BaseEntity) - Required for Voucher.orders relationship
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Users(id),
     FOREIGN KEY (delivery_unit_id) REFERENCES DeliveryUnits(id),
     FOREIGN KEY (voucher_id) REFERENCES Vouchers(id),
