@@ -18,7 +18,8 @@ VALUES
 ('Võ', 'Hà', 'ha.vo@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000005', NULL, 'CUSTOMER', NOW() - INTERVAL '30 days'),
 ('Hoàng', 'Lan', 'lan.hoang@example.com', '$2a$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', '0901000006', NULL, 'STAFF', NOW() - INTERVAL '90 days'),
 ('Đỗ', 'Minh', 'minh.do@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000007', NULL, 'STAFF', NOW() - INTERVAL '90 days'),
-('Admin', 'Root', 'admin@example.com', '$2a$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', '0901000008', NULL, 'ADMIN', NOW() - INTERVAL '100 days');
+('Admin', 'Root', 'admin@example.com', '$2a$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', '0901000008', NULL, 'ADMIN', NOW() - INTERVAL '100 days'),
+('Tai', 'Nguyen', 'tai@gmail.com', '$2a$10$agFzx5FVfCDVt1rdzQTdcOV4Hy6I/4q9SiQRPbvh9r5umm4EOKuPC', '0901000009', NULL, 'CUSTOMER', NOW() - INTERVAL '1 days');
 
 -- ========== 2) DELIVERY UNITS ==========
 INSERT INTO DeliveryUnits(name, fee, estimated_time, is_active, created_at)
@@ -29,12 +30,12 @@ VALUES
 
 -- ========== 3) CATALOGS ==========
 -- Danh mục sản phẩm dựa trên chủ đề
-INSERT INTO Catalogs(value, created_at, updated_at)
+INSERT INTO Catalogs(value,image, created_at, updated_at)
 VALUES
-('Tình yêu', NOW() - INTERVAL '70 days', NULL),      -- id: 1
-('Khai trương', NOW() - INTERVAL '70 days', NULL),   -- id: 2
-('Hoa cười', NOW() - INTERVAL '70 days', NULL),      -- id: 3
-('Đám tang', NOW() - INTERVAL '70 days', NULL);      -- id: 4
+('Tình yêu', 'https://images.pexels.com/photos/1382732/pexels-photo-1382732.jpeg', NOW() - INTERVAL '70 days',NULL),      -- id: 1
+('Khai trương', 'https://images.pexels.com/photos/3779035/pexels-photo-3779035.jpeg', NOW() - INTERVAL '70 days', NULL),   -- id: 2
+('Hoa cười', 'https://images.pexels.com/photos/1391498/pexels-photo-1391498.jpeg', NOW() - INTERVAL '70 days', NULL),      -- id: 3
+('Đám tang', 'https://images.pexels.com/photos/1372137/pexels-photo-1372137.jpeg', NOW() - INTERVAL '70 days', NULL);      -- id: 4
 
 -- ========== 4) PRODUCTS ==========
 -- Thêm GHN shipping dimensions và catalog_id cho tất cả products

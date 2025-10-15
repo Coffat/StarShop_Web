@@ -56,11 +56,14 @@ CREATE UNIQUE INDEX ux_addresses_user_default ON Addresses(user_id) WHERE is_def
 CREATE TABLE Catalogs (
     id BIGSERIAL PRIMARY KEY,
     value VARCHAR(100) UNIQUE NOT NULL,
+    image VARCHAR(255) DEFAULT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT NULL
 );
 COMMENT ON TABLE Catalogs IS 'Product catalogs/categories (e.g., Tình yêu, Khai trương, Hoa cưới, Đám tang)';
+COMMENT ON COLUMN Catalogs.image IS 'Catalog/category image path or URL';
 CREATE INDEX idx_catalogs_value ON Catalogs(value);
+CREATE INDEX idx_catalogs_image ON Catalogs(image) WHERE image IS NOT NULL;
 
 -- Table: Products
 CREATE TABLE Products (

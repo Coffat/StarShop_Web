@@ -2,17 +2,16 @@
 -- Migration: Add image column to Catalogs table
 -- Purpose: Support catalog/category images
 -- Date: 2025-10-15
+-- STATUS: MOVED TO 01_init_schema.sql - NO LONGER NEEDED
 -- =====================================================
 
--- Add image column to Catalogs table
-ALTER TABLE Catalogs 
-ADD COLUMN image VARCHAR(255) DEFAULT NULL;
+-- COMMENTED OUT: Image column now added directly in table creation (01_init_schema.sql)
+-- ALTER TABLE Catalogs 
+-- ADD COLUMN image VARCHAR(255) DEFAULT NULL;
 
--- Add comment for documentation
-COMMENT ON COLUMN Catalogs.image IS 'Catalog/category image path or URL';
-
--- Add index for performance (optional, useful if filtering by image existence)
-CREATE INDEX idx_catalogs_image ON Catalogs(image) WHERE image IS NOT NULL;
+-- COMMENTED OUT: Comment and index now in 01_init_schema.sql
+-- COMMENT ON COLUMN Catalogs.image IS 'Catalog/category image path or URL';
+-- CREATE INDEX idx_catalogs_image ON Catalogs(image) WHERE image IS NOT NULL;
 
 -- =====================================================
 -- Optional: Update existing catalogs with sample images
