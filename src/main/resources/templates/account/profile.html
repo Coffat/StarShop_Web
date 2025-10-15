@@ -3,1003 +3,171 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       th:replace="~{layouts/main :: layout('Thông tin tài khoản', 
           'Quản lý thông tin tài khoản StarShop của bạn. Cập nhật thông tin cá nhân, địa chỉ giao hàng và cài đặt bảo mật.',
-          ~{::link},
+          ~{::extraCSS},
           ~{::content})}">
 
 <head>
-    <link rel="stylesheet" href="/css/account.css">
-    <style>
-        .address-card {
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-        .address-card:hover {
-            border-color: #0d6efd;
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
-        }
-        .address-card.border-success {
-            background-color: #f8fff9;
-        }
-        .cascade-loading {
-            opacity: 0.6;
-            pointer-events: none;
-        }
-        .btn-check:checked + .btn-outline-primary {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
-            color: white;
-        }
-    </style>
+    <th:block th:fragment="extraCSS">
+        <!-- No extra CSS needed - using Tailwind only -->
+    </th:block>
 </head>
 
 <body>
 <th:block th:fragment="content">
-    <!-- Page Header -->
-    <section class="page-header">
-        <div class="container">
-            <div class="header-content">
-                <div class="breadcrumb-wrapper">
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item">
-                                <a href="/" class="breadcrumb-link">
-                                    <i class="bi bi-house"></i>
-                                    Trang chủ
-                                </a>
-                            </li>
-                            <li class="breadcrumb-item active" aria-current="page">Thông tin tài khoản</li>
-                        </ol>
-                    </nav>
-                </div>
-                <div class="page-title-section">
-                    <h1 class="page-title">
-                        <span class="title-icon">
-                            <i class="bi bi-person-circle"></i>
-                        </span>
-                        Thông tin tài khoản
-                    </h1>
-                    <p class="page-subtitle">Quản lý thông tin cá nhân và cài đặt tài khoản của bạn</p>
-                </div>
-            </div>
-        </div>
-    </section>
 
     <!-- Account Content -->
-    <section class="account-section">
-        <div class="container">
+    <div class="min-h-screen bg-gray-50 py-8">
+        <div class="container mx-auto px-4">
             <!-- Success/Error Messages -->
-            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i>
-                <span th:text="${success}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div th:if="${success}" class="max-w-7xl mx-auto mb-6 bg-white border border-green-200 rounded-lg p-4 shadow-sm" role="alert">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-green-600 mr-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" />
+                    </svg>
+                    <p class="text-sm text-gray-700" th:text="${success}"></p>
+                </div>
             </div>
-            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                <span th:text="${error}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div th:if="${error}" class="max-w-7xl mx-auto mb-6 bg-white border border-red-200 rounded-lg p-4 shadow-sm" role="alert">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-red-600 mr-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM8.28 7.22a.75.75 0 0 0-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 1 0 1.06 1.06L10 11.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L11.06 10l1.72-1.72a.75.75 0 0 0-1.06-1.06L10 8.94 8.28 7.22Z" clip-rule="evenodd" />
+                    </svg>
+                    <p class="text-sm text-gray-700" th:text="${error}"></p>
+                </div>
             </div>
             
-            <div class="row g-4">
-                
-                <!-- Sidebar Navigation -->
-                <div class="col-lg-3">
-                    <div class="account-sidebar">
-                        <!-- User Profile Card -->
-                        <div class="profile-card">
-                            <div class="profile-avatar">
-                                <div class="avatar-circle">
-                                    <img th:if="${userObject != null and userObject.avatar != null}" 
-                                         th:src="${userObject.avatar}" 
-                                         alt="Avatar" 
-                                         style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;"
-                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
-                                    <i th:if="${userObject == null or userObject.avatar == null}" class="bi bi-person-fill" style="display: inline-block;"></i>
-                                    <i class="bi bi-person-fill" style="display: none;"></i>
+            <div class="max-w-7xl mx-auto">
+                    <div class="space-y-6">
+                        <!-- Profile Header Card -->
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                            <div class="p-8">
+                                <div class="flex items-start gap-6">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-24 h-24 rounded-full border-2 border-gray-200 bg-gray-100 flex items-center justify-center overflow-hidden">
+                                            <img th:if="${userObject != null and userObject.avatar != null}" 
+                                                 th:src="${userObject.avatar}" 
+                                                 alt="Avatar" 
+                                                 class="w-full h-full object-cover">
+                                            <svg th:if="${userObject == null or userObject.avatar == null}" class="w-12 h-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M10 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.465 14.493a1.23 1.23 0 0 0 .41 1.412A9.957 9.957 0 0 0 10 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 0 0-13.074.003Z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h1 class="text-2xl font-bold text-gray-900 mb-1" th:text="${userObject != null ? userObject.fullName : 'Người dùng'}">Người dùng</h1>
+                                        <p class="text-gray-600 text-sm mb-3" th:text="${userObject != null ? userObject.email : currentUser}">user@example.com</p>
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                                                <svg class="w-3 h-3 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" />
+                                                </svg>
+                                                Đã xác thực
+                                            </span>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200" th:text="${userObject != null ? userObject.role.displayName : 'Khách hàng'}">Khách hàng</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <button type="button" data-bs-toggle="modal" data-bs-target="#editProfileModal" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-pink-600 to-rose-600 text-white text-sm font-medium rounded-lg hover:from-pink-700 hover:to-rose-700 transition-all">
+                                            <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="m2.695 14.762-1.262 3.155a.5.5 0 0 0 .65.65l3.155-1.262a4 4 0 0 0 1.343-.886L17.5 5.501a2.121 2.121 0 0 0-3-3L3.58 13.42a4 4 0 0 0-.886 1.343Z" />
+                                            </svg>
+                                            Chỉnh sửa
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="avatar-status">
-                                    <i class="bi bi-check-circle-fill"></i>
-                                </div>
-                            </div>
-                            <div class="profile-info">
-                                <h3 class="profile-name" th:text="${userObject != null ? userObject.fullName : 'Người dùng'}">Người dùng</h3>
-                                <p class="profile-email" th:text="${userObject != null ? userObject.email : currentUser}">user@example.com</p>
-                                <span class="profile-badge">
-                                    <i class="bi bi-star-fill"></i>
-                                    Thành viên từ <span th:text="${memberSince ?: '2024'}">2024</span>
-                                </span>
                             </div>
                         </div>
-
-                        <!-- Navigation Menu -->
-                        <nav class="account-nav">
-                            <ul class="nav-list">
-                                <li class="nav-item">
-                                    <a href="/account/profile" class="nav-link active">
-                                        <span class="nav-icon">
-                                            <i class="bi bi-person"></i>
-                                        </span>
-                                        <span class="nav-text">Thông tin cá nhân</span>
-                                        <span class="nav-arrow">
-                                            <i class="bi bi-chevron-right"></i>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="/account/orders" class="nav-link">
-                                        <span class="nav-icon">
-                                            <i class="bi bi-bag"></i>
-                                        </span>
-                                        <span class="nav-text">Đơn hàng của tôi</span>
-                                        <span class="nav-badge" th:text="${ordersCount}" th:if="${ordersCount > 0}">3</span>
-                                        <span class="nav-arrow">
-                                            <i class="bi bi-chevron-right"></i>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="/account/wishlist" class="nav-link">
-                                        <span class="nav-icon">
-                                            <i class="bi bi-heart"></i>
-                                        </span>
-                                        <span class="nav-text">Yêu thích</span>
-                                        <span class="nav-badge" th:text="${wishlistCount}" th:if="${wishlistCount > 0}">12</span>
-                                        <span class="nav-arrow">
-                                            <i class="bi bi-chevron-right"></i>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="/account/settings" class="nav-link">
-                                        <span class="nav-icon">
-                                            <i class="bi bi-gear"></i>
-                                        </span>
-                                        <span class="nav-text">Cài đặt</span>
-                                        <span class="nav-arrow">
-                                            <i class="bi bi-chevron-right"></i>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li class="nav-divider"></li>
-                                <li class="nav-item">
-                                    <a href="/logout" class="nav-link logout-link">
-                                        <span class="nav-icon">
-                                            <i class="bi bi-box-arrow-right"></i>
-                                        </span>
-                                        <span class="nav-text">Đăng xuất</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
-                </div>
-
-                <!-- Main Content -->
-                <div class="col-lg-9">
-                    <div class="account-content">
                         
-                        <!-- Profile Information -->
-                        <div class="content-card">
-                            <div class="card-header">
-                                <h2 class="card-title">
-                                    <i class="bi bi-person-lines-fill"></i>
-                                    Thông tin cá nhân
-                                </h2>
-                                <button class="btn-edit" type="button" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                                    <i class="bi bi-pencil"></i>
-                                    Chỉnh sửa
-                                </button>
-                            </div>
-                            <div class="card-body">
-                                <div class="info-grid">
-                                    <div class="info-item">
-                                        <label class="info-label">Họ và tên</label>
-                                        <div class="info-value" th:text="${userObject != null ? userObject.fullName : 'Chưa cập nhật'}">Chưa cập nhật</div>
-                                    </div>
-                                    <div class="info-item">
-                                        <label class="info-label">Email</label>
-                                        <div class="info-value" th:text="${userObject != null ? userObject.email : currentUser}">user@example.com</div>
-                                        <span class="info-status verified">
-                                            <i class="bi bi-check-circle-fill"></i>
-                                            Đã xác thực
-                                        </span>
-                                    </div>
-                                    <div class="info-item">
-                                        <label class="info-label">Số điện thoại</label>
-                                        <div class="info-value" th:text="${userObject != null and userObject.phone != null ? userObject.phone : 'Chưa cập nhật'}">Chưa cập nhật</div>
-                                        <span class="info-status verified" th:if="${userObject != null and userObject.phone != null}">
-                                            <i class="bi bi-check-circle-fill"></i>
-                                            Đã xác thực
-                                        </span>
-                                        <span class="info-status unverified" th:if="${userObject == null or userObject.phone == null}">
-                                            <i class="bi bi-exclamation-circle"></i>
-                                            Chưa xác thực
-                                        </span>
-                                    </div>
-                                    <div class="info-item full-width">
-                                        <label class="info-label">Địa chỉ giao hàng</label>
-                                        <div class="info-value" th:text="${userAddress ?: 'Chưa cập nhật địa chỉ giao hàng'}">Chưa cập nhật địa chỉ giao hàng</div>
-                                    </div>
-                                    <div class="info-item">
-                                        <label class="info-label">Vai trò</label>
-                                        <div class="info-value" th:text="${userObject != null ? userObject.role.displayName : 'Khách hàng'}">Khách hàng</div>
-                                    </div>
-                                    <div class="info-item">
-                                        <label class="info-label">Ngày tham gia</label>
-                                        <div class="info-value" th:text="${userObject != null and userObject.createdAt != null ? #temporals.format(userObject.createdAt, 'dd/MM/yyyy') : 'Không rõ'}">Không rõ</div>
-                                    </div>
+                        <!-- Profile Details -->
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">Thông tin chi tiết</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-500 mb-1">Số điện thoại</label>
+                                    <p class="text-gray-900" th:text="${userObject != null and userObject.phone != null ? userObject.phone : 'Chưa cập nhật'}">Chưa cập nhật</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-500 mb-1">Ngày tham gia</label>
+                                    <p class="text-gray-900" th:text="${userObject != null and userObject.createdAt != null ? #temporals.format(userObject.createdAt, 'dd/MM/yyyy') : 'Không rõ'}">Không rõ</p>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Account Statistics -->
-                        <div class="stats-grid">
-                            <div class="stat-card">
-                                <div class="stat-icon orders">
-                                    <i class="bi bi-bag-check"></i>
-                                </div>
-                                <div class="stat-info">
-                                    <div class="stat-number" th:text="${ordersCount ?: 0}">24</div>
-                                    <div class="stat-label">Đơn hàng</div>
-                                    <div class="stat-trend">
-                                        <i class="bi bi-arrow-up"></i>
-                                        Tổng cộng
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">Tổng quan</h2>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                <a href="/account/orders" class="group block p-4 rounded-lg border border-gray-200 hover:border-pink-200 hover:shadow-sm transition-all">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M6 5v1H4.667a1.75 1.75 0 0 0-1.743 1.598l-.826 9.5A1.75 1.75 0 0 0 3.84 19h12.32a1.75 1.75 0 0 0 1.742-1.902l-.826-9.5A1.75 1.75 0 0 0 15.333 6H14V5a4 4 0 0 0-8 0Zm4-2.5A2.5 2.5 0 0 0 7.5 5v1h5V5A2.5 2.5 0 0 0 10 2.5Z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-2xl font-bold text-gray-900" th:text="${ordersCount ?: 0}">0</p>
+                                            <p class="text-sm text-gray-600">Đơn hàng</p>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                            
-                            <div class="stat-card">
-                                <div class="stat-icon wishlist">
-                                    <i class="bi bi-heart-fill"></i>
-                                </div>
-                                <div class="stat-info">
-                                    <div class="stat-number" th:text="${wishlistCount ?: 0}">12</div>
-                                    <div class="stat-label">Yêu thích</div>
-                                    <div class="stat-trend">
-                                        <i class="bi bi-arrow-up"></i>
-                                        Đã lưu
+                                </a>
+                                
+                                <a href="/account/wishlist" class="group block p-4 rounded-lg border border-gray-200 hover:border-pink-200 hover:shadow-sm transition-all">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <div class="w-10 h-10 bg-pink-50 rounded-lg flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-pink-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="m9.653 16.915-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001Z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-2xl font-bold text-gray-900" th:text="${wishlistCount ?: 0}">0</p>
+                                            <p class="text-sm text-gray-600">Yêu thích</p>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                            
-                            <div class="stat-card">
-                                <div class="stat-icon points">
-                                    <i class="bi bi-bag-fill"></i>
-                                </div>
-                                <div class="stat-info">
-                                    <div class="stat-number" th:text="${cartCount ?: 0}">0</div>
-                                    <div class="stat-label">Giỏ hàng</div>
-                                    <div class="stat-trend">
-                                        <i class="bi bi-bag"></i>
-                                        Sản phẩm
+                                </a>
+                                
+                                <a href="/cart" class="group block p-4 rounded-lg border border-gray-200 hover:border-pink-200 hover:shadow-sm transition-all">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-green-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M1 1.75A.75.75 0 0 1 1.75 1h1.628a1.75 1.75 0 0 1 1.734 1.51L5.18 3a65.25 65.25 0 0 1 13.36 1.412.75.75 0 0 1 .58.875 48.645 48.645 0 0 1-1.618 6.2.75.75 0 0 1-.712.513H6a2.503 2.503 0 0 0-2.292 1.5H17.25a.75.75 0 0 1 0 1.5H2.76a.75.75 0 0 1-.748-.807 4.002 4.002 0 0 1 2.716-3.486L3.626 2.716a.25.25 0 0 0-.248-.216H1.75A.75.75 0 0 1 1 1.75ZM6 17.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM15.5 19a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-2xl font-bold text-gray-900" th:text="${cartCount ?: 0}">0</p>
+                                            <p class="text-sm text-gray-600">Giỏ hàng</p>
+                                        </div>
                                     </div>
-                                </div>
+                                </a>
                             </div>
                         </div>
 
                         <!-- Address Management -->
-                        <div class="content-card">
-                            <div class="card-header">
-                                <h2 class="card-title">
-                                    <i class="bi bi-geo-alt"></i>
-                                    Địa chỉ giao hàng
-                                </h2>
-                                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addressModal">
-                                    <i class="bi bi-plus-circle me-1"></i>
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                                <h2 class="text-lg font-semibold text-gray-900">Địa chỉ giao hàng</h2>
+                                <button type="button" data-bs-toggle="modal" data-bs-target="#addressModal" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-pink-600 to-rose-600 text-white text-sm font-medium rounded-lg hover:from-pink-700 hover:to-rose-700 transition-all">
+                                    <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+                                    </svg>
                                     Thêm địa chỉ
                                 </button>
                             </div>
-                            <div class="card-body">
+                            <div class="p-6">
                                 <div id="addressesList">
-                                    <div class="text-center py-3">
-                                        <div class="spinner-border spinner-border-sm text-primary" role="status">
-                                            <span class="visually-hidden">Đang tải...</span>
-                                        </div>
-                                        <small class="text-muted ms-2">Đang tải địa chỉ...</small>
+                                    <div class="text-center py-8">
+                                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                                        <p class="mt-3 text-sm text-gray-500">Đang tải địa chỉ...</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Recent Activities -->
-                        <div class="content-card">
-                            <div class="card-header">
-                                <h2 class="card-title">
-                                    <i class="bi bi-clock-history"></i>
-                                    Hoạt động gần đây
-                                </h2>
-                                <a href="/account/orders" class="btn-view-all" th:if="${ordersCount > 0}">
-                                    Xem tất cả
-                                    <i class="bi bi-arrow-right"></i>
-                                </a>
-                            </div>
-                            <div class="card-body">
-                                <!-- Show when user has no activities -->
-                                <div class="activity-list" th:if="${ordersCount == 0 and wishlistCount == 0}">
-                                    <div class="empty-activity">
-                                        <div class="empty-activity-icon">
-                                            <i class="bi bi-clock-history"></i>
-                                        </div>
-                                        <h4 class="empty-activity-title">Chưa có hoạt động nào</h4>
-                                        <p class="empty-activity-desc">
-                                            Bạn chưa có đơn hàng hoặc sản phẩm yêu thích nào.<br>
-                                            Hãy bắt đầu khám phá và mua sắm!
-                                        </p>
-                                        <a href="/products" class="btn btn-primary">
-                                            <i class="bi bi-search"></i>
-                                            Khám phá sản phẩm
-                                        </a>
-                                    </div>
-                                </div>
-                                
-                                <!-- Show summary when user has activities -->
-                                <div class="activity-list" th:if="${ordersCount > 0 or wishlistCount > 0}">
-                                    <div class="activity-item" th:if="${ordersCount > 0}">
-                                        <div class="activity-icon info">
-                                            <i class="bi bi-bag-check"></i>
-                                        </div>
-                                        <div class="activity-content">
-                                            <div class="activity-title" th:text="'Bạn có ' + ${ordersCount} + ' đơn hàng'">Bạn có đơn hàng</div>
-                                            <div class="activity-time">Xem chi tiết trong lịch sử đơn hàng</div>
-                                        </div>
-                                        <div class="activity-action">
-                                            <a href="/account/orders" class="btn-sm-outline">Xem đơn hàng</a>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="activity-item" th:if="${wishlistCount > 0}">
-                                        <div class="activity-icon warning">
-                                            <i class="bi bi-heart-fill"></i>
-                                        </div>
-                                        <div class="activity-content">
-                                            <div class="activity-title" th:text="'Bạn có ' + ${wishlistCount} + ' sản phẩm yêu thích'">Bạn có sản phẩm yêu thích</div>
-                                            <div class="activity-time">Xem trong danh sách yêu thích</div>
-                                        </div>
-                                        <div class="activity-action">
-                                            <a href="/account/wishlist" class="btn-sm-outline">Xem yêu thích</a>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="activity-item" th:if="${cartCount > 0}">
-                                        <div class="activity-icon success">
-                                            <i class="bi bi-bag"></i>
-                                        </div>
-                                        <div class="activity-content">
-                                            <div class="activity-title" th:text="'Bạn có ' + ${cartCount} + ' sản phẩm trong giỏ hàng'">Bạn có sản phẩm trong giỏ hàng</div>
-                                            <div class="activity-time">Sẵn sàng để thanh toán</div>
-                                        </div>
-                                        <div class="activity-action">
-                                            <a href="/cart" class="btn-sm-outline">Xem giỏ hàng</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Quick Actions -->
-                        <div class="quick-actions">
-                            <h3 class="actions-title">Thao tác nhanh</h3>
-                            <div class="actions-grid">
-                                <a href="/products" class="action-card">
-                                    <div class="action-icon">
-                                        <i class="bi bi-search"></i>
-                                    </div>
-                                    <div class="action-content">
-                                        <div class="action-title">Khám phá sản phẩm</div>
-                                        <div class="action-desc">Tìm hoa yêu thích</div>
-                                    </div>
-                                </a>
-                                
-                                <a href="/account/orders" class="action-card">
-                                    <div class="action-icon">
-                                        <i class="bi bi-repeat"></i>
-                                    </div>
-                                    <div class="action-content">
-                                        <div class="action-title">Đặt lại đơn hàng</div>
-                                        <div class="action-desc">Từ lịch sử mua hàng</div>
-                                    </div>
-                                </a>
-                                
-                                <a href="/support" class="action-card">
-                                    <div class="action-icon">
-                                        <i class="bi bi-headset"></i>
-                                    </div>
-                                    <div class="action-content">
-                                        <div class="action-title">Hỗ trợ khách hàng</div>
-                                        <div class="action-desc">Liên hệ với chúng tôi</div>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
 
                     </div>
                 </div>
                 
             </div>
         </div>
-    </section>
-
-
-    <!-- Edit Profile Modal -->
-    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editProfileModalLabel">
-                        <i class="bi bi-pencil-square"></i>
-                        Chỉnh sửa thông tin
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editProfileForm" action="/account/profile/update" method="post">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <label for="firstName" class="form-label">Tên</label>
-                                <input type="text" class="form-control" id="firstName" name="firstName" th:value="${userObject != null ? userObject.firstname : ''}" placeholder="Nhập tên" required>
-                            </div>
-                            <div class="col-6">
-                                <label for="lastName" class="form-label">Họ</label>
-                                <input type="text" class="form-control" id="lastName" name="lastName" th:value="${userObject != null ? userObject.lastname : ''}" placeholder="Nhập họ" required>
-                            </div>
-                            <div class="col-12">
-                                <label for="phone" class="form-label">Số điện thoại</label>
-                                <input type="tel" class="form-control" id="phone" name="phone" th:value="${userObject != null ? userObject.phone : ''}" placeholder="Nhập số điện thoại">
-                            </div>
-                            <div class="col-12">
-                                <small class="text-muted">
-                                    <i class="bi bi-info-circle me-1"></i>
-                                    Để quản lý địa chỉ giao hàng, vui lòng sử dụng phần "Địa chỉ giao hàng" bên dưới với hỗ trợ GHN.
-                                </small>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary" form="editProfileForm">
-                        <i class="bi bi-check2"></i>
-                        Lưu thay đổi
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Address Modal -->
-    <div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addressModalLabel">
-                        <i class="bi bi-geo-alt me-2"></i>
-                        <span id="modalTitle">Thêm địa chỉ mới</span>
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addressForm">
-                        <input type="hidden" id="addressId" name="id">
-                        
-                        <!-- Address Mode (Fixed to 3-level) -->
-                        <input type="hidden" name="addressMode" value="OLD">
-                        <div class="mb-3">
-                            <div class="alert alert-info">
-                                <i class="bi bi-info-circle me-2"></i>
-                                <strong>Địa chỉ 3 cấp:</strong> Tỉnh/Thành phố → Quận/Huyện → Phường/Xã
-                            </div>
-                        </div>
-
-                        <!-- Location Selectors -->
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="provinceSelect" class="form-label">Tỉnh/Thành phố *</label>
-                                <select class="form-select" id="provinceSelect" required>
-                                    <option value="">-- Chọn tỉnh/thành phố --</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="districtSelect" class="form-label">Quận/Huyện *</label>
-                                <select class="form-select" id="districtSelect" required>
-                                    <option value="">-- Chọn quận/huyện --</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="wardSelect" class="form-label">Phường/Xã *</label>
-                                <select class="form-select" id="wardSelect" required>
-                                    <option value="">-- Chọn phường/xã --</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Address Detail -->
-                        <div class="mb-3">
-                            <label for="addressDetail" class="form-label">Địa chỉ chi tiết *</label>
-                            <textarea class="form-control" id="addressDetail" rows="2" 
-                                      placeholder="Số nhà, tên đường, khu vực..." required></textarea>
-                        </div>
-
-                        <!-- Default Address -->
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="isDefault">
-                                <label class="form-check-label" for="isDefault">
-                                    Đặt làm địa chỉ mặc định
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- GHN Compatibility Status -->
-                        <div class="alert alert-info" id="ghnStatus" style="display: none;">
-                            <i class="bi bi-info-circle me-2"></i>
-                            <span id="ghnStatusText"></span>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary" id="saveAddressBtn">
-                        <i class="bi bi-check-lg me-1"></i>
-                        Lưu địa chỉ
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteModalLabel">
-                        <i class="bi bi-exclamation-triangle text-warning me-2"></i>
-                        Xác nhận xóa
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Bạn có chắc chắn muốn xóa địa chỉ này không?</p>
-                    <p class="text-muted mb-0">Hành động này không thể hoàn tác.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
-                        <i class="bi bi-trash me-1"></i>
-                        Xóa địa chỉ
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- JavaScript for Profile Update -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load address summary
-            loadAddressSummary();
-            
-            const editProfileForm = document.getElementById('editProfileForm');
-            const editProfileModal = document.getElementById('editProfileModal');
-            
-            if (editProfileForm) {
-                editProfileForm.addEventListener('submit', function(e) {
-                    // Validate form
-                    const firstName = document.getElementById('firstName').value.trim();
-                    const lastName = document.getElementById('lastName').value.trim();
-                    
-                    if (!firstName || !lastName) {
-                        e.preventDefault();
-                        alert('Vui lòng nhập đầy đủ họ và tên');
-                        return false;
-                    }
-                    
-                    // Show loading state
-                    const submitBtn = editProfileForm.querySelector('button[type="submit"]');
-                    const originalText = submitBtn.innerHTML;
-                    submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang lưu...';
-                    submitBtn.disabled = true;
-                    
-                    // Form will submit normally to the server
-                });
-            }
-            
-            // Auto-hide alerts after 5 seconds
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(function(alert) {
-                setTimeout(function() {
-                    const bsAlert = new bootstrap.Alert(alert);
-                    bsAlert.close();
-                }, 5000);
-            });
-        });
-
-        // Address management variables
-        let currentAddressMode = 'OLD'; // Fixed to 3-level address only
-        let provinces = [];
-        let districts = [];
-        let wards = [];
-        let editingAddressId = null;
-
-        function loadAddressSummary() {
-            loadAddresses();
-            loadProvinces();
-            setupAddressEventListeners();
-        }
-
-        function setupAddressEventListeners() {
-            // Location cascading
-            document.getElementById('provinceSelect').addEventListener('change', onProvinceChange);
-            document.getElementById('districtSelect').addEventListener('change', onDistrictChange);
-            document.getElementById('wardSelect').addEventListener('change', onWardChange);
-            document.getElementById('addressDetail').addEventListener('input', updateGhnStatus);
-
-            // Save address
-            document.getElementById('saveAddressBtn').addEventListener('click', saveAddress);
-
-            // Modal events
-            document.getElementById('addressModal').addEventListener('hidden.bs.modal', resetAddressForm);
-        }
-
-        function loadAddresses() {
-            fetch('/api/addresses', { credentials: 'same-origin' })
-                .then(r => r.json())
-                .then(response => {
-                    if (response.data) {
-                        displayAddresses(response.data);
-                    } else {
-                        showNoAddresses();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading addresses:', error);
-                    showAddressError();
-                });
-        }
-
-        function loadProvinces() {
-            fetch('/api/locations/provinces', { credentials: 'same-origin' })
-                .then(r => r.json())
-                .then(response => {
-                    if (response.data) {
-                        provinces = response.data;
-                        populateProvinceSelect();
-                    }
-                })
-                .catch(error => console.error('Error loading provinces:', error));
-        }
-
-        function displayAddresses(addresses) {
-            const container = document.getElementById('addressesList');
-            
-            if (!addresses || addresses.length === 0) {
-                showNoAddresses();
-                return;
-            }
-
-            let html = '';
-            addresses.forEach(address => {
-                const isDefault = address.isDefault;
-                const isGhnCompatible = address.ghnCompatible;
-                
-                html += `
-                    <div class="card mb-3 ${isDefault ? 'border-success' : ''}">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div class="flex-grow-1">
-                                    ${isDefault ? '<span class="badge bg-success mb-2">Mặc định</span>' : ''}
-                                    ${isGhnCompatible ? '<span class="badge bg-info mb-2 ms-1">GHN</span>' : ''}
-                                </div>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#" onclick="editAddress(${address.id})">
-                                            <i class="bi bi-pencil me-2"></i>Sửa
-                                        </a></li>
-                                        ${!isDefault ? `<li><a class="dropdown-item text-danger" href="#" onclick="deleteAddress(${address.id})">
-                                            <i class="bi bi-trash me-2"></i>Xóa
-                                        </a></li>` : ''}
-                                    </ul>
-                                </div>
-                            </div>
-                            <p class="card-text mb-1">
-                                <strong>${address.fullAddress}</strong>
-                            </p>
-                        </div>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
-        }
-
-        function showNoAddresses() {
-            const container = document.getElementById('addressesList');
-            container.innerHTML = `
-                <div class="text-center py-4">
-                    <i class="bi bi-geo-alt text-muted mb-3" style="font-size: 3rem;"></i>
-                    <h5 class="text-muted">Chưa có địa chỉ nào</h5>
-                    <p class="text-muted">Thêm địa chỉ đầu tiên để bắt đầu mua sắm</p>
-                </div>
-            `;
-        }
-
-        function showAddressError() {
-            const container = document.getElementById('addressesList');
-            container.innerHTML = `
-                <div class="text-center py-4">
-                    <i class="bi bi-exclamation-triangle text-warning mb-3" style="font-size: 3rem;"></i>
-                    <h5 class="text-muted">Không thể tải địa chỉ</h5>
-                    <button class="btn btn-outline-secondary" onclick="loadAddresses()">
-                        <i class="bi bi-arrow-clockwise me-1"></i>Thử lại
-                    </button>
-                </div>
-            `;
-        }
-
-
-        function populateProvinceSelect() {
-            const select = document.getElementById('provinceSelect');
-            select.innerHTML = '<option value="">-- Chọn tỉnh/thành phố --</option>';
-            
-            provinces.forEach(province => {
-                const option = document.createElement('option');
-                option.value = province.id;
-                option.textContent = province.name;
-                option.dataset.name = province.name;
-                select.appendChild(option);
-            });
-        }
-
-        function onProvinceChange() {
-            const select = document.getElementById('provinceSelect');
-            const provinceId = select.value;
-            
-            clearDistrictSelect();
-            clearWardSelect();
-            
-            if (provinceId) {
-                loadDistricts(parseInt(provinceId));
-            }
-            updateGhnStatus();
-        }
-
-        function loadDistricts(provinceId) {
-            const districtSelect = document.getElementById('districtSelect');
-            districtSelect.disabled = true;
-            
-            fetch(`/api/locations/districts?province_id=${provinceId}`, { credentials: 'same-origin' })
-                .then(r => r.json())
-                .then(response => {
-                    if (response.data) {
-                        districts = response.data;
-                        populateDistrictSelect();
-                    }
-                })
-                .catch(error => console.error('Error loading districts:', error))
-                .finally(() => {
-                    districtSelect.disabled = false;
-                });
-        }
-
-        function populateDistrictSelect() {
-            const select = document.getElementById('districtSelect');
-            select.innerHTML = '<option value="">-- Chọn quận/huyện --</option>';
-            
-            districts.forEach(district => {
-                const option = document.createElement('option');
-                option.value = district.id;
-                option.textContent = district.name;
-                option.dataset.name = district.name;
-                select.appendChild(option);
-            });
-        }
-
-        function onDistrictChange() {
-            const select = document.getElementById('districtSelect');
-            const districtId = select.value;
-            
-            clearWardSelect();
-            
-            if (districtId) {
-                loadWards(parseInt(districtId));
-            }
-            updateGhnStatus();
-        }
-
-        function loadWards(districtId) {
-            const wardSelect = document.getElementById('wardSelect');
-            wardSelect.disabled = true;
-            
-            fetch(`/api/locations/wards?district_id=${districtId}`, { credentials: 'same-origin' })
-                .then(r => r.json())
-                .then(response => {
-                    if (response.data) {
-                        wards = response.data;
-                        populateWardSelect();
-                    }
-                })
-                .catch(error => console.error('Error loading wards:', error))
-                .finally(() => {
-                    wardSelect.disabled = false;
-                });
-        }
-
-
-        function populateWardSelect() {
-            const select = document.getElementById('wardSelect');
-            select.innerHTML = '<option value="">-- Chọn phường/xã --</option>';
-            
-            wards.forEach(ward => {
-                const option = document.createElement('option');
-                option.value = ward.code;
-                option.textContent = ward.name;
-                option.dataset.name = ward.name;
-                select.appendChild(option);
-            });
-        }
-
-        function onWardChange() {
-            updateGhnStatus();
-        }
-
-        function clearDistrictSelect() {
-            const select = document.getElementById('districtSelect');
-            select.innerHTML = '<option value="">-- Chọn quận/huyện --</option>';
-            districts = [];
-        }
-
-        function clearWardSelect() {
-            const select = document.getElementById('wardSelect');
-            select.innerHTML = '<option value="">-- Chọn phường/xã --</option>';
-            wards = [];
-        }
-
-        function updateGhnStatus() {
-            const statusDiv = document.getElementById('ghnStatus');
-            const statusText = document.getElementById('ghnStatusText');
-            
-            const provinceId = document.getElementById('provinceSelect').value;
-            const districtId = document.getElementById('districtSelect').value;
-            const wardCode = document.getElementById('wardSelect').value;
-            const addressDetail = document.getElementById('addressDetail').value.trim();
-
-            const isCompatible = provinceId && districtId && wardCode && addressDetail;
-
-            if (provinceId || districtId || wardCode || addressDetail) {
-                statusDiv.style.display = 'block';
-                statusDiv.className = isCompatible ? 'alert alert-success' : 'alert alert-warning';
-                const message = isCompatible 
-                    ? 'Địa chỉ tương thích với GHN' 
-                    : 'Vui lòng điền đầy đủ thông tin địa chỉ (3 cấp)';
-                statusText.textContent = message;
-            } else {
-                statusDiv.style.display = 'none';
-            }
-        }
-
-        function saveAddress() {
-            const form = document.getElementById('addressForm');
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-
-            const provinceSelect = document.getElementById('provinceSelect');
-            const districtSelect = document.getElementById('districtSelect');
-            const wardSelect = document.getElementById('wardSelect');
-
-            const data = {
-                id: editingAddressId,
-                addressMode: 'OLD', // Fixed to 3-level
-                provinceId: parseInt(provinceSelect.value),
-                districtId: parseInt(districtSelect.value),
-                wardCode: wardSelect.value,
-                addressDetail: document.getElementById('addressDetail').value.trim(),
-                provinceName: provinceSelect.options[provinceSelect.selectedIndex]?.dataset.name,
-                districtName: districtSelect.options[districtSelect.selectedIndex]?.dataset.name,
-                wardName: wardSelect.options[wardSelect.selectedIndex]?.dataset.name,
-                isDefault: document.getElementById('isDefault').checked
-            };
-
-            const btn = document.getElementById('saveAddressBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Đang lưu...';
-
-            fetch('/api/addresses', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'same-origin',
-                body: JSON.stringify(data)
-            })
-            .then(r => r.json())
-            .then(response => {
-                if (response.data) {
-                    showToast(editingAddressId ? 'Cập nhật địa chỉ thành công!' : 'Thêm địa chỉ thành công!', 'success');
-                    bootstrap.Modal.getInstance(document.getElementById('addressModal')).hide();
-                    loadAddresses();
-                } else {
-                    showToast('Lỗi khi lưu địa chỉ: ' + (response.error || 'Lỗi không xác định'), 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error saving address:', error);
-                showToast('Lỗi kết nối khi lưu địa chỉ', 'error');
-            })
-            .finally(() => {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Lưu địa chỉ';
-            });
-        }
-
-        function resetAddressForm() {
-            editingAddressId = null;
-            document.getElementById('modalTitle').textContent = 'Thêm địa chỉ mới';
-            document.getElementById('addressForm').reset();
-            // Address mode is fixed to OLD (3-level)
-            clearDistrictSelect();
-            clearWardSelect();
-            updateGhnStatus();
-        }
-
-        // Global functions for onclick handlers
-        window.editAddress = function(addressId) {
-            editingAddressId = addressId;
-            document.getElementById('modalTitle').textContent = 'Sửa địa chỉ';
-            const modal = new bootstrap.Modal(document.getElementById('addressModal'));
-            modal.show();
-        };
-
-        window.deleteAddress = function(addressId) {
-            editingAddressId = addressId;
-            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            modal.show();
-            
-            document.getElementById('confirmDeleteBtn').onclick = function() {
-                fetch(`/api/addresses/${addressId}`, {
-                    method: 'DELETE',
-                    credentials: 'same-origin'
-                })
-                .then(r => r.json())
-                .then(response => {
-                    if (response.data !== undefined) {
-                        showToast('Xóa địa chỉ thành công!', 'success');
-                        modal.hide();
-                        loadAddresses();
-                    } else {
-                        showToast('Lỗi khi xóa địa chỉ: ' + (response.error || 'Lỗi không xác định'), 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error deleting address:', error);
-                    showToast('Lỗi kết nối khi xóa địa chỉ', 'error');
-                });
-            };
-        };
-
-        function showToast(message, type) {
-            const bgClass = type === 'success' ? 'bg-success' : 'bg-danger';
-            const icon = type === 'success' ? 'check-circle' : 'exclamation-triangle';
-            
-            const toast = document.createElement('div');
-            toast.className = `toast align-items-center text-white ${bgClass} border-0 position-fixed top-0 end-0 m-3`;
-            toast.style.zIndex = '9999';
-            toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">
-                        <i class="bi bi-${icon} me-2"></i>${message}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                </div>
-            `;
-            document.body.appendChild(toast);
-            const bsToast = new bootstrap.Toast(toast);
-            bsToast.show();
-            toast.addEventListener('hidden.bs.toast', () => toast.remove());
-        }
-    </script>
 
 </th:block>
 </body>
