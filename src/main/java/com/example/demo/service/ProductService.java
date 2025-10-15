@@ -260,7 +260,30 @@ public class ProductService {
      */
     public Optional<Product> getProductById(Long productId) {
         log.info("Admin: Fetching product by ID: {}", productId);
-        return productRepository.findByIdWithReviews(productId);
+        return productRepository.findByIdWithCatalogEager(productId);
+    }
+    
+    /**
+     * Get product by ID with rating info (Admin)
+     */
+    public Map<String, Object> getProductByIdWithRating(Long productId) {
+        log.info("Admin: Fetching product by ID with rating: {}", productId);
+        
+        Optional<Product> productOpt = productRepository.findByIdWithCatalogEager(productId);
+        if (productOpt.isEmpty()) {
+            return null;
+        }
+        
+        Product product = productOpt.get();
+        Double averageRating = productRepository.getAverageRatingByProductId(productId);
+        Long reviewCount = productRepository.getReviewCountByProductId(productId);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("product", product);
+        result.put("averageRating", averageRating != null ? averageRating : 0.0);
+        result.put("reviewCount", reviewCount != null ? reviewCount : 0L);
+        
+        return result;
     }
 
     /**
@@ -478,6 +501,114 @@ public class ProductService {
         Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
         
         return "/uploads/" + filename;
+    }
+
+    /**
+     * Search products for AI chat
+     * Returns simplified product suggestions with essential info
+     */
+    public List<com.example.demo.dto.ProductSuggestionDTO> searchForAi(String query, BigDecimal maxPrice, Integer limit) {
+        log.info("AI product search: query='{}', maxPrice={}, limit={}", query, maxPrice, limit);
+        
+        try {
+            int searchLimit = limit != null ? limit : 3;
+            Pageable pageable = PageRequest.of(0, searchLimit * 3, Sort.by(Sort.Direction.DESC, "createdAt")); // Get more to filter
+            
+            Page<Product> products;
+            
+            if (query == null || query.trim().isEmpty()) {
+                // No query - return latest products
+                products = productRepository.findAll(pageable);
+            } else {
+                // Normalize search query - extract key words
+                String normalizedQuery = normalizeSearchQuery(query.trim());
+                log.info("Normalized search query: '{}' -> '{}'", query, normalizedQuery);
+                
+                // Use enhanced search that includes name, description, and catalog
+                products = productRepository.searchProductsForAi(normalizedQuery, pageable);
+            }
+            
+            List<com.example.demo.dto.ProductSuggestionDTO> suggestions = new ArrayList<>();
+            
+            for (Product product : products) {
+                // Filter by price if specified
+                if (maxPrice != null && product.getPrice().compareTo(maxPrice) > 0) {
+                    continue;
+                }
+                
+                // Only include available products
+                if (product.getStatus() != ProductStatus.ACTIVE || !product.isInStock()) {
+                    continue;
+                }
+                
+                com.example.demo.dto.ProductSuggestionDTO suggestion = new com.example.demo.dto.ProductSuggestionDTO();
+                suggestion.setId(product.getId());
+                suggestion.setName(product.getName());
+                suggestion.setDescription(product.getDescription());
+                suggestion.setPrice(product.getPrice());
+                suggestion.setImageUrl(product.getImage());
+                suggestion.setProductUrl("/products/" + product.getId());
+                suggestion.setStockQuantity(product.getStockQuantity());
+                suggestion.setAvailable(product.isAvailable());
+                
+                if (product.getCatalog() != null) {
+                    suggestion.setCatalogName(product.getCatalog().getValue());
+                }
+                
+                suggestions.add(suggestion);
+                
+                // Stop if we have enough
+                if (suggestions.size() >= searchLimit) {
+                    break;
+                }
+            }
+            
+            log.info("Found {} product suggestions for AI", suggestions.size());
+            return suggestions;
+            
+        } catch (Exception e) {
+            log.error("Error in AI product search", e);
+            return new ArrayList<>();
+        }
+    }
+    
+    /**
+     * Normalize search query for better matching
+     * Extract key flower names and types
+     */
+    private String normalizeSearchQuery(String query) {
+        String normalized = query.toLowerCase();
+        
+        // Map common phrases to key product terms
+        if (normalized.contains("người yêu") || normalized.contains("tình nhân") || normalized.contains("valentine")) {
+            return "hồng"; // Most romantic flower
+        }
+        if (normalized.contains("sinh nhật") || normalized.contains("chúc mừng")) {
+            return ""; // Return all for birthday/celebration
+        }
+        if (normalized.contains("chia buồn") || normalized.contains("tang lễ")) {
+            return "ly"; // Funeral flowers
+        }
+        
+        // Extract flower names
+        String[] flowerKeywords = {"hồng", "ly", "tulip", "hướng dương", "cẩm chướng", 
+                                   "lan", "peony", "baby", "cúc", "salem", "cẩm tú cầu"};
+        for (String keyword : flowerKeywords) {
+            if (normalized.contains(keyword)) {
+                return keyword;
+            }
+        }
+        
+        // Extract color if mentioned
+        String[] colors = {"đỏ", "trắng", "hồng", "vàng", "tím", "xanh", "cam"};
+        for (String color : colors) {
+            if (normalized.contains(color)) {
+                return color;
+            }
+        }
+        
+        // If nothing specific, return original
+        return query;
     }
 
     /**

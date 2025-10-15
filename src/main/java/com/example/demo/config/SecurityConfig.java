@@ -5,6 +5,7 @@ import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.JwtService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -33,6 +34,7 @@ import java.io.IOException;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -50,7 +52,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf
                 .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**", "/api/cart/**", "/api/orders/**", "/api/payment/**", "/api/locations/**", "/api/addresses/**", "/api/shipping/**", "/admin/orders/api/**", "/admin/products/api/**", "/admin/api/**", "/sse/**", "/swagger-ui/**", "/v3/api-docs/**")
+                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**", "/api/cart/**", "/api/orders/**", "/api/payment/**", "/api/locations/**", "/api/addresses/**", "/api/shipping/**", "/admin/orders/api/**", "/admin/products/api/**", "/admin/api/**", "/api/staff/**", "/sse/**", "/swagger-ui/**", "/v3/api-docs/**")
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -91,13 +93,12 @@ public class SecurityConfig {
                 // Location APIs - public access for address forms
                 .requestMatchers("/api/locations/**").permitAll()
                 
-                // Debug endpoints - for troubleshooting (remove in production)
-                .requestMatchers("/debug/**").permitAll()
-                
                 // Account pages - require authentication
                 .requestMatchers("/account/**").authenticated()
                 // Order pages - require authentication
                 .requestMatchers("/orders", "/orders/**", "/checkout").authenticated()
+                // Staff pages - require STAFF role
+                .requestMatchers("/staff/**").hasRole("STAFF")
                 // Admin pages - require ADMIN role
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 
@@ -106,6 +107,16 @@ public class SecurityConfig {
                 
                 // Categories page
                 .requestMatchers("/categories").permitAll()
+                
+                // Vouchers page - public access
+                .requestMatchers("/vouchers").permitAll()
+                
+                // Blog page - public access
+                .requestMatchers("/blog", "/blog/**").permitAll()
+                
+                // Voucher API - public access for viewing available vouchers
+                .requestMatchers("/api/vouchers/available", "/api/vouchers/validate/**").permitAll()
+                .requestMatchers("/api/vouchers/apply").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 
                 // Protected API endpoints as per rules.mdc
                 .requestMatchers("/api/users/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
@@ -120,6 +131,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/reviews/**").hasRole("CUSTOMER")
                 .requestMatchers("/api/favorite/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/messages/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
+                .requestMatchers("/api/chat/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
+                .requestMatchers("/api/staff/**").hasAnyRole("STAFF", "ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/admin/orders/api/**").hasRole("ADMIN")
                 .requestMatchers("/admin/products/api/**").hasRole("ADMIN")
@@ -134,12 +147,12 @@ public class SecurityConfig {
             .formLogin(form -> form
                 .loginPage("/login")
                 .permitAll()
-                .defaultSuccessUrl("/", true)
+                .successHandler(formLoginSuccessHandler())
                 .failureUrl("/login?error=true")
             )
             .rememberMe(remember -> remember
                 .key("unique-and-secret")
-                .tokenValiditySeconds(86400)
+                .tokenValiditySeconds(3600) // 1 hour instead of 24 hours
                 .userDetailsService(username -> {
                     // Simple UserDetails implementation for remember-me
                     User user = userRepository.findByEmail(username).orElse(null);
@@ -167,6 +180,17 @@ public class SecurityConfig {
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
                 .deleteCookies("authToken", "JSESSIONID", "SPRING_SECURITY_REMEMBER_ME_COOKIE")
+                .addLogoutHandler((request, response, authentication) -> {
+                    // Clear session attributes before session invalidation
+                    if (request.getSession(false) != null) {
+                        request.getSession().removeAttribute("authToken");
+                        request.getSession().removeAttribute("userEmail");
+                        request.getSession().removeAttribute("userRole");
+                        request.getSession().removeAttribute("userId");
+                    }
+                    // Clear SecurityContext
+                    org.springframework.security.core.context.SecurityContextHolder.clearContext();
+                })
                 .permitAll()
             )
             .exceptionHandling(exceptions -> exceptions
@@ -206,50 +230,102 @@ public class SecurityConfig {
     }
 
     @Bean
+    public AuthenticationSuccessHandler formLoginSuccessHandler() {
+        return new AuthenticationSuccessHandler() {
+            @Override
+            public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+                    org.springframework.security.core.Authentication authentication) throws IOException {
+                try {
+                    String username = authentication.getName();
+                    
+                    // Find user by email
+                    User user = userRepository.findByEmail(username).orElse(null);
+                    
+                    if (user == null) {
+                        log.error("User not found after form login: {}", username);
+                        response.sendRedirect("/login?error=user_not_found");
+                        return;
+                    }
+                    
+                    // Generate JWT token
+                    String token = jwtService.generateToken(user.getEmail(), user.getRole(), user.getId());
+                    
+                    // Create JWT cookie
+                    jakarta.servlet.http.Cookie authCookie = new jakarta.servlet.http.Cookie("authToken", token);
+                    authCookie.setHttpOnly(true);
+                    authCookie.setSecure(false); // Set to false for localhost development
+                    authCookie.setPath("/");
+                    authCookie.setMaxAge(4 * 60 * 60); // 4 hours instead of 24 hours
+                    response.addCookie(authCookie);
+                    
+                    // Set authentication in session as backup
+                    request.getSession().setAttribute("authToken", token);
+                    request.getSession().setAttribute("userEmail", user.getEmail());
+                    request.getSession().setAttribute("userRole", user.getRole().name());
+                    request.getSession().setAttribute("userId", user.getId());
+                    
+                    // Update the authentication in SecurityContext with proper authorities
+                    var authorities = java.util.List.of(
+                        new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + user.getRole().name())
+                    );
+                    var newAuth = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                        user.getEmail(), null, authorities
+                    );
+                    org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(newAuth);
+                    
+                    // Redirect based on user role
+                    String redirectUrl = "/";
+                    if (user.getRole() == com.example.demo.entity.enums.UserRole.ADMIN) {
+                        redirectUrl = "/admin/dashboard";
+                    } else if (user.getRole() == com.example.demo.entity.enums.UserRole.STAFF) {
+                        redirectUrl = "/staff/dashboard";
+                    }
+                    
+                    log.info("Form login successful for user: {} with role: {}", user.getEmail(), user.getRole());
+                    response.sendRedirect(redirectUrl);
+                    
+                } catch (Exception e) {
+                    log.error("Form login error: {}", e.getMessage(), e);
+                    response.sendRedirect("/login?error=processing_failed");
+                }
+            }
+        };
+    }
+
+    @Bean
     public AuthenticationSuccessHandler oauth2SuccessHandler() {
         return new AuthenticationSuccessHandler() {
             @Override
             public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, 
                     org.springframework.security.core.Authentication authentication) throws IOException {
                 try {
-                    System.out.println("OAuth2 Success Handler: CALLED - Starting OAuth2 success processing");
-                    
                     OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
                     String email = oauth2User.getAttribute("email");
-                    System.out.println("OAuth2 Success Handler: Email extracted: " + email);
                     
                     if (email == null || email.isEmpty()) {
-                        System.out.println("OAuth2 Success Handler: No email found, redirecting to error");
+                        log.error("No email found in OAuth2 response");
                         response.sendRedirect("/login?error=oauth2_no_email");
                         return;
                     }
                     
                     // Find user (should exist after CustomOAuth2UserService processing)
                     User user = userRepository.findByEmail(email).orElse(null);
-                    System.out.println("OAuth2 Success Handler: User found: " + (user != null ? user.getEmail() : "NULL"));
                     if (user == null) {
-                        System.out.println("OAuth2 Success Handler: User not found, redirecting to error");
+                        log.error("User not found after OAuth2 login: {}", email);
                         response.sendRedirect("/login?error=oauth2_user_not_found");
                         return;
                     }
                     
-                    // Check JwtService dependency
-                    System.out.println("OAuth2 Success Handler: JwtService available: " + (jwtService != null));
-                    
                     // Generate JWT token
-                    System.out.println("OAuth2 Success Handler: Generating JWT token for user: " + user.getEmail());
                     String token = jwtService.generateToken(user.getEmail(), user.getRole(), user.getId());
-                    System.out.println("OAuth2 Success Handler: JWT token generated: " + (token != null ? "SUCCESS" : "FAILED"));
-                    System.out.println("OAuth2 Success Handler: Token length: " + (token != null ? token.length() : "NULL"));
                     
-                    // Create JWT cookie (same as in AuthController)
+                    // Create JWT cookie
                     jakarta.servlet.http.Cookie authCookie = new jakarta.servlet.http.Cookie("authToken", token);
                     authCookie.setHttpOnly(true);
                     authCookie.setSecure(false); // Set to false for localhost development
                     authCookie.setPath("/");
-                    authCookie.setMaxAge(24 * 60 * 60); // 24 hours
+                    authCookie.setMaxAge(4 * 60 * 60); // 4 hours instead of 24 hours
                     response.addCookie(authCookie);
-                    System.out.println("OAuth2 Success Handler: JWT cookie added to response");
                     
                     // Set authentication in session
                     request.getSession().setAttribute("authToken", token);
@@ -257,13 +333,28 @@ public class SecurityConfig {
                     request.getSession().setAttribute("userRole", user.getRole().name());
                     request.getSession().setAttribute("userId", user.getId());
                     
-                    // Redirect to home page
-                    System.out.println("OAuth2 Success Handler: Redirecting to home page");
-                    response.sendRedirect("/?oauth2=success");
+                    // Update the authentication in SecurityContext with proper authorities
+                    var authorities = java.util.List.of(
+                        new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + user.getRole().name())
+                    );
+                    var newAuth = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                        user.getEmail(), null, authorities
+                    );
+                    org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(newAuth);
+                    
+                    // Redirect based on user role
+                    String redirectUrl = "/";
+                    if (user.getRole() == com.example.demo.entity.enums.UserRole.ADMIN) {
+                        redirectUrl = "/admin/dashboard";
+                    } else if (user.getRole() == com.example.demo.entity.enums.UserRole.STAFF) {
+                        redirectUrl = "/staff/dashboard";
+                    }
+                    
+                    log.info("OAuth2 login successful for user: {} with role: {}", user.getEmail(), user.getRole());
+                    response.sendRedirect(redirectUrl);
                     
                 } catch (Exception e) {
-                    System.out.println("OAuth2 Success Handler: EXCEPTION occurred: " + e.getMessage());
-                    e.printStackTrace();
+                    log.error("OAuth2 login error: {}", e.getMessage(), e);
                     response.sendRedirect("/login?error=oauth2_processing");
                 }
             }

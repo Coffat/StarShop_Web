@@ -29,4 +29,22 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     
     @Query("SELECT DISTINCT CASE WHEN m.sender.id = :userId THEN m.receiver ELSE m.sender END FROM Message m WHERE m.sender.id = :userId OR m.receiver.id = :userId")
     List<Object> findConversationPartners(@Param("userId") Long userId);
+    
+    // New methods for conversation-based chat
+    
+    @Query("SELECT m FROM Message m WHERE m.conversationId = :conversationId ORDER BY m.sentAt ASC")
+    List<Message> findByConversationIdOrderBySentAtAsc(@Param("conversationId") Long conversationId);
+    
+    @Query("SELECT m FROM Message m WHERE m.conversationId = :conversationId ORDER BY m.sentAt DESC")
+    Page<Message> findByConversationIdOrderBySentAtDesc(@Param("conversationId") Long conversationId, Pageable pageable);
+    
+    @Query("SELECT COUNT(m) FROM Message m WHERE m.conversationId = :conversationId AND m.receiver.id = :receiverId AND m.isRead = false")
+    Long countUnreadByConversationIdAndReceiverId(@Param("conversationId") Long conversationId, @Param("receiverId") Long receiverId);
+    
+    @Query("SELECT m FROM Message m WHERE m.conversationId = :conversationId ORDER BY m.sentAt DESC, m.id DESC")
+    List<Message> findLastMessageByConversationId(@Param("conversationId") Long conversationId, Pageable pageable);
+    
+    @Modifying
+    @Query("UPDATE Message m SET m.isRead = true WHERE m.conversationId = :conversationId AND m.receiver.id = :receiverId")
+    void markConversationMessagesAsRead(@Param("conversationId") Long conversationId, @Param("receiverId") Long receiverId);
 }

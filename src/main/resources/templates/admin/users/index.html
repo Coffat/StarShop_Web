@@ -1,295 +1,257 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <body>
-    <!-- Users Management Content -->
-    <div class="space-y-6">
+    <!-- Customers Management Content -->
+    <div class="space-y-6" x-data="customerManager()">
         
         <!-- Header Actions -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h2 class="text-xl font-semibold text-gray-900">Quản lý Người dùng</h2>
-                <p class="mt-1 text-sm text-gray-500">Quản lý tài khoản khách hàng và nhân viên</p>
+                <h2 class="text-2xl font-bold text-gray-900">Quản lý Khách hàng</h2>
+                <p class="mt-1 text-sm text-gray-500">Quản lý thông tin và hoạt động mua hàng của khách hàng</p>
             </div>
             <div class="mt-4 sm:mt-0 flex space-x-3">
-                <button class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
-                    <i class="fas fa-download mr-2"></i>
+                <button @click="exportData" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
                     Xuất danh sách
                 </button>
-                <button class="inline-flex items-center px-4 py-2 bg-primary-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-primary-700 transition-colors duration-200">
-                    <i class="fas fa-user-plus mr-2"></i>
-                    Thêm người dùng
+                <button @click="openCreateModal" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 border border-transparent rounded-lg text-sm font-medium text-white hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-sm hover:shadow-md">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Thêm khách hàng
                 </button>
             </div>
         </div>
         
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div class="bg-white rounded-xl shadow-sm p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-users text-blue-600"></i>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform duration-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <p class="text-blue-100 text-sm font-medium">Tổng khách hàng</p>
+                        <p class="text-3xl font-bold mt-2" x-text="stats.total">0</p>
+                        <div class="flex items-center mt-2">
+                            <svg class="w-4 h-4 text-blue-200 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                            </svg>
+                            <span class="text-blue-200 text-sm">Khách hàng đã đăng ký</span>
                         </div>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Tổng người dùng</p>
-                        <p class="text-2xl font-semibold text-gray-900">3,782</p>
+                    <div class="bg-white bg-opacity-20 rounded-full p-4">
+                        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                        </svg>
                     </div>
                 </div>
             </div>
             
-            <div class="bg-white rounded-xl shadow-sm p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-user-check text-green-600"></i>
+            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform duration-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <p class="text-green-100 text-sm font-medium">Khách hàng thân thiết</p>
+                        <p class="text-3xl font-bold mt-2" x-text="stats.loyal">0</p>
+                        <div class="flex items-center mt-2">
+                            <svg class="w-4 h-4 text-green-200 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-green-200 text-sm">>10 đơn hàng</span>
                         </div>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Khách hàng</p>
-                        <p class="text-2xl font-semibold text-gray-900">3,654</p>
+                    <div class="bg-white bg-opacity-20 rounded-full p-4">
+                        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+                        </svg>
                     </div>
                 </div>
             </div>
             
-            <div class="bg-white rounded-xl shadow-sm p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-user-tie text-purple-600"></i>
+            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform duration-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <p class="text-purple-100 text-sm font-medium">Tổng chi tiêu</p>
+                        <p class="text-2xl font-bold mt-2" x-text="formatCurrency(stats.totalSpent)">0₫</p>
+                        <div class="flex items-center mt-2">
+                            <svg class="w-4 h-4 text-purple-200 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-purple-200 text-sm">Doanh thu từ khách</span>
                         </div>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Nhân viên</p>
-                        <p class="text-2xl font-semibold text-gray-900">125</p>
+                    <div class="bg-white bg-opacity-20 rounded-full p-4">
+                        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/>
+                        </svg>
                     </div>
                 </div>
             </div>
             
-            <div class="bg-white rounded-xl shadow-sm p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-user-clock text-yellow-600"></i>
+            <div class="bg-gradient-to-br from-orange-500 to-red-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform duration-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <p class="text-orange-100 text-sm font-medium">Tháng này</p>
+                        <p class="text-3xl font-bold mt-2" x-text="stats.newThisMonth">0</p>
+                        <div class="flex items-center mt-2">
+                            <svg class="w-4 h-4 text-orange-200 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-orange-200 text-sm">Khách hàng mới</span>
                         </div>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Hoạt động hôm nay</p>
-                        <p class="text-2xl font-semibold text-gray-900">234</p>
+                    <div class="bg-white bg-opacity-20 rounded-full p-4">
+                        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"/>
+                        </svg>
                     </div>
                 </div>
             </div>
         </div>
         
         <!-- Filters -->
-        <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Vai trò</label>
-                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                        <option value="">Tất cả vai trò</option>
-                        <option value="customer">Khách hàng</option>
-                        <option value="staff">Nhân viên</option>
-                        <option value="admin">Quản trị viên</option>
-                    </select>
-                </div>
-                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
-                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <select x-model="filters.status" @change="fetchCustomers" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                         <option value="">Tất cả trạng thái</option>
                         <option value="active">Hoạt động</option>
                         <option value="inactive">Tạm khóa</option>
-                        <option value="pending">Chờ xác thực</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Loại khách</label>
+                    <select x-model="filters.type" @change="fetchCustomers" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        <option value="">Tất cả</option>
+                        <option value="loyal">Khách thân thiết</option>
+                        <option value="new">Khách mới</option>
+                        <option value="inactive">Không hoạt động</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Ngày tham gia từ</label>
-                    <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <input type="date" x-model="filters.fromDate" @change="fetchCustomers" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Đến ngày</label>
-                    <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <input type="date" x-model="filters.toDate" @change="fetchCustomers" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
-                    <input type="text" placeholder="Tên, email, số điện thoại..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <div class="relative">
+                        <input type="text" x-model="filters.search" @input.debounce.300ms="fetchCustomers" placeholder="Tên, email, số điện thoại..." class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        <svg class="absolute left-3 top-3 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <!-- Users Table -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <!-- Loading State -->
+        <div x-show="loading" class="flex justify-center items-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+        
+        <!-- Customers Table -->
+        <div x-show="!loading" class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Người dùng</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vai trò</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Khách hàng</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày tham gia</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Đơn hàng</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tổng chi tiêu</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Đánh giá</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <!-- Sample User Row -->
-                        <tr class="hover:bg-gray-50 transition-colors duration-200">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="h-10 w-10 flex-shrink-0">
-                                        <img class="h-10 w-10 rounded-full object-cover" src="https://via.placeholder.com/40x40/ec4899/ffffff?text=NA" alt="Avatar">
+                        <template x-for="customer in customers" :key="customer.id">
+                            <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="h-10 w-10 flex-shrink-0">
+                                            <div x-show="!customer.avatar" class="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                                                <span class="text-white font-semibold text-sm" x-text="getInitials(customer.firstname, customer.lastname)"></span>
+                                            </div>
+                                            <img x-show="customer.avatar" :src="customer.avatar" class="h-10 w-10 rounded-full object-cover" alt="Avatar">
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900" x-text="customer.firstname + ' ' + customer.lastname"></div>
+                                            <div class="text-sm text-gray-500" x-text="customer.email"></div>
+                                            <div class="text-xs text-gray-400" x-text="customer.phone"></div>
+                                        </div>
                                     </div>
-                                    <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">Nguyễn Văn A</div>
-                                        <div class="text-sm text-gray-500">nguyenvana@email.com</div>
-                                        <div class="text-sm text-gray-500">0123456789</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="formatDate(customer.createdAt)"></td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900" x-text="customer.totalOrders + ' đơn'"></div>
+                                    <div class="text-xs text-gray-500" x-show="customer.lastOrderDate">
+                                        Gần nhất: <span x-text="formatDate(customer.lastOrderDate)"></span>
                                     </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    <i class="fas fa-user mr-1"></i>
-                                    Khách hàng
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                15/03/2024
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <div class="font-medium">12 đơn</div>
-                                <div class="text-gray-500">Đơn gần nhất: 10/12/2024</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                5,250,000₫
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    <div class="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></div>
-                                    Hoạt động
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex space-x-2">
-                                    <button class="text-primary-600 hover:text-primary-900 transition-colors duration-200" title="Xem chi tiết">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="text-blue-600 hover:text-blue-900 transition-colors duration-200" title="Chỉnh sửa">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="text-yellow-600 hover:text-yellow-900 transition-colors duration-200" title="Gửi email">
-                                        <i class="fas fa-envelope"></i>
-                                    </button>
-                                    <button class="text-red-600 hover:text-red-900 transition-colors duration-200" title="Khóa tài khoản">
-                                        <i class="fas fa-ban"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        <tr class="hover:bg-gray-50 transition-colors duration-200">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="h-10 w-10 flex-shrink-0">
-                                        <img class="h-10 w-10 rounded-full object-cover" src="https://via.placeholder.com/40x40/ec4899/ffffff?text=TB" alt="Avatar">
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900" x-text="formatCurrency(customer.totalSpent)"></td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                        </svg>
+                                        <span class="text-sm font-medium text-gray-900" x-text="customer.totalReviews + ' đánh giá'"></span>
                                     </div>
-                                    <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">Trần Thị B</div>
-                                        <div class="text-sm text-gray-500">tranthib@email.com</div>
-                                        <div class="text-sm text-gray-500">0987654321</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span :class="customer.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
+                                        <div :class="customer.isActive ? 'bg-green-400' : 'bg-red-400'" class="w-1.5 h-1.5 rounded-full mr-1"></div>
+                                        <span x-text="customer.isActive ? 'Hoạt động' : 'Tạm khóa'"></span>
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <button @click="viewCustomer(customer)" class="text-blue-600 hover:text-blue-900 transition-colors duration-150" title="Xem chi tiết">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                        </button>
+                                        <button @click="editCustomer(customer)" class="text-green-600 hover:text-green-900 transition-colors duration-150" title="Chỉnh sửa">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </button>
+                                        <button @click="viewOrders(customer)" class="text-purple-600 hover:text-purple-900 transition-colors duration-150" title="Xem đơn hàng">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                            </svg>
+                                        </button>
+                                        <button @click="toggleStatus(customer)" :class="customer.isActive ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'" class="transition-colors duration-150" :title="customer.isActive ? 'Khóa tài khoản' : 'Kích hoạt'">
+                                            <svg x-show="customer.isActive" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                            </svg>
+                                            <svg x-show="!customer.isActive" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </button>
+                                        <button @click="deleteCustomer(customer)" class="text-red-600 hover:text-red-900 transition-colors duration-150" title="Xóa">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
                                     </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                    <i class="fas fa-user-tie mr-1"></i>
-                                    Nhân viên
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                22/01/2024
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <div class="font-medium">-</div>
-                                <div class="text-gray-500">Nhân viên bán hàng</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                -
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    <div class="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></div>
-                                    Hoạt động
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex space-x-2">
-                                    <button class="text-primary-600 hover:text-primary-900 transition-colors duration-200" title="Xem chi tiết">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="text-blue-600 hover:text-blue-900 transition-colors duration-200" title="Chỉnh sửa">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="text-yellow-600 hover:text-yellow-900 transition-colors duration-200" title="Gửi email">
-                                        <i class="fas fa-envelope"></i>
-                                    </button>
-                                    <button class="text-red-600 hover:text-red-900 transition-colors duration-200" title="Khóa tài khoản">
-                                        <i class="fas fa-ban"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        <tr class="hover:bg-gray-50 transition-colors duration-200">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="h-10 w-10 flex-shrink-0">
-                                        <img class="h-10 w-10 rounded-full object-cover" src="https://via.placeholder.com/40x40/ec4899/ffffff?text=LC" alt="Avatar">
-                                    </div>
-                                    <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">Lê Văn C</div>
-                                        <div class="text-sm text-gray-500">levanc@email.com</div>
-                                        <div class="text-sm text-gray-500">0369852147</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    <i class="fas fa-user mr-1"></i>
-                                    Khách hàng
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                08/11/2024
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <div class="font-medium">3 đơn</div>
-                                <div class="text-gray-500">Đơn gần nhất: 05/12/2024</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                1,850,000₫
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                    <div class="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-1"></div>
-                                    Chờ xác thực
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex space-x-2">
-                                    <button class="text-primary-600 hover:text-primary-900 transition-colors duration-200" title="Xem chi tiết">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="text-blue-600 hover:text-blue-900 transition-colors duration-200" title="Chỉnh sửa">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="text-yellow-600 hover:text-yellow-900 transition-colors duration-200" title="Gửi email">
-                                        <i class="fas fa-envelope"></i>
-                                    </button>
-                                    <button class="text-green-600 hover:text-green-900 transition-colors duration-200" title="Xác thực tài khoản">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                </div>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr x-show="customers.length === 0">
+                            <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                <p class="mt-2">Không tìm thấy khách hàng nào</p>
                             </td>
                         </tr>
                     </tbody>
@@ -297,31 +259,42 @@
             </div>
             
             <!-- Pagination -->
-            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div class="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
                 <div class="flex-1 flex justify-between sm:hidden">
-                    <button class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    <button @click="prevPage" :disabled="pagination.currentPage === 0" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                         Trước
                     </button>
-                    <button class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    <button @click="nextPage" :disabled="pagination.currentPage >= pagination.totalPages - 1" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                         Sau
                     </button>
                 </div>
                 <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                     <div>
                         <p class="text-sm text-gray-700">
-                            Hiển thị <span class="font-medium">1</span> đến <span class="font-medium">20</span> của <span class="font-medium">3,782</span> người dùng
+                            Hiển thị 
+                            <span class="font-medium" x-text="pagination.currentPage * pagination.size + 1"></span>
+                            đến 
+                            <span class="font-medium" x-text="Math.min((pagination.currentPage + 1) * pagination.size, pagination.totalItems)"></span>
+                            của 
+                            <span class="font-medium" x-text="pagination.totalItems"></span>
+                            khách hàng
                         </p>
                     </div>
                     <div>
                         <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                            <button class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                <i class="fas fa-chevron-left"></i>
+                            <button @click="prevPage" :disabled="pagination.currentPage === 0" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
                             </button>
-                            <button class="bg-primary-50 border-primary-500 text-primary-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">1</button>
-                            <button class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">2</button>
-                            <button class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">3</button>
-                            <button class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                <i class="fas fa-chevron-right"></i>
+                            <template x-for="page in getVisiblePages()" :key="page">
+                                <button @click="goToPage(page)" :class="page === pagination.currentPage ? 'bg-blue-50 border-blue-500 text-blue-600 z-10' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'" class="relative inline-flex items-center px-4 py-2 border text-sm font-medium" x-text="page + 1">
+                                </button>
+                            </template>
+                            <button @click="nextPage" :disabled="pagination.currentPage >= pagination.totalPages - 1" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                                </svg>
                             </button>
                         </nav>
                     </div>
@@ -329,5 +302,438 @@
             </div>
         </div>
     </div>
+    
+    <!-- Create/Edit Customer Modal -->
+    <div x-data="customerModalManager()" x-show="showModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Background overlay -->
+            <div x-show="showModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" @click="closeModal()"></div>
+            
+            <!-- Modal panel -->
+            <div x-show="showModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block w-full max-w-2xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
+                
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900" x-text="modalMode === 'create' ? 'Thêm khách hàng mới' : (modalMode === 'edit' ? 'Chỉnh sửa khách hàng' : 'Chi tiết khách hàng')"></h3>
+                    <button @click="closeModal()" class="text-gray-400 hover:text-gray-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <form @submit.prevent="submitForm()" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Họ -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Họ <span class="text-red-500">*</span></label>
+                            <input type="text" x-model="formData.firstname" :readonly="modalMode === 'view'" :class="modalMode === 'view' ? 'bg-gray-100' : ''" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="VD: Nguyễn" required>
+                        </div>
+                        
+                        <!-- Tên -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tên <span class="text-red-500">*</span></label>
+                            <input type="text" x-model="formData.lastname" :readonly="modalMode === 'view'" :class="modalMode === 'view' ? 'bg-gray-100' : ''" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="VD: Văn B" required>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Email -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email <span class="text-red-500">*</span></label>
+                            <input type="email" x-model="formData.email" :readonly="modalMode === 'view'" :class="modalMode === 'view' ? 'bg-gray-100' : ''" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="customer@email.com" required>
+                        </div>
+                        
+                        <!-- Số điện thoại -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Số điện thoại <span class="text-red-500">*</span></label>
+                            <input type="tel" x-model="formData.phone" :readonly="modalMode === 'view'" :class="modalMode === 'view' ? 'bg-gray-100' : ''" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="0987654321" required>
+                        </div>
+                    </div>
+                    
+                    <div x-show="modalMode === 'create'">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Mật khẩu <span class="text-red-500">*</span></label>
+                        <input type="password" x-model="formData.password" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Tối thiểu 8 ký tự" :required="modalMode === 'create'">
+                    </div>
+                    
+                    <!-- Avatar URL -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Avatar URL</label>
+                        <input type="url" x-model="formData.avatar" :readonly="modalMode === 'view'" :class="modalMode === 'view' ? 'bg-gray-100' : ''" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="https://...">
+                    </div>
+                    
+                    <!-- Trạng thái -->
+                    <div x-show="modalMode !== 'view'">
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" x-model="formData.isActive" class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                            <span class="text-sm font-medium text-gray-700">Kích hoạt tài khoản</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Thông tin thêm (chỉ hiển thị khi xem) -->
+                    <div x-show="modalMode === 'view'" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Số đơn hàng</label>
+                            <p class="text-lg font-semibold text-gray-900" x-text="formData.totalOrders || 0"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Tổng chi tiêu</label>
+                            <p class="text-lg font-semibold text-gray-900" x-text="formatCurrency(formData.totalSpent || 0)"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Số đánh giá</label>
+                            <p class="text-lg font-semibold text-gray-900" x-text="formData.totalReviews || 0"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Trạng thái</label>
+                            <span :class="formData.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
+                                <span x-text="formData.isActive ? 'Hoạt động' : 'Tạm khóa'"></span>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                        <button type="button" @click="closeModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            <span x-text="modalMode === 'view' ? 'Đóng' : 'Hủy'"></span>
+                        </button>
+                        <button x-show="modalMode !== 'view'" type="submit" class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 border border-transparent rounded-lg text-sm font-medium text-white hover:from-indigo-700 hover:to-purple-700">
+                            <span x-text="modalMode === 'create' ? 'Thêm khách hàng' : 'Cập nhật'"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function customerManager() {
+            return {
+                customers: [],
+                loading: false,
+                filters: {
+                    status: '',
+                    type: '',
+                    fromDate: '',
+                    toDate: '',
+                    search: ''
+                },
+                pagination: {
+                    currentPage: 0,
+                    size: 20,
+                    totalPages: 0,
+                    totalItems: 0
+                },
+                stats: {
+                    total: 0,
+                    loyal: 0,
+                    totalSpent: 0,
+                    newThisMonth: 0
+                },
+                
+                init() {
+                    this.fetchCustomers();
+                    this.fetchStats();
+                },
+                
+                async fetchCustomers() {
+                    this.loading = true;
+                    try {
+                        const params = new URLSearchParams({
+                            page: this.pagination.currentPage,
+                            size: this.pagination.size,
+                            sortBy: 'createdAt',
+                            sortDir: 'desc'
+                        });
+                        
+                        const response = await fetch(`/admin/api/users?${params}`);
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.customers = data.customers;
+                            this.pagination.totalPages = data.totalPages;
+                            this.pagination.totalItems = data.totalItems;
+                            this.pagination.currentPage = data.currentPage;
+                        }
+                    } catch (error) {
+                        console.error('Error fetching customers:', error);
+                        alert('Lỗi khi tải danh sách khách hàng');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                async fetchStats() {
+                    try {
+                        const response = await fetch('/admin/api/users/stats');
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.stats.total = data.stats.total;
+                            this.stats.loyal = data.stats.loyal;
+                            this.stats.totalSpent = data.stats.totalSpent;
+                            this.stats.newThisMonth = data.stats.newThisMonth;
+                        }
+                    } catch (error) {
+                        console.error('Error fetching customer stats:', error);
+                    }
+                },
+                
+                formatCurrency(value) {
+                    if (!value) return '0₫';
+                    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+                },
+                
+                formatDate(date) {
+                    if (!date) return '-';
+                    return new Date(date).toLocaleDateString('vi-VN');
+                },
+                
+                getInitials(firstname, lastname) {
+                    return (firstname.charAt(0) + lastname.charAt(0)).toUpperCase();
+                },
+                
+                openCreateModal() {
+                    window.dispatchEvent(new CustomEvent('open-customer-modal', { 
+                        detail: { mode: 'create' }
+                    }));
+                },
+                
+                viewCustomer(customer) {
+                    window.dispatchEvent(new CustomEvent('open-customer-modal', { 
+                        detail: { mode: 'view', customer: customer }
+                    }));
+                },
+                
+                editCustomer(customer) {
+                    window.dispatchEvent(new CustomEvent('open-customer-modal', { 
+                        detail: { mode: 'edit', customer: customer }
+                    }));
+                },
+                
+                viewOrders(customer) {
+                    alert('Xem đơn hàng của: ' + customer.firstname + ' ' + customer.lastname);
+                },
+                
+                sendEmail(customer) {
+                    alert('Gửi email đến: ' + customer.email);
+                },
+                
+                sendEmailToAll() {
+                    if (!confirm('Bạn có chắc muốn gửi email hàng loạt đến tất cả khách hàng?')) {
+                        return;
+                    }
+                    alert('Chức năng gửi email hàng loạt đang được phát triển');
+                },
+                
+                async toggleStatus(customer) {
+                    if (!confirm(`Bạn có chắc muốn ${customer.isActive ? 'khóa' : 'kích hoạt'} tài khoản khách hàng này?`)) {
+                        return;
+                    }
+                    
+                    try {
+                        const response = await fetch(`/admin/api/users/${customer.id}/toggle-status`, {
+                            method: 'PATCH'
+                        });
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            await this.fetchCustomers();
+                            await this.fetchStats();
+                            alert(data.message);
+                        } else {
+                            alert(data.message);
+                        }
+                    } catch (error) {
+                        console.error('Error toggling customer status:', error);
+                        alert('Lỗi khi cập nhật trạng thái khách hàng');
+                    }
+                },
+                
+                async deleteCustomer(customer) {
+                    if (!confirm(`Bạn có chắc muốn xóa khách hàng ${customer.firstname} ${customer.lastname}? Hành động này không thể hoàn tác.`)) {
+                        return;
+                    }
+                    
+                    try {
+                        const response = await fetch(`/admin/api/users/${customer.id}`, {
+                            method: 'DELETE'
+                        });
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            await this.fetchCustomers();
+                            await this.fetchStats();
+                            alert(data.message);
+                        } else {
+                            alert(data.message);
+                        }
+                    } catch (error) {
+                        console.error('Error deleting customer:', error);
+                        alert('Lỗi khi xóa khách hàng');
+                    }
+                },
+                
+                exportData() {
+                    alert('Chức năng xuất dữ liệu đang được phát triển');
+                },
+                
+                prevPage() {
+                    if (this.pagination.currentPage > 0) {
+                        this.pagination.currentPage--;
+                        this.fetchCustomers();
+                    }
+                },
+                
+                nextPage() {
+                    if (this.pagination.currentPage < this.pagination.totalPages - 1) {
+                        this.pagination.currentPage++;
+                        this.fetchCustomers();
+                    }
+                },
+                
+                goToPage(page) {
+                    this.pagination.currentPage = page;
+                    this.fetchCustomers();
+                },
+                
+                getVisiblePages() {
+                    const pages = [];
+                    const maxVisible = 5;
+                    let start = Math.max(0, this.pagination.currentPage - Math.floor(maxVisible / 2));
+                    let end = Math.min(this.pagination.totalPages, start + maxVisible);
+                    
+                    if (end - start < maxVisible) {
+                        start = Math.max(0, end - maxVisible);
+                    }
+                    
+                    for (let i = start; i < end; i++) {
+                        pages.push(i);
+                    }
+                    
+                    return pages;
+                }
+            };
+        }
+        
+        function customerModalManager() {
+            return {
+                showModal: false,
+                modalMode: 'create', // 'create', 'edit', 'view'
+                formData: {
+                    id: null,
+                    firstname: '',
+                    lastname: '',
+                    email: '',
+                    phone: '',
+                    password: '',
+                    avatar: '',
+                    isActive: true,
+                    totalOrders: 0,
+                    totalSpent: 0,
+                    totalReviews: 0
+                },
+                
+                init() {
+                    window.addEventListener('open-customer-modal', (e) => {
+                        this.openModal(e.detail.mode, e.detail.customer);
+                    });
+                },
+                
+                openModal(mode, customer = null) {
+                    this.modalMode = mode;
+                    
+                    if (mode === 'create') {
+                        this.resetForm();
+                    } else if (customer) {
+                        this.formData = {
+                            id: customer.id,
+                            firstname: customer.firstname,
+                            lastname: customer.lastname,
+                            email: customer.email,
+                            phone: customer.phone,
+                            password: '',
+                            avatar: customer.avatar || '',
+                            isActive: customer.isActive,
+                            totalOrders: customer.totalOrders || 0,
+                            totalSpent: customer.totalSpent || 0,
+                            totalReviews: customer.totalReviews || 0
+                        };
+                    }
+                    
+                    this.showModal = true;
+                },
+                
+                closeModal() {
+                    this.showModal = false;
+                    setTimeout(() => this.resetForm(), 300);
+                },
+                
+                resetForm() {
+                    this.formData = {
+                        id: null,
+                        firstname: '',
+                        lastname: '',
+                        email: '',
+                        phone: '',
+                        password: '',
+                        avatar: '',
+                        isActive: true,
+                        totalOrders: 0,
+                        totalSpent: 0,
+                        totalReviews: 0
+                    };
+                },
+                
+                formatCurrency(value) {
+                    if (!value) return '0₫';
+                    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+                },
+                
+                async submitForm() {
+                    try {
+                        const url = this.modalMode === 'create' 
+                            ? '/admin/api/users' 
+                            : `/admin/api/users/${this.formData.id}`;
+                        
+                        const method = this.modalMode === 'create' ? 'POST' : 'PUT';
+                        
+                        const payload = {
+                            firstname: this.formData.firstname,
+                            lastname: this.formData.lastname,
+                            email: this.formData.email,
+                            phone: this.formData.phone,
+                            avatar: this.formData.avatar || null,
+                            isActive: this.formData.isActive
+                        };
+                        
+                        if (this.modalMode === 'create' && this.formData.password) {
+                            payload.password = this.formData.password;
+                        }
+                        
+                        const response = await fetch(url, {
+                            method: method,
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            alert(data.message);
+                            this.closeModal();
+                            window.location.reload(); // Reload to refresh the list
+                        } else {
+                            alert(data.message);
+                        }
+                    } catch (error) {
+                        console.error('Error submitting form:', error);
+                        alert('Lỗi khi lưu khách hàng');
+                    }
+                }
+            };
+        }
+    </script>
 </body>
 </html>

@@ -23,16 +23,12 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        log.debug("Loading user by username: {}", username);
         
         User user = userRepository.findByEmail(username)
             .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         
-        // Debug logging
-        log.debug("Found user: {} with role: {} (enum: {})", username, user.getRole(), user.getRole().name());
         
         String authority = "ROLE_" + user.getRole().name();
-        log.debug("User {} has authority: {}", username, authority);
         
         return org.springframework.security.core.userdetails.User.builder()
             .username(user.getEmail())

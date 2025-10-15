@@ -115,20 +115,23 @@ public class AuthController {
                 }
                 
                 // Create user info response
-                UserInfoResponse userInfo = new UserInfoResponse(
-                    user.getId(),
-                    user.getEmail(),
-                    user.getFirstname(),
-                    user.getLastname(),
-                    user.getRole().toString()
-                );
+                UserInfoResponse userInfo = UserInfoResponse.builder()
+                    .id(user.getId())
+                    .email(user.getEmail())
+                    .firstname(user.getFirstname())
+                    .lastname(user.getLastname())
+                    .phone(user.getPhone())
+                    .avatar(user.getAvatar())
+                    .role(user.getRole())
+                    .isActive(user.getIsActive())
+                    .build();
                 
                 // Set token in httpOnly cookie for security
                 Cookie authCookie = new Cookie("authToken", token);
                 authCookie.setHttpOnly(true);
                 authCookie.setSecure(false); // Set to false for localhost development
                 authCookie.setPath("/");
-                authCookie.setMaxAge(24 * 60 * 60); // 24 hours
+                authCookie.setMaxAge(4 * 60 * 60); // 4 hours instead of 24 hours
                 response.addCookie(authCookie);
                 
                 // Create login response without token (for security)
@@ -220,7 +223,6 @@ public class AuthController {
             @Parameter(description = "JWT token trong header Authorization (Bearer <token>)", required = false)
             @RequestHeader(value = "Authorization", required = false) String token) {
         
-        log.debug("Token validation attempt");
         
         try {
             if (token == null || !token.startsWith("Bearer ")) {
@@ -234,16 +236,18 @@ public class AuthController {
             var user = authService.validateTokenAndGetUser(jwtToken);
             
             if (user != null) {
-                log.debug("Token validation successful for user: {}", user.getEmail());
                 
                 // Return user info without sensitive data
-                UserInfoResponse userInfo = new UserInfoResponse(
-                    user.getId(),
-                    user.getEmail(),
-                    user.getFirstname(),
-                    user.getLastname(),
-                    user.getRole().name()
-                );
+                UserInfoResponse userInfo = UserInfoResponse.builder()
+                    .id(user.getId())
+                    .email(user.getEmail())
+                    .firstname(user.getFirstname())
+                    .lastname(user.getLastname())
+                    .phone(user.getPhone())
+                    .avatar(user.getAvatar())
+                    .role(user.getRole())
+                    .isActive(user.getIsActive())
+                    .build();
                 
                 return ResponseEntity.ok(ResponseWrapper.success(userInfo));
             } else {
@@ -825,6 +829,57 @@ public class AuthController {
         } catch (Exception e) {
             result.put("error", e.getMessage());
             return ResponseEntity.status(500).body(result);
+        }
+    }
+
+    /**
+     * Get current authenticated user info
+     * GET /api/auth/me
+     * @return Current user information
+     */
+    @Operation(
+        summary = "Lấy thông tin người dùng hiện tại",
+        description = "Lấy thông tin của người dùng đang đăng nhập"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Thành công"),
+        @ApiResponse(responseCode = "401", description = "Chưa đăng nhập")
+    })
+    @GetMapping("/me")
+    public ResponseEntity<ResponseWrapper<UserInfoResponse>> getCurrentUser(
+            @Parameter(hidden = true) org.springframework.security.core.Authentication authentication) {
+        try {
+            if (authentication == null || !authentication.isAuthenticated() || 
+                authentication.getName().equals("anonymousUser")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ResponseWrapper.error("Chưa đăng nhập"));
+            }
+
+            // Get user from database
+            User user = authService.findUserByEmail(authentication.getName());
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ResponseWrapper.error("Người dùng không tồn tại"));
+            }
+
+            // Create response
+            UserInfoResponse userInfo = UserInfoResponse.builder()
+                    .id(user.getId())
+                    .email(user.getEmail())
+                    .firstname(user.getFirstname())
+                    .lastname(user.getLastname())
+                    .phone(user.getPhone())
+                    .avatar(user.getAvatar())
+                    .role(user.getRole())
+                    .isActive(user.getIsActive())
+                    .build();
+
+            return ResponseEntity.ok(ResponseWrapper.success(userInfo));
+
+        } catch (Exception e) {
+            log.error("Error getting current user: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ResponseWrapper.error("Có lỗi xảy ra. Vui lòng thử lại sau."));
         }
     }
 }

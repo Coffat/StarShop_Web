@@ -18,6 +18,15 @@ public class ResponseWrapper<T> {
     private String message;
     
     /**
+     * Constructor with data and message (convenience constructor)
+     */
+    public ResponseWrapper(T data, String message) {
+        this.data = data;
+        this.error = null;
+        this.message = message;
+    }
+    
+    /**
      * Create successful response with data
      * @param data Response data
      * @return ResponseWrapper with data and null error

@@ -50,7 +50,7 @@ public class WishlistController extends BaseController {
     /**
      * Display user's wishlist page
      */
-    @GetMapping("/wishlist")
+    @GetMapping({"/wishlist", "/account/wishlist"})
     public String wishlistPage(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
@@ -83,7 +83,11 @@ public class WishlistController extends BaseController {
             addBreadcrumb(model, "Trang chủ", "/");
             addBreadcrumb(model, "Danh sách yêu thích", "/wishlist");
             
-            // Add model attributes
+            // Add user object for template
+            model.addAttribute("userObject", user);
+            model.addAttribute("currentUser", user.getEmail());
+            
+            // Add wishlist data
             model.addAttribute("wishlist", wishlist);
             model.addAttribute("totalWishlist", totalWishlist);
             model.addAttribute("wishlistCount", totalWishlist); // For compatibility
@@ -93,6 +97,16 @@ public class WishlistController extends BaseController {
             model.addAttribute("sortBy", sort);
             model.addAttribute("sortDirection", direction);
             model.addAttribute("hasWishlist", !wishlist.isEmpty());
+            
+            // Add member since year for sidebar
+            if (user.getCreatedAt() != null) {
+                model.addAttribute("memberSince", String.valueOf(user.getCreatedAt().getYear()));
+            } else {
+                model.addAttribute("memberSince", "2024");
+            }
+            
+            // Add counts for sidebar badges
+            model.addAttribute("ordersCount", 0L); // Will be populated by OrderService if needed
             
             // SEO attributes
             model.addAttribute("pageTitle", "Danh sách yêu thích - StarShop");

@@ -3,8 +3,6 @@ package com.example.demo.controller;
 import com.example.demo.service.DashboardService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -32,14 +30,6 @@ public class AdminController extends BaseController {
     @GetMapping({"", "/", "/dashboard"})
     @Transactional(readOnly = true)
     public String dashboard(Model model) {
-        // Debug authentication
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        log.debug("Admin dashboard access attempt:");
-        log.debug("- Authentication: {}", auth);
-        log.debug("- Principal: {}", auth != null ? auth.getPrincipal() : "null");
-        log.debug("- Authorities: {}", auth != null ? auth.getAuthorities() : "null");
-        log.debug("- Is authenticated: {}", auth != null ? auth.isAuthenticated() : "false");
-        
         model.addAttribute("pageTitle", "Dashboard");
         model.addAttribute("contentTemplate", "admin/dashboard/index");
         
@@ -79,6 +69,7 @@ public class AdminController extends BaseController {
     public String vouchers(Model model) {
         model.addAttribute("pageTitle", "Quản lý Voucher");
         model.addAttribute("contentTemplate", "admin/vouchers/index");
+        model.addAttribute("currentPath", "/admin/vouchers");
         
         List<BreadcrumbItem> breadcrumbs = new ArrayList<>();
         breadcrumbs.add(new BreadcrumbItem("Dashboard", "/admin/dashboard"));
@@ -89,32 +80,34 @@ public class AdminController extends BaseController {
     }
 
     /**
-     * Quản lý Tài chính
+     * Quản lý Nhân viên
      */
-    @GetMapping("/finance")
-    public String finance(Model model) {
-        model.addAttribute("pageTitle", "Quản lý Tài chính");
-        model.addAttribute("contentTemplate", "admin/finance/index");
+    @GetMapping("/employees")
+    public String employees(Model model) {
+        model.addAttribute("pageTitle", "Quản lý Nhân viên");
+        model.addAttribute("contentTemplate", "admin/employees/index");
+        model.addAttribute("currentPath", "/admin/employees");
         
         List<BreadcrumbItem> breadcrumbs = new ArrayList<>();
         breadcrumbs.add(new BreadcrumbItem("Dashboard", "/admin/dashboard"));
-        breadcrumbs.add(new BreadcrumbItem("Quản lý Tài chính", "/admin/finance"));
+        breadcrumbs.add(new BreadcrumbItem("Quản lý Nhân viên", "/admin/employees"));
         model.addAttribute("breadcrumbs", breadcrumbs);
         
         return "layouts/admin";
     }
 
     /**
-     * Quản lý Người dùng
+     * Quản lý Người dùng (Khách hàng)
      */
     @GetMapping("/users")
     public String users(Model model) {
-        model.addAttribute("pageTitle", "Quản lý Người dùng");
+        model.addAttribute("pageTitle", "Quản lý Khách hàng");
         model.addAttribute("contentTemplate", "admin/users/index");
+        model.addAttribute("currentPath", "/admin/users");
         
         List<BreadcrumbItem> breadcrumbs = new ArrayList<>();
         breadcrumbs.add(new BreadcrumbItem("Dashboard", "/admin/dashboard"));
-        breadcrumbs.add(new BreadcrumbItem("Quản lý Người dùng", "/admin/users"));
+        breadcrumbs.add(new BreadcrumbItem("Quản lý Khách hàng", "/admin/users"));
         model.addAttribute("breadcrumbs", breadcrumbs);
         
         return "layouts/admin";
@@ -176,7 +169,6 @@ public class AdminController extends BaseController {
     @GetMapping("/api/correlation-data")
     @ResponseBody
     public Map<String, Object> getCorrelationData(@RequestParam(defaultValue = "7") int period) {
-        log.debug("Getting correlation data for {} days", period);
         return dashboardService.getCorrelationChartData(period);
     }
     
@@ -186,7 +178,6 @@ public class AdminController extends BaseController {
     @GetMapping("/api/revenue-trend")
     @ResponseBody
     public Map<String, Object> getRevenueTrend(@RequestParam(defaultValue = "7") int period) {
-        log.debug("Getting revenue trend data for {} days", period);
         return dashboardService.getRevenueTrendData(period);
     }
     
@@ -196,7 +187,6 @@ public class AdminController extends BaseController {
     @GetMapping("/api/order-status")
     @ResponseBody
     public Map<String, Object> getOrderStatus() {
-        log.debug("Getting order status chart data");
         return dashboardService.getOrderStatusChartData();
     }
     
@@ -206,7 +196,7 @@ public class AdminController extends BaseController {
     @GetMapping("/api/dashboard-stats")
     @ResponseBody
     public Map<String, Object> getDashboardStats() {
-        log.debug("Getting dashboard statistics");
         return dashboardService.getDashboardStats();
     }
+    
 }

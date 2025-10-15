@@ -48,8 +48,6 @@ public class AdminOrderController extends BaseController {
             @RequestParam(required = false) String search,
             Model model) {
         
-        log.debug("Admin orders page - page: {}, size: {}, sortBy: {}, sortDir: {}, status: {}, search: {}", 
-                  page, size, sortBy, sortDir, status, search);
 
         try {
             // Create pageable with sorting
@@ -108,7 +106,6 @@ public class AdminOrderController extends BaseController {
      */
     @GetMapping("/{orderId}")
     public String orderDetail(@PathVariable Long orderId, Model model) {
-        log.debug("Admin order detail - orderId: {}", orderId);
 
         try {
             OrderDTO order = orderService.getOrderById(orderId);
@@ -149,7 +146,6 @@ public class AdminOrderController extends BaseController {
             @PathVariable Long orderId,
             @RequestBody Map<String, String> request) {
         
-        log.debug("Updating order status - orderId: {}, status: {}", orderId, request.get("status"));
 
         try {
             String statusStr = request.get("status");
@@ -236,7 +232,6 @@ public class AdminOrderController extends BaseController {
             @PathVariable Long orderId,
             @RequestBody Map<String, String> request) {
         
-        log.debug("Admin cancelling order: {}", orderId);
         
         try {
             String reason = request.get("reason");
@@ -260,7 +255,6 @@ public class AdminOrderController extends BaseController {
      */
     @PostMapping("/api/create")
     public ResponseEntity<ResponseWrapper<OrderDTO>> createOrder(@RequestBody CreateOrderRequest request) {
-        log.debug("Admin creating new order for user: {}", request.getUserId());
         
         try {
             // Validate request
@@ -336,7 +330,6 @@ public class AdminOrderController extends BaseController {
     public ResponseEntity<ResponseWrapper<java.util.List<CustomerSearchResult>>> searchCustomers(
             @RequestParam("q") String query) {
         
-        log.debug("Searching customers with query: {}", query);
         
         try {
             if (query == null || query.trim().length() < 1) {

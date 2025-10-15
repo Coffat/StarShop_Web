@@ -24,6 +24,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p WHERE p.name LIKE %:keyword% OR p.description LIKE %:keyword%")
     Page<Product> searchProducts(@Param("keyword") String keyword, Pageable pageable);
     
+    // Enhanced search for AI - includes catalog
+    @Query("SELECT p FROM Product p LEFT JOIN p.catalog c WHERE " +
+           "LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(c.value) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    Page<Product> searchProductsForAi(@Param("keyword") String keyword, Pageable pageable);
+    
     @Query("SELECT p FROM Product p LEFT JOIN FETCH p.reviews")
     List<Product> findAllWithReviews();
     
@@ -56,4 +63,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     @Query("SELECT p FROM Product p LEFT JOIN FETCH p.reviews WHERE p.id = :productId")
     Optional<Product> findByIdWithReviews(@Param("productId") Long productId);
+    
+    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.catalog WHERE p.id = :productId")
+    Optional<Product> findByIdWithCatalogEager(@Param("productId") Long productId);
+    
+    @Query("SELECT AVG(r.rating) FROM Review r WHERE r.product.id = :productId")
+    Double getAverageRatingByProductId(@Param("productId") Long productId);
+    
+    @Query("SELECT COUNT(r) FROM Review r WHERE r.product.id = :productId")
+    Long getReviewCountByProductId(@Param("productId") Long productId);
 }
