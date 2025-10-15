@@ -30,19 +30,30 @@ public class LocationController {
     @GetMapping("/provinces")
     public ResponseEntity<ResponseWrapper<List<ProvinceDto>>> getProvinces() {
         try {
-            logger.info("Getting provinces from LocationService");
+            logger.info("=== Getting provinces from LocationService ===");
+            
+            // Check configuration first
+            boolean isValid = locationService.isGhnConfigurationValid();
+            logger.info("GHN Configuration valid: {}", isValid);
+            
+            if (!isValid) {
+                logger.error("GHN configuration is invalid!");
+                return ResponseEntity.ok(ResponseWrapper.error("Cấu hình GHN không hợp lệ"));
+            }
+            
             List<ProvinceDto> provinces = locationService.getProvinces();
-            logger.info("Retrieved {} provinces", provinces.size());
+            logger.info("Retrieved {} provinces from GHN", provinces.size());
             
             if (provinces.isEmpty()) {
-                return ResponseEntity.ok(ResponseWrapper.error("Không thể tải danh sách tỉnh/thành phố"));
+                logger.warn("Empty provinces list returned from GHN");
+                return ResponseEntity.ok(ResponseWrapper.error("Không thể tải danh sách tỉnh/thành phố từ GHN"));
             }
             
             return ResponseEntity.ok(ResponseWrapper.success(provinces));
             
         } catch (Exception e) {
             logger.error("Error getting provinces", e);
-            return ResponseEntity.ok(ResponseWrapper.error("Lỗi hệ thống khi tải danh sách tỉnh/thành phố"));
+            return ResponseEntity.ok(ResponseWrapper.error("Lỗi hệ thống: " + e.getMessage()));
         }
     }
     
@@ -53,8 +64,22 @@ public class LocationController {
     public ResponseEntity<ResponseWrapper<String>> debug() {
         try {
             boolean isValid = locationService.isGhnConfigurationValid();
-            String message = "GHN Configuration is " + (isValid ? "VALID" : "INVALID");
-            return ResponseEntity.ok(ResponseWrapper.success(message));
+            
+            StringBuilder info = new StringBuilder();
+            info.append("GHN Configuration Status: ").append(isValid ? "VALID" : "INVALID").append("\n");
+            info.append("Base URL: ").append(System.getProperty("ghn.base-url", "Not set")).append("\n");
+            info.append("Token configured: ").append(isValid ? "Yes" : "No").append("\n");
+            info.append("Shop ID configured: ").append(isValid ? "Yes" : "No").append("\n");
+            
+            // Try to get provinces
+            try {
+                List<ProvinceDto> provinces = locationService.getProvinces();
+                info.append("Provinces loaded: ").append(provinces.size()).append("\n");
+            } catch (Exception e) {
+                info.append("Error loading provinces: ").append(e.getMessage()).append("\n");
+            }
+            
+            return ResponseEntity.ok(ResponseWrapper.success(info.toString()));
         } catch (Exception e) {
             logger.error("Error checking GHN configuration", e);
             return ResponseEntity.ok(ResponseWrapper.error("Error: " + e.getMessage()));

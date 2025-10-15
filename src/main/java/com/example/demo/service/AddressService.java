@@ -2,6 +2,8 @@ package com.example.demo.service;
 
 import com.example.demo.dto.address.AddressDto;
 import com.example.demo.dto.address.AddressUpsertDto;
+import com.example.demo.dto.location.DistrictDto;
+import com.example.demo.dto.location.ProvinceDto;
 import com.example.demo.entity.Address;
 import com.example.demo.entity.User;
 import com.example.demo.repository.AddressRepository;
@@ -23,10 +25,12 @@ public class AddressService {
     
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
+    private final LocationService locationService;
     
-    public AddressService(AddressRepository addressRepository, UserRepository userRepository) {
+    public AddressService(AddressRepository addressRepository, UserRepository userRepository, LocationService locationService) {
         this.addressRepository = addressRepository;
         this.userRepository = userRepository;
+        this.locationService = locationService;
     }
     
     /**
@@ -190,11 +194,53 @@ public class AddressService {
         if (address.getStreet() == null && dto.addressDetail() != null) {
             address.setStreet(dto.addressDetail());
         }
-        if (address.getCity() == null && dto.districtName() != null) {
-            address.setCity(dto.districtName());
+        
+        // Ensure city is never null - required by database constraint
+        if (address.getCity() == null) {
+            if (dto.districtName() != null && !dto.districtName().trim().isEmpty()) {
+                address.setCity(dto.districtName());
+            } else if (dto.districtId() != null) {
+                // Fetch district name from LocationService
+                try {
+                    DistrictDto district = locationService.findDistrictById(dto.districtId());
+                    if (district != null) {
+                        address.setCity(district.name());
+                        address.setDistrictName(district.name());
+                    } else {
+                        // Fallback to province name if district not found
+                        address.setCity(dto.provinceName() != null ? dto.provinceName() : "N/A");
+                    }
+                } catch (Exception e) {
+                    logger.warn("Failed to fetch district name for ID {}: {}", dto.districtId(), e.getMessage());
+                    address.setCity(dto.provinceName() != null ? dto.provinceName() : "N/A");
+                }
+            } else {
+                // No district info available, use province name as fallback
+                address.setCity(dto.provinceName() != null ? dto.provinceName() : "N/A");
+            }
         }
-        if (address.getProvince() == null && dto.provinceName() != null) {
-            address.setProvince(dto.provinceName());
+        
+        // Ensure province is never null - required by database constraint
+        if (address.getProvince() == null) {
+            if (dto.provinceName() != null && !dto.provinceName().trim().isEmpty()) {
+                address.setProvince(dto.provinceName());
+            } else if (dto.provinceId() != null) {
+                // Fetch province name from LocationService
+                try {
+                    ProvinceDto province = locationService.findProvinceById(dto.provinceId());
+                    if (province != null) {
+                        address.setProvince(province.name());
+                        address.setProvinceName(province.name());
+                    } else {
+                        address.setProvince("N/A");
+                    }
+                } catch (Exception e) {
+                    logger.warn("Failed to fetch province name for ID {}: {}", dto.provinceId(), e.getMessage());
+                    address.setProvince("N/A");
+                }
+            } else {
+                address.setProvince("N/A");
+            }
         }
         
         if (dto.isDefault() != null) {

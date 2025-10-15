@@ -34,21 +34,28 @@ public class GhnClient {
             HttpHeaders headers = createHeaders(false);
             HttpEntity<String> entity = new HttpEntity<>(headers);
             
-            logger.debug("Calling GHN provinces API: {}", url);
+            logger.info("=== Calling GHN provinces API ===");
+            logger.info("URL: {}", url);
+            logger.info("Token: {}...{}", 
+                ghnProperties.getToken().substring(0, Math.min(10, ghnProperties.getToken().length())),
+                ghnProperties.getToken().length() > 10 ? "..." : "");
+            
             ResponseEntity<GhnProvinceResponse> response = restTemplate.exchange(
                 url, HttpMethod.GET, entity, GhnProvinceResponse.class);
             
+            logger.info("Response status: {}", response.getStatusCode());
+            
             GhnProvinceResponse responseBody = response.getBody();
             if (responseBody != null && responseBody.data() != null) {
-                logger.debug("Retrieved {} provinces from GHN", responseBody.data().size());
+                logger.info("Successfully retrieved {} provinces from GHN", responseBody.data().size());
                 return responseBody.data();
             }
             
-            logger.warn("Empty response from GHN provinces API");
+            logger.warn("Empty response body from GHN provinces API");
             return Collections.emptyList();
             
         } catch (RestClientException e) {
-            logger.error("Error calling GHN provinces API", e);
+            logger.error("Error calling GHN provinces API: {}", e.getMessage(), e);
             return Collections.emptyList();
         }
     }
