@@ -21,8 +21,9 @@ async function initializeCheckInOutButton() {
         });
         const data = await response.json();
         
-        if (data.success && data.data) {
+        if (response.ok && data.data) {
             currentShift = data.data;
+            console.log('Current shift loaded:', currentShift);
             renderCheckInOutButton();
         } else {
             renderCheckInOutButton();
@@ -40,7 +41,12 @@ function renderCheckInOutButton() {
     const container = document.getElementById('checkInOutButton');
     if (!container) return;
     
-    if (currentShift && currentShift.activeShift) {
+    // Check if currently checked in (has check-in but no check-out)
+    // Note: Lombok @Data with boolean fields starting with 'is' will serialize without the 'is' prefix
+    const isCheckedIn = currentShift && (currentShift.checkedIn === true || currentShift.isCheckedIn === true);
+    const isCheckedOut = currentShift && (currentShift.checkedOut === true || currentShift.isCheckedOut === true);
+    
+    if (isCheckedIn && !isCheckedOut) {
         // Currently checked in - show check-out button
         container.innerHTML = `
             <button onclick="performCheckOut()" 
@@ -80,23 +86,33 @@ async function performCheckIn() {
         
         const data = await response.json();
         
-        if (data.success) {
+        if (response.ok && data.data) {
             currentShift = data.data;
+            console.log('Checked in successfully:', currentShift);
             renderCheckInOutButton();
-            showNotification('Check-in thành công!', 'success');
+            
+            // Show success with check-in time
+            const checkInTime = new Date(currentShift.checkIn).toLocaleTimeString('vi-VN');
+            showNotification(`Check-in thành công lúc ${checkInTime}!`, 'success');
             
             // Refresh page stats
             if (window.location.pathname.includes('/staff/dashboard')) {
                 setTimeout(() => location.reload(), 1000);
             }
         } else {
-            showNotification(data.message || 'Check-in thất bại', 'error');
+            // Handle error response
+            const errorMessage = data.message || 'Check-in thất bại';
+            showNotification(errorMessage, 'error');
             button.disabled = false;
             renderCheckInOutButton();
         }
     } catch (error) {
         console.error('Error checking in:', error);
         showNotification('Đã xảy ra lỗi khi check-in', 'error');
+        const button = event.target.closest('button');
+        if (button) {
+            button.disabled = false;
+        }
         renderCheckInOutButton();
     }
 }
@@ -124,14 +140,25 @@ async function performCheckOut() {
         
         const data = await response.json();
         
-        if (data.success) {
-            currentShift = null;
+        if (response.ok && data.data) {
+            currentShift = data.data;
+            console.log('Checked out successfully:', currentShift);
+            
+            // After check-out, button should show "Check-in" for next day
+            // But prevent check-in again today
             renderCheckInOutButton();
-            showNotification(`Check-out thành công! Bạn đã làm việc ${data.data.hoursWorked} giờ hôm nay.`, 'success');
+            
+            // Show success with hours worked
+            const hours = data.data.hoursWorked || 0;
+            const checkOutTime = new Date(data.data.checkOut).toLocaleTimeString('vi-VN');
+            showNotification(
+                `Check-out thành công lúc ${checkOutTime}! Bạn đã làm việc ${hours} giờ hôm nay.`, 
+                'success'
+            );
             
             // Refresh page stats
             if (window.location.pathname.includes('/staff/dashboard')) {
-                setTimeout(() => location.reload(), 1000);
+                setTimeout(() => location.reload(), 1500);
             }
         } else {
             showNotification(data.message || 'Check-out thất bại', 'error');
@@ -141,6 +168,10 @@ async function performCheckOut() {
     } catch (error) {
         console.error('Error checking out:', error);
         showNotification('Đã xảy ra lỗi khi check-out', 'error');
+        const button = event.target.closest('button');
+        if (button) {
+            button.disabled = false;
+        }
         renderCheckInOutButton();
     }
 }
