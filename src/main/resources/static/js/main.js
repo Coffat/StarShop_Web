@@ -451,9 +451,7 @@ function initializeCartActions() {
             e.preventDefault();
             
             const button = e.target.closest('.btn-wishlist');
-            const productId = button.dataset.productId;
-            
-            toggleWishlist(productId, button);
+            toggleWishlist(button);
         }
     });
 }
@@ -623,23 +621,58 @@ function toggleWishlist(button) {
         if (!data) return;
         
         console.log('Wishlist API response:', data);
+        console.log('Checking conditions:', {
+            hasData: !!data,
+            hasSuccess: !!data?.success,
+            hasDataData: !!data?.data,
+            hasDataSuccess: !!data?.data?.success
+        });
         
-        if (data && data.success && data.data && data.data.success) {
+        // Fix: Check data.success OR (data.data exists and no error)
+        if (data && (data.success || (data.data && !data.error))) {
             // Update UI based on server response
-            if (data.data.isFavorite) {
+            const isInWishlist = data.data.isFavorite || data.data.isInWishlist;
+            
+            if (isInWishlist) {
                 button.classList.add('active');
-                button.innerHTML = '<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="m9.653 16.915-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001Z" /></svg>';
-                showToast('Đã thêm vào danh sách yêu thích', 'success');
+                button.innerHTML = '<i class="fa-solid fa-heart"></i>'; // Solid heart
             } else {
                 button.classList.remove('active');
-                button.innerHTML = originalHTML;
-                showToast('Đã xóa khỏi danh sách yêu thích', 'success');
+                button.innerHTML = '<i class="fa-regular fa-heart"></i>'; // Regular heart
             }
             
-            // Update wishlist count - try both favoriteCount and userWishlistCount
-            const wishlistCount = data.data.favoriteCount || data.data.userWishlistCount;
-            if (wishlistCount !== undefined) {
+            // ⭐ FIX: Đọc đúng tên field từ API response
+            // API trả về: userWishlistCount (tổng số sản phẩm yêu thích của user)
+            const wishlistCount = data.data.userWishlistCount || data.data.wishlistCount || data.data.favoriteCount;
+            
+            console.log('📦 Wishlist count from API:', wishlistCount);
+            
+            if (wishlistCount !== undefined && wishlistCount !== null) {
+                console.log('✅ Updating wishlist count to:', wishlistCount);
                 updateWishlistCount(wishlistCount);
+            } else {
+                console.warn('⚠️ No wishlist count in response, fetching from list API...');
+                // Fallback: fetch from list API
+                fetch('/api/wishlist/list', { credentials: 'same-origin' })
+                    .then(response => response.json())
+                    .then(countData => {
+                        let count = 0;
+                        if (countData && countData.success && countData.data) {
+                            count = Array.isArray(countData.data) ? countData.data.length : 0;
+                        }
+                        console.log('✅ Fetched wishlist count from list:', count);
+                        updateWishlistCount(count);
+                    })
+                    .catch(error => {
+                        console.error('❌ Error fetching wishlist count:', error);
+                    });
+            }
+            
+            // Show success message
+            if (isInWishlist) {
+                showToast('Đã thêm vào danh sách yêu thích', 'success');
+            } else {
+                showToast('Đã xóa khỏi danh sách yêu thích', 'success');
             }
         } else {
             button.innerHTML = originalHTML;

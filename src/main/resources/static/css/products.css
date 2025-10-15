@@ -378,29 +378,32 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    opacity: 0;
-    transition: opacity var(--transition-normal);
-}
-
-.product-card:hover .product-actions {
-    opacity: 1;
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: 10;
 }
 
 .btn-action {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    border: none;
-    background: rgba(255, 255, 255, 0.9);
-    color: var(--gray-600);
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--gray-800);
     cursor: pointer;
     transition: all var(--transition-fast);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    font-size: 1.5rem;
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-action i {
+    transition: all var(--transition-fast);
+    line-height: 1;
 }
 
 .btn-action:hover {
@@ -413,6 +416,8 @@
     background: var(--primary);
     color: var(--white);
 }
+
+/* Icon changes handled by JavaScript - no need for CSS override */
 
 .product-badge {
     position: absolute;
