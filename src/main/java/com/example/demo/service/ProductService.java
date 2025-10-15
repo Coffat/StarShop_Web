@@ -380,7 +380,8 @@ public class ProductService {
         
         log.info("Admin: Updating product ID: {}", productId);
         
-        Product product = productRepository.findById(productId)
+        // Use eager fetch to avoid lazy loading issues
+        Product product = productRepository.findByIdWithCatalogEager(productId)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + productId));
         
         product.setName(name);
@@ -426,7 +427,8 @@ public class ProductService {
     public Product updateProductStatus(Long productId, ProductStatus status) {
         log.info("Admin: Updating product status for ID: {} to {}", productId, status);
         
-        Product product = productRepository.findById(productId)
+        // Use eager fetch to avoid lazy loading issues
+        Product product = productRepository.findByIdWithCatalogEager(productId)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + productId));
         
         product.setStatus(status);
@@ -443,7 +445,8 @@ public class ProductService {
     public Product updateProductStock(Long productId, Integer stockQuantity) {
         log.info("Admin: Updating product stock for ID: {} to {}", productId, stockQuantity);
         
-        Product product = productRepository.findById(productId)
+        // Use eager fetch to avoid lazy loading issues
+        Product product = productRepository.findByIdWithCatalogEager(productId)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + productId));
         
         product.setStockQuantity(stockQuantity);

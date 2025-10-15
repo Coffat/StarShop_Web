@@ -26,14 +26,17 @@ public class AdminEmployeeController {
     private final EmployeeService employeeService;
     
     /**
-     * Get all employees
+     * Get all employees with filters
      */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllEmployees(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir
+            @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String search
     ) {
         try {
             Sort sort = sortDir.equalsIgnoreCase("asc") 
@@ -41,7 +44,23 @@ public class AdminEmployeeController {
                 : Sort.by(sortBy).descending();
             
             Pageable pageable = PageRequest.of(page, size, sort);
-            Page<EmployeeDTO> employeePage = employeeService.getEmployees(pageable);
+            Page<EmployeeDTO> employeePage;
+            
+            // Apply filters with combination support
+            if (search != null && !search.trim().isEmpty()) {
+                // Search has highest priority
+                employeePage = employeeService.searchEmployees(search, pageable);
+            } else if ((role != null && !role.trim().isEmpty()) || (status != null && !status.trim().isEmpty())) {
+                // Combine role and status filters
+                Boolean isActive = null;
+                if (status != null && !status.trim().isEmpty()) {
+                    isActive = status.equalsIgnoreCase("active");
+                }
+                employeePage = employeeService.getEmployeesFiltered(role, isActive, pageable);
+            } else {
+                // No filters
+                employeePage = employeeService.getEmployees(pageable);
+            }
             
             Map<String, Object> response = new HashMap<>();
             response.put("employees", employeePage.getContent());
