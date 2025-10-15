@@ -5,8 +5,10 @@ import jakarta.persistence.Converter;
 
 /**
  * Converter for ProductStatus enum to handle database value mapping
+ * DEPRECATED: Use @Enumerated(EnumType.STRING) instead
+ * autoApply disabled to prevent conflicts with @Enumerated
  */
-@Converter(autoApply = true)
+@Converter(autoApply = false)
 public class ProductStatusConverter implements AttributeConverter<ProductStatus, String> {
 
     @Override

@@ -326,6 +326,16 @@
         
         <!-- JavaScript Functions -->
         <script>
+            // CSRF Token Helper
+            function getCsrfToken() {
+                const tokenElement = document.querySelector('meta[name="_csrf"]');
+                return tokenElement ? tokenElement.getAttribute('content') : '';
+            }
+            
+            function getCsrfHeader() {
+                const headerElement = document.querySelector('meta[name="_csrf_header"]');
+                return headerElement ? headerElement.getAttribute('content') : 'X-CSRF-TOKEN';
+            }
             
             // Edit product
             function editProduct(button) {
@@ -339,11 +349,17 @@
                 const currentStock = button.getAttribute('data-current-stock');
                 const newStock = prompt(`Nhập số lượng tồn kho mới (hiện tại: ${currentStock}):`, currentStock);
                 if (newStock !== null && !isNaN(newStock) && newStock >= 0) {
+                    const headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    };
+                    const csrfToken = getCsrfToken();
+                    if (csrfToken) {
+                        headers[getCsrfHeader()] = csrfToken;
+                    }
+                    
                     fetch(`/admin/products/api/${id}/stock`, {
                         method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
+                        headers: headers,
                         body: `stockQuantity=${newStock}`
                     })
                     .then(response => response.json())
@@ -367,8 +383,15 @@
                 const id = button.getAttribute('data-product-id');
                 const name = button.getAttribute('data-product-name');
                 if (confirm(`Bạn có chắc chắn muốn xóa sản phẩm "${name}"?`)) {
+                    const headers = {};
+                    const csrfToken = getCsrfToken();
+                    if (csrfToken) {
+                        headers[getCsrfHeader()] = csrfToken;
+                    }
+                    
                     fetch(`/admin/products/api/${id}`, {
-                        method: 'DELETE'
+                        method: 'DELETE',
+                        headers: headers
                     })
                     .then(response => response.json())
                     .then(data => {
@@ -431,11 +454,17 @@
                     reason: 'Bulk update from admin'
                 };
                 
+                const headers = {
+                    'Content-Type': 'application/json',
+                };
+                const csrfToken = getCsrfToken();
+                if (csrfToken) {
+                    headers[getCsrfHeader()] = csrfToken;
+                }
+                
                 fetch('/admin/products/api/bulk-status', {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: headers,
                     body: JSON.stringify(request)
                 })
                 .then(response => response.json())
@@ -476,11 +505,17 @@
                 
                 const request = { updates: updates };
                 
+                const headers = {
+                    'Content-Type': 'application/json',
+                };
+                const csrfToken = getCsrfToken();
+                if (csrfToken) {
+                    headers[getCsrfHeader()] = csrfToken;
+                }
+                
                 fetch('/admin/products/api/bulk-stock', {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: headers,
                     body: JSON.stringify(request)
                 })
                 .then(response => response.json())
@@ -1081,10 +1116,17 @@
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang xử lý...';
             
+            // Add CSRF token to headers (for multipart/form-data, we need to add it to FormData)
+            const csrfToken = getCsrfToken();
+            if (csrfToken) {
+                formData.append('_csrf', csrfToken);
+            }
+            
             // Send request
             fetch(url, {
                 method: method,
                 body: formData
+                // Note: Don't set Content-Type header for FormData, browser will set it with boundary
             })
             .then(response => response.json())
             .then(data => {
