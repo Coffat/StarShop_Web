@@ -388,8 +388,34 @@ public class OrderService {
                 productRepository.save(product);
             }
             
-            // Calculate total amount
-            order.calculateTotalAmount();
+            // Calculate shipping fee if address is GHN-compatible
+            BigDecimal shippingFee = BigDecimal.ZERO;
+            if (address.isGhnCompatible() && shippingService.isShippingServiceAvailable()) {
+                try {
+                    ShippingFeeResponse shippingResponse = shippingService.calculateShippingFee(
+                        userId, 
+                        address.getId(), 
+                        cart.getCartItems(), 
+                        request.getServiceTypeId()
+                    );
+                    
+                    if (shippingResponse.success()) {
+                        shippingFee = shippingResponse.shippingFee();
+                        logger.info("Calculated shipping fee: {} for order", shippingFee);
+                    } else {
+                        logger.warn("Failed to calculate shipping fee: {}", shippingResponse.message());
+                        // Continue with zero shipping fee instead of failing the order
+                    }
+                } catch (Exception e) {
+                    logger.error("Error calculating shipping fee: {}", e.getMessage());
+                    // Continue with zero shipping fee
+                }
+            } else {
+                logger.info("Using legacy delivery unit or address not GHN-compatible");
+            }
+            
+            // Calculate total amount with shipping fee
+            order.calculateTotalAmountWithShippingFee(shippingFee);
             
             // Save order
             Order savedOrder = orderRepository.save(order);

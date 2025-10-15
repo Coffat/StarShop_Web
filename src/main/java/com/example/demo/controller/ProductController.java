@@ -58,7 +58,13 @@ public class ProductController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
-            Model model) {
+            Model model,
+            jakarta.servlet.http.HttpServletResponse response) {
+        
+        // Force no cache for this page
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setHeader("Expires", "0");
         
         try {
             log.info("Products listing request - page: {}, size: {}, sort: {}, search: '{}'", 

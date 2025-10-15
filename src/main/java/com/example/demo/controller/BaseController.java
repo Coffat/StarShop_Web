@@ -4,6 +4,8 @@ import com.example.demo.entity.User;
 import com.example.demo.repository.FollowRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.CartService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -22,6 +24,7 @@ import java.util.List;
     WishlistController.class,
     OrderController.class,
     ProductController.class,
+    CategoryController.class,
     HomeController.class,
     AccountController.class,
     AdminController.class,
@@ -32,6 +35,8 @@ import java.util.List;
     StaffController.class
 })
 public class BaseController {
+    
+    private static final Logger log = LoggerFactory.getLogger(BaseController.class);
 
     @Autowired
     private UserRepository userRepository;
