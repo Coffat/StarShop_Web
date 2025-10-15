@@ -101,47 +101,7 @@
     );
   }
 
-  // ================================
-  // SEARCH FUNCTIONALITY
-  // ================================
-
-  function initializeSearch() {
-    const searchForm = document.querySelector(".search-form");
-    const searchInput = document.querySelector(".search-input");
-
-    if (!searchForm || !searchInput) return;
-
-    // Real-time search suggestions (placeholder for future implementation)
-    const debouncedSearch = debounce((query) => {
-      if (query.length < 2) return;
-
-      // TODO: Implement search suggestions API call
-      console.log("Search suggestions for:", query);
-    }, CONFIG.DEBOUNCE_DELAY);
-
-    searchInput.addEventListener("input", (e) => {
-      const query = e.target.value.trim();
-      debouncedSearch(query);
-    });
-
-    // Enhanced form submission
-    searchForm.addEventListener("submit", (e) => {
-      const query = searchInput.value.trim();
-
-      if (!query) {
-        e.preventDefault();
-        searchInput.focus();
-        showToast("Vui lòng nhập từ khóa tìm kiếm", "error");
-        return;
-      }
-
-      // Show loading state
-      const submitButton = searchForm.querySelector(".btn-search");
-      if (submitButton) {
-        setLoadingState(submitButton);
-      }
-    });
-  }
+  // (Search is initialized globally in main.js)
 
   // ================================
   // PRODUCT GRID FUNCTIONALITY
@@ -568,7 +528,7 @@
     // Initialize common functionality
     initializeErrorHandling();
     initializePerformanceOptimizations();
-    initializeSearch();
+    // Search initialized in main.js
     initializeSorting();
 
     // Initialize page-specific functionality
@@ -592,43 +552,7 @@
     console.log("Products page initialized successfully");
   }
 
-  // ================================
-  // WISHLIST FUNCTIONALITY
-  // ================================
-
-  function handleWishlistToggle(button) {
-    const productId = button.dataset.productId;
-    
-    if (!productId) {
-      showToast('Không thể thêm sản phẩm vào danh sách yêu thích', 'error');
-      return;
-    }
-    
-    // Disable button to prevent multiple clicks
-    button.disabled = true;
-      }
-    });
-  });
-
-  document.querySelectorAll('img[loading="lazy"]').forEach((img) => {
-    imageObserver.observe(img);
-  });
-}
-
-// // Preload critical resources
-// const preloadLinks = [
-//     '/css/products.css',
-//     '/js/products.js'
-// ];
-
-// preloadLinks.forEach(href => {
-//     const link = document.createElement('link');
-//     link.rel = 'preload';
-//     link.href = href;
-//     link.as = href.endsWith('.css') ? 'style' : 'script';
-//     document.head.appendChild(link);
-// });
-}
+  // (Wishlist toggle logic handled by main.js)
 
 // ================================
 // ERROR HANDLING
@@ -797,19 +721,11 @@ fetch('/api/wishlist/toggle', {
       if (typeof window.updateWishlistCount === 'function') {
         window.updateWishlistCount(wishlistCount);
         console.log('✅ updateWishlistCount called successfully');
-        showToast('Lỗi bảo mật: Vui lòng refresh trang và thử lại', 'error');
-        if (icon) icon.className = originalIconClass;
-        button.disabled = false;
-        return null;
       }
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      return response.json();
-    })
-    .then(data => {
+      return null;
+    }
+  }})
+  .then(data => {
       if (!data) return;
       
       console.log('Wishlist API response:', data);
@@ -914,31 +830,10 @@ fetch('/api/wishlist/toggle', {
   // UTILITY FUNCTIONS
   // ================================
 
-  function getCsrfToken() {
-    // Try to get CSRF token from cookie first (Spring Security default)
-    const cookies = document.cookie.split(";");
-    for (let cookie of cookies) {
-      const [name, value] = cookie.trim().split("=");
-      if (name === "XSRF-TOKEN") {
-        return decodeURIComponent(value);
-      }
-    }
-
-    // Fallback to meta tag
-    const token = document.querySelector('meta[name="_csrf"]');
-    return token ? token.getAttribute("content") : "";
-  }
+  // Use global getCsrfToken provided by main.js
 
   // Use showToast from main.js if available, otherwise create a simple fallback
-  function showToast(message, type = 'success') {
-    if (typeof window.showToast === 'function') {
-      window.showToast(message, type);
-    } else {
-      // Fallback: simple alert
-      console.log(`[${type.toUpperCase()}] ${message}`);
-      alert(message);
-    }
-  }
+  // Use global showToast provided by main.js
   // ================================
   // DOM READY
   // ================================
