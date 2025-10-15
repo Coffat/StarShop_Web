@@ -265,15 +265,25 @@ public class EmployeeService {
      * Convert User entity to EmployeeDTO
      */
     private EmployeeDTO convertToDTO(User user) {
-        // Calculate work statistics
-        Long totalShifts = (long) user.getTimeSheets().size();
-        java.math.BigDecimal totalHours = user.getTimeSheets().stream()
-            .map(ts -> ts.getHoursWorked() != null ? ts.getHoursWorked() : java.math.BigDecimal.ZERO)
-            .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
-        Long monthsWorked = user.getTimeSheets().stream()
-            .map(ts -> java.time.YearMonth.from(ts.getDate()))
-            .distinct()
-            .count();
+        // Calculate work statistics - safe null handling
+        Long totalShifts = 0L;
+        java.math.BigDecimal totalHours = java.math.BigDecimal.ZERO;
+        Long monthsWorked = 0L;
+        
+        try {
+            if (user.getTimeSheets() != null) {
+                totalShifts = (long) user.getTimeSheets().size();
+                totalHours = user.getTimeSheets().stream()
+                    .map(ts -> ts.getHoursWorked() != null ? ts.getHoursWorked() : java.math.BigDecimal.ZERO)
+                    .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+                monthsWorked = user.getTimeSheets().stream()
+                    .map(ts -> java.time.YearMonth.from(ts.getDate()))
+                    .distinct()
+                    .count();
+            }
+        } catch (Exception e) {
+            log.warn("Could not load timesheet data for employee {}: {}", user.getId(), e.getMessage());
+        }
         
         return EmployeeDTO.builder()
             .id(user.getId())
