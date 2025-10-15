@@ -327,7 +327,9 @@ function setupFilterTabs() {
 
 // View order detail
 function viewOrderDetail(orderId) {
-    window.location.href = `/orders/${orderId}`;
+    // Support both button click and direct ID
+    const id = typeof orderId === 'number' ? orderId : orderId;
+    window.location.href = `/orders/${id}`;
 }
 
 // Cancel order

@@ -123,11 +123,12 @@ public class OrderController extends BaseController {
             }
             
             // Get order details
-            OrderResponse orderResponse = orderService.getOrder(user.getId(), orderId);
+            OrderResponse orderResponse = orderService.getOrder(orderId, user.getId());
             
             if (!orderResponse.isSuccess()) {
-                model.addAttribute("error", orderResponse.getMessage());
-                return "error/404";
+                logger.warn("Order not found or access denied: orderId={}, userId={}, message={}", 
+                    orderId, user.getId(), orderResponse.getMessage());
+                return "redirect:/account/orders?error=" + orderResponse.getMessage();
             }
             
             // Handle payment result messages
@@ -147,15 +148,14 @@ public class OrderController extends BaseController {
             addBreadcrumb(model, "Đơn hàng của tôi", "/orders");
             addBreadcrumb(model, "Chi tiết đơn hàng #" + orderId, "/orders/" + orderId);
             
-            // Add model attributes
-            model.addAttribute("order", orderResponse.getOrder());
+            // Add model attributes - pass OrderResponse instead of OrderDTO
+            model.addAttribute("order", orderResponse);
             
             return "orders/detail";
             
         } catch (Exception e) {
-            logger.error("Error displaying order detail page: {}", e.getMessage());
-            model.addAttribute("error", "Có lỗi xảy ra khi tải chi tiết đơn hàng");
-            return "error/500";
+            logger.error("Error displaying order detail page: {}", e.getMessage(), e);
+            return "redirect:/account/orders?error=Có lỗi xảy ra khi tải chi tiết đơn hàng";
         }
     }
     
