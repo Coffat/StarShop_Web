@@ -98,12 +98,15 @@ public class WishlistService {
                 return WishlistResponse.error("Sản phẩm không có trong danh sách yêu thích");
             }
 
+            // tính trước khi xóa , fix lỗi 1 xóa vẫn còn 1
+            Long initialUserWishlistCount = followRepository.countByUserId(userId);
+
             // Remove from wishlist
             followRepository.deleteByUserIdAndProductId(userId, productId);
 
             Long productFollowersCount = followRepository.countFollowersByProductId(productId);
-            Long userWishlistCount = followRepository.countByUserId(userId);
-
+            Long userWishlistCount = initialUserWishlistCount > 0 ? initialUserWishlistCount - 1 : 0;
+            
             logger.info("Successfully removed product {} from wishlist for user {}", productId, userId);
             WishlistResponse response = WishlistResponse.success("Đã xóa khỏi danh sách yêu thích", false,
                     productFollowersCount);

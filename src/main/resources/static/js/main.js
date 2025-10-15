@@ -643,7 +643,7 @@ function toggleWishlist(button) {
             
             // ⭐ FIX: Đọc đúng tên field từ API response
             // API trả về: userWishlistCount (tổng số sản phẩm yêu thích của user)
-            const wishlistCount = data.data.userWishlistCount || data.data.wishlistCount || data.data.favoriteCount;
+            const wishlistCount = data.data.userWishlistCount;
             
             console.log('📦 Wishlist count from API:', wishlistCount);
             
@@ -755,13 +755,39 @@ function updateCartCount(count) {
 }
 
 function updateWishlistCount(count) {
+    // const wishlistCountElements = document.querySelectorAll('.wishlist-count');
+    // wishlistCountElements.forEach(element => {
+    //     element.textContent = count;
+    //     if (count > 0) {
+    //         element.classList.remove('hidden');
+    //         element.style.display = 'flex';
+    //     } else {
+    //         element.classList.add('hidden');
+    //         element.style.display = 'none';
+    //     }
+    // });
+
+
     const wishlistCountElements = document.querySelectorAll('.wishlist-count');
+
+    // Đảm bảo count là một số
+    const newCount = Number(count);
+
     wishlistCountElements.forEach(element => {
-        element.textContent = count;
-        if (count > 0) {
+        element.textContent = newCount;
+        if (newCount > 0) {
+            // Hiển thị số nếu lớn hơn 0
             element.classList.remove('hidden');
-            element.style.display = 'flex';
+            element.style.display = 'flex'; // Hoặc 'inline-block' tùy theo CSS của bạn
+
+            // Thêm hiệu ứng animation nhỏ để thu hút sự chú ý
+            element.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                element.style.transform = 'scale(1)';
+            }, 150);
+
         } else {
+            // Ẩn số đi nếu bằng 0
             element.classList.add('hidden');
             element.style.display = 'none';
         }
