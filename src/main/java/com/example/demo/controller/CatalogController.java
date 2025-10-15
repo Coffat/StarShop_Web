@@ -43,7 +43,8 @@ public class CatalogController {
         if (value == null || value.trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(catalogService.create(value.trim()));
+        String image = request.get("image");
+        return ResponseEntity.ok(catalogService.create(value.trim(), image));
     }
     
     /**
@@ -58,7 +59,20 @@ public class CatalogController {
         if (value == null || value.trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(catalogService.update(id, value.trim()));
+        String image = request.get("image");
+        return ResponseEntity.ok(catalogService.update(id, value.trim(), image));
+    }
+    
+    /**
+     * Update catalog image only (Admin only)
+     */
+    @PatchMapping("/{id}/image")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Catalog> updateCatalogImage(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> request) {
+        String image = request.get("image");
+        return ResponseEntity.ok(catalogService.updateImage(id, image));
     }
     
     /**

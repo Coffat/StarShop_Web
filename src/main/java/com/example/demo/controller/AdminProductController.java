@@ -28,7 +28,7 @@ import java.util.Map;
 
 @Controller
 @RequestMapping("/admin/products")
-public class AdminProductController {
+public class AdminProductController extends BaseController {
 
     private static final Logger log = LoggerFactory.getLogger(AdminProductController.class);
 
@@ -372,20 +372,6 @@ public class AdminProductController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ResponseWrapper.error("Lỗi khi tải danh mục: " + e.getMessage()));
         }
-    }
-
-    // Helper class for breadcrumbs
-    public static class BreadcrumbItem {
-        private String title;
-        private String url;
-        
-        public BreadcrumbItem(String title, String url) {
-            this.title = title;
-            this.url = url;
-        }
-        
-        public String getTitle() { return title; }
-        public String getUrl() { return url; }
     }
 
     /**

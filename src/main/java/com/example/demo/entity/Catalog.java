@@ -13,6 +13,9 @@ public class Catalog extends BaseEntity {
     @Column(nullable = false, unique = true, length = 100)
     private String value;
 
+    @Column(length = 255)
+    private String image;
+
     @JsonIgnore
     @OneToMany(mappedBy = "catalog", fetch = FetchType.LAZY)
     private List<Product> products = new ArrayList<>();
@@ -40,6 +43,14 @@ public class Catalog extends BaseEntity {
 
     public void setProducts(List<Product> products) {
         this.products = products;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 }
 

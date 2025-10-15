@@ -146,6 +146,23 @@ public class AdminController extends BaseController {
     }
 
     /**
+     * Quản lý Danh mục
+     */
+    @GetMapping("/catalogs")
+    public String catalogs(Model model) {
+        model.addAttribute("pageTitle", "Quản lý Danh mục");
+        model.addAttribute("contentTemplate", "admin/catalogs/index");
+        model.addAttribute("currentPath", "/admin/catalogs");
+        
+        List<BreadcrumbItem> breadcrumbs = new ArrayList<>();
+        breadcrumbs.add(new BreadcrumbItem("Dashboard", "/admin/dashboard"));
+        breadcrumbs.add(new BreadcrumbItem("Quản lý Danh mục", "/admin/catalogs"));
+        model.addAttribute("breadcrumbs", breadcrumbs);
+        
+        return "layouts/admin";
+    }
+
+    /**
      * Cài đặt Hệ thống
      */
     @GetMapping("/settings")
