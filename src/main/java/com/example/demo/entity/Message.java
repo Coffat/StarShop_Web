@@ -26,7 +26,7 @@ public class Message extends BaseEntity {
     @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;
 
-    @Column(name = "conversation_id", length = 100)
+    @Column(name = "conversation_id")
     private Long conversationId;
 
     @Column(name = "message_type", length = 20)
