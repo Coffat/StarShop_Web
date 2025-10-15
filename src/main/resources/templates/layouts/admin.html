@@ -147,6 +147,14 @@
                             Quản lý Sản phẩm
                         </a>
                         
+                        <!-- Quản lý Danh mục -->
+                        <a href="/admin/catalogs" 
+                           th:classappend="${#strings.contains(currentPath, '/admin/catalogs') ? 'sidebar-active' : 'sidebar-text sidebar-text-hover'}"
+                           class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200">
+                            <i class="fas fa-tags mr-3 text-lg"></i>
+                            Quản lý Danh mục
+                        </a>
+                        
                         <!-- Quản lý Voucher -->
                         <a href="/admin/vouchers" 
                            th:classappend="${#strings.contains(currentPath, '/admin/vouchers') ? 'sidebar-active' : 'sidebar-text sidebar-text-hover'}"
@@ -218,13 +226,97 @@
                         </button>
                     </div>
                     <!-- Mobile sidebar content (same as desktop) -->
-                    <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
-                        <div class="flex-shrink-0 flex items-center px-4">
+                    <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto sidebar-scrollbar">
+                        <div class="flex-shrink-0 flex items-center px-4 mb-6">
                             <span class="text-2xl">🌸</span>
-                            <h1 class="ml-3 text-xl font-bold text-white">StarShop Admin</h1>
+                            <h1 class="ml-3 text-xl font-bold sidebar-text">StarShop Admin</h1>
                         </div>
-                        <nav class="mt-5 px-2 space-y-1">
-                            <!-- Same navigation items as desktop -->
+                        <nav class="mt-5 px-3 space-y-1">
+                            <!-- Dashboard -->
+                            <a href="/admin/dashboard" 
+                               th:classappend="${#strings.contains(currentPath, '/admin/dashboard') or currentPath == '/admin' or currentPath == '/admin/' ? 'sidebar-active' : 'sidebar-text sidebar-text-hover'}"
+                               class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200">
+                                <i class="fas fa-tachometer-alt mr-3 text-lg"></i>
+                                Dashboard
+                            </a>
+                            
+                            <!-- Quản lý Đơn hàng -->
+                            <a href="/admin/orders" 
+                               th:classappend="${#strings.contains(currentPath, '/admin/orders') ? 'sidebar-active' : 'sidebar-text sidebar-text-hover'}"
+                               class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200">
+                                <i class="fas fa-shopping-cart mr-3 text-lg"></i>
+                                Quản lý Đơn hàng
+                            </a>
+                            
+                            <!-- Quản lý Sản phẩm -->
+                            <a href="/admin/products" 
+                               th:classappend="${#strings.contains(currentPath, '/admin/products') ? 'sidebar-active' : 'sidebar-text sidebar-text-hover'}"
+                               class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200">
+                                <i class="fas fa-box mr-3 text-lg"></i>
+                                Quản lý Sản phẩm
+                            </a>
+                            
+                            <!-- Quản lý Danh mục -->
+                            <a href="/admin/catalogs" 
+                               th:classappend="${#strings.contains(currentPath, '/admin/catalogs') ? 'sidebar-active' : 'sidebar-text sidebar-text-hover'}"
+                               class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200">
+                                <i class="fas fa-tags mr-3 text-lg"></i>
+                                Quản lý Danh mục
+                            </a>
+                            
+                            <!-- Quản lý Voucher -->
+                            <a href="/admin/vouchers" 
+                               th:classappend="${#strings.contains(currentPath, '/admin/vouchers') ? 'sidebar-active' : 'sidebar-text sidebar-text-hover'}"
+                               class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200">
+                                <i class="fas fa-ticket-alt mr-3 text-lg"></i>
+                                Quản lý Voucher
+                            </a>
+                            
+                            <!-- Quản lý Nhân viên -->
+                            <a href="/admin/employees" 
+                               th:classappend="${#strings.contains(currentPath, '/admin/employees') ? 'sidebar-active' : 'sidebar-text sidebar-text-hover'}"
+                               class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200">
+                                <i class="fas fa-user-tie mr-3 text-lg"></i>
+                                Quản lý Nhân viên
+                            </a>
+                            
+                            <!-- Quản lý Người dùng -->
+                            <a href="/admin/users" 
+                               th:classappend="${#strings.contains(currentPath, '/admin/users') ? 'sidebar-active' : 'sidebar-text sidebar-text-hover'}"
+                               class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200">
+                                <i class="fas fa-users mr-3 text-lg"></i>
+                                Quản lý Người dùng
+                            </a>
+                            
+                            <!-- Quản lý Nội dung -->
+                            <a href="/admin/content" 
+                               th:classappend="${#strings.contains(currentPath, '/admin/content') ? 'sidebar-active' : 'sidebar-text sidebar-text-hover'}"
+                               class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200">
+                                <i class="fas fa-file-alt mr-3 text-lg"></i>
+                                Quản lý Nội dung
+                            </a>
+                            
+                            <!-- Báo cáo -->
+                            <a href="/admin/reports" 
+                               th:classappend="${#strings.contains(currentPath, '/admin/reports') ? 'sidebar-active' : 'sidebar-text sidebar-text-hover'}"
+                               class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200">
+                                <i class="fas fa-chart-bar mr-3 text-lg"></i>
+                                Báo cáo
+                            </a>
+                            
+                            <!-- Cài đặt Hệ thống -->
+                            <a href="/admin/settings" 
+                               th:classappend="${#strings.contains(currentPath, '/admin/settings') ? 'sidebar-active' : 'sidebar-text sidebar-text-hover'}"
+                               class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200">
+                                <i class="fas fa-cog mr-3 text-lg"></i>
+                                Cài đặt Hệ thống
+                            </a>
+                            
+                            <!-- Về trang chủ -->
+                            <a href="/" class="group flex items-center px-3 py-2 text-sm font-medium sidebar-text sidebar-text-hover rounded-lg transition-colors duration-200 mt-4 border-t border-gray-200 pt-4">
+                                <i class="fas fa-arrow-left mr-3 text-lg"></i>
+                                Về trang chủ
+                            </a>
                         </nav>
                     </div>
                 </div>

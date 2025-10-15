@@ -61,7 +61,19 @@ public class CatalogService {
      */
     @Transactional
     public Catalog create(String value) {
-        log.info("Creating new catalog with value: {}", value);
+        return create(value, null);
+    }
+    
+    /**
+     * Create new catalog with image
+     * @param value Catalog value
+     * @param image Catalog image path
+     * @return Created catalog
+     * @throws RuntimeException if catalog already exists
+     */
+    @Transactional
+    public Catalog create(String value, String image) {
+        log.info("Creating new catalog with value: {} and image: {}", value, image);
         
         if (catalogRepository.existsByValue(value)) {
             log.error("Catalog already exists with value: {}", value);
@@ -70,6 +82,7 @@ public class CatalogService {
         
         Catalog catalog = new Catalog();
         catalog.setValue(value);
+        catalog.setImage(image);
         
         Catalog savedCatalog = catalogRepository.save(catalog);
         log.info("Successfully created catalog with ID: {}", savedCatalog.getId());
@@ -85,13 +98,49 @@ public class CatalogService {
      */
     @Transactional
     public Catalog update(Long id, String value) {
-        log.info("Updating catalog ID: {} with new value: {}", id, value);
+        return update(id, value, null);
+    }
+    
+    /**
+     * Update catalog with image
+     * @param id Catalog ID
+     * @param value New catalog value
+     * @param image New catalog image path (null to keep existing)
+     * @return Updated catalog
+     */
+    @Transactional
+    public Catalog update(Long id, String value, String image) {
+        log.info("Updating catalog ID: {} with new value: {} and image: {}", id, value, image);
         
         Catalog catalog = findById(id);
         catalog.setValue(value);
         
+        // Only update image if provided (not null)
+        if (image != null) {
+            catalog.setImage(image);
+        }
+        
         Catalog updatedCatalog = catalogRepository.save(catalog);
         log.info("Successfully updated catalog ID: {}", id);
+        
+        return updatedCatalog;
+    }
+    
+    /**
+     * Update only catalog image
+     * @param id Catalog ID
+     * @param image New catalog image path
+     * @return Updated catalog
+     */
+    @Transactional
+    public Catalog updateImage(Long id, String image) {
+        log.info("Updating catalog ID: {} with new image: {}", id, image);
+        
+        Catalog catalog = findById(id);
+        catalog.setImage(image);
+        
+        Catalog updatedCatalog = catalogRepository.save(catalog);
+        log.info("Successfully updated catalog image for ID: {}", id);
         
         return updatedCatalog;
     }

@@ -2,7 +2,7 @@ package com.example.demo.dto;
 
 import com.example.demo.entity.Catalog;
 
-public record CatalogDto(Long id, String value) {
+public record CatalogDto(Long id, String value, String image) {
     
     /**
      * Convert Catalog entity to DTO
@@ -13,7 +13,11 @@ public record CatalogDto(Long id, String value) {
         if (catalog == null) {
             return null;
         }
-        return new CatalogDto(catalog.getId(), catalog.getValue());
+        return new CatalogDto(
+            catalog.getId(), 
+            catalog.getValue(),
+            catalog.getImage()
+        );
     }
 }
 
