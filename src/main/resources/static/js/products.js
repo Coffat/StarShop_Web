@@ -612,27 +612,27 @@
     window.location.href = "/cart";
   };
 
-  window.increaseQuantity = function () {
-    const input = document.getElementById("quantity");
-    if (input) {
-      const currentValue = parseInt(input.value) || CONFIG.MIN_QUANTITY;
-      if (currentValue < CONFIG.MAX_QUANTITY) {
-        input.value = currentValue + 1;
-        updateQuantityDisplay();
-      }
-    }
-  };
+  // window.increaseQuantity = function () {
+  //   const input = document.getElementById("quantity");
+  //   if (input) {
+  //     const currentValue = parseInt(input.value) || CONFIG.MIN_QUANTITY;
+  //     if (currentValue < CONFIG.MAX_QUANTITY) {
+  //       input.value = currentValue + 1;
+  //       updateQuantityDisplay();
+  //     }
+  //   }
+  // };
 
-  window.decreaseQuantity = function () {
-    const input = document.getElementById("quantity");
-    if (input) {
-      const currentValue = parseInt(input.value) || CONFIG.MIN_QUANTITY;
-      if (currentValue > CONFIG.MIN_QUANTITY) {
-        input.value = currentValue - 1;
-        updateQuantityDisplay();
-      }
-    }
-  };
+  // window.decreaseQuantity = function () {
+  //   const input = document.getElementById("quantity");
+  //   if (input) {
+  //     const currentValue = parseInt(input.value) || CONFIG.MIN_QUANTITY;
+  //     if (currentValue > CONFIG.MIN_QUANTITY) {
+  //       input.value = currentValue - 1;
+  //       updateQuantityDisplay();
+  //     }
+  //   }
+  // };
 
   // ================================
   // UTILITY FUNCTIONS
