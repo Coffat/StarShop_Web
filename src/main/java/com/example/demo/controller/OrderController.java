@@ -355,6 +355,8 @@ public class OrderController extends BaseController {
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Số lượng items per page", example = "10")
             @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "Filter by status", example = "PENDING")
+            @RequestParam(required = false) String status,
             @Parameter(hidden = true) Authentication authentication) {
         
         try {
@@ -370,9 +372,21 @@ public class OrderController extends BaseController {
                     .body(ResponseWrapper.error("Người dùng không hợp lệ"));
             }
             
-            // Get user's orders
+            // Get user's orders with optional status filter
             Pageable pageable = PageRequest.of(page, size, Sort.by("orderDate").descending());
-            Page<OrderDTO> orders = orderService.getUserOrders(user.getId(), pageable);
+            Page<OrderDTO> orders;
+            
+            if (status != null && !status.isEmpty()) {
+                try {
+                    OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
+                    orders = orderService.getUserOrdersByStatus(user.getId(), orderStatus, pageable);
+                } catch (IllegalArgumentException e) {
+                    return ResponseEntity.badRequest()
+                        .body(ResponseWrapper.error("Trạng thái đơn hàng không hợp lệ"));
+                }
+            } else {
+                orders = orderService.getUserOrders(user.getId(), pageable);
+            }
             
             return ResponseEntity.ok(ResponseWrapper.success(orders));
             

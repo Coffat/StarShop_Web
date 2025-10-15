@@ -1,379 +1,179 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" 
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      th:replace="~{layouts/main :: layout('Lịch sử đơn hàng', 
-          'Theo dõi và quản lý lịch sử đơn hàng StarShop của bạn. Xem chi tiết, trạng thái giao hàng và đánh giá sản phẩm.',
+      th:replace="~{layouts/main :: layout('Đơn hàng của tôi', 
+          'Theo dõi và quản lý đơn hàng StarShop của bạn. Xem chi tiết, trạng thái giao hàng và đánh giá sản phẩm.',
           ~{::link},
           ~{::content})}">
 
 <head>
-    <link rel="stylesheet" href="/css/account.css">
+    <link rel="stylesheet" href="/css/orders.css">
 </head>
 
 <body>
 <th:block th:fragment="content">
-    <!-- Page Header -->
-    <section class="page-header">
-        <div class="container">
-            <div class="header-content">
-                <div class="breadcrumb-wrapper">
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item">
-                                <a href="/" class="breadcrumb-link">
-                                    <i class="bi bi-house"></i>
-                                    Trang chủ
-                                </a>
-                            </li>
-                            <li class="breadcrumb-item">
-                                <a href="/account/profile" class="breadcrumb-link">Tài khoản</a>
-                            </li>
-                            <li class="breadcrumb-item active" aria-current="page">Lịch sử đơn hàng</li>
-                        </ol>
-                    </nav>
-                </div>
-                <div class="page-title-section">
-                    <h1 class="page-title">
-                        <span class="title-icon">
-                            <i class="bi bi-bag-check"></i>
+    <!-- Hero Header - Compact Version -->
+    <section class="relative bg-gradient-to-br from-pink-50 via-white to-purple-50 border-b border-gray-100">
+        <!-- Background Pattern -->
+        <div class="absolute inset-0 opacity-5">
+            <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23F06292\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm border border-pink-100 mb-3">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-pink-500"></span>
                         </span>
-                        Lịch sử đơn hàng
+                        <span class="text-xs font-semibold text-gray-700" th:text="${ordersCount > 0 ? ordersCount + ' đơn hàng' : 'Chưa có đơn hàng'}">0 đơn hàng</span>
+                    </div>
+                    
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                        Đơn hàng của 
+                        <span class="bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 bg-clip-text text-transparent">bạn</span>
                     </h1>
-                    <p class="page-subtitle">Theo dõi và quản lý tất cả đơn hàng của bạn</p>
+                    
+                    <p class="text-sm text-gray-600">
+                        Theo dõi trạng thái giao hàng, xem lịch sử mua hàng và quản lý đơn hàng của bạn một cách dễ dàng.
+                    </p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Orders Content -->
-    <section class="account-section">
-        <div class="container">
-            <div class="row g-4">
-                
-                <!-- Sidebar Navigation -->
-                <div class="col-lg-3">
-                    <div class="account-sidebar">
-                        <!-- User Profile Card -->
-                        <div class="profile-card">
-                            <div class="profile-avatar">
-                                <div class="avatar-circle">
-                                    <img th:if="${userObject != null and userObject.avatar != null}" 
-                                         th:src="${userObject.avatar}" 
-                                         alt="Avatar" 
-                                         style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;"
-                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
-                                    <i th:if="${userObject == null or userObject.avatar == null}" class="bi bi-person-fill" style="display: inline-block;"></i>
-                                    <i class="bi bi-person-fill" style="display: none;"></i>
-                                </div>
-                                <div class="avatar-status">
-                                    <i class="bi bi-check-circle-fill"></i>
-                                </div>
-                            </div>
-                            <div class="profile-info">
-                                <h3 class="profile-name" th:text="${userObject != null ? userObject.fullName : 'Người dùng'}">Người dùng</h3>
-                                <p class="profile-email" th:text="${userObject != null ? userObject.email : currentUser}">user@example.com</p>
-                                <span class="profile-badge">
-                                    <i class="bi bi-star-fill"></i>
-                                    Thành viên từ <span th:text="${userObject != null and userObject.createdAt != null ? #temporals.format(userObject.createdAt, 'yyyy') : '2024'}">2024</span>
-                                </span>
-                            </div>
+    <section class="py-8 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8" th:if="${ordersCount > 0}">
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-600 mb-1">Tất cả</p>
+                            <p class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent" th:text="${ordersCount}">0</p>
                         </div>
-
-                        <!-- Navigation Menu -->
-                        <nav class="account-nav">
-                            <ul class="nav-list">
-                                <li class="nav-item">
-                                    <a href="/account/profile" class="nav-link">
-                                        <span class="nav-icon">
-                                            <i class="bi bi-person"></i>
-                                        </span>
-                                        <span class="nav-text">Thông tin cá nhân</span>
-                                        <span class="nav-arrow">
-                                            <i class="bi bi-chevron-right"></i>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="/account/orders" class="nav-link active">
-                                        <span class="nav-icon">
-                                            <i class="bi bi-bag"></i>
-                                        </span>
-                                        <span class="nav-text">Đơn hàng của tôi</span>
-                                        <span class="nav-badge" th:text="${ordersCount}" th:if="${ordersCount > 0}">3</span>
-                                        <span class="nav-arrow">
-                                            <i class="bi bi-chevron-right"></i>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="/account/wishlist" class="nav-link">
-                                        <span class="nav-icon">
-                                            <i class="bi bi-heart"></i>
-                                        </span>
-                                        <span class="nav-text">Yêu thích</span>
-                                        <span class="nav-badge" th:text="${wishlistCount}" th:if="${wishlistCount > 0}">12</span>
-                                        <span class="nav-arrow">
-                                            <i class="bi bi-chevron-right"></i>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="/account/settings" class="nav-link">
-                                        <span class="nav-icon">
-                                            <i class="bi bi-gear"></i>
-                                        </span>
-                                        <span class="nav-text">Cài đặt</span>
-                                        <span class="nav-arrow">
-                                            <i class="bi bi-chevron-right"></i>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li class="nav-divider"></li>
-                                <li class="nav-item">
-                                    <a href="/logout" class="nav-link logout-link">
-                                        <span class="nav-icon">
-                                            <i class="bi bi-box-arrow-right"></i>
-                                        </span>
-                                        <span class="nav-text">Đăng xuất</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
-                </div>
-
-                <!-- Main Content -->
-                <div class="col-lg-9">
-                    <div class="account-content">
-                        
-                        <!-- Orders Filter -->
-                        <div class="content-card" th:if="${ordersCount > 0}">
-                            <div class="card-header">
-                                <h2 class="card-title">
-                                    <i class="bi bi-funnel"></i>
-                                    Bộ lọc đơn hàng
-                                </h2>
-                            </div>
-                            <div class="card-body">
-                                <div class="filter-tabs">
-                                    <button class="filter-tab active" data-status="all" th:text="'Tất cả (' + ${ordersCount} + ')'">
-                                        Tất cả (0)
-                                    </button>
-                                    <button class="filter-tab" data-status="pending">
-                                        Chờ xác nhận (0)
-                                    </button>
-                                    <button class="filter-tab" data-status="processing">
-                                        Đang xử lý (0)
-                                    </button>
-                                    <button class="filter-tab" data-status="shipped">
-                                        Đang giao (0)
-                                    </button>
-                                    <button class="filter-tab" data-status="delivered">
-                                        Đã giao (0)
-                                    </button>
-                                </div>
-                            </div>
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #fce7f3 0%, #f3e8ff 100%);">
+                            <svg class="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                            </svg>
                         </div>
-
-                        <!-- Empty Orders State -->
-                        <div class="content-card" th:if="${ordersCount == 0}">
-                            <div class="card-body">
-                                <div class="empty-activity">
-                                    <div class="empty-activity-icon">
-                                        <i class="bi bi-bag"></i>
-                                    </div>
-                                    <h4 class="empty-activity-title">Chưa có đơn hàng nào</h4>
-                                    <p class="empty-activity-desc">
-                                        Bạn chưa có đơn hàng nào trong hệ thống.<br>
-                                        Hãy khám phá và đặt mua những sản phẩm yêu thích!
-                                    </p>
-                                    <a href="/products" class="btn btn-primary">
-                                        <i class="bi bi-search"></i>
-                                        Khám phá sản phẩm
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Orders List -->
-                        <div class="orders-list" th:if="${ordersCount > 0}">
-                            
-                            <!-- Order Item 1 -->
-                            <div class="order-card">
-                                <div class="order-header">
-                                    <div class="order-info">
-                                        <div class="order-number">#ORD-2024-001</div>
-                                        <div class="order-date">Đặt hàng: 15/03/2024</div>
-                                    </div>
-                                    <div class="order-status">
-                                        <span class="status-badge delivered">
-                                            <i class="bi bi-check-circle"></i>
-                                            Đã giao hàng
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <div class="order-items">
-                                    <div class="order-item">
-                                        <div class="item-image">
-                                            <img src="/images/products/rose-bouquet.jpg" alt="Hoa hồng đỏ">
-                                        </div>
-                                        <div class="item-details">
-                                            <h4 class="item-name">Bó hoa hồng đỏ premium</h4>
-                                            <div class="item-specs">
-                                                <span class="spec">Số lượng: 1</span>
-                                                <span class="spec">Size: Lớn</span>
-                                            </div>
-                                        </div>
-                                        <div class="item-price">
-                                            <span class="price">890,000₫</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="order-footer">
-                                    <div class="order-total">
-                                        <span class="total-label">Tổng tiền:</span>
-                                        <span class="total-amount">890,000₫</span>
-                                    </div>
-                                    <div class="order-actions">
-                                        <button class="btn-outline-primary">Xem chi tiết</button>
-                                        <button class="btn-primary">Đánh giá</button>
-                                        <button class="btn-secondary">Mua lại</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Order Item 2 -->
-                            <div class="order-card">
-                                <div class="order-header">
-                                    <div class="order-info">
-                                        <div class="order-number">#ORD-2024-002</div>
-                                        <div class="order-date">Đặt hàng: 12/03/2024</div>
-                                    </div>
-                                    <div class="order-status">
-                                        <span class="status-badge shipped">
-                                            <i class="bi bi-truck"></i>
-                                            Đang giao hàng
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <div class="order-items">
-                                    <div class="order-item">
-                                        <div class="item-image">
-                                            <img src="/images/products/lily-bouquet.jpg" alt="Hoa ly trắng">
-                                        </div>
-                                        <div class="item-details">
-                                            <h4 class="item-name">Bó hoa ly trắng tinh khôi</h4>
-                                            <div class="item-specs">
-                                                <span class="spec">Số lượng: 1</span>
-                                                <span class="spec">Size: Vừa</span>
-                                            </div>
-                                        </div>
-                                        <div class="item-price">
-                                            <span class="price">650,000₫</span>
-                                        </div>
-                                    </div>
-                                    <div class="order-item">
-                                        <div class="item-image">
-                                            <img src="/images/products/card.jpg" alt="Thiệp chúc mừng">
-                                        </div>
-                                        <div class="item-details">
-                                            <h4 class="item-name">Thiệp chúc mừng cao cấp</h4>
-                                            <div class="item-specs">
-                                                <span class="spec">Số lượng: 1</span>
-                                                <span class="spec">Loại: Premium</span>
-                                            </div>
-                                        </div>
-                                        <div class="item-price">
-                                            <span class="price">50,000₫</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="order-footer">
-                                    <div class="order-total">
-                                        <span class="total-label">Tổng tiền:</span>
-                                        <span class="total-amount">700,000₫</span>
-                                    </div>
-                                    <div class="order-actions">
-                                        <button class="btn-outline-primary">Theo dõi</button>
-                                        <button class="btn-outline-secondary">Liên hệ</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Order Item 3 -->
-                            <div class="order-card">
-                                <div class="order-header">
-                                    <div class="order-info">
-                                        <div class="order-number">#ORD-2024-003</div>
-                                        <div class="order-date">Đặt hàng: 10/03/2024</div>
-                                    </div>
-                                    <div class="order-status">
-                                        <span class="status-badge pending">
-                                            <i class="bi bi-clock"></i>
-                                            Chờ xác nhận
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <div class="order-items">
-                                    <div class="order-item">
-                                        <div class="item-image">
-                                            <img src="/images/products/mixed-bouquet.jpg" alt="Hoa hỗn hợp">
-                                        </div>
-                                        <div class="item-details">
-                                            <h4 class="item-name">Bó hoa hỗn hợp nhiều màu</h4>
-                                            <div class="item-specs">
-                                                <span class="spec">Số lượng: 2</span>
-                                                <span class="spec">Size: Vừa</span>
-                                            </div>
-                                        </div>
-                                        <div class="item-price">
-                                            <span class="price">1,200,000₫</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="order-footer">
-                                    <div class="order-total">
-                                        <span class="total-label">Tổng tiền:</span>
-                                        <span class="total-amount">1,200,000₫</span>
-                                    </div>
-                                    <div class="order-actions">
-                                        <button class="btn-outline-danger">Hủy đơn</button>
-                                        <button class="btn-outline-primary">Chỉnh sửa</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <!-- Pagination -->
-                        <div class="pagination-wrapper" th:if="${ordersCount > 10}">
-                            <nav aria-label="Orders pagination">
-                                <ul class="pagination">
-                                    <li class="page-item disabled">
-                                        <span class="page-link">
-                                            <i class="bi bi-chevron-left"></i>
-                                        </span>
-                                    </li>
-                                    <li class="page-item active">
-                                        <span class="page-link">1</span>
-                                    </li>
-                                    <!-- TODO: Add dynamic pagination based on actual order count -->
-                                </ul>
-                            </nav>
-                        </div>
-
                     </div>
                 </div>
                 
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-600 mb-1">Chờ xử lý</p>
+                            <p class="text-2xl font-bold text-yellow-600" id="pendingCount">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-600 mb-1">Đang giao</p>
+                            <p class="text-2xl font-bold text-blue-600" id="shippedCount">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-600 mb-1">Hoàn thành</p>
+                            <p class="text-2xl font-bold text-green-600" id="completedCount">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
             </div>
+            
+            <!-- Filter Tabs -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 mb-8" th:if="${ordersCount > 0}">
+                <div class="flex flex-wrap gap-2">
+                    <button class="filter-tab px-6 py-3 rounded-xl font-medium transition-all bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md" data-status="all">
+                        <i class="bi bi-list-ul mr-2"></i>
+                        Tất cả
+                    </button>
+                    <button class="filter-tab px-6 py-3 rounded-xl font-medium transition-all text-gray-700 hover:bg-gray-100" data-status="PENDING">
+                        <i class="bi bi-clock-history mr-2"></i>
+                        Chờ xử lý
+                    </button>
+                    <button class="filter-tab px-6 py-3 rounded-xl font-medium transition-all text-gray-700 hover:bg-gray-100" data-status="PROCESSING">
+                        <i class="bi bi-arrow-repeat mr-2"></i>
+                        Đang xử lý
+                    </button>
+                    <button class="filter-tab px-6 py-3 rounded-xl font-medium transition-all text-gray-700 hover:bg-gray-100" data-status="SHIPPED">
+                        <i class="bi bi-truck mr-2"></i>
+                        Đang giao
+                    </button>
+                    <button class="filter-tab px-6 py-3 rounded-xl font-medium transition-all text-gray-700 hover:bg-gray-100" data-status="COMPLETED">
+                        <i class="bi bi-check-circle mr-2"></i>
+                        Hoàn thành
+                    </button>
+                    <button class="filter-tab px-6 py-3 rounded-xl font-medium transition-all text-gray-700 hover:bg-gray-100" data-status="CANCELLED">
+                        <i class="bi bi-x-circle mr-2"></i>
+                        Đã hủy
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Empty State -->
+            <div class="text-center py-20" th:if="${ordersCount == 0}">
+                <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full mb-6">
+                    <i class="bi bi-bag-x text-5xl bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3">Chưa có đơn hàng nào</h3>
+                <p class="text-gray-600 mb-8 max-w-md mx-auto">
+                    Bạn chưa có đơn hàng nào. Hãy khám phá và đặt mua những sản phẩm yêu thích ngay hôm nay!
+                </p>
+                <div class="flex items-center justify-center gap-4">
+                    <a href="/products" class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all">
+                        <i class="bi bi-shop"></i>
+                        <span>Mua sắm ngay</span>
+                    </a>
+                    <a href="/" class="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-700 font-semibold rounded-xl border-2 border-gray-200 hover:border-pink-300 transition-all">
+                        <i class="bi bi-house"></i>
+                        <span>Về trang chủ</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Orders List -->
+            <div class="space-y-6" th:if="${ordersCount > 0}" id="ordersList" th:attr="data-orders-count=${ordersCount}">
+                <!-- Loading State -->
+                <div class="flex items-center justify-center py-20">
+                    <div class="text-center">
+                        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-pink-200 border-t-pink-600 mb-4"></div>
+                        <p class="text-gray-600">Đang tải đơn hàng...</p>
+                    </div>
+                </div>
+            </div>
+            
         </div>
     </section>
+
+    <!-- JavaScript -->
+    <script src="/js/account-orders.js"></script>
 
 </th:block>
 </body>
