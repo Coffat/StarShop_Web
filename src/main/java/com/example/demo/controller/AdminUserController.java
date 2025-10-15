@@ -28,14 +28,19 @@ public class AdminUserController {
     private final CustomerService customerService;
     
     /**
-     * Get all customers (excludes employees)
+     * Get all customers (excludes employees) with filters
      */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllCustomers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir
+            @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) String search
     ) {
         try {
             Sort sort = sortDir.equalsIgnoreCase("asc") 
@@ -43,7 +48,18 @@ public class AdminUserController {
                 : Sort.by(sortBy).descending();
             
             Pageable pageable = PageRequest.of(page, size, sort);
-            Page<CustomerDTO> customerPage = customerService.getCustomers(pageable);
+            
+            // Apply filters
+            Page<CustomerDTO> customerPage;
+            if (search != null && !search.trim().isEmpty()) {
+                // Search by keyword (name, email, phone)
+                customerPage = customerService.searchCustomers(search.trim(), pageable);
+            } else {
+                // Get all customers with optional filters
+                customerPage = customerService.getCustomersWithFilters(
+                    pageable, status, type, fromDate, toDate
+                );
+            }
             
             Map<String, Object> response = new HashMap<>();
             response.put("customers", customerPage.getContent());

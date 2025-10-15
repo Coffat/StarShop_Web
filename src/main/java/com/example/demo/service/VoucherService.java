@@ -1,12 +1,16 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.*;
+import com.example.demo.dto.CreateVoucherRequest;
+import com.example.demo.dto.PromotionSummaryDTO;
+import com.example.demo.dto.UpdateVoucherRequest;
+import com.example.demo.dto.VoucherDTO;
 import com.example.demo.entity.Voucher;
 import com.example.demo.repository.VoucherRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +44,90 @@ public class VoucherService {
     public Page<VoucherDTO> getVouchers(Pageable pageable) {
         return voucherRepository.findAll(pageable)
             .map(this::convertToDTO);
+    }
+    
+    /**
+     * Search vouchers by keyword with pagination
+     */
+    @Transactional(readOnly = true)
+    public Page<VoucherDTO> searchVouchers(String keyword, Pageable pageable) {
+        List<Voucher> allVouchers = voucherRepository.findAll();
+        List<Voucher> filtered = allVouchers.stream()
+            .filter(v -> v.getCode().toLowerCase().contains(keyword.toLowerCase()) ||
+                        (v.getName() != null && v.getName().toLowerCase().contains(keyword.toLowerCase())))
+            .collect(Collectors.toList());
+        
+        // Apply pagination manually
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), filtered.size());
+        
+        List<VoucherDTO> voucherDTOs = filtered.subList(start, end).stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+        
+        return new PageImpl<>(voucherDTOs, pageable, filtered.size());
+    }
+    
+    /**
+     * Get vouchers with filters
+     */
+    @Transactional(readOnly = true)
+    public Page<VoucherDTO> getVouchersWithFilters(
+            Pageable pageable,
+            String type,
+            String status,
+            String fromDate) {
+        
+        List<Voucher> allVouchers = voucherRepository.findAll();
+        LocalDate now = LocalDate.now();
+        
+        // Apply type filter
+        if (type != null && !type.isEmpty()) {
+            allVouchers = allVouchers.stream()
+                .filter(v -> v.getDiscountType().name().equals(type))
+                .collect(Collectors.toList());
+        }
+        
+        // Apply status filter
+        if (status != null && !status.isEmpty()) {
+            if ("ACTIVE".equals(status)) {
+                allVouchers = allVouchers.stream()
+                    .filter(v -> v.getIsActive() && 
+                                v.getExpiryDate().isAfter(now.minusDays(1)))
+                    .collect(Collectors.toList());
+            } else if ("EXPIRED".equals(status)) {
+                allVouchers = allVouchers.stream()
+                    .filter(v -> v.getExpiryDate().isBefore(now))
+                    .collect(Collectors.toList());
+            } else if ("INACTIVE".equals(status)) {
+                allVouchers = allVouchers.stream()
+                    .filter(v -> !v.getIsActive())
+                    .collect(Collectors.toList());
+            }
+        }
+        
+        // Apply date filter
+        if (fromDate != null && !fromDate.isEmpty()) {
+            try {
+                LocalDate from = LocalDate.parse(fromDate);
+                allVouchers = allVouchers.stream()
+                    .filter(v -> v.getCreatedAt() != null && 
+                               !v.getCreatedAt().toLocalDate().isBefore(from))
+                    .collect(Collectors.toList());
+            } catch (Exception e) {
+                log.warn("Invalid fromDate format: {}", fromDate);
+            }
+        }
+        
+        // Apply pagination manually
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), allVouchers.size());
+        
+        List<VoucherDTO> voucherDTOs = allVouchers.subList(start, end).stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+        
+        return new PageImpl<>(voucherDTOs, pageable, allVouchers.size());
     }
     
     /**
