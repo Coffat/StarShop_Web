@@ -213,14 +213,33 @@ public class CustomerService {
         List<User> allCustomers = userRepository.findByRole(UserRole.CUSTOMER);
         
         long total = allCustomers.size();
-        long loyal = allCustomers.stream()
-            .filter(c -> c.getOrders().size() > 10)
-            .count();
+        long loyal = 0;
+        java.math.BigDecimal totalSpent = java.math.BigDecimal.ZERO;
         
-        java.math.BigDecimal totalSpent = allCustomers.stream()
-            .flatMap(c -> c.getOrders().stream())
-            .map(order -> order.getTotalAmount())
-            .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+        try {
+            loyal = allCustomers.stream()
+                .filter(c -> {
+                    try {
+                        return c.getOrders() != null && c.getOrders().size() > 10;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
+                .count();
+            
+            totalSpent = allCustomers.stream()
+                .flatMap(c -> {
+                    try {
+                        return c.getOrders() != null ? c.getOrders().stream() : java.util.stream.Stream.empty();
+                    } catch (Exception e) {
+                        return java.util.stream.Stream.empty();
+                    }
+                })
+                .map(order -> order.getTotalAmount())
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+        } catch (Exception e) {
+            log.warn("Could not calculate customer statistics: {}", e.getMessage());
+        }
         
         // Count new customers this month
         java.time.LocalDateTime startOfMonth = java.time.LocalDateTime.now()
@@ -247,16 +266,35 @@ public class CustomerService {
      * Convert User entity to CustomerDTO
      */
     private CustomerDTO convertToDTO(User user) {
-        // Calculate total spent
-        java.math.BigDecimal totalSpent = user.getOrders().stream()
-            .map(order -> order.getTotalAmount())
-            .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+        // Calculate total spent - safe null handling
+        java.math.BigDecimal totalSpent = java.math.BigDecimal.ZERO;
+        java.time.LocalDateTime lastOrderDate = null;
+        long totalOrders = 0;
+        long totalReviews = 0;
         
-        // Get last order date
-        java.time.LocalDateTime lastOrderDate = user.getOrders().stream()
-            .map(order -> order.getOrderDate())
-            .max(java.time.LocalDateTime::compareTo)
-            .orElse(null);
+        try {
+            if (user.getOrders() != null) {
+                totalOrders = user.getOrders().size();
+                totalSpent = user.getOrders().stream()
+                    .map(order -> order.getTotalAmount())
+                    .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+                
+                lastOrderDate = user.getOrders().stream()
+                    .map(order -> order.getOrderDate())
+                    .max(java.time.LocalDateTime::compareTo)
+                    .orElse(null);
+            }
+        } catch (Exception e) {
+            log.warn("Could not load order data for customer {}: {}", user.getId(), e.getMessage());
+        }
+        
+        try {
+            if (user.getReviews() != null) {
+                totalReviews = user.getReviews().size();
+            }
+        } catch (Exception e) {
+            log.warn("Could not load review data for customer {}: {}", user.getId(), e.getMessage());
+        }
         
         return CustomerDTO.builder()
             .id(user.getId())
@@ -268,10 +306,10 @@ public class CustomerService {
             .isActive(user.getIsActive())
             .lastLogin(user.getLastLogin())
             .createdAt(user.getCreatedAt())
-            .totalOrders((long) user.getOrders().size())
+            .totalOrders(totalOrders)
             .totalSpent(totalSpent)
             .lastOrderDate(lastOrderDate)
-            .totalReviews((long) user.getReviews().size())
+            .totalReviews(totalReviews)
             .build();
     }
 }
