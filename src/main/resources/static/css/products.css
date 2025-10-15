@@ -229,33 +229,7 @@
     outline: none;
 }
 
-.view-toggle {
-    display: flex;
-    background: var(--white);
-    border: 1px solid var(--gray-300);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-}
-
-.btn-view-toggle {
-    padding: 0.5rem 0.75rem;
-    border: none;
-    background: transparent;
-    color: var(--gray-600);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    font-size: 1rem;
-}
-
-.btn-view-toggle:hover {
-    background: var(--gray-100);
-    color: var(--gray-800);
-}
-
-.btn-view-toggle.active {
-    background: var(--primary);
-    color: var(--white);
-}
+/* View Toggle styles removed as the element is no longer in use */
 
 /* ================================
    PRODUCTS SECTION
