@@ -333,6 +333,11 @@ public class ProductService {
         
         log.info("Admin: Creating new product: {}", name);
         
+        // Validate price constraint (NUMERIC(10,2) max value: 99,999,999.99)
+        if (price != null && price.compareTo(new BigDecimal("99999999.99")) > 0) {
+            throw new IllegalArgumentException("Giá sản phẩm không được vượt quá 99,999,999₫");
+        }
+        
         Product product = new Product();
         product.setName(name);
         product.setDescription(description);
@@ -379,6 +384,11 @@ public class ProductService {
                                Long catalogId) {
         
         log.info("Admin: Updating product ID: {}", productId);
+        
+        // Validate price constraint (NUMERIC(10,2) max value: 99,999,999.99)
+        if (price != null && price.compareTo(new BigDecimal("99999999.99")) > 0) {
+            throw new IllegalArgumentException("Giá sản phẩm không được vượt quá 99,999,999₫");
+        }
         
         // Use eager fetch to avoid lazy loading issues
         Product product = productRepository.findByIdWithCatalogEager(productId)
