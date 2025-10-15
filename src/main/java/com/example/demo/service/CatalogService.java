@@ -113,6 +113,13 @@ public class CatalogService {
         log.info("Updating catalog ID: {} with new value: {} and image: {}", id, value, image);
         
         Catalog catalog = findById(id);
+        
+        // Check if value is changing and if new value already exists
+        if (!catalog.getValue().equals(value) && catalogRepository.existsByValue(value)) {
+            log.error("Catalog already exists with value: {}", value);
+            throw new RuntimeException("Catalog already exists with value: " + value);
+        }
+        
         catalog.setValue(value);
         
         // Only update image if provided (not null)
@@ -148,12 +155,20 @@ public class CatalogService {
     /**
      * Delete catalog
      * @param id Catalog ID
+     * @throws RuntimeException if catalog has products
      */
     @Transactional
     public void delete(Long id) {
         log.info("Deleting catalog ID: {}", id);
         
         Catalog catalog = findById(id);
+        
+        // Check if catalog has products
+        if (!catalog.getProducts().isEmpty()) {
+            log.error("Cannot delete catalog ID: {} - has {} products", id, catalog.getProducts().size());
+            throw new RuntimeException("Không thể xóa danh mục này vì đang có " + catalog.getProducts().size() + " sản phẩm");
+        }
+        
         catalogRepository.delete(catalog);
         
         log.info("Successfully deleted catalog ID: {}", id);
