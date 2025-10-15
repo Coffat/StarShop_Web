@@ -55,11 +55,19 @@ public class StaffService {
         
         LocalDate today = LocalDate.now();
         
-        // Check if already checked in today
+        // Check if already checked in today (and not checked out yet)
         Optional<TimeSheet> existingSheet = timeSheetRepository.findByStaffIdAndDate(staffId, today);
-        if (existingSheet.isPresent() && existingSheet.get().getCheckOut() == null) {
-            log.warn("Staff {} already checked in today", staffId);
-            return convertToCheckInDTO(existingSheet.get());
+        if (existingSheet.isPresent()) {
+            TimeSheet sheet = existingSheet.get();
+            if (sheet.getCheckOut() == null) {
+                // Already checked in and not checked out - return existing
+                log.warn("Staff {} already checked in today at {}", staffId, sheet.getCheckIn());
+                return convertToCheckInDTO(sheet);
+            } else {
+                // Already checked out today - prevent multiple check-ins in same day
+                log.warn("Staff {} already completed shift today (checked out at {})", staffId, sheet.getCheckOut());
+                throw new RuntimeException("Bạn đã hoàn thành ca làm việc hôm nay. Không thể check-in lại trong cùng ngày.");
+            }
         }
         
         // Create new timesheet entry
@@ -249,6 +257,7 @@ public class StaffService {
         dto.setDate(timeSheet.getDate());
         dto.setHoursWorked(timeSheet.getHoursWorked());
         dto.setNotes(timeSheet.getNotes());
+        // Set boolean flags - use the correct setter names
         dto.setCheckedIn(timeSheet.getCheckIn() != null);
         dto.setCheckedOut(timeSheet.getCheckOut() != null);
         return dto;
