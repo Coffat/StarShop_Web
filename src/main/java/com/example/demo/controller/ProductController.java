@@ -2,6 +2,9 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.Product;
+import com.example.demo.entity.User;
+import com.example.demo.repository.UserRepository;
+import com.example.demo.service.WishlistService;
 import com.example.demo.entity.Review;
 import com.example.demo.dto.ProductDetailDTO;
 import com.example.demo.repository.ReviewRepository;
@@ -17,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
+import org.springframework.security.core.Authentication;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +40,8 @@ public class ProductController {
 
     private final ProductService productService;
     private final ReviewRepository reviewRepository;
+    private final WishlistService wishlistService;
+    private final UserRepository userRepository;
 
     /**
      * Display products listing page
@@ -59,7 +65,8 @@ public class ProductController {
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
             Model model,
-            jakarta.servlet.http.HttpServletResponse response) {
+            jakarta.servlet.http.HttpServletResponse response,
+            Authentication authentication) {
         
         // Force no cache for this page
         response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -102,6 +109,21 @@ public class ProductController {
             model.addAttribute("pageSize", validSize);
             model.addAttribute("sortBy", sort);
             model.addAttribute("sortDirection", direction);
+            
+            // Wishlist product IDs for current user (for SSR wishlist state)
+            try {
+                if (authentication != null && authentication.isAuthenticated()) {
+                    userRepository.findByEmail(authentication.getName()).ifPresent(user -> {
+                        var ids = wishlistService.getWishlistProductIds(user.getId());
+                        model.addAttribute("wishlistProductIds", new java.util.HashSet<>(ids));
+                    });
+                } else {
+                    model.addAttribute("wishlistProductIds", java.util.Collections.emptySet());
+                }
+            } catch (Exception ex) {
+                // On error, fallback to empty set to avoid breaking page
+                model.addAttribute("wishlistProductIds", java.util.Collections.emptySet());
+            }
             
             // Pagination helper attributes
             model.addAttribute("hasPrevious", productsPage.hasPrevious());

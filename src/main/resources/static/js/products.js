@@ -114,9 +114,6 @@
     // Product actions - Event delegation for wishlist and cart
     initializeProductActions();
 
-    // Load initial favorite status
-    loadInitialFavoriteStatus();
-
     // Tối ưu hóa hiệu ứng AOS cho lưới sản phẩm
     const productCards = document.querySelectorAll(".product-card");
     productCards.forEach((card, index) => {
@@ -180,56 +177,7 @@
       if (listButton) listButton.click();
     }
   }
-  function loadInitialFavoriteStatus() {
-    const wishlistButtons = document.querySelectorAll(".btn-wishlist");
-
-    wishlistButtons.forEach((button) => {
-      const productId = button.dataset.productId;
-      if (productId) {
-        // Get CSRF token for status check
-        const csrfToken = getCsrfToken();
-        const csrfHeader = document
-          .querySelector('meta[name="_csrf_header"]')
-          .getAttribute("content");
-
-        fetch(`/api/wishlist/status/${productId}`, {
-          method: "GET",
-          headers: {
-            "X-Requested-With": "XMLHttpRequest",
-            [csrfHeader]: csrfToken,
-          },
-          credentials: "same-origin", // Include cookies for authentication
-        })
-          .then((response) => {
-            if (response.status === 401) {
-              // User not authenticated, keep default state
-              return;
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data && data.success && data.data && data.data.success) {
-              const icon = button.querySelector("i");
-              const isInWishlist =
-                data.data.isFavorite || data.data.isInWishlist;
-
-              if (icon) {
-                if (isInWishlist) {
-                  icon.className = 'fa-solid fa-heart';
-                  button.classList.add("active");
-                } else {
-                  icon.className = 'fa-regular fa-heart';
-                  button.classList.remove("active");
-                }
-              }
-            }
-          })
-          .catch((error) => {
-            console.log("Error loading favorite status:", error);
-          });
-      }
-    });
-  }
+  // SSR renders wishlist state; no client hydration needed
 
 
   // ================================
