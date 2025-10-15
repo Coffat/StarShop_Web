@@ -1,7 +1,6 @@
 package com.example.demo.entity;
 
 import com.example.demo.entity.enums.ProductStatus;
-import com.example.demo.entity.enums.ProductStatusConverter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
@@ -27,8 +26,8 @@ public class Product extends BaseEntity {
     @Column(name = "stock_quantity")
     private Integer stockQuantity = 0;
 
-    @Convert(converter = ProductStatusConverter.class)
-    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, name = "status")
     private ProductStatus status = ProductStatus.ACTIVE;
 
     // GHN Shipping Dimensions (for shipping fee calculation)

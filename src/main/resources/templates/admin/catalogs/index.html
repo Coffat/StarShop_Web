@@ -120,16 +120,22 @@
 </div>
 
 <!-- Toast Notification -->
-<div id="toast" class="hidden fixed top-4 right-4 z-50 bg-white border-l-4 border-green-500 rounded-lg shadow-lg p-4 max-w-sm">
-    <div class="flex items-center">
-        <div class="flex-shrink-0">
+<div id="toast" class="fixed top-4 right-4 z-[9999] bg-white rounded-lg shadow-xl p-4 max-w-sm border-l-4 border-green-500 transition-all duration-300" 
+     style="display: none; opacity: 0; transform: translateX(100%);">
+    <div class="flex items-center gap-3">
+        <div class="flex-shrink-0" id="toastIcon">
             <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
             </svg>
         </div>
-        <div class="ml-3">
+        <div class="flex-1">
             <p id="toastMessage" class="text-sm font-medium text-gray-900"></p>
         </div>
+        <button onclick="closeToast()" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
     </div>
 </div>
 
@@ -325,23 +331,49 @@ function closeDeleteModal() {
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toastMessage');
+    const toastIcon = document.getElementById('toastIcon');
     
+    // Set message
     toastMessage.textContent = message;
     
-    // Change color based on type
+    // Set icon and color based on type
     if (type === 'error') {
-        toast.className = toast.className.replace('border-green-500', 'border-red-500');
-        toast.querySelector('svg').className = toast.querySelector('svg').className.replace('text-green-500', 'text-red-500');
+        toast.className = 'fixed top-4 right-4 z-[9999] bg-white rounded-lg shadow-xl p-4 max-w-sm border-l-4 border-red-500 transition-all duration-300';
+        toastIcon.innerHTML = `
+            <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        `;
     } else {
-        toast.className = toast.className.replace('border-red-500', 'border-green-500');
-        toast.querySelector('svg').className = toast.querySelector('svg').className.replace('text-red-500', 'text-green-500');
+        toast.className = 'fixed top-4 right-4 z-[9999] bg-white rounded-lg shadow-xl p-4 max-w-sm border-l-4 border-green-500 transition-all duration-300';
+        toastIcon.innerHTML = `
+            <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+        `;
     }
     
-    toast.classList.remove('hidden');
-    
+    // Show toast with animation
+    toast.style.display = 'block';
     setTimeout(() => {
-        toast.classList.add('hidden');
-    }, 3000);
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Auto hide after 4 seconds
+    setTimeout(() => {
+        closeToast();
+    }, 4000);
+}
+
+// Close toast notification
+function closeToast() {
+    const toast = document.getElementById('toast');
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(100%)';
+    setTimeout(() => {
+        toast.style.display = 'none';
+    }, 300);
 }
 </script>
 

@@ -166,7 +166,7 @@ public class AdminProductController extends BaseController {
      */
     @PostMapping("/api/create")
     @ResponseBody
-    public ResponseEntity<ResponseWrapper<Product>> createProduct(
+    public ResponseEntity<ResponseWrapper<AdminProductDTO>> createProduct(
             @RequestParam String name,
             @RequestParam(required = false) String description,
             @RequestParam BigDecimal price,
@@ -198,7 +198,8 @@ public class AdminProductController extends BaseController {
                 image, weightG, lengthCm, widthCm, heightCm, catalogId
             );
             
-            return ResponseEntity.ok(ResponseWrapper.success(product, "Tạo sản phẩm thành công"));
+            AdminProductDTO dto = AdminProductDTO.fromEntity(product);
+            return ResponseEntity.ok(ResponseWrapper.success(dto, "Tạo sản phẩm thành công"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                 .body(ResponseWrapper.error("Dữ liệu không hợp lệ: " + e.getMessage()));
@@ -213,7 +214,7 @@ public class AdminProductController extends BaseController {
      */
     @PutMapping("/api/{productId}")
     @ResponseBody
-    public ResponseEntity<ResponseWrapper<Product>> updateProduct(
+    public ResponseEntity<ResponseWrapper<AdminProductDTO>> updateProduct(
             @PathVariable Long productId,
             @RequestParam String name,
             @RequestParam(required = false) String description,
@@ -246,7 +247,8 @@ public class AdminProductController extends BaseController {
                 image, weightG, lengthCm, widthCm, heightCm, catalogId
             );
             
-            return ResponseEntity.ok(ResponseWrapper.success(product, "Cập nhật sản phẩm thành công"));
+            AdminProductDTO dto = AdminProductDTO.fromEntity(product);
+            return ResponseEntity.ok(ResponseWrapper.success(dto, "Cập nhật sản phẩm thành công"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                 .body(ResponseWrapper.error("Dữ liệu không hợp lệ: " + e.getMessage()));
@@ -264,7 +266,7 @@ public class AdminProductController extends BaseController {
      */
     @PutMapping("/api/{productId}/status")
     @ResponseBody
-    public ResponseEntity<ResponseWrapper<Product>> updateProductStatus(
+    public ResponseEntity<ResponseWrapper<AdminProductDTO>> updateProductStatus(
             @PathVariable Long productId,
             @RequestParam String status) {
         
@@ -272,7 +274,8 @@ public class AdminProductController extends BaseController {
             ProductStatus productStatus = ProductStatus.valueOf(status.toUpperCase());
             Product product = productService.updateProductStatus(productId, productStatus);
             
-            return ResponseEntity.ok(ResponseWrapper.success(product, "Cập nhật trạng thái thành công"));
+            AdminProductDTO dto = AdminProductDTO.fromEntity(product);
+            return ResponseEntity.ok(ResponseWrapper.success(dto, "Cập nhật trạng thái thành công"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                 .body(ResponseWrapper.error("Trạng thái không hợp lệ"));
@@ -290,7 +293,7 @@ public class AdminProductController extends BaseController {
      */
     @PutMapping("/api/{productId}/stock")
     @ResponseBody
-    public ResponseEntity<ResponseWrapper<Product>> updateProductStock(
+    public ResponseEntity<ResponseWrapper<AdminProductDTO>> updateProductStock(
             @PathVariable Long productId,
             @RequestParam Integer stockQuantity) {
         
@@ -302,7 +305,8 @@ public class AdminProductController extends BaseController {
             
             Product product = productService.updateProductStock(productId, stockQuantity);
             
-            return ResponseEntity.ok(ResponseWrapper.success(product, "Cập nhật tồn kho thành công"));
+            AdminProductDTO dto = AdminProductDTO.fromEntity(product);
+            return ResponseEntity.ok(ResponseWrapper.success(dto, "Cập nhật tồn kho thành công"));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ResponseWrapper.error(e.getMessage()));

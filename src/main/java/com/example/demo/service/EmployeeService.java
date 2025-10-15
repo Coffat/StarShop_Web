@@ -262,6 +262,102 @@ public class EmployeeService {
     }
     
     /**
+     * Search employees by keyword with pagination
+     */
+    @Transactional(readOnly = true)
+    public Page<EmployeeDTO> searchEmployees(String keyword, Pageable pageable) {
+        List<User> allUsers = userRepository.searchUsers(keyword);
+        List<User> employees = allUsers.stream()
+            .filter(user -> user.getRole() == UserRole.STAFF || user.getRole() == UserRole.ADMIN)
+            .collect(Collectors.toList());
+        
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), employees.size());
+        
+        List<EmployeeDTO> employeeDTOs = employees.subList(start, end).stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+        
+        return new PageImpl<>(employeeDTOs, pageable, employees.size());
+    }
+    
+    /**
+     * Get employees by role with pagination
+     */
+    @Transactional(readOnly = true)
+    public Page<EmployeeDTO> getEmployeesByRole(String roleStr, Pageable pageable) {
+        UserRole role = UserRole.valueOf(roleStr.toUpperCase());
+        List<User> allUsers = userRepository.findAll();
+        List<User> employees = allUsers.stream()
+            .filter(user -> user.getRole() == role)
+            .collect(Collectors.toList());
+        
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), employees.size());
+        
+        List<EmployeeDTO> employeeDTOs = employees.subList(start, end).stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+        
+        return new PageImpl<>(employeeDTOs, pageable, employees.size());
+    }
+    
+    /**
+     * Get employees by active status with pagination
+     */
+    @Transactional(readOnly = true)
+    public Page<EmployeeDTO> getEmployeesByStatus(boolean isActive, Pageable pageable) {
+        List<User> allUsers = userRepository.findAll();
+        List<User> employees = allUsers.stream()
+            .filter(user -> (user.getRole() == UserRole.STAFF || user.getRole() == UserRole.ADMIN))
+            .filter(user -> user.getIsActive() == isActive)
+            .collect(Collectors.toList());
+        
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), employees.size());
+        
+        List<EmployeeDTO> employeeDTOs = employees.subList(start, end).stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+        
+        return new PageImpl<>(employeeDTOs, pageable, employees.size());
+    }
+    
+    /**
+     * Get employees with combined filters (role and/or status)
+     */
+    @Transactional(readOnly = true)
+    public Page<EmployeeDTO> getEmployeesFiltered(String roleStr, Boolean isActive, Pageable pageable) {
+        List<User> allUsers = userRepository.findAll();
+        
+        // Start with all employees (STAFF and ADMIN)
+        java.util.stream.Stream<User> stream = allUsers.stream()
+            .filter(user -> user.getRole() == UserRole.STAFF || user.getRole() == UserRole.ADMIN);
+        
+        // Apply role filter if provided
+        if (roleStr != null && !roleStr.trim().isEmpty()) {
+            UserRole role = UserRole.valueOf(roleStr.toUpperCase());
+            stream = stream.filter(user -> user.getRole() == role);
+        }
+        
+        // Apply status filter if provided
+        if (isActive != null) {
+            stream = stream.filter(user -> user.getIsActive() == isActive);
+        }
+        
+        List<User> employees = stream.collect(Collectors.toList());
+        
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), employees.size());
+        
+        List<EmployeeDTO> employeeDTOs = employees.subList(start, end).stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+        
+        return new PageImpl<>(employeeDTOs, pageable, employees.size());
+    }
+    
+    /**
      * Convert User entity to EmployeeDTO
      */
     private EmployeeDTO convertToDTO(User user) {

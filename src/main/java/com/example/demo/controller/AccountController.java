@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Account Controller for user account management pages
+ * Account Controller for usedor account management pages
  * Following rules.mdc specifications for MVC pattern
  */
 @Controller

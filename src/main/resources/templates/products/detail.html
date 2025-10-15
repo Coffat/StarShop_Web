@@ -12,343 +12,335 @@
 
 <body>
 <th:block th:fragment="content">
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="breadcrumb-nav">
-        <div class="container">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item">
-                    <a href="/" class="breadcrumb-link">
-                        <svg class="w-4 h-4 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z" clip-rule="evenodd" />
-                        </svg>
-                        Trang chủ
-                    </a>
-                </li>
-                <li class="breadcrumb-item">
-                    <a href="/products" class="breadcrumb-link">Sản phẩm</a>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page">
-                    <span th:text="${product.name}">Tên sản phẩm</span>
-                </li>
-            </ol>
-        </div>
-    </nav>
+    
+    <div th:if="${product eq null}" class="product-not-found-container container py-5 my-5 text-center">
+        <h2 class="text-danger mb-3">404 - Không tìm thấy sản phẩm!</h2>
+        <p class="mb-4">Sản phẩm bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
+        <a th:href="@{/products}" class="btn btn-primary px-4 py-2">
+            <svg class="w-5 h-5 inline-block me-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z" clip-rule="evenodd" />
+            </svg>
+            Về trang danh sách sản phẩm
+        </a>
+    </div>
 
-    <!-- Product Detail -->
-    <section class="product-detail-section">
-        <div class="container">
-            <div class="product-detail-container">
-                <!-- Product Images -->
-                <div class="product-images">
-                    <div class="main-image-container">
-                        <img th:src="${product.image != null ? product.image : '/images/products/default-flower.jpg'}" 
-                             th:alt="${product.name}" 
-                             th:title="${product.name}"
-                             class="main-image" 
-                             id="mainProductImage">
-                        
-                        <!-- Image Zoom -->
-                        <div class="image-zoom-overlay" id="imageZoomOverlay">
-                            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M9 6a.75.75 0 0 1 .75.75v1.5h1.5a.75.75 0 0 1 0 1.5h-1.5v1.5a.75.75 0 0 1-1.5 0v-1.5h-1.5a.75.75 0 0 1 0-1.5h1.5v-1.5A.75.75 0 0 1 9 6Z" />
-                                <path fill-rule="evenodd" d="M2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Zm7-5.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z" clip-rule="evenodd" />
+    <div th:if="${product ne null}">
+        <nav aria-label="breadcrumb" class="breadcrumb-nav">
+            <div class="container">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="/" class="breadcrumb-link">
+                            <svg class="w-4 h-4 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z" clip-rule="evenodd" />
                             </svg>
-                        </div>
-                    </div>
-                    
-                    <!-- Thumbnail Images (placeholder for future gallery) -->
-                    <div class="thumbnail-images">
-                        <div class="thumbnail-item active">
-                            <img th:src="${product.image != null ? product.image : '/images/products/default-flower.jpg'}" 
+                            Trang chủ
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="/products" class="breadcrumb-link">Sản phẩm</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        <span th:text="${product.name}">Tên sản phẩm</span>
+                    </li>
+                </ol>
+            </div>
+        </nav>
+    
+        <section class="product-detail-section">
+            <div class="container">
+                <div class="product-detail-container">
+                    <div class="product-images">
+                        <div class="main-image-container">
+                            <img th:src="${product.image ne null ? product.image : '/images/products/default-flower.jpg'}" 
                                  th:alt="${product.name}" 
                                  th:title="${product.name}"
-                                 class="thumbnail-image">
-                        </div>
-                        <!-- More thumbnails would go here -->
-                    </div>
-                </div>
-
-                <!-- Product Info -->
-                <div class="product-info">
-                    <div class="product-header">
-                        <h1 class="product-title" th:text="${product.name}">Tên sản phẩm</h1>
-                        
-                        <!-- Product Rating & Reviews -->
-                        <div class="product-rating-section">
-                            <div class="rating-display">
-                                <div class="rating-stars">
-                                    <th:block th:each="star : ${#numbers.sequence(1, 5)}">
-                                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" th:classappend="${star <= averageRating} ? 'filled' : 'empty'">
-                                            <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" />
-                                        </svg>
-                                    </th:block>
-                                </div>
-                                <span class="rating-score" th:text="${#numbers.formatDecimal(averageRating, 1, 1)}">0.0</span>
-                                <span class="rating-count">
-                                    (<span th:text="${reviewCount}">0</span> đánh giá)
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Product Price -->
-                    <div class="product-price-section">
-                        <div class="price-display">
-                            <span class="current-price" th:text="${#numbers.formatCurrency(product.price)}">0₫</span>
-                        </div>
-                    </div>
-
-                    <!-- Product Description -->
-                    <div class="product-description" th:if="${product.description != null}">
-                        <h3 class="description-title">Mô tả sản phẩm</h3>
-                        <div class="description-content" th:utext="${product.description}">
-                            Mô tả sản phẩm sẽ hiển thị ở đây...
-                        </div>
-                    </div>
-
-                    <!-- Product Attributes -->
-                    <div class="product-attributes" th:if="${!#lists.isEmpty(product.attributeValues)}">
-                        <h3 class="attributes-title">Thông tin chi tiết</h3>
-                        <div class="attributes-list">
-                            <div th:each="attr : ${product.attributeValues}" class="attribute-item">
-                                <span class="attribute-name" th:text="${attr.attribute.name}">Thuộc tính</span>:
-                                <span class="attribute-value" th:text="${attr.value}">Giá trị</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Add to Cart Section -->
-                    <div class="add-to-cart-section">
-                        <!-- Quantity Selector -->
-                        <div class="quantity-selector">
-                            <label for="quantity" class="quantity-label">Số lượng:</label>
-                            <div class="quantity-input-group">
-                                <button type="button" class="btn-quantity-decrease" onclick="decreaseQuantity()">
-                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M4 10a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H4.75A.75.75 0 0 1 4 10Z" clip-rule="evenodd" />
-                                    </svg>
-                                </button>
-                                <input type="number" id="quantity" class="quantity-input" value="1" min="1" max="99">
-                                <button type="button" class="btn-quantity-increase" onclick="increaseQuantity()">
-                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="action-buttons">
-                            <button class="btn-add-to-cart primary" 
-                                    th:data-product-id="${product.id}"
-                                    sec:authorize="isAuthenticated()">
-                                <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M6 5v1H4.667a1.75 1.75 0 0 0-1.743 1.598l-.826 9.5A1.75 1.75 0 0 0 3.84 19h12.32a1.75 1.75 0 0 0 1.742-1.902l-.826-9.5A1.75 1.75 0 0 0 15.333 6H14V5a4 4 0 0 0-8 0Zm4-2.5A2.5 2.5 0 0 0 7.5 5v1h5V5A2.5 2.5 0 0 0 10 2.5Z" clip-rule="evenodd" />
-                                </svg>
-                                Thêm vào giỏ hàng
-                            </button>
+                                 class="main-image" 
+                                 id="mainProductImage">
                             
-                            <button class="btn-buy-now" 
-                                    th:data-product-id="${product.id}"
-                                    onclick="buyNow(this)"
-                                    sec:authorize="isAuthenticated()">
-                                <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M11.983 1.907a.75.75 0 0 0-1.292-.657l-8.5 9.5A.75.75 0 0 0 2.75 12h6.572l-1.305 6.093a.75.75 0 0 0 1.292.657l8.5-9.5A.75.75 0 0 0 17.25 8h-6.572l1.305-6.093Z" />
+                            <div class="image-zoom-overlay" id="imageZoomOverlay">
+                                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M9 6a.75.75 0 0 1 .75.75v1.5h1.5a.75.75 0 0 1 0 1.5h-1.5v1.5a.75.75 0 0 1-1.5 0v-1.5h-1.5a.75.75 0 0 1 0-1.5h1.5v-1.5A.75.75 0 0 1 9 6Z" />
+                                    <path fill-rule="evenodd" d="M2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Zm7-5.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z" clip-rule="evenodd" />
                                 </svg>
-                                Mua ngay
-                            </button>
-
-                            <a th:href="@{/login}" 
-                               class="btn-add-to-cart primary btn-login-required"
-                               sec:authorize="!isAuthenticated()">
-                                <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M3 4.25A2.25 2.25 0 0 1 5.25 2h5.5A2.25 2.25 0 0 1 13 4.25v2a.75.75 0 0 1-1.5 0v-2a.75.75 0 0 0-.75-.75h-5.5a.75.75 0 0 0-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 0 0 .75-.75v-2a.75.75 0 0 1 1.5 0v2A2.25 2.25 0 0 1 10.75 18h-5.5A2.25 2.25 0 0 1 3 15.75V4.25Z" clip-rule="evenodd" />
-                                    <path fill-rule="evenodd" d="M19 10a.75.75 0 0 0-.75-.75H8.704l1.048-.943a.75.75 0 1 0-1.004-1.114l-2.5 2.25a.75.75 0 0 0 0 1.114l2.5 2.25a.75.75 0 1 0 1.004-1.114L8.704 10.75H18.25A.75.75 0 0 0 19 10Z" clip-rule="evenodd" />
-                                </svg>
-                                Đăng nhập để mua hàng
-                            </a>
-                        </div>
-
-                        <!-- Wishlist Button -->
-                        <div class="secondary-actions" sec:authorize="isAuthenticated()">
-                            <button class="btn-wishlist" 
-                                    th:data-product-id="${product.id}"
-                                    onclick="toggleWishlist(this)">
-                                <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="m9.653 16.915-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001Z" />
-                                </svg>
-                                Thêm vào yêu thích
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Product Features -->
-                    <div class="product-features">
-                        <div class="feature-item">
-                            <svg class="feature-icon w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M6.5 3c-1.051 0-2.093.04-3.125.117A1.49 1.49 0 0 0 2 4.607V10.5h9V4.606c0-.771-.59-1.43-1.375-1.489A41.568 41.568 0 0 0 6.5 3ZM2 12v2.5A1.5 1.5 0 0 0 3.5 16h.041a3 3 0 0 1 5.918 0h.791a.75.75 0 0 0 .75-.75V12H2Z" />
-                                <path d="M6.5 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM13.25 5a.75.75 0 0 0-.75.75v8.514a3.001 3.001 0 0 1 4.893 1.44c.37-.275.61-.719.595-1.227a24.905 24.905 0 0 0-1.784-8.549A1.486 1.486 0 0 0 14.823 5H13.25ZM14.5 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
-                            </svg>
-                            <div class="feature-content">
-                                <h4 class="feature-title">Giao hàng miễn phí</h4>
-                                <p class="feature-description">Miễn phí giao hàng nội thành TP.HCM</p>
                             </div>
                         </div>
-                        <div class="feature-item">
-                            <svg class="feature-icon w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clip-rule="evenodd" />
-                            </svg>
-                            <div class="feature-content">
-                                <h4 class="feature-title">Giao hàng nhanh</h4>
-                                <p class="feature-description">Giao trong 2-4 giờ</p>
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <svg class="feature-icon w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M5.5 3A2.5 2.5 0 0 0 3 5.5v2.879a2.5 2.5 0 0 0 .732 1.767l6.5 6.5a2.5 2.5 0 0 0 3.536 0l2.878-2.878a2.5 2.5 0 0 0 0-3.536l-6.5-6.5A2.5 2.5 0 0 0 8.38 3H5.5ZM6 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
-                            </svg>
-                            <div class="feature-content">
-                                <h4 class="feature-title">Hoa tươi 100%</h4>
-                                <p class="feature-description">Cam kết hoa tươi, chất lượng cao</p>
+                        
+                        <div class="thumbnail-images">
+                            <div class="thumbnail-item active">
+                                <img th:src="${product.image ne null ? product.image : '/images/products/default-flower.jpg'}" 
+                                     th:alt="${product.name}" 
+                                     th:title="${product.name}"
+                                     class="thumbnail-image">
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Product Tabs -->
-    <section class="product-tabs-section">
-        <div class="container">
-            <div class="tabs-container">
-                <!-- Tab Navigation -->
-                <ul class="nav nav-tabs product-tabs" id="productTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="description-tab" data-bs-toggle="tab" 
-                                data-bs-target="#description" type="button" role="tab" 
-                                aria-controls="description" aria-selected="true">
-                            Mô tả chi tiết
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" 
-                                data-bs-target="#reviews" type="button" role="tab" 
-                                aria-controls="reviews" aria-selected="false">
-                            Đánh giá (<span th:text="${reviewCount}">0</span>)
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="care-tab" data-bs-toggle="tab" 
-                                data-bs-target="#care" type="button" role="tab" 
-                                aria-controls="care" aria-selected="false">
-                            Hướng dẫn chăm sóc
-                        </button>
-                    </li>
-                </ul>
-
-                <!-- Tab Content -->
-                <div class="tab-content product-tab-content" id="productTabContent">
-                    <!-- Description Tab -->
-                    <div class="tab-pane fade show active" id="description" role="tabpanel" 
-                         aria-labelledby="description-tab">
-                        <div class="tab-content-wrapper">
-                            <div class="description-detail" th:utext="${product.description}">
-                                <p>Mô tả chi tiết sản phẩm sẽ hiển thị ở đây...</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Reviews Tab -->
-                    <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
-                        <div class="tab-content-wrapper">
-                            <div class="reviews-section">
-                                <!-- Reviews Summary -->
-                                <div class="reviews-summary">
-                                    <div class="rating-overview">
-                                        <div class="rating-score-large">
-                                            <span class="score" th:text="${#numbers.formatDecimal(averageRating, 1, 1)}">0.0</span>
-                                            <div class="stars-large">
-                                                <th:block th:each="star : ${#numbers.sequence(1, 5)}">
-                                                    <i class="bi bi-star-fill" 
-                                                       th:classappend="${star <= averageRating} ? 'filled' : 'empty'"></i>
-                                                </th:block>
-                                            </div>
-                                            <p class="reviews-count" th:text="${reviewCount} + ' đánh giá'">0 đánh giá</p>
-                                        </div>
+    
+                    <div class="product-info">
+                        <div class="product-header">
+                            <h1 class="product-title" th:text="${product.name}">Tên sản phẩm</h1>
+                            
+                            <div class="product-rating-section">
+                                <div class="rating-display">
+                                    <div class="rating-stars">
+                                        <th:block th:each="star : ${#numbers.sequence(1, 5)}">
+                                            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" th:classappend="${averageRating ne null and star le averageRating ? 'filled' : 'empty'}">
+                                                <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" />
+                                            </svg>
+                                        </th:block>
                                     </div>
+                                    <span class="rating-score" th:text="${averageRating ne null ? #numbers.formatDecimal(averageRating, 1, 1) : '0.0'}">0.0</span>
+                                    <span class="rating-count">
+                                        (<span th:text="${reviewCount ne null ? reviewCount : 0}">0</span> đánh giá)
+                                    </span>
                                 </div>
-
-                                <!-- Reviews List -->
-                                <div class="reviews-list">
-                                    <div th:if="${#lists.isEmpty(reviews)}" class="no-reviews">
-                                        <i class="bi bi-chat-square-text no-reviews-icon"></i>
-                                        <h4>Chưa có đánh giá nào</h4>
-                                        <p>Hãy là người đầu tiên đánh giá sản phẩm này!</p>
-                                    </div>
-
-                                    <div th:each="review : ${reviews}" class="review-item">
-                                        <div class="review-header">
-                                            <div class="reviewer-info">
-                                                <div class="reviewer-avatar">
-                                                    <i class="bi bi-person-circle"></i>
-                                                </div>
-                                                <div class="reviewer-details">
-                                                    <h5 class="reviewer-name" th:text="${review.user.firstname + ' ' + review.user.lastname}">Tên khách hàng</h5>
-                                                    <div class="review-rating">
-                                                        <th:block th:each="star : ${#numbers.sequence(1, 5)}">
-                                                            <i class="bi bi-star-fill" 
-                                                               th:classappend="${star <= review.rating} ? 'filled' : 'empty'"></i>
-                                                        </th:block>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="review-date" th:text="${#temporals.format(review.createdAt, 'dd/MM/yyyy')}">
-                                                01/01/2024
-                                            </div>
-                                        </div>
-                                        <div class="review-content" th:if="${review.comment != null}">
-                                            <p th:text="${review.comment}">Nội dung đánh giá...</p>
-                                        </div>
-                                    </div>
+                            </div>
+                        </div>
+    
+                        <div class="product-price-section">
+                            <div class="price-display">
+                                <span class="current-price" th:text="${#numbers.formatCurrency(product.price)}">0₫</span>
+                            </div>
+                        </div>
+    
+                        <div class="product-description" th:if="${product.description ne null}">
+                            <h3 class="description-title">Mô tả sản phẩm</h3>
+                            <div class="description-content" th:utext="${product.description}">
+                                Mô tả sản phẩm sẽ hiển thị ở đây...
+                            </div>
+                        </div>
+    
+<!--/*
+                        <div class="product-attributes" th:if="${product.attributeValues ne null and not #lists.isEmpty(product.attributeValues)}">
+                            <h3 class="attributes-title">Thông tin chi tiết</h3>
+                            <div class="attributes-list">
+                                <div th:each="attr : ${product.attributeValues}" class="attribute-item">
+                                    <span class="attribute-name" th:text="${attr.attribute.name}">Thuộc tính</span>:
+                                    <span class="attribute-value" th:text="${attr.value}">Giá trị</span>
                                 </div>
-
-                                <!-- Write Review Button -->
-                                <div class="write-review-section" sec:authorize="isAuthenticated()">
-                                    <button class="btn-write-review" onclick="openReviewModal()">
-                                        <i class="bi bi-pen"></i>
-                                        Viết đánh giá
+                            </div>
+                        </div>
+                        */-->
+    
+                        <div class="add-to-cart-section">
+                            <div class="quantity-selector">
+                                <label for="quantity" class="quantity-label">Số lượng:</label>
+                                <div class="quantity-input-group">
+                                    <button type="button" class="btn-quantity-decrease" onclick="decreaseQuantity()">
+                                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M4 10a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H4.75A.75.75 0 0 1 4 10Z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <input type="number" id="quantity" class="quantity-input" value="1" min="1" max="99">
+                                    <button type="button" class="btn-quantity-increase" onclick="increaseQuantity()">
+                                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+                                        </svg>
                                     </button>
                                 </div>
                             </div>
+    
+                            <div class="action-buttons">
+                                <button class="btn-add-to-cart primary" 
+                                        th:data-product-id="${product.id}"
+                                        sec:authorize="isAuthenticated()">
+                                    <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M6 5v1H4.667a1.75 1.75 0 0 0-1.743 1.598l-.826 9.5A1.75 1.75 0 0 0 3.84 19h12.32a1.75 1.75 0 0 0 1.742-1.902l-.826-9.5A1.75 1.75 0 0 0 15.333 6H14V5a4 4 0 0 0-8 0Zm4-2.5A2.5 2.5 0 0 0 7.5 5v1h5V5A2.5 2.5 0 0 0 10 2.5Z" clip-rule="evenodd" />
+                                    </svg>
+                                    Thêm vào giỏ hàng
+                                </button>
+                                
+                                <button class="btn-buy-now" 
+                                        th:data-product-id="${product.id}"
+                                        onclick="buyNow(this)"
+                                        sec:authorize="isAuthenticated()">
+                                    <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M11.983 1.907a.75.75 0 0 0-1.292-.657l-8.5 9.5A.75.75 0 0 0 2.75 12h6.572l-1.305 6.093a.75.75 0 0 0 1.292.657l8.5-9.5A.75.75 0 0 0 17.25 8h-6.572l1.305-6.093Z" />
+                                    </svg>
+                                    Mua ngay
+                                </button>
+    
+                                <a th:href="@{/login}" 
+                                   class="btn-add-to-cart primary btn-login-required"
+                                   sec:authorize="!isAuthenticated()">
+                                    <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M3 4.25A2.25 2.25 0 0 1 5.25 2h5.5A2.25 2.25 0 0 1 13 4.25v2a.75.75 0 0 1-1.5 0v-2a.75.75 0 0 0-.75-.75h-5.5a.75.75 0 0 0-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 0 0 .75-.75v-2a.75.75 0 0 1 1.5 0v2A2.25 2.25 0 0 1 10.75 18h-5.5A2.25 2.25 0 0 1 3 15.75V4.25Z" clip-rule="evenodd" />
+                                        <path fill-rule="evenodd" d="M19 10a.75.75 0 0 0-.75-.75H8.704l1.048-.943a.75.75 0 1 0-1.004-1.114l-2.5 2.25a.75.75 0 0 0 0 1.114l2.5 2.25a.75.75 0 1 0 1.004-1.114L8.704 10.75H18.25A.75.75 0 0 0 19 10Z" clip-rule="evenodd" />
+                                    </svg>
+                                    Đăng nhập để mua hàng
+                                </a>
+                            </div>
+    
+                            <div class="secondary-actions" sec:authorize="isAuthenticated()">
+                                <button class="btn-wishlist" 
+                                        th:data-product-id="${product.id}"
+                                        onclick="toggleWishlist(this)">
+                                    <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="m9.653 16.915-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001Z" />
+                                    </svg>
+                                    Thêm vào yêu thích
+                                </button>
+                            </div>
+                        </div>
+    
+                        <div class="product-features">
+                            <div class="feature-item">
+                                <svg class="feature-icon w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M6.5 3c-1.051 0-2.093.04-3.125.117A1.49 1.49 0 0 0 2 4.607V10.5h9V4.606c0-.771-.59-1.43-1.375-1.489A41.568 41.568 0 0 0 6.5 3ZM2 12v2.5A1.5 1.5 0 0 0 3.5 16h.041a3 3 0 0 1 5.918 0h.791a.75.75 0 0 0 .75-.75V12H2Z" />
+                                    <path d="M6.5 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM13.25 5a.75.75 0 0 0-.75.75v8.514a3.001 3.001 0 0 1 4.893 1.44c.37-.275.61-.719.595-1.227a24.905 24.905 0 0 0-1.784-8.549A1.486 1.486 0 0 0 14.823 5H13.25ZM14.5 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
+                                </svg>
+                                <div class="feature-content">
+                                    <h4 class="feature-title">Giao hàng miễn phí</h4>
+                                    <p class="feature-description">Miễn phí giao hàng nội thành TP.HCM</p>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <svg class="feature-icon w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clip-rule="evenodd" />
+                                </svg>
+                                <div class="feature-content">
+                                    <h4 class="feature-title">Giao hàng nhanh</h4>
+                                    <p class="feature-description">Giao trong 2-4 giờ</p>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <svg class="feature-icon w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.5 3A2.5 2.5 0 0 0 3 5.5v2.879a2.5 2.5 0 0 0 .732 1.767l6.5 6.5a2.5 2.5 0 0 0 3.536 0l2.878-2.878a2.5 2.5 0 0 0 0-3.536l-6.5-6.5A2.5 2.5 0 0 0 8.38 3H5.5ZM6 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
+                                </svg>
+                                <div class="feature-content">
+                                    <h4 class="feature-title">Hoa tươi 100%</h4>
+                                    <p class="feature-description">Cam kết hoa tươi, chất lượng cao</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
-                    <!-- Care Tab -->
-                    <div class="tab-pane fade" id="care" role="tabpanel" aria-labelledby="care-tab">
-                        <div class="tab-content-wrapper">
-                            <div class="care-guide">
-                                <h4>Hướng dẫn chăm sóc hoa tươi</h4>
-                                <div class="care-tips">
-                                    <div class="care-tip">
-                                        <i class="bi bi-droplet care-tip-icon"></i>
-                                        <div class="care-tip-content">
-                                            <h5>Tưới nước đều đặn</h5>
-                                            <p>Thay nước sạch mỗi 2-3 ngày, cắt chéo gốc hoa khoảng 1cm.</p>
+                </div>
+            </div>
+        </section>
+    
+<!--/*
+        <section class="product-tabs-section">
+            <div class="container">
+                <div class="tabs-container">
+                    <ul class="nav nav-tabs product-tabs" id="productTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="description-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#description" type="button" role="tab" 
+                                    aria-controls="description" aria-selected="true">
+                                Mô tả chi tiết
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#reviews" type="button" role="tab" 
+                                    aria-controls="reviews" aria-selected="false">
+                                Đánh giá (<span th:text="${reviewCount ne null ? reviewCount : 0}">0</span>)
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="care-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#care" type="button" role="tab" 
+                                    aria-controls="care" aria-selected="false">
+                                Hướng dẫn chăm sóc
+                            </button>
+                        </li>
+                    </ul>
+    
+                    <div class="tab-content product-tab-content" id="productTabContent">
+                        <div class="tab-pane fade show active" id="description" role="tabpanel" 
+                             aria-labelledby="description-tab">
+                            <div class="tab-content-wrapper">
+                                <div class="description-detail" th:utext="${product.description}">
+                                    <p>Mô tả chi tiết sản phẩm sẽ hiển thị ở đây...</p>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                            <div class="tab-content-wrapper">
+                                <div class="reviews-section">
+                                    <div class="reviews-summary">
+                                        <div class="rating-overview">
+                                            <div class="rating-score-large">
+                                                <span class="score" th:text="${averageRating ne null ? #numbers.formatDecimal(averageRating, 1, 1) : '0.0'}">0.0</span>
+                                                <div class="stars-large">
+                                                    <th:block th:each="star : ${#numbers.sequence(1, 5)}">
+                                                        <i class="bi bi-star-fill" 
+                                                           th:classappend="${averageRating ne null and star le averageRating ? 'filled' : 'empty'}"></i>
+                                                    </th:block>
+                                                </div>
+                                                <p class="reviews-count" th:text="${reviewCount ne null ? (reviewCount + ' đánh giá') : '0 đánh giá'}">0 đánh giá</p>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="care-tip">
-                                        <i class="bi bi-sun care-tip-icon"></i>
-                                        <div class="care-tip-content">
-                                            <h5>Tránh ánh nắng trực tiếp</h5>
-                                            <p>Đặt hoa ở nơi thoáng mát, tránh ánh nắng trực tiếp và gió mạnh.</p>
+    
+                                    <div class="reviews-list">
+                                        <div th:if="${reviews eq null or #lists.isEmpty(reviews)}" class="no-reviews">
+                                            <i class="bi bi-chat-square-text no-reviews-icon"></i>
+                                            <h4>Chưa có đánh giá nào</h4>
+                                            <p>Hãy là người đầu tiên đánh giá sản phẩm này!</p>
+                                        </div>
+    
+                                        <div th:each="review : ${reviews}" class="review-item">
+                                            <div class="review-header">
+                                                <div class="reviewer-info">
+                                                    <div class="reviewer-avatar">
+                                                        <i class="bi bi-person-circle"></i>
+                                                    </div>
+                                                    <div class="reviewer-details">
+                                                        <h5 class="reviewer-name" th:text="${review.user.firstname + ' ' + review.user.lastname}">Tên khách hàng</h5>
+                                                        <div class="review-rating">
+                                                            <th:block th:each="star : ${#numbers.sequence(1, 5)}">
+                                                                <i class="bi bi-star-fill" 
+                                                                   th:classappend="${star le review.rating ? 'filled' : 'empty'}"></i>
+                                                            </th:block>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="review-date" th:text="${#temporals.format(review.createdAt, 'dd/MM/yyyy')}">
+                                                    01/01/2024
+                                                </div>
+                                            </div>
+                                            <div class="review-content" th:if="${review.comment ne null}">
+                                                <p th:text="${review.comment}">Nội dung đánh giá...</p>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="care-tip">
-                                        <i class="bi bi-thermometer care-tip-icon"></i>
-                                        <div class="care-tip-content">
-                                            <h5>Nhiệt độ phù hợp</h5>
-                                            <p>Giữ nhiệt độ 18-22°C, tránh nơi quá nóng hoặc lạnh.</p>
+    
+                                    <div class="write-review-section" sec:authorize="isAuthenticated()">
+                                        <button class="btn-write-review" onclick="openReviewModal()">
+                                            <i class="bi bi-pen"></i>
+                                            Viết đánh giá
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <div class="tab-pane fade" id="care" role="tabpanel" aria-labelledby="care-tab">
+                            <div class="tab-content-wrapper">
+                                <div class="care-guide">
+                                    <h4>Hướng dẫn chăm sóc hoa tươi</h4>
+                                    <div class="care-tips">
+                                        <div class="care-tip">
+                                            <i class="bi bi-droplet care-tip-icon"></i>
+                                            <div class="care-tip-content">
+                                                <h5>Tưới nước đều đặn</h5>
+                                                <p>Thay nước sạch mỗi 2-3 ngày, cắt chéo gốc hoa khoảng 1cm.</p>
+                                            </div>
+                                        </div>
+                                        <div class="care-tip">
+                                            <i class="bi bi-sun care-tip-icon"></i>
+                                            <div class="care-tip-content">
+                                                <h5>Tránh ánh nắng trực tiếp</h5>
+                                                <p>Đặt hoa ở nơi thoáng mát, tránh ánh nắng trực tiếp và gió mạnh.</p>
+                                            </div>
+                                        </div>
+                                        <div class="care-tip">
+                                            <i class="bi bi-thermometer care-tip-icon"></i>
+                                            <div class="care-tip-content">
+                                                <h5>Nhiệt độ phù hợp</h5>
+                                                <p>Giữ nhiệt độ 18-22°C, tránh nơi quá nóng hoặc lạnh.</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -357,132 +349,47 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <!-- Related Products -->
-    <section class="related-products-section" th:if="${!#lists.isEmpty(relatedProducts)}">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">Sản phẩm liên quan</h2>
-                <p class="section-subtitle">Các sản phẩm tương tự có thể bạn quan tâm</p>
-            </div>
-            
-            <div class="related-products-grid">
-                <div th:each="relatedProduct : ${relatedProducts}" class="product-card">
-                    <div class="product-image-container">
-                        <a th:href="@{/products/{id}(id=${relatedProduct.id})}" class="product-image-link">
-                            <img th:src="${relatedProduct.image != null ? relatedProduct.image : '/images/products/default-flower.jpg'}" 
-                                 th:alt="${relatedProduct.name}" 
-                                 th:title="${relatedProduct.name}"
-                                 class="product-image"
-                                 loading="lazy">
-                        </a>
-                    </div>
-
-                    <div class="product-content">
-                        <h3 class="product-title">
-                            <a th:href="@{/products/{id}(id=${relatedProduct.id})}" 
-                               class="product-title-link" 
-                               th:text="${relatedProduct.name}">Tên sản phẩm</a>
-                        </h3>
-                        
-                        <div class="product-price">
-                            <span class="current-price" th:text="${#numbers.formatCurrency(relatedProduct.price)}">0₫</span>
+        </section>
+        */-->
+    
+<!--/*
+        <section class="related-products-section" th:if="${relatedProducts ne null and not #lists.isEmpty(relatedProducts)}">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Sản phẩm liên quan</h2>
+                    <p class="section-subtitle">Các sản phẩm tương tự có thể bạn quan tâm</p>
+                </div>
+                
+                <div class="related-products-grid">
+                    <div th:each="relatedProduct : ${relatedProducts}" class="product-card">
+                        <div class="product-image-container">
+                            <a th:href="@{/products/{id}(id=${relatedProduct.id})}" class="product-image-link">
+                                <img th:src="${relatedProduct.image ne null ? relatedProduct.image : '/images/products/default-flower.jpg'}" 
+                                     th:alt="${relatedProduct.name}" 
+                                     th:title="${relatedProduct.name}"
+                                     class="product-image"
+                                     loading="lazy">
+                            </a>
+                        </div>
+    
+                        <div class="product-content">
+                            <h3 class="product-title">
+                                <a th:href="@{/products/{id}(id=${relatedProduct.id})}" 
+                                   class="product-title-link" 
+                                   th:text="${relatedProduct.name}">Tên sản phẩm</a>
+                            </h3>
+                            
+                            <div class="product-price">
+                                <span class="current-price" th:text="${#numbers.formatCurrency(relatedProduct.price)}">0₫</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+        */-->
+    </div>
 </th:block>
-
-<!-- <script>
-// Quantity controls
-function increaseQuantity() {
-    const input = document.getElementById('quantity');
-    const currentValue = parseInt(input.value) || 1;
-    if (currentValue < 99) {
-        input.value = currentValue + 1;
-    }
-}
-
-function decreaseQuantity() {
-    const input = document.getElementById('quantity');
-    const currentValue = parseInt(input.value) || 1;
-    if (currentValue > 1) {
-        input.value = currentValue - 1;
-    }
-}
-
-// Add to cart functionality
-function addToCart(button) {
-    const productId = button.dataset.productId;
-    const quantity = document.getElementById('quantity').value;
-    
-    // Show loading state
-    const originalContent = button.innerHTML;
-    button.innerHTML = '<i class="bi bi-hourglass"></i> Đang thêm...';
-    button.disabled = true;
-    
-    // TODO: Implement actual add to cart API call
-    setTimeout(() => {
-        button.innerHTML = '<i class="bi bi-check"></i> Đã thêm!';
-        setTimeout(() => {
-            button.innerHTML = originalContent;
-            button.disabled = false;
-        }, 1500);
-    }, 1000);
-}
-
-// Buy now functionality
-function buyNow(button) {
-    const productId = button.dataset.productId;
-    const quantity = document.getElementById('quantity').value;
-    
-    // TODO: Implement buy now functionality
-    window.location.href = '/cart';
-}
-
-// Wishlist functionality
-function toggleWishlist(button) {
-    const productId = button.dataset.productId;
-    const icon = button.querySelector('i');
-    
-    if (icon.classList.contains('bi-heart')) {
-        icon.className = 'bi bi-heart-fill';
-        button.classList.add('active');
-    } else {
-        icon.className = 'bi bi-heart';
-        button.classList.remove('active');
-    }
-    
-    // TODO: Implement actual wishlist API call
-}
-
-// Image zoom functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const mainImage = document.getElementById('mainProductImage');
-    const zoomOverlay = document.getElementById('imageZoomOverlay');
-    
-    if (mainImage && zoomOverlay) {
-        zoomOverlay.addEventListener('click', function() {
-            // Simple image modal/lightbox
-            const modal = document.createElement('div');
-            modal.className = 'image-modal';
-            modal.innerHTML = `
-                <div class="image-modal-backdrop" onclick="this.parentElement.remove()">
-                    <img src="${mainImage.src}" alt="${mainImage.alt}" class="image-modal-content">
-                    <button class="image-modal-close" onclick="this.parentElement.parentElement.remove()">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        });
-    }
-});
-</script> -->
 
 <style>
 /* Image Modal Styles */

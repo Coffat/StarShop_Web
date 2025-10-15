@@ -52,7 +52,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf
                 .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**", "/api/cart/**", "/api/orders/**", "/api/payment/**", "/api/locations/**", "/api/addresses/**", "/api/shipping/**", "/admin/orders/api/**", "/admin/products/api/**", "/admin/api/users/**", "/admin/api/employees/**", "/admin/api/**", "/api/staff/**", "/sse/**", "/swagger-ui/**", "/v3/api-docs/**")
+                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**", "/api/cart/**", "/api/orders/**", "/api/payment/**", "/api/locations/**", "/api/addresses/**", "/api/shipping/**", "/api/catalogs/**", "/admin/orders/api/**", "/admin/products/api/**", "/admin/api/users/**", "/admin/api/employees/**", "/admin/api/**", "/api/staff/**", "/sse/**", "/swagger-ui/**", "/v3/api-docs/**")
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -92,6 +92,10 @@ public class SecurityConfig {
                 
                 // Location APIs - public access for address forms
                 .requestMatchers("/api/locations/**").permitAll()
+                
+                // Catalog APIs - public read, admin write
+                .requestMatchers("/api/catalogs").permitAll()
+                .requestMatchers("/api/catalogs/{id}").permitAll()
                 
                 // Account pages - require authentication
                 .requestMatchers("/account/**").authenticated()

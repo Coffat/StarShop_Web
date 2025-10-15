@@ -38,13 +38,17 @@ public class CatalogController {
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Catalog> createCatalog(@RequestBody Map<String, String> request) {
-        String value = request.get("value");
-        if (value == null || value.trim().isEmpty()) {
-            return ResponseEntity.badRequest().build();
+    public ResponseEntity<?> createCatalog(@RequestBody Map<String, String> request) {
+        try {
+            String value = request.get("value");
+            if (value == null || value.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Tên danh mục không được để trống");
+            }
+            String image = request.get("image");
+            return ResponseEntity.ok(catalogService.create(value.trim(), image));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-        String image = request.get("image");
-        return ResponseEntity.ok(catalogService.create(value.trim(), image));
     }
     
     /**
@@ -52,15 +56,19 @@ public class CatalogController {
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Catalog> updateCatalog(
+    public ResponseEntity<?> updateCatalog(
             @PathVariable Long id, 
             @RequestBody Map<String, String> request) {
-        String value = request.get("value");
-        if (value == null || value.trim().isEmpty()) {
-            return ResponseEntity.badRequest().build();
+        try {
+            String value = request.get("value");
+            if (value == null || value.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Tên danh mục không được để trống");
+            }
+            String image = request.get("image");
+            return ResponseEntity.ok(catalogService.update(id, value.trim(), image));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-        String image = request.get("image");
-        return ResponseEntity.ok(catalogService.update(id, value.trim(), image));
     }
     
     /**
@@ -80,9 +88,13 @@ public class CatalogController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteCatalog(@PathVariable Long id) {
-        catalogService.delete(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deleteCatalog(@PathVariable Long id) {
+        try {
+            catalogService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
 

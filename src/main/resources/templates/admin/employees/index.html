@@ -152,7 +152,7 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nhân viên</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vai trò</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quyền hạn</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chức vụ</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày vào làm</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
@@ -178,12 +178,12 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span :class="employee.role === 'ADMIN' ? 'bg-orange-100 text-orange-800' : 'bg-purple-100 text-purple-800'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
+                                    <span :class="employee.role.toUpperCase() === 'ADMIN' ? 'bg-orange-100 text-orange-800' : 'bg-purple-100 text-purple-800'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
                                         <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                            <path x-show="employee.role === 'ADMIN'" fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                            <path x-show="employee.role === 'STAFF'" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
+                                            <path x-show="employee.role.toUpperCase() === 'ADMIN'" fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                            <path x-show="employee.role.toUpperCase() === 'STAFF'" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
                                         </svg>
-                                        <span x-text="employee.role === 'ADMIN' ? 'Quản trị viên' : 'Nhân viên'"></span>
+                                        <span x-text="employee.role.toUpperCase() === 'ADMIN' ? 'Quản trị viên' : 'Nhân viên'"></span>
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="employee.position || '-'"></td>
@@ -282,7 +282,7 @@
     </div>
     
     <!-- Create/Edit Employee Modal -->
-    <div x-data="employeeModalManager()" x-show="showModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+    <div x-data="employeeModalManager()" x-show="showModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;" x-cloak>
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             <!-- Background overlay -->
             <div x-show="showModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" @click="closeModal()"></div>
@@ -356,7 +356,10 @@
                         <!-- Ngày vào làm -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Ngày vào làm</label>
-                            <input type="date" x-model="formData.hireDate" :readonly="modalMode === 'view'" :class="modalMode === 'view' ? 'bg-gray-100' : ''" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <div x-show="modalMode === 'view' && !formData.hireDate" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-100 text-gray-500">
+                                Chưa cập nhật
+                            </div>
+                            <input x-show="modalMode !== 'view' || formData.hireDate" type="date" x-model="formData.hireDate" :readonly="modalMode === 'view'" :class="modalMode === 'view' ? 'bg-gray-100' : ''" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         
                         <!-- Avatar URL -->
@@ -440,6 +443,17 @@
                             sortDir: 'desc'
                         });
                         
+                        // Add filters to params
+                        if (this.filters.role) {
+                            params.append('role', this.filters.role);
+                        }
+                        if (this.filters.status) {
+                            params.append('status', this.filters.status);
+                        }
+                        if (this.filters.search) {
+                            params.append('search', this.filters.search);
+                        }
+                        
                         const response = await fetch(`/admin/api/employees?${params}`);
                         const data = await response.json();
                         
@@ -506,8 +520,19 @@
                     }
                     
                     try {
+                        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+                        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+                        
+                        const headers = {
+                            'Content-Type': 'application/json'
+                        };
+                        if (csrfToken && csrfHeader) {
+                            headers[csrfHeader] = csrfToken;
+                        }
+                        
                         const response = await fetch(`/admin/api/employees/${employee.id}/toggle-status`, {
-                            method: 'PATCH'
+                            method: 'PATCH',
+                            headers: headers
                         });
                         const data = await response.json();
                         
@@ -530,8 +555,19 @@
                     }
                     
                     try {
+                        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+                        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+                        
+                        const headers = {
+                            'Content-Type': 'application/json'
+                        };
+                        if (csrfToken && csrfHeader) {
+                            headers[csrfHeader] = csrfToken;
+                        }
+                        
                         const response = await fetch(`/admin/api/employees/${employee.id}`, {
-                            method: 'DELETE'
+                            method: 'DELETE',
+                            headers: headers
                         });
                         const data = await response.json();
                         
@@ -619,23 +655,57 @@
                 openModal(mode, employee = null) {
                     this.modalMode = mode;
                     
+                    console.log('Opening modal:', mode, employee); // Debug log
+                    
                     if (mode === 'create') {
                         this.resetForm();
                     } else if (employee) {
-                        this.formData = {
-                            id: employee.id,
-                            employeeCode: employee.employeeCode || '',
-                            firstname: employee.firstname,
-                            lastname: employee.lastname,
-                            email: employee.email,
-                            phone: employee.phone,
-                            password: '',
-                            role: employee.role,
-                            salaryPerHour: employee.salaryPerHour,
-                            hireDate: employee.hireDate || '',
-                            avatar: employee.avatar || '',
-                            isActive: employee.isActive
-                        };
+                        // Assign each field individually to ensure reactivity
+                        this.formData.id = employee.id;
+                        this.formData.employeeCode = employee.employeeCode || '';
+                        this.formData.firstname = employee.firstname || '';
+                        this.formData.lastname = employee.lastname || '';
+                        this.formData.email = employee.email || '';
+                        this.formData.phone = employee.phone || '';
+                        this.formData.password = '';
+                        
+                        // Handle role - convert enum to string if needed
+                        if (employee.role) {
+                            let roleValue = typeof employee.role === 'object' ? employee.role.name : employee.role;
+                            // Convert to uppercase to match dropdown options
+                            this.formData.role = roleValue.toUpperCase();
+                        } else {
+                            this.formData.role = '';
+                        }
+                        
+                        this.formData.position = employee.position || '';
+                        this.formData.salaryPerHour = employee.salaryPerHour || null;
+                        
+                        // Handle hireDate - convert to YYYY-MM-DD format for input type="date"
+                        if (employee.hireDate) {
+                            // If it's an array [year, month, day]
+                            if (Array.isArray(employee.hireDate)) {
+                                const [year, month, day] = employee.hireDate;
+                                this.formData.hireDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                            } 
+                            // If it's a string like "2024-01-15T00:00:00"
+                            else if (typeof employee.hireDate === 'string') {
+                                this.formData.hireDate = employee.hireDate.split('T')[0];
+                            }
+                            // Otherwise use as-is
+                            else {
+                                this.formData.hireDate = employee.hireDate;
+                            }
+                        } else {
+                            this.formData.hireDate = '';
+                        }
+                        
+                        this.formData.avatar = employee.avatar || '';
+                        this.formData.isActive = employee.isActive !== undefined ? employee.isActive : true;
+                        
+                        console.log('Form data after assignment:', this.formData); // Debug log
+                        console.log('Role value:', this.formData.role, 'Type:', typeof this.formData.role);
+                        console.log('HireDate value:', this.formData.hireDate, 'Type:', typeof this.formData.hireDate);
                     }
                     
                     this.showModal = true;
@@ -688,11 +758,19 @@
                             payload.password = this.formData.password;
                         }
                         
+                        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+                        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+                        
+                        const headers = {
+                            'Content-Type': 'application/json'
+                        };
+                        if (csrfToken && csrfHeader) {
+                            headers[csrfHeader] = csrfToken;
+                        }
+                        
                         const response = await fetch(url, {
                             method: method,
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
+                            headers: headers,
                             body: JSON.stringify(payload)
                         });
                         
