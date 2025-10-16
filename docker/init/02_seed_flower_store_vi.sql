@@ -11,14 +11,14 @@ BEGIN;
 -- 5 khách hàng, 2 nhân viên, 1 admin với BCrypt passwords
 INSERT INTO Users(firstname, lastname, email, password, phone, avatar, role, created_at)
 VALUES
-('Nguyễn', 'An', 'an.nguyen@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000001', NULL, 'CUSTOMER', NOW() - INTERVAL '60 days'),
-('Trần', 'Bình', 'binh.tran@example.com', '$2a$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', '0901000002', NULL, 'CUSTOMER', NOW() - INTERVAL '58 days'),
-('Lê', 'Chi', 'chi.le@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000003', NULL, 'CUSTOMER', NOW() - INTERVAL '40 days'),
-('Phạm', 'Dũng', 'dung.pham@example.com', '$2a$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', '0901000004', NULL, 'CUSTOMER', NOW() - INTERVAL '35 days'),
-('Võ', 'Hà', 'ha.vo@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000005', NULL, 'CUSTOMER', NOW() - INTERVAL '30 days'),
-('Hoàng', 'Lan', 'lan.hoang@example.com', '$2a$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', '0901000006', NULL, 'STAFF', NOW() - INTERVAL '90 days'),
-('Đỗ', 'Minh', 'minh.do@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000007', NULL, 'STAFF', NOW() - INTERVAL '90 days'),
-('Admin', 'Root', 'admin@example.com', '$2a$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', '0901000008', NULL, 'ADMIN', NOW() - INTERVAL '100 days'),
+('Nguyễn', 'An', 'an.nguyen@example.com', '$2a$10$agFzx5FVfCDVt1rdzQTdcOV4Hy6I/4q9SiQRPbvh9r5umm4EOKuPC', '0901000001', NULL, 'CUSTOMER', NOW() - INTERVAL '60 days'),
+('Trần', 'Bình', 'binh.tran@example.com', '$2a$10$agFzx5FVfCDVt1rdzQTdcOV4Hy6I/4q9SiQRPbvh9r5umm4EOKuPC', '0901000002', NULL, 'CUSTOMER', NOW() - INTERVAL '58 days'),
+('Lê', 'Chi', 'chi.le@example.com', '$2a$10$agFzx5FVfCDVt1rdzQTdcOV4Hy6I/4q9SiQRPbvh9r5umm4EOKuPC', '0901000003', NULL, 'CUSTOMER', NOW() - INTERVAL '40 days'),
+('Phạm', 'Dũng', 'dung.pham@example.com', '$2a$10$agFzx5FVfCDVt1rdzQTdcOV4Hy6I/4q9SiQRPbvh9r5umm4EOKuPC', '0901000004', NULL, 'CUSTOMER', NOW() - INTERVAL '35 days'),
+('Võ', 'Hà', 'ha.vo@example.com', '$2a$10$agFzx5FVfCDVt1rdzQTdcOV4Hy6I/4q9SiQRPbvh9r5umm4EOKuPC', '0901000005', NULL, 'CUSTOMER', NOW() - INTERVAL '30 days'),
+('Hoàng', 'Lan', 'lan.hoang@example.com', '$2a$10$agFzx5FVfCDVt1rdzQTdcOV4Hy6I/4q9SiQRPbvh9r5umm4EOKuPC', '0901000006', NULL, 'STAFF', NOW() - INTERVAL '90 days'),
+('Đỗ', 'Minh', 'minh.do@example.com', '$2a$10$agFzx5FVfCDVt1rdzQTdcOV4Hy6I/4q9SiQRPbvh9r5umm4EOKuPC', '0901000007', NULL, 'STAFF', NOW() - INTERVAL '90 days'),
+('Admin', 'Root', 'admin@example.com', '$2a$10$agFzx5FVfCDVt1rdzQTdcOV4Hy6I/4q9SiQRPbvh9r5umm4EOKuPC', '0901000008', NULL, 'ADMIN', NOW() - INTERVAL '100 days'),
 ('Tai', 'Nguyen', 'tai@gmail.com', '$2a$10$agFzx5FVfCDVt1rdzQTdcOV4Hy6I/4q9SiQRPbvh9r5umm4EOKuPC', '0901000009', NULL, 'CUSTOMER', NOW() - INTERVAL '1 days');
 
 -- ========== 2) DELIVERY UNITS ==========
