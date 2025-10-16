@@ -22,8 +22,11 @@ import java.util.List;
 @Configuration
 public class SwaggerConfig {
 
-    @Value("${server.port:8080}")
-    private String serverPort;
+    @Value("${app.base-url}")
+    private String localServerUrl;
+
+    @Value("${swagger.server.prod.url}")
+    private String prodServerUrl;
 
     @Bean
     public OpenAPI customOpenAPI() {
@@ -57,11 +60,11 @@ public class SwaggerConfig {
                 // Server Configuration
                 .servers(List.of(
                         new Server()
-                                .url("http://localhost:" + serverPort)
+                                .url(localServerUrl)
                                 .description("Local Development Server"),
                         new Server()
-                                .url("https://api.flowershop.com")
-                                .description("Production Server (if available)")
+                                .url(prodServerUrl)
+                                .description("Production Server")
                 ))
                 
                 // Security Configuration
