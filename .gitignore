@@ -94,6 +94,5 @@ node_modules/
 bin/
 dist/
 
-# Ngrok
-.ngrok-url
-ngrok.log
+# VS Code Port Forwarding
+.vscode-forward-url

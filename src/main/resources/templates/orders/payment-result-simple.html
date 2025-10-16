@@ -1,18 +1,30 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" 
-      lang="vi" 
-      th:replace="~{layouts/main :: layout(~{::title}, ~{::meta[name=description]}, ~{::link}, ~{::content})}">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${pageTitle} ?: 'Kết quả thanh toán'">Kết quả thanh toán</title>
-    <meta name="description" content="Kết quả thanh toán đơn hàng tại StarShop">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#F06292',
+                        'primary-hover': '#EC407A',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
+<body class="bg-gradient-to-br from-pink-50 to-purple-50 min-h-screen">
     
     <!-- Main Content -->
-    <div class="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-12">
+    <div class="min-h-screen py-12">
         <div class="max-w-2xl mx-auto px-4">
-            <div class="bg-white rounded-2xl shadow-soft p-8 text-center">
+            <div class="bg-white rounded-2xl shadow-lg p-8 text-center">
                 <!-- Success Result -->
                 <div th:if="${success}">
                     <div class="w-24 h-24 mx-auto mb-6 bg-green-100 rounded-full flex items-center justify-center">
@@ -73,11 +85,11 @@
                        th:if="${orderId}">
                         <i class="fas fa-eye mr-2"></i>Xem đơn hàng
                     </a>
-                    <a th:href="@{/orders}" 
+                    <a href="/orders" 
                        class="inline-flex items-center px-6 py-3 border-2 border-primary text-primary rounded-xl font-medium hover:bg-primary hover:text-white transition-colors duration-200">
                         <i class="fas fa-list mr-2"></i>Đơn hàng của tôi
                     </a>
-                    <a th:href="@{/}" 
+                    <a href="/" 
                        class="inline-flex items-center px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors duration-200">
                         <i class="fas fa-home mr-2"></i>Về trang chủ
                     </a>
@@ -85,7 +97,7 @@
                 
                 <!-- Retry Button for Failed Payment -->
                 <div class="mt-6" th:unless="${success}">
-                    <a th:href="@{/checkout}" 
+                    <a href="/checkout" 
                        class="inline-flex items-center px-6 py-3 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 transition-colors duration-200 shadow-sm hover:shadow-md">
                         <i class="fas fa-redo mr-2"></i>Thử lại thanh toán
                     </a>
@@ -94,3 +106,5 @@
         </div>
     </div>
     
+</body>
+</html>

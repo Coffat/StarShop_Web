@@ -122,18 +122,16 @@ momo:
   partner-code: MOMO
   access-key: F8BBA842ECF85
   secret-key: K951B6PE1waDMi640xX08PD3vg6EkVlz
-  return-url: http://localhost:8080/payment/momo/return
-  notify-url: ${NGROK_URL:http://localhost:8080}/payment/momo/notify
+  return-url: ${VSCODE_FORWARD_URL:http://localhost:8080}/payment/momo/return
+  notify-url: ${VSCODE_FORWARD_URL:http://localhost:8080}/payment/momo/notify
   request-type: captureWallet
   endpoint-create: /v2/gateway/api/create
   endpoint-query: /v2/gateway/api/query
 
-# Ngrok configuration for development
-ngrok:
-  api:
-    url: http://localhost:4040/api/tunnels
-  url:
-    file: .ngrok-url
+# VS Code Port Forwarding configuration for development
+vscode:
+  forward:
+    url: ${VSCODE_FORWARD_URL:http://localhost:8080}
 
 # GHN (Giao Hang Nhanh) Configuration
 ghn:
