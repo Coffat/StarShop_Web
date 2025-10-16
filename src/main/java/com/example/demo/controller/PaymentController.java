@@ -85,18 +85,18 @@ public class PaymentController {
 			if ("0".equals(resultCode)) {
 				// Payment successful
 				if (orderId != null && orderId.startsWith("ORDER-")) {
-					Long orderIdLong = parseOrderId(orderId);
+					String orderIdString = parseOrderId(orderId);
 					try {
-						orderService.updateOrderStatus(orderIdLong, OrderStatus.PROCESSING);
-						log.info("Order {} status updated to PROCESSING via service", orderIdLong);
+						orderService.updateOrderStatus(orderIdString, OrderStatus.PROCESSING);
+						log.info("Order {} status updated to PROCESSING via service", orderIdString);
 					} catch (Exception e) {
-						log.error("Failed to update order {} status: {}", orderIdLong, e.getMessage());
+						log.error("Failed to update order {} status: {}", orderIdString, e.getMessage());
 						// Fallback to direct repository access if service fails
-						Order order = orderRepository.findOrderWithAllDetails(orderIdLong);
+						Order order = orderRepository.findOrderWithAllDetails(orderIdString);
 						if (order != null) {
 							order.setStatus(OrderStatus.PROCESSING);
 							orderRepository.save(order);
-							log.info("Order {} status updated to PROCESSING via fallback", orderIdLong);
+							log.info("Order {} status updated to PROCESSING via fallback", orderIdString);
 						}
 					}
 				}
@@ -106,18 +106,18 @@ public class PaymentController {
 			} else {
 				// Payment failed - update order status to CANCELLED and show result page
 				if (orderId != null && orderId.startsWith("ORDER-")) {
-					Long orderIdLong = parseOrderId(orderId);
+					String orderIdString = parseOrderId(orderId);
 					try {
-						orderService.updateOrderStatus(orderIdLong, OrderStatus.CANCELLED);
-						log.info("Order {} status updated to CANCELLED due to payment failure", orderIdLong);
+						orderService.updateOrderStatus(orderIdString, OrderStatus.CANCELLED);
+						log.info("Order {} status updated to CANCELLED due to payment failure", orderIdString);
 					} catch (Exception e) {
-						log.error("Failed to update order {} status to CANCELLED: {}", orderIdLong, e.getMessage());
+						log.error("Failed to update order {} status to CANCELLED: {}", orderIdString, e.getMessage());
 						// Fallback to direct repository access if service fails
-						Order order = orderRepository.findOrderWithAllDetails(orderIdLong);
+						Order order = orderRepository.findOrderWithAllDetails(orderIdString);
 						if (order != null) {
 							order.setStatus(OrderStatus.CANCELLED);
 							orderRepository.save(order);
-							log.info("Order {} status updated to CANCELLED via fallback", orderIdLong);
+							log.info("Order {} status updated to CANCELLED via fallback", orderIdString);
 						}
 					}
 				}
@@ -127,8 +127,8 @@ public class PaymentController {
 				model.addAttribute("message", message != null ? message : "Thanh toán thất bại. Vui lòng thử lại.");
 				model.addAttribute("pageTitle", "Thanh toán thất bại - StarShop");
 				if (orderId != null && orderId.startsWith("ORDER-")) {
-					Long orderIdLong = parseOrderId(orderId);
-					Order order = orderRepository.findOrderWithAllDetails(orderIdLong);
+					String orderIdString = parseOrderId(orderId);
+					Order order = orderRepository.findOrderWithAllDetails(orderIdString);
 					model.addAttribute("order", order);
 				}
 				model.addAttribute("transactionId", transId);
@@ -190,17 +190,17 @@ public class PaymentController {
 			if ("0".equals(resultCode)) {
 				// Payment successful
 				if (orderId != null && orderId.startsWith("ORDER-")) {
-					Long orderIdLong = parseOrderId(orderId);
+					String orderIdString = parseOrderId(orderId);
 					try {
-						orderService.updateOrderStatus(orderIdLong, OrderStatus.PROCESSING);
-						log.info("Order {} status updated to PROCESSING via notify", orderIdLong);
+						orderService.updateOrderStatus(orderIdString, OrderStatus.PROCESSING);
+						log.info("Order {} status updated to PROCESSING via notify", orderIdString);
 						
 						// Push SSE event for real-time UI update
 						sseService.pushPaymentUpdate(orderId, "SUCCESS", "Thanh toán thành công!", transId);
 						log.info("SSE event pushed for successful payment: {}", orderId);
 						
 					} catch (Exception e) {
-						log.error("Failed to update order {} status via notify: {}", orderIdLong, e.getMessage());
+						log.error("Failed to update order {} status via notify: {}", orderIdString, e.getMessage());
 					}
 				}
 			} else {
@@ -208,18 +208,18 @@ public class PaymentController {
 				log.warn("MoMo payment failed via notify for order {} with resultCode: {}", orderId, resultCode);
 				
 				if (orderId != null && orderId.startsWith("ORDER-")) {
-					Long orderIdLong = parseOrderId(orderId);
+					String orderIdString = parseOrderId(orderId);
 					try {
-						orderService.updateOrderStatus(orderIdLong, OrderStatus.CANCELLED);
-						log.info("Order {} status updated to CANCELLED via notify due to payment failure", orderIdLong);
+						orderService.updateOrderStatus(orderIdString, OrderStatus.CANCELLED);
+						log.info("Order {} status updated to CANCELLED via notify due to payment failure", orderIdString);
 					} catch (Exception e) {
-						log.error("Failed to update order {} status to CANCELLED via notify: {}", orderIdLong, e.getMessage());
+						log.error("Failed to update order {} status to CANCELLED via notify: {}", orderIdString, e.getMessage());
 						// Fallback to direct repository access if service fails
-						Order order = orderRepository.findOrderWithAllDetails(orderIdLong);
+						Order order = orderRepository.findOrderWithAllDetails(orderIdString);
 						if (order != null) {
 							order.setStatus(OrderStatus.CANCELLED);
 							orderRepository.save(order);
-							log.info("Order {} status updated to CANCELLED via fallback in notify", orderIdLong);
+							log.info("Order {} status updated to CANCELLED via fallback in notify", orderIdString);
 						}
 					}
 				}
@@ -280,16 +280,16 @@ public class PaymentController {
 		return hexString.toString();
 	}
 
-	private Long parseOrderId(String orderId) {
+	private String parseOrderId(String orderId) {
 		try {
 			// Expect pattern like ORDER-<id>-<timestamp>
 			if (orderId != null && orderId.startsWith("ORDER-")) {
 				String[] parts = orderId.split("-");
-				return Long.parseLong(parts[1]);
+				return parts[1]; // Return the order ID part directly
 			}
-			return Long.parseLong(orderId);
+			return orderId; // Return as-is if not ORDER- format
 		} catch (Exception e) {
-			return -1L;
+			return null;
 		}
 	}
 }

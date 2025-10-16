@@ -57,6 +57,9 @@ public class OrderService {
     
     @Autowired
     private ShippingService shippingService;
+
+    @Autowired
+    private OrderIdGeneratorService orderIdGeneratorService;
     
     /**
      * Create order from user's cart
@@ -92,6 +95,7 @@ public class OrderService {
             
             // Create order
             Order order = new Order(user, address, request.getPaymentMethod());
+            order.setId(orderIdGeneratorService.generateOrderId());
             order.setNotes(request.getNotes());
             
             // Set delivery unit if provided
@@ -214,6 +218,7 @@ public class OrderService {
             
             // Create order
             Order order = new Order(user, address, request.getPaymentMethod());
+            order.setId(orderIdGeneratorService.generateOrderId());
             order.setNotes(request.getNotes());
             
             // Set delivery unit if provided
@@ -313,7 +318,7 @@ public class OrderService {
      * Get order by ID
      */
     @Transactional(readOnly = true)
-    public OrderResponse getOrder(Long orderId, Long userId) {
+    public OrderResponse getOrder(String orderId, Long userId) {
         try {
             Optional<Order> orderOpt = Optional.ofNullable(orderRepository.findOrderWithItems(orderId));
             if (orderOpt.isEmpty()) {
@@ -379,6 +384,7 @@ public class OrderService {
             
             // Create order
             Order order = new Order(user, address, request.getPaymentMethod());
+            order.setId(orderIdGeneratorService.generateOrderId());
             order.setNotes(request.getNotes());
             
             // Create order items from cart items
@@ -450,7 +456,7 @@ public class OrderService {
      * Get order entity by ID and user ID (for internal use)
      */
     @Transactional(readOnly = true)
-    public Order getOrderEntity(Long orderId, Long userId) {
+    public Order getOrderEntity(String orderId, Long userId) {
         try {
             Optional<Order> orderOpt = Optional.ofNullable(orderRepository.findOrderWithItems(orderId));
             if (orderOpt.isEmpty()) {
@@ -475,7 +481,7 @@ public class OrderService {
     /**
      * Cancel order
      */
-    public OrderResponse cancelOrder(Long orderId, Long userId) {
+    public OrderResponse cancelOrder(String orderId, Long userId) {
         try {
             Optional<Order> orderOpt = orderRepository.findById(orderId);
             if (orderOpt.isEmpty()) {
@@ -520,7 +526,7 @@ public class OrderService {
      * This method is used by payment gateway callbacks to cancel orders and restore stock
      * when payment fails. It bypasses user ownership checks since it's triggered by payment system.
      */
-    public void cancelOrderByPaymentFailure(Long orderId) {
+    public void cancelOrderByPaymentFailure(String orderId) {
         try {
             Optional<Order> orderOpt = orderRepository.findById(orderId);
             if (orderOpt.isEmpty()) {
@@ -557,12 +563,11 @@ public class OrderService {
     }
     
     /**
-     * Generate order number
+     * Generate order number (legacy method - now orderId is already in correct format)
      */
-    private String generateOrderNumber(Long orderId) {
-        LocalDateTime now = LocalDateTime.now();
-        String dateStr = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        return "ORD" + dateStr + String.format("%06d", orderId);
+    private String generateOrderNumber(String orderId) {
+        // Order ID is already in DDMMYYXXX format, so just return it
+        return orderId;
     }
     
     /**
@@ -604,7 +609,7 @@ public class OrderService {
      * Get order by ID for admin
      */
     @Transactional(readOnly = true)
-    public OrderDTO getOrderById(Long orderId) {
+    public OrderDTO getOrderById(String orderId) {
         logger.debug("Getting order by ID: {}", orderId);
         try {
             Order order = orderRepository.findOrderWithAllDetails(orderId);
@@ -667,7 +672,7 @@ public class OrderService {
      * Update order status (Admin function)
      */
     @Transactional
-    public OrderDTO updateOrderStatus(Long orderId, OrderStatus newStatus) {
+    public OrderDTO updateOrderStatus(String orderId, OrderStatus newStatus) {
         logger.debug("Updating order {} status to {}", orderId, newStatus);
         try {
             Order order = orderRepository.findById(orderId)
@@ -734,7 +739,7 @@ public class OrderService {
      * Admin cancel order with reason
      */
     @Transactional
-    public OrderDTO adminCancelOrder(Long orderId, String reason) {
+    public OrderDTO adminCancelOrder(String orderId, String reason) {
         logger.debug("Admin cancelling order {} with reason: {}", orderId, reason);
         try {
             Order order = orderRepository.findById(orderId)

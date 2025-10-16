@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface OrderRepository extends JpaRepository<Order, Long> {
+public interface OrderRepository extends JpaRepository<Order, String> {
     
     Page<Order> findByUserId(Long userId, Pageable pageable);
     
@@ -29,7 +29,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                                        @Param("endDate") LocalDateTime endDate);
     
     @Query("SELECT o FROM Order o JOIN FETCH o.orderItems WHERE o.id = :orderId")
-    Order findOrderWithItems(@Param("orderId") Long orderId);
+    Order findOrderWithItems(@Param("orderId") String orderId);
     
     @Query("SELECT o FROM Order o " +
            "LEFT JOIN FETCH o.user " +
@@ -37,13 +37,13 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "LEFT JOIN FETCH o.deliveryUnit " +
            "LEFT JOIN FETCH o.voucher " +
            "WHERE o.id = :orderId")
-    Order findOrderWithAllDetails(@Param("orderId") Long orderId);
+    Order findOrderWithAllDetails(@Param("orderId") String orderId);
     
     @Query("SELECT DISTINCT o FROM Order o " +
            "LEFT JOIN FETCH o.orderItems oi " +
            "LEFT JOIN FETCH oi.product " +
            "WHERE o.id = :orderId")
-    Order findOrderWithItemsAndProducts(@Param("orderId") Long orderId);
+    Order findOrderWithItemsAndProducts(@Param("orderId") String orderId);
     
     @Query("SELECT COUNT(o) FROM Order o WHERE o.user.id = :userId")
     Long countOrdersByUser(@Param("userId") Long userId);
