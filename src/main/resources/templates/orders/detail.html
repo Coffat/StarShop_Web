@@ -150,7 +150,7 @@
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">Phí vận chuyển</span>
-                                <span class="font-medium" th:text="${order.deliveryFee != null ? #numbers.formatDecimal(order.deliveryFee, 0, 'COMMA', 0, 'POINT') + '₫' : 'Miễn phí'}">30,000₫</span>
+                                <span class="font-medium" th:text="${order.order.deliveryFee != null ? #numbers.formatDecimal(order.order.deliveryFee, 0, 'COMMA', 0, 'POINT') + '₫' : 'Miễn phí'}">30,000₫</span>
                             </div>
                             <div th:if="${order.order.discountAmount != null && order.order.discountAmount > 0}" class="flex justify-between text-sm text-green-600">
                                 <span>Giảm giá</span>

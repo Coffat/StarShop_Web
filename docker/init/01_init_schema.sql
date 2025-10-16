@@ -105,8 +105,11 @@ COMMENT ON TABLE DeliveryUnits IS 'Delivery service providers';
 CREATE TABLE Vouchers (
     id BIGSERIAL PRIMARY KEY,
     code VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(255),
+    description TEXT,
     discount_value NUMERIC(10,2) NOT NULL,
     discount_type discount_type NOT NULL,
+    max_discount_amount NUMERIC(10,2),
     expiry_date DATE NOT NULL,
     min_order_value NUMERIC(10,2) DEFAULT 0.00,
     max_uses INTEGER DEFAULT NULL,

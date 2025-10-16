@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -179,6 +178,14 @@ public class OrderService {
             orderRepository.flush(); // Force flush to database
             logger.info("Order saved successfully with ID: {}, delivery unit: {}", order.getId(), order.getDeliveryUnit() != null ? order.getDeliveryUnit().getName() : "NULL");
             
+            // Update voucher usage count if voucher was used
+            if (order.getVoucher() != null) {
+                Voucher voucher = order.getVoucher();
+                voucher.setUses(voucher.getUses() + 1);
+                voucherRepository.save(voucher);
+                logger.info("Updated voucher usage count for voucher {}: {} uses", voucher.getCode(), voucher.getUses());
+            }
+            
             // Clear user's cart
             cartService.clearCart(userId);
             
@@ -286,6 +293,14 @@ public class OrderService {
             
             // Save order
             order = orderRepository.save(order);
+            
+            // Update voucher usage count if voucher was used
+            if (order.getVoucher() != null) {
+                Voucher voucher = order.getVoucher();
+                voucher.setUses(voucher.getUses() + 1);
+                voucherRepository.save(voucher);
+                logger.info("Updated voucher usage count for voucher {}: {} uses", voucher.getCode(), voucher.getUses());
+            }
             
             // Generate order number
             String orderNumber = generateOrderNumber(order.getId());
@@ -413,6 +428,25 @@ public class OrderService {
                 logger.warn("Delivery unit with ID {} not found!", deliveryUnitId);
             }
             
+            // Set voucher if provided
+            if (request.getVoucherCode() != null && !request.getVoucherCode().trim().isEmpty()) {
+                logger.info("Processing voucher code: {}", request.getVoucherCode());
+                Optional<Voucher> voucherOpt = voucherRepository.findByCode(request.getVoucherCode().trim());
+                if (voucherOpt.isPresent()) {
+                    Voucher voucher = voucherOpt.get();
+                    if (voucher.isValid()) {
+                        order.setVoucher(voucher);
+                        logger.info("Successfully set voucher: {} (ID: {})", voucher.getCode(), voucher.getId());
+                    } else {
+                        logger.warn("Voucher {} is not valid (expired, used up, or inactive)", request.getVoucherCode());
+                        throw new RuntimeException("Voucher không hợp lệ hoặc đã hết hạn");
+                    }
+                } else {
+                    logger.warn("Voucher with code {} not found", request.getVoucherCode());
+                    throw new RuntimeException("Không tìm thấy voucher với mã: " + request.getVoucherCode());
+                }
+            }
+            
             // Create order items from cart items
             for (CartItem cartItem : cart.getCartItems()) {
                 Product product = cartItem.getProduct();
@@ -465,6 +499,14 @@ public class OrderService {
             
             // Save order
             Order savedOrder = orderRepository.save(order);
+            
+            // Update voucher usage count if voucher was used
+            if (savedOrder.getVoucher() != null) {
+                Voucher voucher = savedOrder.getVoucher();
+                voucher.setUses(voucher.getUses() + 1);
+                voucherRepository.save(voucher);
+                logger.info("Updated voucher usage count for voucher {}: {} uses", voucher.getCode(), voucher.getUses());
+            }
             
             // Clear user's cart
             cartService.clearCart(userId);

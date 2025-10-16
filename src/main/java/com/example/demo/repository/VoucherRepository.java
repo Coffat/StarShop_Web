@@ -15,10 +15,10 @@ public interface VoucherRepository extends JpaRepository<Voucher, Long> {
     
     Optional<Voucher> findByCode(String code);
     
-    @Query("SELECT v FROM Voucher v WHERE v.expiryDate >= :currentDate AND (v.maxUses IS NULL OR v.uses < v.maxUses)")
+    @Query("SELECT v FROM Voucher v WHERE v.expiryDate >= :currentDate AND (v.maxUses IS NULL OR v.uses < v.maxUses) AND v.isActive = true")
     List<Voucher> findValidVouchers(@Param("currentDate") LocalDate currentDate);
     
-    @Query("SELECT v FROM Voucher v WHERE v.code = :code AND v.expiryDate >= :currentDate AND (v.maxUses IS NULL OR v.uses < v.maxUses)")
+    @Query("SELECT v FROM Voucher v WHERE v.code = :code AND v.expiryDate >= :currentDate AND (v.maxUses IS NULL OR v.uses < v.maxUses) AND v.isActive = true")
     Optional<Voucher> findValidVoucherByCode(@Param("code") String code, @Param("currentDate") LocalDate currentDate);
     
     boolean existsByCode(String code);

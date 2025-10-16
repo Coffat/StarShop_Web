@@ -151,6 +151,16 @@ public class VoucherService {
     }
     
     /**
+     * Get valid voucher by code
+     */
+    @Transactional(readOnly = true)
+    public VoucherDTO getValidVoucherByCode(String code) {
+        Voucher voucher = voucherRepository.findValidVoucherByCode(code, LocalDate.now())
+            .orElseThrow(() -> new EntityNotFoundException("Voucher không hợp lệ hoặc đã hết hạn: " + code));
+        return convertToDTO(voucher);
+    }
+    
+    /**
      * Get all valid vouchers
      */
     @Transactional(readOnly = true)
@@ -337,11 +347,7 @@ public class VoucherService {
             LocalDate today = LocalDate.now();
             
             // Get active vouchers that are not expired and still have uses left
-            List<Voucher> activeVouchers = voucherRepository.findAll().stream()
-                .filter(v -> v.getIsActive())
-                .filter(v -> v.getExpiryDate().isAfter(today) || v.getExpiryDate().isEqual(today))
-                .filter(v -> v.getMaxUses() == null || v.getUses() < v.getMaxUses())
-                .collect(Collectors.toList());
+            List<Voucher> activeVouchers = voucherRepository.findValidVouchers(today);
             
             return activeVouchers.stream()
                 .map(this::convertToPromotionSummary)
@@ -358,6 +364,7 @@ public class VoucherService {
      */
     private PromotionSummaryDTO convertToPromotionSummary(Voucher voucher) {
         PromotionSummaryDTO dto = new PromotionSummaryDTO();
+        dto.setId(voucher.getId());
         dto.setCode(voucher.getCode());
         dto.setName(voucher.getName());
         dto.setDescription(voucher.getDescription());
@@ -365,6 +372,7 @@ public class VoucherService {
         dto.setDiscountValue(voucher.getDiscountValue());
         dto.setMinOrderValue(voucher.getMinOrderValue());
         dto.setExpiryDate(voucher.getExpiryDate());
+        dto.setIsActive(voucher.getIsActive());
         
         // Calculate remaining uses
         if (voucher.getMaxUses() != null) {
