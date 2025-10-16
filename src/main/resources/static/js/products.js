@@ -101,47 +101,7 @@
     );
   }
 
-  // ================================
-  // SEARCH FUNCTIONALITY
-  // ================================
-
-  function initializeSearch() {
-    const searchForm = document.querySelector(".search-form");
-    const searchInput = document.querySelector(".search-input");
-
-    if (!searchForm || !searchInput) return;
-
-    // Real-time search suggestions (placeholder for future implementation)
-    const debouncedSearch = debounce((query) => {
-      if (query.length < 2) return;
-
-      // TODO: Implement search suggestions API call
-      console.log("Search suggestions for:", query);
-    }, CONFIG.DEBOUNCE_DELAY);
-
-    searchInput.addEventListener("input", (e) => {
-      const query = e.target.value.trim();
-      debouncedSearch(query);
-    });
-
-    // Enhanced form submission
-    searchForm.addEventListener("submit", (e) => {
-      const query = searchInput.value.trim();
-
-      if (!query) {
-        e.preventDefault();
-        searchInput.focus();
-        showToast("Vui lòng nhập từ khóa tìm kiếm", "error");
-        return;
-      }
-
-      // Show loading state
-      const submitButton = searchForm.querySelector(".btn-search");
-      if (submitButton) {
-        setLoadingState(submitButton);
-      }
-    });
-  }
+  // (Search is initialized globally in main.js)
 
   // ================================
   // PRODUCT GRID FUNCTIONALITY
@@ -151,14 +111,8 @@
     // View toggle functionality
     initializeViewToggle();
 
-    // Product actions
-    // initializeProductActions();
-
-    // Quick view functionality
-    // initializeQuickView();
-
-    // Load initial favorite status
-    loadInitialFavoriteStatus();
+    // Product actions - Event delegation for wishlist and cart
+    initializeProductActions();
 
     // Tối ưu hóa hiệu ứng AOS cho lưới sản phẩm
     const productCards = document.querySelectorAll(".product-card");
@@ -167,6 +121,12 @@
       // Điều này giúp hiệu ứng xuất hiện nối tiếp nhau một cách mượt mà
       card.setAttribute("data-aos-delay", (index % 10) * 100);
     });
+  }
+  
+  function initializeProductActions() {
+    // Event delegation is handled by main.js
+    // No need to duplicate here - main.js already handles .btn-wishlist and .btn-add-to-cart
+    console.log('Product actions: Using event delegation from main.js');
   }
 
   function initializeViewToggle() {
@@ -217,56 +177,7 @@
       if (listButton) listButton.click();
     }
   }
-  function loadInitialFavoriteStatus() {
-    const wishlistButtons = document.querySelectorAll(".btn-wishlist");
-
-    wishlistButtons.forEach((button) => {
-      const productId = button.dataset.productId;
-      if (productId) {
-        // Get CSRF token for status check
-        const csrfToken = getCsrfToken();
-        const csrfHeader = document
-          .querySelector('meta[name="_csrf_header"]')
-          .getAttribute("content");
-
-        fetch(`/api/wishlist/status/${productId}`, {
-          method: "GET",
-          headers: {
-            "X-Requested-With": "XMLHttpRequest",
-            [csrfHeader]: csrfToken,
-          },
-          credentials: "same-origin", // Include cookies for authentication
-        })
-          .then((response) => {
-            if (response.status === 401) {
-              // User not authenticated, keep default state
-              return;
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data && data.success && data.data && data.data.success) {
-              const icon = button.querySelector("i");
-              const isInWishlist =
-                data.data.isFavorite || data.data.isInWishlist;
-
-              if (isInWishlist) {
-                icon.outerHTML =
-                  '<svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="m9.653 16.915-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001Z" /></svg>';
-                button.classList.add("active");
-              } else {
-                icon.outerHTML =
-                  '<svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>';
-                button.classList.remove("active");
-              }
-            }
-          })
-          .catch((error) => {
-            console.log("Error loading favorite status:", error);
-          });
-      }
-    });
-  }
+  // SSR renders wishlist state; no client hydration needed
 
 
   // ================================
@@ -565,7 +476,7 @@
     // Initialize common functionality
     initializeErrorHandling();
     initializePerformanceOptimizations();
-    initializeSearch();
+    // Search initialized in main.js
     initializeSorting();
 
     // Initialize page-specific functionality
@@ -589,17 +500,246 @@
     console.log("Products page initialized successfully");
   }
 
+  // (Wishlist toggle logic handled by main.js)
+
+// ================================
+// ERROR HANDLING
+// ================================
+
+function initializeErrorHandling() {
+// Global error handler for AJAX requests
+window.addEventListener("unhandledrejection", function (event) {
+  console.error("Unhandled promise rejection:", event.reason);
+  showToast("Đã xảy ra lỗi. Vui lòng thử lại sau.", "error");
+});
+
+// Network error detection
+window.addEventListener("online", function () {
+  showToast("Kết nối internet đã được khôi phục");
+});
+
+window.addEventListener("offline", function () {
+  showToast("Mất kết nối internet", "error");
+});
+}
+
+// ================================
+// INITIALIZATION
+// ================================
+
+function initialize() {
+console.log("Products.js: Initializing...");
+
+// Check if we're on a products page
+const isProductsPage =
+  document.querySelector(".products-section") ||
+  document.querySelector(".product-detail-section");
+
+console.log("Products.js: isProductsPage =", isProductsPage);
+
+if (!isProductsPage) {
+  console.log("Products.js: Not on products page, skipping initialization");
+  return;
+}
+
+// Initialize common functionality
+initializeErrorHandling();
+initializePerformanceOptimizations();
+initializeSearch();
+initializeSorting();
+
+// Initialize page-specific functionality
+if (document.querySelector(".products-section")) {
+  // Products listing page
+  console.log("Products.js: Initializing product grid...");
+
+  // Test toast notification
+  setTimeout(() => {
+    showToast("Products.js loaded successfully!", "success");
+  }, 1000);
+
+  initializeProductGrid();
+}
+
+if (document.querySelector(".product-detail-section")) {
+  // Product detail page
+  initializeProductDetail();
+}
+
+console.log("Products page initialized successfully");
+}
+
+// ================================
+// WISHLIST FUNCTIONALITY
+// ================================
+
+function handleWishlistToggle(button) {
+const productId = button.dataset.productId;
+  
+if (!productId) {
+  showToast('Không thể thêm sản phẩm vào danh sách yêu thích', 'error');
+  return;
+}
+  
+// Disable button to prevent multiple clicks
+button.disabled = true;
+const icon = button.querySelector('i');
+const originalIconClass = icon ? icon.className : '';
+  
+// Show loading state
+if (icon) {
+  icon.className = 'fa-solid fa-spinner fa-spin';
+}
+  
+// Get CSRF token
+const csrfToken = getCsrfToken();
+const csrfHeaderElement = document.querySelector('meta[name="_csrf_header"]');
+const csrfHeader = csrfHeaderElement ? csrfHeaderElement.getAttribute('content') : 'X-CSRF-TOKEN';
+  
+const headers = {
+  'Content-Type': 'application/json',
+  'X-Requested-With': 'XMLHttpRequest'
+};
+  
+if (csrfToken && csrfHeader) {
+  headers[csrfHeader] = csrfToken;
+}
+  
+// API call to toggle wishlist
+fetch('/api/wishlist/toggle', {
+  method: 'POST',
+  headers: headers,
+  credentials: 'same-origin',
+  body: JSON.stringify({ productId: parseInt(productId) })
+})
+.then(response => {
+  if (response.status === 401) {
+    showToast('Vui lòng đăng nhập để sử dụng tính năng yêu thích', 'warning');
+    if (icon) icon.className = originalIconClass;
+    button.disabled = false;
+    return null;
+  }
+  
+  if (response.status === 403) {
+    showToast('Lỗi bảo mật: Vui lòng refresh trang và thử lại', 'error');
+    if (icon) icon.className = originalIconClass;
+    button.disabled = false;
+    return null;
+  }
+  
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  
+  return response.json();
+})
+.then(data => {
+  if (!data) return;
+  
+  console.log('Wishlist API response:', data);
+  
+  if (data && data.success && data.data && data.data.success) {
+    // Update UI based on server response
+    const isInWishlist = data.data.isFavorite || data.data.isInWishlist;
+    
+    if (isInWishlist) {
+      button.classList.add('active');
+      if (icon) icon.className = 'fa-solid fa-heart';
+      showToast('Đã thêm vào danh sách yêu thích', 'success');
+    } else {
+      button.classList.remove('active');
+      if (icon) icon.className = 'fa-regular fa-heart';
+      showToast('Đã xóa khỏi danh sách yêu thích', 'success');
+    }
+    
+    // Update wishlist count in header - ALWAYS update
+    console.log('Full API response data:', data.data);
+    
+    // Try to get count from response
+    let wishlistCount = data.data.userWishlistCount || data.data.favoriteCount || data.data.wishlistCount;
+    console.log('Wishlist count from API:', wishlistCount);
+    
+    // If no count in response, fetch it
+    if (wishlistCount === undefined || wishlistCount === null) {
+      console.warn('No wishlist count in toggle response, fetching from API...');
+      fetchAndUpdateWishlistCount();
+    } else {
+      // Update count immediately
+      console.log('Updating wishlist count to:', wishlistCount);
+      if (typeof window.updateWishlistCount === 'function') {
+        window.updateWishlistCount(wishlistCount);
+        console.log('✅ updateWishlistCount called successfully');
+      }
+      return null;
+    }
+  }})
+  .then(data => {
+      if (!data) return;
+      
+      console.log('Wishlist API response:', data);
+      
+      if (data && data.success && data.data && data.data.success) {
+        // Update UI based on server response
+        const isInWishlist = data.data.isFavorite || data.data.isInWishlist;
+        
+        if (isInWishlist) {
+          button.classList.add('active');
+          if (icon) icon.className = 'fa-solid fa-heart';
+          showToast('Đã thêm vào danh sách yêu thích', 'success');
+        } else {
+          button.classList.remove('active');
+          if (icon) icon.className = 'fa-regular fa-heart';
+          showToast('Đã xóa khỏi danh sách yêu thích', 'success');
+        }
+        
+        // Update wishlist count in header - ALWAYS update
+        console.log('Full API response data:', data.data);
+        
+        // Try to get count from response
+        let wishlistCount = data.data.userWishlistCount || data.data.favoriteCount || data.data.wishlistCount;
+        console.log('Wishlist count from API:', wishlistCount);
+        
+        // If no count in response, fetch it
+        if (wishlistCount === undefined || wishlistCount === null) {
+          console.warn('No wishlist count in toggle response, fetching from API...');
+          fetchAndUpdateWishlistCount();
+        } else {
+          // Update count immediately
+          console.log('Updating wishlist count to:', wishlistCount);
+          if (typeof window.updateWishlistCount === 'function') {
+            window.updateWishlistCount(wishlistCount);
+            console.log('✅ updateWishlistCount called successfully');
+          } else {
+            console.error('❌ updateWishlistCount function not found!');
+            // Try direct update as fallback
+            updateWishlistCountDirect(wishlistCount);
+          }
+        }
+      } else {
+        if (icon) icon.className = originalIconClass;
+        const errorMessage = (data && data.error) || (data && data.data && data.data.message) || 'Có lỗi xảy ra';
+        showToast(errorMessage, 'error');
+        console.error('Wishlist error:', errorMessage, data);
+      }
+    })
+    .catch(error => {
+      console.error('Error toggling wishlist:', error);
+      if (icon) icon.className = originalIconClass;
+      showToast('Có lỗi xảy ra khi thực hiện yêu cầu', 'error');
+    })
+    .finally(() => {
+      button.disabled = false;
+    });
+  }
+
   // ================================
   // GLOBAL FUNCTIONS (for inline handlers)
   // ================================
 
   // Make some functions globally accessible for inline event handlers
   window.changeSorting = changeSorting;
-
-  // Use main.js addToCart function if available, otherwise use local handleAddToCart
-  window.toggleWishlist = function (button) {
-    handleWishlistToggle(button);
-  };
+  
+  // Note: Wishlist now uses event delegation, no need for global function
 
   window.buyNow = function (button) {
     const productId = button.dataset.productId;
@@ -638,20 +778,10 @@
   // UTILITY FUNCTIONS
   // ================================
 
-  function getCsrfToken() {
-    // Try to get CSRF token from cookie first (Spring Security default)
-    const cookies = document.cookie.split(";");
-    for (let cookie of cookies) {
-      const [name, value] = cookie.trim().split("=");
-      if (name === "XSRF-TOKEN") {
-        return decodeURIComponent(value);
-      }
-    }
+  // Use global getCsrfToken provided by main.js
 
-    // Fallback to meta tag
-    const token = document.querySelector('meta[name="_csrf"]');
-    return token ? token.getAttribute("content") : "";
-  }
+  // Use showToast from main.js if available, otherwise create a simple fallback
+  // Use global showToast provided by main.js
   // ================================
   // DOM READY
   // ================================

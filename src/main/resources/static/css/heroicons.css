@@ -1,6 +1,6 @@
 /* ================================
    Heroicons Integration for StarShop
-   Mini (20x20) solid icons from https://heroicons.com/mini
+   Solid and Outline icons from https://heroicons.com/
    ================================ */
 
 .hero-icon {
@@ -9,6 +9,7 @@
     height: 1.25rem;
     vertical-align: middle;
     fill: currentColor;
+    stroke: currentColor;
 }
 
 .hero-icon-sm {

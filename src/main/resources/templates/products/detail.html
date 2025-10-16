@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      th:replace="~{layouts/main :: layout(${pageTitle}, 
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{layouts/main :: layout(${pageTitle}, 
           ${pageDescription}, 
           ~{::link},
           ~{::content})}">
@@ -11,105 +9,119 @@
 </head>
 
 <body>
-<th:block th:fragment="content">
-    
-    <div th:if="${product eq null}" class="product-not-found-container container py-5 my-5 text-center">
-        <h2 class="text-danger mb-3">404 - Không tìm thấy sản phẩm!</h2>
-        <p class="mb-4">Sản phẩm bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
-        <a th:href="@{/products}" class="btn btn-primary px-4 py-2">
-            <svg class="w-5 h-5 inline-block me-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z" clip-rule="evenodd" />
-            </svg>
-            Về trang danh sách sản phẩm
-        </a>
-    </div>
+    <th:block th:fragment="content">
 
-    <div th:if="${product ne null}">
-        <nav aria-label="breadcrumb" class="breadcrumb-nav">
-            <div class="container">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item">
-                        <a href="/" class="breadcrumb-link">
-                            <svg class="w-4 h-4 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z" clip-rule="evenodd" />
-                            </svg>
-                            Trang chủ
-                        </a>
-                    </li>
-                    <li class="breadcrumb-item">
-                        <a href="/products" class="breadcrumb-link">Sản phẩm</a>
-                    </li>
-                    <li class="breadcrumb-item active" aria-current="page">
-                        <span th:text="${product.name}">Tên sản phẩm</span>
-                    </li>
-                </ol>
-            </div>
-        </nav>
-    
-        <section class="product-detail-section">
-            <div class="container">
-                <div class="product-detail-container">
-                    <div class="product-images">
-                        <div class="main-image-container">
-                            <img th:src="${product.image ne null ? product.image : '/images/products/default-flower.jpg'}" 
-                                 th:alt="${product.name}" 
-                                 th:title="${product.name}"
-                                 class="main-image" 
-                                 id="mainProductImage">
-                            
-                            <div class="image-zoom-overlay" id="imageZoomOverlay">
-                                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M9 6a.75.75 0 0 1 .75.75v1.5h1.5a.75.75 0 0 1 0 1.5h-1.5v1.5a.75.75 0 0 1-1.5 0v-1.5h-1.5a.75.75 0 0 1 0-1.5h1.5v-1.5A.75.75 0 0 1 9 6Z" />
-                                    <path fill-rule="evenodd" d="M2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Zm7-5.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z" clip-rule="evenodd" />
+        <div th:if="${product eq null}" class="product-not-found-container container py-5 my-5 text-center">
+            <h2 class="text-danger mb-3">404 - Không tìm thấy sản phẩm!</h2>
+            <p class="mb-4">Sản phẩm bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
+            <a th:href="@{/products}" class="btn btn-primary px-4 py-2">
+                <svg class="w-5 h-5 inline-block me-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z"
+                        clip-rule="evenodd" />
+                </svg>
+                Về trang danh sách sản phẩm
+            </a>
+        </div>
+
+        <div th:if="${product ne null}">
+            <nav aria-label="breadcrumb" class="breadcrumb-nav">
+                <div class="container">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="/" class="breadcrumb-link">
+                                <svg class="w-4 h-4 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z"
+                                        clip-rule="evenodd" />
                                 </svg>
+                                Trang chủ
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="/products" class="breadcrumb-link">Sản phẩm</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            <span th:text="${product.name}">Tên sản phẩm</span>
+                        </li>
+                    </ol>
+                </div>
+            </nav>
+
+            <section class="product-detail-section">
+                <div class="container">
+                    <div class="product-detail-container">
+                        <!-- Cột hình ảnh (bên trái) -->
+                        <div class="product-images">
+                            <div class="main-image-container">
+                                <img th:src="${product.image ne null ? product.image : '/images/products/default-flower.jpg'}"
+                                    th:alt="${product.name}" th:title="${product.name}" class="main-image"
+                                    id="mainProductImage">
+
+                                <div class="image-zoom-overlay" id="imageZoomOverlay">
+                                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                        fill="currentColor">
+                                        <path
+                                            d="M9 6a.75.75 0 0 1 .75.75v1.5h1.5a.75.75 0 0 1 0 1.5h-1.5v1.5a.75.75 0 0 1-1.5 0v-1.5h-1.5a.75.75 0 0 1 0-1.5h1.5v-1.5A.75.75 0 0 1 9 6Z" />
+                                        <path fill-rule="evenodd"
+                                            d="M2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Zm7-5.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="thumbnail-images">
-                            <div class="thumbnail-item active">
-                                <img th:src="${product.image ne null ? product.image : '/images/products/default-flower.jpg'}" 
-                                     th:alt="${product.name}" 
-                                     th:title="${product.name}"
-                                     class="thumbnail-image">
-                            </div>
-                        </div>
-                    </div>
-    
-                    <div class="product-info">
-                        <div class="product-header">
-                            <h1 class="product-title" th:text="${product.name}">Tên sản phẩm</h1>
-                            
-                            <div class="product-rating-section">
-                                <div class="rating-display">
-                                    <div class="rating-stars">
-                                        <th:block th:each="star : ${#numbers.sequence(1, 5)}">
-                                            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" th:classappend="${averageRating ne null and star le averageRating ? 'filled' : 'empty'}">
-                                                <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" />
-                                            </svg>
-                                        </th:block>
-                                    </div>
-                                    <span class="rating-score" th:text="${averageRating ne null ? #numbers.formatDecimal(averageRating, 1, 1) : '0.0'}">0.0</span>
-                                    <span class="rating-count">
-                                        (<span th:text="${reviewCount ne null ? reviewCount : 0}">0</span> đánh giá)
-                                    </span>
+
+                            <div class="thumbnail-images">
+                                <div class="thumbnail-item active">
+                                    <img th:src="${product.image ne null ? product.image : '/images/products/default-flower.jpg'}"
+                                        th:alt="${product.name}" th:title="${product.name}" class="thumbnail-image">
                                 </div>
                             </div>
                         </div>
-    
-                        <div class="product-price-section">
-                            <div class="price-display">
-                                <span class="current-price" th:text="${#numbers.formatCurrency(product.price)}">0₫</span>
+
+                        <!-- Cột thông tin (bên phải) -->
+                        <div class="product-info">
+                            <div class="product-header">
+                                <h1 class="product-title" th:text="${product.name}">Tên sản phẩm</h1>
+
+                                <div class="product-rating-section">
+                                    <div class="rating-display">
+                                        <div class="rating-stars">
+                                            <th:block th:each="star : ${#numbers.sequence(1, 5)}">
+                                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 20 20" fill="currentColor"
+                                                    th:classappend="${averageRating ne null and star le averageRating ? 'filled' : 'empty'}">
+                                                    <path fill-rule="evenodd"
+                                                        d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"
+                                                        clip-rule="evenodd" />
+                                                </svg>
+                                            </th:block>
+                                        </div>
+                                        <span class="rating-score"
+                                            th:text="${averageRating ne null ? #numbers.formatDecimal(averageRating, 1, 1) : '0.0'}">0.0</span>
+                                        <span class="rating-count">
+                                            (<span th:text="${reviewCount ne null ? reviewCount : 0}">0</span> đánh giá)
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-    
-                        <div class="product-description" th:if="${product.description ne null}">
-                            <h3 class="description-title">Mô tả sản phẩm</h3>
-                            <div class="description-content" th:utext="${product.description}">
-                                Mô tả sản phẩm sẽ hiển thị ở đây...
+
+                            <div class="product-price-section">
+                                <div class="price-display">
+                                    <span class="current-price"
+                                        th:text="${#numbers.formatCurrency(product.price)}">0₫</span>
+                                </div>
                             </div>
-                        </div>
-    
-<!--/*
+
+                            <div class="product-description" th:if="${product.description ne null}">
+                                <h3 class="description-title">Mô tả sản phẩm</h3>
+                                <div class="description-content" th:utext="${product.description}">
+                                    Mô tả sản phẩm sẽ hiển thị ở đây...
+                                </div>
+                            </div>
+
+                            <!--/*
                         <div class="product-attributes" th:if="${product.attributeValues ne null and not #lists.isEmpty(product.attributeValues)}">
                             <h3 class="attributes-title">Thông tin chi tiết</h3>
                             <div class="attributes-list">
@@ -120,48 +132,126 @@
                             </div>
                         </div>
                         */-->
-    
-                        <div class="add-to-cart-section">
-                            <div class="quantity-selector">
-                                <label for="quantity" class="quantity-label">Số lượng:</label>
-                                <div class="quantity-input-group">
-                                    <button type="button" class="btn-quantity-decrease" onclick="decreaseQuantity()">
-                                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M4 10a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H4.75A.75.75 0 0 1 4 10Z" clip-rule="evenodd" />
+<!-- 
+                            <div class="add-to-cart-section">
+                                <div class="quantity-selector">
+                                    <label for="quantity" class="quantity-label">Số lượng:</label>
+                                    <div class="quantity-input-group">
+                                        <button type="button" class="btn-quantity-decrease"
+                                            onclick="decreaseQuantity()">
+                                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                                fill="currentColor">
+                                                <path fill-rule="evenodd"
+                                                    d="M4 10a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H4.75A.75.75 0 0 1 4 10Z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                        <input type="number" id="quantity" class="quantity-input" value="1" min="1"
+                                            max="99">
+                                        <button type="button" class="btn-quantity-increase"
+                                            onclick="increaseQuantity()">
+                                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                                fill="currentColor">
+                                                <path
+                                                    d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="action-buttons">
+                                    <button class="btn-add-to-cart primary" th:data-product-id="${product.id}"
+                                        sec:authorize="isAuthenticated()">
+                                        <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M6 5v1H4.667a1.75 1.75 0 0 0-1.743 1.598l-.826 9.5A1.75 1.75 0 0 0 3.84 19h12.32a1.75 1.75 0 0 0 1.742-1.902l-.826-9.5A1.75 1.75 0 0 0 15.333 6H14V5a4 4 0 0 0-8 0Zm4-2.5A2.5 2.5 0 0 0 7.5 5v1h5V5A2.5 2.5 0 0 0 10 2.5Z"
+                                                clip-rule="evenodd" />
                                         </svg>
+                                        Thêm vào giỏ hàng
                                     </button>
-                                    <input type="number" id="quantity" class="quantity-input" value="1" min="1" max="99">
-                                    <button type="button" class="btn-quantity-increase" onclick="increaseQuantity()">
-                                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+                                    
+
+                                    <button class="btn-buy-now" th:data-product-id="${product.id}"
+                                        onclick="buyNow(this)" sec:authorize="isAuthenticated()">
+                                        <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 20 20" fill="currentColor">
+                                            <path
+                                                d="M11.983 1.907a.75.75 0 0 0-1.292-.657l-8.5 9.5A.75.75 0 0 0 2.75 12h6.572l-1.305 6.093a.75.75 0 0 0 1.292.657l8.5-9.5A.75.75 0 0 0 17.25 8h-6.572l1.305-6.093Z" />
                                         </svg>
+                                        Mua ngay
+                                    </button>
+
+                                    <a th:href="@{/login}" class="btn-add-to-cart primary btn-login-required"
+                                        sec:authorize="!isAuthenticated()">
+                                        <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M3 4.25A2.25 2.25 0 0 1 5.25 2h5.5A2.25 2.25 0 0 1 13 4.25v2a.75.75 0 0 1-1.5 0v-2a.75.75 0 0 0-.75-.75h-5.5a.75.75 0 0 0-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 0 0 .75-.75v-2a.75.75 0 0 1 1.5 0v2A2.25 2.25 0 0 1 10.75 18h-5.5A2.25 2.25 0 0 1 3 15.75V4.25Z"
+                                                clip-rule="evenodd" />
+                                            <path fill-rule="evenodd"
+                                                d="M19 10a.75.75 0 0 0-.75-.75H8.704l1.048-.943a.75.75 0 1 0-1.004-1.114l-2.5 2.25a.75.75 0 0 0 0 1.114l2.5 2.25a.75.75 0 1 0 1.004-1.114L8.704 10.75H18.25A.75.75 0 0 0 19 10Z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                        Đăng nhập để mua hàng
+                                    </a>
+                                </div>
+
+                                <button class="btn btn-wishlist"
+                                    th:data-product-id="${product.id}"
+                                    th:classappend="${isInWishlist} ? 'active'" sec:authorize="isAuthenticated()"
+                                    >
+                                    <i th:if="${isInWishlist}" class="fa-solid fa-heart"></i>
+                                    <i th:unless="${isInWishlist}" class="fa-regular fa-heart"></i>
+                                </button>
+                            </div> -->
+
+                            <!-- Phần hành động chính -->
+                            <div class="add-to-cart-section">
+                                <!-- Bộ chọn số lượng -->
+                                <div class="quantity-selector">
+                                    <label for="quantity" class="quantity-label">Số lượng:</label>
+                                    <div class="quantity-input-group">
+                                        <button type="button" class="btn-quantity-decrease" onclick="decreaseQuantity()">
+                                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M4 10a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H4.75A.75.75 0 0 1 4 10Z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                        <input type="number" id="quantity" class="quantity-input" value="1" min="1" max="99">
+                                        <button type="button" class="btn-quantity-increase" onclick="increaseQuantity()">
+                                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            
+                                <!-- Nhóm nút chính: Thêm giỏ hàng + Yêu thích -->
+                                <div class="main-action-group" sec:authorize="isAuthenticated()">
+                                    <button class="btn-add-to-cart primary" th:data-product-id="${product.id}">
+                                        <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M6 5v1H4.667a1.75 1.75 0 0 0-1.743 1.598l-.826 9.5A1.75 1.75 0 0 0 3.84 19h12.32a1.75 1.75 0 0 0 1.742-1.902l-.826-9.5A1.75 1.75 0 0 0 15.333 6H14V5a4 4 0 0 0-8 0Zm4-2.5A2.5 2.5 0 0 0 7.5 5v1h5V5A2.5 2.5 0 0 0 10 2.5Z" clip-rule="evenodd" />
+                                        </svg>
+                                        Thêm vào giỏ hàng
+                                    </button>
+                                    <button class="btn-wishlist"
+                                            th:data-product-id="${product.id}"
+                                            th:classappend="${isInWishlist} ? 'active'">
+                                        <i th:if="${isInWishlist}" class="fa-solid fa-heart"></i>
+                                        <i th:unless="${isInWishlist}" class="fa-regular fa-heart"></i>
                                     </button>
                                 </div>
-                            </div>
-    
-                            <div class="action-buttons">
-                                <button class="btn-add-to-cart primary" 
-                                        th:data-product-id="${product.id}"
-                                        sec:authorize="isAuthenticated()">
-                                    <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M6 5v1H4.667a1.75 1.75 0 0 0-1.743 1.598l-.826 9.5A1.75 1.75 0 0 0 3.84 19h12.32a1.75 1.75 0 0 0 1.742-1.902l-.826-9.5A1.75 1.75 0 0 0 15.333 6H14V5a4 4 0 0 0-8 0Zm4-2.5A2.5 2.5 0 0 0 7.5 5v1h5V5A2.5 2.5 0 0 0 10 2.5Z" clip-rule="evenodd" />
-                                    </svg>
-                                    Thêm vào giỏ hàng
-                                </button>
-                                
-                                <button class="btn-buy-now" 
-                                        th:data-product-id="${product.id}"
-                                        onclick="buyNow(this)"
-                                        sec:authorize="isAuthenticated()">
+                            
+                                <!-- Nút mua ngay -->
+                                <button class="btn-buy-now" th:data-product-id="${product.id}" onclick="buyNow(this)" sec:authorize="isAuthenticated()">
                                     <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                         <path d="M11.983 1.907a.75.75 0 0 0-1.292-.657l-8.5 9.5A.75.75 0 0 0 2.75 12h6.572l-1.305 6.093a.75.75 0 0 0 1.292.657l8.5-9.5A.75.75 0 0 0 17.25 8h-6.572l1.305-6.093Z" />
                                     </svg>
                                     Mua ngay
                                 </button>
-    
-                                <a th:href="@{/login}" 
-                                   class="btn-add-to-cart primary btn-login-required"
-                                   sec:authorize="!isAuthenticated()">
+                            
+                                <!-- Nút đăng nhập cho người dùng chưa đăng nhập -->
+                                <a th:href="@{/login}" class="btn-add-to-cart primary btn-login-required" sec:authorize="!isAuthenticated()">
                                     <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd" d="M3 4.25A2.25 2.25 0 0 1 5.25 2h5.5A2.25 2.25 0 0 1 13 4.25v2a.75.75 0 0 1-1.5 0v-2a.75.75 0 0 0-.75-.75h-5.5a.75.75 0 0 0-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 0 0 .75-.75v-2a.75.75 0 0 1 1.5 0v2A2.25 2.25 0 0 1 10.75 18h-5.5A2.25 2.25 0 0 1 3 15.75V4.25Z" clip-rule="evenodd" />
                                         <path fill-rule="evenodd" d="M19 10a.75.75 0 0 0-.75-.75H8.704l1.048-.943a.75.75 0 1 0-1.004-1.114l-2.5 2.25a.75.75 0 0 0 0 1.114l2.5 2.25a.75.75 0 1 0 1.004-1.114L8.704 10.75H18.25A.75.75 0 0 0 19 10Z" clip-rule="evenodd" />
@@ -169,55 +259,52 @@
                                     Đăng nhập để mua hàng
                                 </a>
                             </div>
-    
-                            <div class="secondary-actions" sec:authorize="isAuthenticated()">
-                                <button class="btn-wishlist" 
-                                        th:data-product-id="${product.id}"
-                                        onclick="toggleWishlist(this)">
-                                    <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="m9.653 16.915-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001Z" />
+
+                            <div class="product-features">
+                                <div class="feature-item">
+                                    <svg class="feature-icon w-8 h-8" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20" fill="currentColor">
+                                        <path
+                                            d="M6.5 3c-1.051 0-2.093.04-3.125.117A1.49 1.49 0 0 0 2 4.607V10.5h9V4.606c0-.771-.59-1.43-1.375-1.489A41.568 41.568 0 0 0 6.5 3ZM2 12v2.5A1.5 1.5 0 0 0 3.5 16h.041a3 3 0 0 1 5.918 0h.791a.75.75 0 0 0 .75-.75V12H2Z" />
+                                        <path
+                                            d="M6.5 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM13.25 5a.75.75 0 0 0-.75.75v8.514a3.001 3.001 0 0 1 4.893 1.44c.37-.275.61-.719.595-1.227a24.905 24.905 0 0 0-1.784-8.549A1.486 1.486 0 0 0 14.823 5H13.25ZM14.5 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
                                     </svg>
-                                    Thêm vào yêu thích
-                                </button>
-                            </div>
-                        </div>
-    
-                        <div class="product-features">
-                            <div class="feature-item">
-                                <svg class="feature-icon w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M6.5 3c-1.051 0-2.093.04-3.125.117A1.49 1.49 0 0 0 2 4.607V10.5h9V4.606c0-.771-.59-1.43-1.375-1.489A41.568 41.568 0 0 0 6.5 3ZM2 12v2.5A1.5 1.5 0 0 0 3.5 16h.041a3 3 0 0 1 5.918 0h.791a.75.75 0 0 0 .75-.75V12H2Z" />
-                                    <path d="M6.5 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM13.25 5a.75.75 0 0 0-.75.75v8.514a3.001 3.001 0 0 1 4.893 1.44c.37-.275.61-.719.595-1.227a24.905 24.905 0 0 0-1.784-8.549A1.486 1.486 0 0 0 14.823 5H13.25ZM14.5 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
-                                </svg>
-                                <div class="feature-content">
-                                    <h4 class="feature-title">Giao hàng miễn phí</h4>
-                                    <p class="feature-description">Miễn phí giao hàng nội thành TP.HCM</p>
+                                    <div class="feature-content">
+                                        <h4 class="feature-title">Giao hàng miễn phí</h4>
+                                        <p class="feature-description">Miễn phí giao hàng nội thành TP.HCM</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="feature-item">
-                                <svg class="feature-icon w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clip-rule="evenodd" />
-                                </svg>
-                                <div class="feature-content">
-                                    <h4 class="feature-title">Giao hàng nhanh</h4>
-                                    <p class="feature-description">Giao trong 2-4 giờ</p>
+                                <div class="feature-item">
+                                    <svg class="feature-icon w-8 h-8" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                    <div class="feature-content">
+                                        <h4 class="feature-title">Giao hàng nhanh</h4>
+                                        <p class="feature-description">Giao trong 2-4 giờ</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="feature-item">
-                                <svg class="feature-icon w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M5.5 3A2.5 2.5 0 0 0 3 5.5v2.879a2.5 2.5 0 0 0 .732 1.767l6.5 6.5a2.5 2.5 0 0 0 3.536 0l2.878-2.878a2.5 2.5 0 0 0 0-3.536l-6.5-6.5A2.5 2.5 0 0 0 8.38 3H5.5ZM6 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
-                                </svg>
-                                <div class="feature-content">
-                                    <h4 class="feature-title">Hoa tươi 100%</h4>
-                                    <p class="feature-description">Cam kết hoa tươi, chất lượng cao</p>
+                                <div class="feature-item">
+                                    <svg class="feature-icon w-8 h-8" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M5.5 3A2.5 2.5 0 0 0 3 5.5v2.879a2.5 2.5 0 0 0 .732 1.767l6.5 6.5a2.5 2.5 0 0 0 3.536 0l2.878-2.878a2.5 2.5 0 0 0 0-3.536l-6.5-6.5A2.5 2.5 0 0 0 8.38 3H5.5ZM6 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                    <div class="feature-content">
+                                        <h4 class="feature-title">Hoa tươi 100%</h4>
+                                        <p class="feature-description">Cam kết hoa tươi, chất lượng cao</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
-    
-<!--/*
+            </section>
+
+            <!--/*
         <section class="product-tabs-section">
             <div class="container">
                 <div class="tabs-container">
@@ -351,8 +438,8 @@
             </div>
         </section>
         */-->
-    
-<!--/*
+
+            <!--/*
         <section class="related-products-section" th:if="${relatedProducts ne null and not #lists.isEmpty(relatedProducts)}">
             <div class="container">
                 <div class="section-header">
@@ -388,58 +475,59 @@
             </div>
         </section>
         */-->
-    </div>
-</th:block>
+        </div>
+    </th:block>
 
-<style>
-/* Image Modal Styles */
-.image-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 9999;
-}
+    <style>
+        /* Image Modal Styles */
+        .image-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+        }
 
-.image-modal-backdrop {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-}
+        .image-modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
 
-.image-modal-content {
-    max-width: 90%;
-    max-height: 90%;
-    object-fit: contain;
-    cursor: default;
-}
+        .image-modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            cursor: default;
+        }
 
-.image-modal-close {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    padding: 0.5rem;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
+        .image-modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            padding: 0.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
 
-.image-modal-close:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-</style>
+        .image-modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
 
 </body>
+
 </html>

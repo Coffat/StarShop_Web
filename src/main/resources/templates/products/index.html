@@ -104,19 +104,7 @@
                         </select>
                     </div>
 
-                    <!-- View Toggle -->
-                    <div class="view-toggle">
-                        <button class="btn-view-toggle active" data-view="grid" title="Xem dạng lưới">
-                            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-                            </svg>
-                        </button>
-                        <button class="btn-view-toggle" data-view="list" title="Xem dạng danh sách">
-                            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M2 4.75A.75.75 0 0 1 2.75 4h14.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 4.75ZM2 10a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 10Zm0 5.25a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                    </div>
+                    <!-- View Toggle Removed -->
                 </div>
             </div>
         </div>
@@ -167,23 +155,15 @@
                                  loading="lazy">
                         </a>
                         
-                        <!-- Product Actions -->
+                        <!-- Wishlist Button -->
                         <div class="product-actions">
-                            <button class="btn-action btn-wishlist" 
+                            <button class="btn-action btn-wishlist"
                                     th:data-product-id="${product.id}"
+                                    th:classappend="${#sets.contains(wishlistProductIds, product.id)} ? ' active'"
                                     title="Thêm vào yêu thích"
                                     sec:authorize="isAuthenticated()">
-                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="m9.653 16.915-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001Z" />
-                                </svg>
-                            </button>
-                            <button class="btn-action btn-quick-view" 
-                                    th:data-product-id="${product.id}"
-                                    title="Xem nhanh">
-                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
-                                    <path fill-rule="evenodd" d="M.664 10.59a1.651 1.651 0 0 1 0-1.186A10.004 10.004 0 0 1 10 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0 1 10 17c-4.257 0-7.893-2.66-9.336-6.41ZM14 10a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" clip-rule="evenodd" />
-                                </svg>
+                                <i th:if="${#sets.contains(wishlistProductIds, product.id)}" class="fa-solid fa-heart"></i>
+                                <i th:unless="${#sets.contains(wishlistProductIds, product.id)}" class="fa-regular fa-heart"></i>
                             </button>
                         </div>
 

@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.ui.Model;
 
 import com.example.demo.service.ProductService;
+import com.example.demo.service.CatalogService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +25,7 @@ import java.util.Map;
 public class HomeController {
 
     private final ProductService productService;
+    private final CatalogService catalogService;
 
     @GetMapping({"/", "/home"})
     public String home(Authentication authentication, Model model) {
@@ -36,6 +38,9 @@ public class HomeController {
         }
         // Featured products for homepage
         model.addAttribute("featuredProducts", productService.getFeaturedProducts());
+        
+        // Catalogs for homepage
+        model.addAttribute("catalogs", catalogService.findAll());
 
         return "home";
     }

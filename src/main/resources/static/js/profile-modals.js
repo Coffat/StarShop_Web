@@ -273,6 +273,9 @@ async function submitAddress(event) {
         wardCode: wardSelect.value,
         wardName: wardSelect.options[wardSelect.selectedIndex].text,
         addressDetail: document.getElementById('addressDetail').value.trim(),
+        provinceName: provinceName,
+        districtName: districtName,
+        wardName: wardName,
         isDefault: document.getElementById('isDefault').checked
     };
     

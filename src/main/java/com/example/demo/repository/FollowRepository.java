@@ -9,6 +9,10 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.Query; // Thêm import này
+import org.springframework.data.repository.query.Param; // Thêm import này
+import java.util.Set; // Thêm import này
+
 @Repository
 public interface FollowRepository extends JpaRepository<Follow, Long> {
     
@@ -25,6 +29,9 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
     
     @Query("SELECT COUNT(f) FROM Follow f WHERE f.user.id = :userId")
     Long countByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT f.product.id FROM Follow f WHERE f.user.id = :userId")
+    Set<Long> findProductIdsByUserId(@Param("userId") Long userId);
     
     void deleteByUserIdAndProductId(Long userId, Long productId);
 }
