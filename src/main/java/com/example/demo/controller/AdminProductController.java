@@ -16,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +39,8 @@ public class AdminProductController extends BaseController {
     
     @Autowired
     private CatalogRepository catalogRepository;
+    @Autowired
+    private com.example.demo.service.ExcelExportService excelExportService;
 
     /**
      * Admin Products Management Page
@@ -99,6 +103,40 @@ public class AdminProductController extends BaseController {
         model.addAttribute("currentPath", "/admin/products");
         
         return "layouts/admin";
+    }
+
+    /**
+     * Export products to Excel
+     */
+    @GetMapping("/api/export")
+    @ResponseBody
+    public ResponseEntity<byte[]> exportProducts(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String search
+    ) {
+        try {
+            // Load data without pagination
+            java.util.List<com.example.demo.entity.Product> list;
+            if (search != null && !search.isBlank()) {
+                var page = productService.searchProducts(search.trim(), org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE));
+                list = page.getContent();
+            } else if (status != null && !status.isBlank()) {
+                var st = com.example.demo.entity.enums.ProductStatus.valueOf(status.toUpperCase());
+                var page = productService.getProductsByStatus(st, org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE));
+                list = page.getContent();
+            } else {
+                list = productService.findAll(org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)).getContent();
+            }
+
+            byte[] bytes = excelExportService.exportProducts(list);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=products.xlsx");
+            return ResponseEntity.ok().headers(headers).body(bytes);
+        } catch (Exception e) {
+            log.error("Export products failed", e);
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).body(new byte[0]);
+        }
     }
 
     // Product Detail Page removed - now using modal dialog instead
@@ -378,31 +416,5 @@ public class AdminProductController extends BaseController {
         }
     }
 
-    /**
-     * Export Products (placeholder for future implementation)
-     */
-    @GetMapping("/api/export")
-    @ResponseBody
-    public ResponseEntity<ResponseWrapper<String>> exportProducts(
-            @RequestParam(defaultValue = "excel") String format,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String search) {
-        
-        try {
-            // TODO: Implement actual export functionality
-            // This is a placeholder that returns a success message
-            
-            log.info("Export request - format: {}, status: {}, search: {}", format, status, search);
-            
-            String message = String.format("Xuất dữ liệu sản phẩm định dạng %s đã được lên lịch. " +
-                "Bạn sẽ nhận được thông báo khi hoàn thành.", format.toUpperCase());
-            
-            return ResponseEntity.ok(ResponseWrapper.success(message));
-            
-        } catch (Exception e) {
-            log.error("Error in export request: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ResponseWrapper.error("Có lỗi xảy ra khi xuất dữ liệu"));
-        }
-    }
+    // Removed placeholder duplicate export endpoint to avoid ambiguous mapping
 }

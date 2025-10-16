@@ -416,25 +416,13 @@
             
             // Export products
             function exportProducts() {
-                const format = 'excel';
-                const status = document.getElementById('statusFilter').value;
-                const search = document.getElementById('searchInput').value;
-                
-                fetch(`/admin/products/api/export?format=${format}&status=${status}&search=${search}`, {
-                    method: 'GET'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        alert('Lỗi: ' + data.error);
-                    } else {
-                        alert(data.data);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Có lỗi xảy ra khi xuất dữ liệu');
-                });
+                const url = new URL(window.location.href);
+                const status = document.getElementById('statusFilter') ? document.getElementById('statusFilter').value : url.searchParams.get('status');
+                const search = document.getElementById('searchInput') ? document.getElementById('searchInput').value : url.searchParams.get('search');
+                const qs = new URLSearchParams();
+                if (status) qs.append('status', status);
+                if (search) qs.append('search', search);
+                window.location.href = '/admin/products/api/export' + (qs.toString() ? ('?' + qs.toString()) : '');
             }
 
             // Bulk operations

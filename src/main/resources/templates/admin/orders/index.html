@@ -10,7 +10,7 @@
                 <p class="mt-1 text-sm text-gray-500">Quản lý tất cả đơn hàng trong hệ thống</p>
             </div>
             <div class="mt-4 sm:mt-0 flex space-x-3">
-                <button class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
+                <button onclick="exportOrdersExcel()" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
                     <i class="fas fa-download mr-2"></i>
                     Xuất Excel
                 </button>
@@ -472,6 +472,22 @@
     </div>
 
     <script>
+        function buildQuery(params) {
+            const usp = new URLSearchParams();
+            Object.entries(params).forEach(([k,v]) => { if (v) usp.append(k,v); });
+            return usp.toString();
+        }
+
+        function exportOrdersExcel() {
+            const url = new URL(window.location.href);
+            const q = buildQuery({
+                status: url.searchParams.get('status'),
+                search: url.searchParams.get('search'),
+                fromDate: url.searchParams.get('fromDate'),
+                toDate: url.searchParams.get('toDate')
+            });
+            window.location.href = '/admin/orders/api/export' + (q ? ('?' + q) : '');
+        }
         // Update Status Modal Functions
         function openUpdateStatusModal(orderId, currentStatus) {
             document.getElementById('updateOrderId').value = orderId;
@@ -1022,8 +1038,8 @@
                     </div>
                     <div class="bg-gray-50 rounded-lg p-4">
                         <div class="text-sm font-medium text-gray-900 mb-2">Giao hàng</div>
-                        <div class="text-sm text-gray-900">${o.shippingAddress || ''}</div>
-                        <div class="text-xs text-gray-600">${o.shippingPhone || ''}</div>
+                        <div class="text-sm text-gray-900">${o.addressDetails || o.shippingAddress || ''}</div>
+                        <div class="text-sm font-medium text-gray-900">SĐT nhận: ${o.userPhone || o.shippingPhone || ''}</div>
                     </div>
                 </div>
                 <div class="bg-white rounded-lg border p-4">
@@ -1035,8 +1051,10 @@
                     </div>
                     <div class="divide-y divide-gray-100">${items || ''}</div>
                     <div class="pt-4 mt-2 border-t space-y-1 text-sm">
-                        <div class="flex justify-between"><span class="text-gray-600">Tạm tính</span><span>${fmt(o.subtotal)}</span></div>
-                        <div class="flex justify-between"><span class="text-gray-600">Phí vận chuyển</span><span>${fmt(o.shippingFee)}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-600">Tạm tính</span><span>${fmt(o.subtotal || 0)}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-600">Phí vận chuyển</span><span>${fmt(o.deliveryFee || o.shippingFee || 0)}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-600">Voucher</span><span>${o.voucherCode ? o.voucherCode : '-'}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-600">Giảm giá</span><span class="text-green-600">-${fmt(o.discountAmount || 0)}</span></div>
                         <div class="flex justify-between font-semibold"><span>Tổng</span><span class="text-primary-600">${fmt(o.totalAmount)}</span></div>
                     </div>
                 </div>

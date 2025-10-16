@@ -11,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -24,6 +26,7 @@ import java.util.Map;
 public class AdminEmployeeController {
     
     private final EmployeeService employeeService;
+    private final com.example.demo.service.ExcelExportService excelExportService;
     
     /**
      * Get all employees with filters
@@ -236,5 +239,34 @@ public class AdminEmployeeController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
-}
 
+    /**
+     * Export employees to Excel
+     */
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportEmployees(
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) Boolean isActive,
+            @RequestParam(required = false) String search
+    ) {
+        try {
+            java.util.List<com.example.demo.dto.EmployeeDTO> list;
+            if (search != null && !search.isBlank()) {
+                list = employeeService.searchEmployees(search.trim());
+            } else if (role != null || isActive != null) {
+                var page = employeeService.getEmployeesFiltered(role, isActive, org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE));
+                list = page.getContent();
+            } else {
+                list = employeeService.getAllEmployees();
+            }
+            byte[] bytes = excelExportService.exportEmployees(list);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=employees.xlsx");
+            return ResponseEntity.ok().headers(headers).body(bytes);
+        } catch (Exception e) {
+            log.error("Export employees failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new byte[0]);
+        }
+    }
+}

@@ -14,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +36,7 @@ public class AdminOrderController extends BaseController {
     
     private final OrderService orderService;
     private final UserRepository userRepository;
+    private final com.example.demo.service.ExcelExportService excelExportService;
 
     /**
      * Admin Orders Management Page
@@ -200,6 +203,44 @@ public class AdminOrderController extends BaseController {
             log.error("Error getting orders API: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError()
                 .body(ResponseWrapper.error("Có lỗi xảy ra khi tải danh sách đơn hàng"));
+        }
+    }
+
+    /**
+     * API: Export orders to Excel
+     */
+    @GetMapping("/api/export")
+    @ResponseBody
+    public ResponseEntity<byte[]> exportOrders(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate
+    ) {
+        try {
+            // Load data with same filters (no pagination)
+            org.springframework.data.domain.Pageable p = org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE);
+            org.springframework.data.domain.Page<OrderDTO> page;
+            if (fromDate != null && !fromDate.isBlank() && toDate != null && !toDate.isBlank()) {
+                java.time.LocalDateTime start = java.time.LocalDate.parse(fromDate).atStartOfDay();
+                java.time.LocalDateTime end = java.time.LocalDate.parse(toDate).atTime(23,59,59);
+                page = orderService.getOrdersBetweenDates(start, end, p);
+            } else if (status != null && !status.isBlank()) {
+                page = orderService.getOrdersByStatus(com.example.demo.entity.enums.OrderStatus.valueOf(status.toUpperCase()), p);
+            } else if (search != null && !search.isBlank()) {
+                page = orderService.searchOrders(search.trim(), p);
+            } else {
+                page = orderService.getAllOrders(p);
+            }
+
+            byte[] bytes = excelExportService.exportOrders(page.getContent());
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=orders.xlsx");
+            return ResponseEntity.ok().headers(headers).body(bytes);
+        } catch (Exception e) {
+            log.error("Export orders failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new byte[0]);
         }
     }
 
