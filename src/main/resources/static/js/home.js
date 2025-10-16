@@ -1,11 +1,9 @@
 // Home Page JavaScript - Simplified & Clean
 document.addEventListener('DOMContentLoaded', function() {
-    
-    // Initialize simplified home page features
     initializeFloatingPetals();
-    initializeProductActions();
-    initializeScrollAnimations();
-    
+    safeCallName('initializeProductActions');
+    safeCallName('initializeScrollAnimations');
+    initializeAdPopupAlways();
 });
 
 // Floating petals - simplified
@@ -33,6 +31,79 @@ window.addEventListener('load', function() {
 window.addEventListener('error', function(e) {
     console.error('Home page JavaScript error:', e.error);
 });
+
+// Ad popup logic - show on every visit
+function initializeAdPopupAlways() {
+    try {
+        const overlay = document.getElementById('ad-popup');
+        if (!overlay) return;
+
+        const closeBtn = document.getElementById('ad-popup-close');
+
+        const open = () => {
+            console.debug('[AdPopup] opening');
+            overlay.classList.add('show');
+            overlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        };
+        const close = () => {
+            console.debug('[AdPopup] closing');
+            overlay.classList.remove('show');
+            overlay.classList.add('hidden');
+            document.body.style.overflow = '';
+        };
+
+        // Defer a bit to avoid clashing with initial layout
+        setTimeout(open, 500);
+
+        // Fallback: if not visible yet after 1.2s, force open again
+        setTimeout(() => {
+            const isHidden = overlay.classList.contains('hidden');
+            const computed = window.getComputedStyle(overlay);
+            if (isHidden || computed.display === 'none') {
+                console.debug('[AdPopup] fallback open');
+                open();
+            }
+        }, 1200);
+
+        // Allow closing via the top-right close button
+        [closeBtn].forEach(el => {
+            if (!el) return;
+            el.addEventListener('click', close);
+        });
+
+        // Also close when clicking the dim overlay area
+        overlay.addEventListener('click', function(e) {
+            const dialog = e.currentTarget.querySelector('.ad-dialog');
+            if (!dialog) return;
+            const clickInsideDialog = dialog.contains(e.target);
+            if (!clickInsideDialog) {
+                close();
+            }
+        });
+
+        // Disable closing by clicking backdrop or pressing Esc
+    } catch (err) {
+        console.error('Failed to init ad popup:', err);
+    }
+}
+
+// Utility: safe wrapper for optional initializers
+function safeCall(fn) {
+    try { if (typeof fn === 'function') fn(); } catch (e) { console.warn(e); }
+}
+
+// Utility: safe call by global name without ReferenceError for undeclared identifiers
+function safeCallName(functionName) {
+    try {
+        const maybeFn = (typeof window !== 'undefined') ? window[functionName] : undefined;
+        if (typeof maybeFn === 'function') {
+            maybeFn();
+        }
+    } catch (e) {
+        console.warn(e);
+    }
+}
 
 // Product actions - simplified
 // function initializeProductActions() {

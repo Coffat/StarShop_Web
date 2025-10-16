@@ -39,3 +39,33 @@
         animation: none;
     }
 }
+
+/* Ad Popup animations */
+.ad-overlay {
+    display: none; /* default hidden; toggled via JS */
+}
+
+.ad-overlay.show {
+    display: flex;
+    animation: ad-fade-in 220ms ease-out;
+}
+
+.ad-dialog {
+    transform: translateY(10px) scale(0.98);
+    opacity: 0.96;
+    animation: ad-pop-in 260ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Hardening visibility if Tailwind classes conflict */
+.ad-overlay.show { visibility: visible !important; opacity: 1 !important; }
+.ad-overlay.hidden { display: none !important; }
+
+@keyframes ad-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes ad-pop-in {
+    from { transform: translateY(12px) scale(0.96); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+}
