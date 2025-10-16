@@ -130,6 +130,7 @@ public class AccountController {
     public String updateProfile(
             @RequestParam("firstName") String firstName,
             @RequestParam("lastName") String lastName,
+            @RequestParam("email") String email,
             @RequestParam("phone") String phone,
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
@@ -143,9 +144,21 @@ public class AccountController {
                 return "redirect:/account/profile";
             }
             
+            // Validate email uniqueness (basic)
+            if (email != null && !email.trim().equalsIgnoreCase(user.getEmail())) {
+                var existing = userRepository.findByEmail(email.trim());
+                if (existing.isPresent() && !existing.get().getId().equals(user.getId())) {
+                    redirectAttributes.addFlashAttribute("error", "Email đã được sử dụng bởi tài khoản khác");
+                    return "redirect:/account/profile";
+                }
+            }
+
             // Update user information
             user.setFirstname(firstName.trim());
             user.setLastname(lastName.trim());
+            if (email != null && !email.trim().isEmpty()) {
+                user.setEmail(email.trim());
+            }
             user.setPhone(phone.trim());
             
             // Save user

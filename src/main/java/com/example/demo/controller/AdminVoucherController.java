@@ -11,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -24,6 +26,7 @@ import java.util.Map;
 public class AdminVoucherController {
     
     private final VoucherService voucherService;
+    private final com.example.demo.service.ExcelExportService excelExportService;
     
     /**
      * Get all vouchers with filters
@@ -72,6 +75,29 @@ public class AdminVoucherController {
             errorResponse.put("success", false);
             errorResponse.put("message", "Lỗi khi lấy danh sách voucher: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    /**
+     * Export vouchers to Excel
+     */
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportVouchers(
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String search
+    ) {
+        try {
+            var page = voucherService.getVouchersWithFilters(org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE), type, status, fromDate);
+            java.util.List<com.example.demo.dto.VoucherDTO> list = page.getContent();
+            byte[] bytes = excelExportService.exportVouchers(list);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=vouchers.xlsx");
+            return ResponseEntity.ok().headers(headers).body(bytes);
+        } catch (Exception e) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).body(new byte[0]);
         }
     }
     

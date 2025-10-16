@@ -13,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -26,6 +28,7 @@ import java.util.Map;
 public class AdminUserController {
     
     private final CustomerService customerService;
+    private final com.example.demo.service.ExcelExportService excelExportService;
     
     /**
      * Get all customers (excludes employees) with filters
@@ -235,5 +238,33 @@ public class AdminUserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
+    /**
+     * Export users (customers) to Excel
+     */
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportUsers(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) String search
+    ) {
+        try {
+            java.util.List<com.example.demo.dto.CustomerDTO> list;
+            if (search != null && !search.isBlank()) {
+                list = customerService.searchCustomers(search.trim());
+            } else {
+                // get with filters then aggregate content
+                var page = customerService.getCustomersWithFilters(org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE), status, type, fromDate, toDate);
+                list = page.getContent();
+            }
+            byte[] bytes = excelExportService.exportUsers(list);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=users.xlsx");
+            return ResponseEntity.ok().headers(headers).body(bytes);
+        } catch (Exception e) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).body(new byte[0]);
+        }
+    }
 }
-

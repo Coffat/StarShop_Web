@@ -11,7 +11,7 @@
                 <p class="mt-1 text-sm text-gray-500">Quản lý thông tin và hoạt động mua hàng của khách hàng</p>
             </div>
             <div class="mt-4 sm:mt-0 flex space-x-3">
-                <button @click="exportData" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow">
+                <button onclick="exportUsers()" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
@@ -406,6 +406,12 @@
     </div>
     
     <script>
+        function exportUsers() {
+            const url = new URL(window.location.href);
+            const params = new URLSearchParams();
+            ['status','type','fromDate','toDate','search'].forEach(k=>{ const v=url.searchParams.get(k); if(v) params.append(k,v); });
+            window.location.href = '/admin/api/users/export' + (params.toString()? ('?' + params.toString()):'');
+        }
         function customerManager() {
             return {
                 customers: [],

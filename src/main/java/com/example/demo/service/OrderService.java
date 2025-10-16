@@ -707,6 +707,28 @@ public class OrderService {
     }
 
     /**
+     * Get orders between dates with pagination
+     */
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<OrderDTO> getOrdersBetweenDates(java.time.LocalDateTime start,
+                                                                                java.time.LocalDateTime end,
+                                                                                org.springframework.data.domain.Pageable pageable) {
+        logger.debug("Getting orders between {} and {} with pagination {}", start, end, pageable);
+        try {
+            java.util.List<com.example.demo.entity.Order> list = orderRepository.findOrdersBetweenDates(start, end);
+            // Manual pagination since repository returns List
+            int from = (int) pageable.getOffset();
+            int to = Math.min(from + pageable.getPageSize(), list.size());
+            java.util.List<com.example.demo.entity.Order> pageContent = from > to ? java.util.List.of() : list.subList(from, to);
+            java.util.List<OrderDTO> mapped = pageContent.stream().map(OrderDTO::fromOrder).toList();
+            return new org.springframework.data.domain.PageImpl<>(mapped, pageable, list.size());
+        } catch (Exception e) {
+            logger.error("Error getting orders between dates: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to get orders between dates", e);
+        }
+    }
+
+    /**
      * Get orders by status with pagination
      */
     @Transactional(readOnly = true)
