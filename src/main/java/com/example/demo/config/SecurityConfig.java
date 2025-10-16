@@ -25,6 +25,7 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Security Configuration with JWT and OAuth2 support
@@ -41,10 +42,20 @@ public class SecurityConfig {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final com.example.demo.service.CustomUserDetailsService customUserDetailsService;
+    
+    @Value("${vscode.forward.url:https://xq62dkmc-8080.asse.devtunnels.ms}")
+    private String forwardUrl;
 
     @Bean
     public SessionRegistry sessionRegistry() {
         return new SessionRegistryImpl();
+    }
+    
+    /**
+     * Helper method to create full URL for redirects
+     */
+    private String createRedirectUrl(String path) {
+        return forwardUrl + path;
     }
 
     @Bean
@@ -210,7 +221,7 @@ public class SecurityConfig {
                             response.getWriter().write("{\"success\":false,\"message\":\"Vui lòng đăng nhập để sử dụng tính năng này\"}");
                         } else {
                             // Handle authentication entry point - redirect to login for web pages
-                            response.sendRedirect("/login?error=authentication_required");
+                            response.sendRedirect(createRedirectUrl("/login?error=authentication_required"));
                         }
                     } catch (IOException e) {
                         // Log error and send basic error response
@@ -250,7 +261,7 @@ public class SecurityConfig {
                     
                     if (user == null) {
                         log.error("User not found after form login: {}", username);
-                        response.sendRedirect("/login?error=user_not_found");
+                        response.sendRedirect(createRedirectUrl("/login?error=user_not_found"));
                         return;
                     }
                     
@@ -260,7 +271,7 @@ public class SecurityConfig {
                     // Create JWT cookie
                     jakarta.servlet.http.Cookie authCookie = new jakarta.servlet.http.Cookie("authToken", token);
                     authCookie.setHttpOnly(true);
-                    authCookie.setSecure(false); // Set to false for localhost development
+                    authCookie.setSecure(true); // Set to true for HTTPS tunnel
                     authCookie.setPath("/");
                     authCookie.setMaxAge(4 * 60 * 60); // 4 hours instead of 24 hours
                     response.addCookie(authCookie);
@@ -293,7 +304,7 @@ public class SecurityConfig {
                     
                 } catch (Exception e) {
                     log.error("Form login error: {}", e.getMessage(), e);
-                    response.sendRedirect("/login?error=processing_failed");
+                    response.sendRedirect(createRedirectUrl("/login?error=processing_failed"));
                 }
             }
         };
@@ -311,7 +322,7 @@ public class SecurityConfig {
                     
                     if (email == null || email.isEmpty()) {
                         log.error("No email found in OAuth2 response");
-                        response.sendRedirect("/login?error=oauth2_no_email");
+                        response.sendRedirect(createRedirectUrl("/login?error=oauth2_no_email"));
                         return;
                     }
                     
@@ -319,7 +330,7 @@ public class SecurityConfig {
                     User user = userRepository.findByEmail(email).orElse(null);
                     if (user == null) {
                         log.error("User not found after OAuth2 login: {}", email);
-                        response.sendRedirect("/login?error=oauth2_user_not_found");
+                        response.sendRedirect(createRedirectUrl("/login?error=oauth2_user_not_found"));
                         return;
                     }
                     
@@ -329,7 +340,7 @@ public class SecurityConfig {
                     // Create JWT cookie
                     jakarta.servlet.http.Cookie authCookie = new jakarta.servlet.http.Cookie("authToken", token);
                     authCookie.setHttpOnly(true);
-                    authCookie.setSecure(false); // Set to false for localhost development
+                    authCookie.setSecure(true); // Set to true for HTTPS tunnel
                     authCookie.setPath("/");
                     authCookie.setMaxAge(4 * 60 * 60); // 4 hours instead of 24 hours
                     response.addCookie(authCookie);
@@ -362,7 +373,7 @@ public class SecurityConfig {
                     
                 } catch (Exception e) {
                     log.error("OAuth2 login error: {}", e.getMessage(), e);
-                    response.sendRedirect("/login?error=oauth2_processing");
+                    response.sendRedirect(createRedirectUrl("/login?error=oauth2_processing"));
                 }
             }
         };
@@ -373,10 +384,15 @@ public class SecurityConfig {
         return (HttpServletRequest request, HttpServletResponse response, 
                 org.springframework.security.core.AuthenticationException exception) -> {
             try {
-                response.sendRedirect("/login?error=oauth2_failed");
+                log.error("OAuth2 authentication failed: {}", exception.getMessage());
+                response.sendRedirect(createRedirectUrl("/login?error=oauth2_failed"));
             } catch (IOException e) {
-                // Log error
-                response.sendRedirect("/login?error=oauth2");
+                log.error("Error redirecting after OAuth2 failure: {}", e.getMessage());
+                try {
+                    response.sendRedirect(createRedirectUrl("/login?error=oauth2"));
+                } catch (IOException ex) {
+                    log.error("Critical error in OAuth2 failure handler: {}", ex.getMessage());
+                }
             }
         };
     }

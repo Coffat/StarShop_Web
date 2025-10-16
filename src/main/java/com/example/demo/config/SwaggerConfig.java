@@ -17,13 +17,16 @@ import java.util.List;
 /**
  * Swagger3 / OpenAPI 3 Configuration
  * Provides API documentation and testing interface
- * Access: http://localhost:8080/swagger-ui.html
+ * Access: {forward-url}/swagger-ui.html
  */
 @Configuration
 public class SwaggerConfig {
 
     @Value("${server.port:8080}")
     private String serverPort;
+    
+    @Value("${vscode.forward.url:https://xq62dkmc-8080.asse.devtunnels.ms}")
+    private String forwardUrl;
 
     @Bean
     public OpenAPI customOpenAPI() {
@@ -56,6 +59,9 @@ public class SwaggerConfig {
                 
                 // Server Configuration
                 .servers(List.of(
+                        new Server()
+                                .url(forwardUrl)
+                                .description("Development Server"),
                         new Server()
                                 .url("http://localhost:" + serverPort)
                                 .description("Local Development Server"),

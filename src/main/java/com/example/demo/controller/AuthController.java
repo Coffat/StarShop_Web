@@ -129,7 +129,7 @@ public class AuthController {
                 // Set token in httpOnly cookie for security
                 Cookie authCookie = new Cookie("authToken", token);
                 authCookie.setHttpOnly(true);
-                authCookie.setSecure(false); // Set to false for localhost development
+                authCookie.setSecure(true); // Set to true for HTTPS tunnel
                 authCookie.setPath("/");
                 authCookie.setMaxAge(4 * 60 * 60); // 4 hours instead of 24 hours
                 response.addCookie(authCookie);

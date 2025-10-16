@@ -37,12 +37,12 @@ spring:
             client-id: 45091665731-js8rgkgu5c662khuebpcieikh47eps6t.apps.googleusercontent.com
             client-secret: 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
             scope: profile,email
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            redirect-uri: "https://xq62dkmc-8080.asse.devtunnels.ms/login/oauth2/code/{registrationId}"
           facebook:
             client-id: 1220413069770726
             client-secret: c5b7d1d07a1564b8bf592045bafbc144
             scope: email,public_profile
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            redirect-uri: "https://xq62dkmc-8080.asse.devtunnels.ms/login/oauth2/code/{registrationId}"
         provider:
           facebook:
             authorization-uri: https://www.facebook.com/v18.0/dialog/oauth
@@ -122,8 +122,8 @@ momo:
   partner-code: MOMO
   access-key: F8BBA842ECF85
   secret-key: K951B6PE1waDMi640xX08PD3vg6EkVlz
-  return-url: ${VSCODE_FORWARD_URL:http://localhost:8080}/payment/momo/return
-  notify-url: ${VSCODE_FORWARD_URL:http://localhost:8080}/payment/momo/notify
+  return-url: https://xq62dkmc-8080.asse.devtunnels.ms/payment/momo/return
+  notify-url: https://xq62dkmc-8080.asse.devtunnels.ms/payment/momo/notify
   request-type: captureWallet
   endpoint-create: /v2/gateway/api/create
   endpoint-query: /v2/gateway/api/query
@@ -131,7 +131,7 @@ momo:
 # VS Code Port Forwarding configuration for development
 vscode:
   forward:
-    url: ${VSCODE_FORWARD_URL:http://localhost:8080}
+    url: ${VSCODE_FORWARD_URL:https://xq62dkmc-8080.asse.devtunnels.ms}
 
 # GHN (Giao Hang Nhanh) Configuration
 ghn:
