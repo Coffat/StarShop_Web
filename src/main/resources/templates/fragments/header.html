@@ -42,7 +42,7 @@
             
             <!-- Left: Logo -->
             <div class="flex-shrink-0">
-                <a href="/" class="flex items-center gap-2 group">
+                <a href="/home" class="flex items-center gap-2 group">
                     <span class="text-2xl font-bold bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
                         StarShop
                     </span>
@@ -52,7 +52,7 @@
 
             <!-- Center (Desktop Nav Links) -->
             <nav class="hidden lg:flex items-center flex-1 justify-center space-x-8">
-                <a href="/" th:classappend="${currentPath != null and currentPath == '/' ? 'text-primary border-b-2 border-primary' : 'text-gray-700 hover:text-primary'}" 
+                <a href="/home" th:classappend="${currentPath != null and (currentPath == '/home' or currentPath == '/') ? 'text-primary border-b-2 border-primary' : 'text-gray-700 hover:text-primary'}" 
                     class="flex items-center gap-2 pb-1 font-medium text-sm transition-colors duration-200">
                     <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z" clip-rule="evenodd" /></svg>
                     <span>Trang chủ</span>
@@ -275,7 +275,7 @@
          class="lg:hidden fixed inset-0 top-[60px] bg-white border-t border-gray-100 z-30 overflow-y-auto p-4">
         <nav class="flex flex-col space-y-2">
             <!-- Mobile Nav Links -->
-            <a href="/" class="py-2 px-3 text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200">Trang chủ</a>
+            <a href="/home" class="py-2 px-3 text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200">Trang chủ</a>
             <a href="/products" class="py-2 px-3 text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200">Sản phẩm</a>
             <a href="/vouchers" class="py-2 px-3 text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200">Voucher</a>
             <a href="/blog" class="py-2 px-3 text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200">Blog</a>
