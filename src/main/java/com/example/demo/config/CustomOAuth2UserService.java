@@ -13,6 +13,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Propagation;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.util.Collections;
 import java.util.Map;
@@ -28,6 +30,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private String facebookAvatarUrlTemplate;
 
     private final UserRepository userRepository;
+    
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public CustomOAuth2UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -70,11 +75,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             if (needsUpdate) {
                 try {
                     user = userRepository.save(user);
+                    entityManager.flush(); // Force commit immediately
                 } catch (Exception e) {
                     // Handle save errors for existing users
                     if (e.getMessage().contains("duplicate key value violates unique constraint")) {
                         try {
                             user = userRepository.save(user);
+                            entityManager.flush(); // Force commit immediately
                         } catch (Exception retryException) {
                             throw new OAuth2AuthenticationException("Failed to save user: " + retryException.getMessage());
                         }
@@ -89,10 +96,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             // Save new user
             try {
                 user = userRepository.save(user);
+                entityManager.flush(); // Force commit immediately
             } catch (Exception e) {
                 if (e.getMessage().contains("duplicate key value violates unique constraint")) {
                     try {
                         user = userRepository.save(user);
+                        entityManager.flush(); // Force commit immediately
                     } catch (Exception retryException) {
                         throw new OAuth2AuthenticationException("Failed to save user: " + retryException.getMessage());
                     }
