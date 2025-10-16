@@ -82,22 +82,31 @@ public class PaymentController {
 					model.addAttribute("success", false);
 					model.addAttribute("message", "Chữ ký không hợp lệ. Vui lòng liên hệ hỗ trợ.");
 					model.addAttribute("pageTitle", "Lỗi bảo mật - StarShop");
-					return "orders/payment-result";
+					return "orders/payment-result-simple";
 				}
 				*/
 			}
 			
 			if ("0".equals(resultCode)) {
 				// Payment successful
+				Order order = null;
 				if (orderId != null && orderId.startsWith("ORDER-")) {
 					String orderIdString = parseOrderId(orderId);
 					try {
-						orderService.updateOrderStatus(orderIdString, OrderStatus.PROCESSING);
-						log.info("Order {} status updated to PROCESSING via service", orderIdString);
+						// Load order first
+						order = orderRepository.findOrderWithAllDetails(orderIdString);
+						if (order != null) {
+							orderService.updateOrderStatus(orderIdString, OrderStatus.PROCESSING);
+							log.info("Order {} status updated to PROCESSING via service", orderIdString);
+							// Reload order to get updated status
+							order = orderRepository.findOrderWithAllDetails(orderIdString);
+						}
 					} catch (Exception e) {
 						log.error("Failed to update order {} status: {}", orderIdString, e.getMessage());
 						// Fallback to direct repository access if service fails
-						Order order = orderRepository.findOrderWithAllDetails(orderIdString);
+						if (order == null) {
+							order = orderRepository.findOrderWithAllDetails(orderIdString);
+						}
 						if (order != null) {
 							order.setStatus(OrderStatus.PROCESSING);
 							orderRepository.save(order);
@@ -112,7 +121,12 @@ public class PaymentController {
 				model.addAttribute("pageTitle", "Thanh toán thành công - StarShop");
 				model.addAttribute("orderId", parseOrderId(orderId));
 				model.addAttribute("transId", transId);
-				return "orders/payment-result";
+				
+				// Add required template variables to prevent errors
+				model.addAttribute("isUserAuthenticated", false);
+				model.addAttribute("cartItemCount", 0);
+				
+				return "orders/payment-result-simple";
 			} else {
 				// Payment failed - update order status to CANCELLED and show result page
 				if (orderId != null && orderId.startsWith("ORDER-")) {
@@ -136,13 +150,14 @@ public class PaymentController {
 				model.addAttribute("success", false);
 				model.addAttribute("message", message != null ? message : "Thanh toán thất bại. Vui lòng thử lại.");
 				model.addAttribute("pageTitle", "Thanh toán thất bại - StarShop");
-				if (orderId != null && orderId.startsWith("ORDER-")) {
-					String orderIdString = parseOrderId(orderId);
-					Order order = orderRepository.findOrderWithAllDetails(orderIdString);
-					model.addAttribute("order", order);
-				}
-				model.addAttribute("transactionId", transId);
-				return "orders/payment-result";
+				model.addAttribute("orderId", parseOrderId(orderId));
+				model.addAttribute("transId", transId);
+				
+				// Add required template variables to prevent errors
+				model.addAttribute("isUserAuthenticated", false);
+				model.addAttribute("cartItemCount", 0);
+				
+				return "orders/payment-result-simple";
 			}
 			
 		} catch (Exception e) {
@@ -150,7 +165,16 @@ public class PaymentController {
 			model.addAttribute("success", false);
 			model.addAttribute("message", "Có lỗi xảy ra khi xử lý thanh toán. Vui lòng liên hệ hỗ trợ.");
 			model.addAttribute("pageTitle", "Lỗi thanh toán - StarShop");
-			return "orders/payment-result";
+			
+			// Add required template variables to prevent errors
+			model.addAttribute("isUserAuthenticated", false);
+			model.addAttribute("cartItemCount", 0);
+			model.addAttribute("cartCount", 0);
+			model.addAttribute("wishlistCount", 0);
+			model.addAttribute("currentPath", "/payment/momo/return");
+			model.addAttribute("headerCatalogs", java.util.Collections.emptyList());
+			
+			return "orders/payment-result-simple";
 		}
 	}
 

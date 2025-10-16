@@ -68,6 +68,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/verify-registration", "/api/auth/forgot-password", "/api/auth/verify-otp", "/api/auth/reset-password").permitAll()
                 // Payment callbacks - MUST BE FIRST to avoid authentication
                 .requestMatchers("/payment/momo/**").permitAll()
+                .requestMatchers("/test/**").permitAll() // For testing
                 
                 // Public pages
                 .requestMatchers("/", "/home", "/about", "/contact", "/help/**").permitAll()
