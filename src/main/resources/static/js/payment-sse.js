@@ -110,7 +110,7 @@ class PaymentSSE {
         
         // Redirect to order detail after 3 seconds
         setTimeout(() => {
-            window.location.href = `/orders/${orderId.replace('ORDER-', '')}?payment=success&transId=${transactionId}`;
+            window.location.href = `/account/orders/${orderId.replace('ORDER-', '')}?payment=success&transId=${transactionId}`;
         }, 3000);
     }
     
@@ -137,7 +137,7 @@ class PaymentSSE {
         
         // Redirect to orders page after 5 seconds
         setTimeout(() => {
-            window.location.href = `/orders?payment=failed&message=${encodeURIComponent(message)}`;
+            window.location.href = `/account/orders?payment=failed&message=${encodeURIComponent(message)}`;
         }, 5000);
     }
     

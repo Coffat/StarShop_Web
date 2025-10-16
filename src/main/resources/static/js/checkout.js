@@ -449,7 +449,7 @@
 					if (typeof updateCartCount === 'function') {
 						updateCartCount(0);
 					}
-					window.location.href = '/orders';
+                    window.location.href = '/account/orders';
 					return;
 				}
 			}
