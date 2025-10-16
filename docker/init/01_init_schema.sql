@@ -229,10 +229,12 @@ CREATE UNIQUE INDEX idx_follows_unique ON Follows(user_id, product_id);
 CREATE TABLE Messages (
     id BIGSERIAL PRIMARY KEY,
     sender_id BIGINT NOT NULL,
-    receiver_id BIGINT NOT NULL,
+    receiver_id BIGINT,
     content TEXT NOT NULL,
     sent_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
     FOREIGN KEY (sender_id) REFERENCES Users(id),
     FOREIGN KEY (receiver_id) REFERENCES Users(id)
 );
