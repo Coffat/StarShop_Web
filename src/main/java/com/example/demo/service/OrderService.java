@@ -320,7 +320,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public Page<OrderDTO> getUserOrders(Long userId, Pageable pageable) {
         try {
-            Page<Order> orders = orderRepository.findByUserId(userId, pageable);
+            Page<Order> orders = orderRepository.findByUserIdWithItemsAndProducts(userId, pageable);
             return orders.map(OrderDTO::fromOrder);
         } catch (Exception e) {
             logger.error("Error getting orders for user {}: {}", userId, e.getMessage());

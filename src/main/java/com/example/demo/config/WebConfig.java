@@ -11,13 +11,14 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins(
-                    "http://localhost:3000", 
-                    "http://localhost:4200", // For React/Angular frontend
-                    "https://xq62dkmc-8080.asse.devtunnels.ms", // Public tunnel URL
-                    "https://*.devtunnels.ms" // Allow all devtunnels
+                .allowedOriginPatterns(
+                    "http://localhost:*", 
+                    "https://localhost:*",
+                    "https://xq62dkmc-8080.asse.devtunnels.ms", // Specific tunnel URL
+                    "https://*.devtunnels.ms", // Pattern for all devtunnels
+                    "https://*.asse.devtunnels.ms" // More specific pattern
                 )
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")
                 .allowCredentials(true)
                 .maxAge(3600);

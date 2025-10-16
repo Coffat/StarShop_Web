@@ -25,7 +25,10 @@
             </a>
         </div>
 
-        <div th:if="${product ne null}">
+        <div th:if="${product ne null}" th:data-product-id="${product.id}">
+            <!-- Hidden input for JavaScript to access product ID -->
+            <input type="hidden" id="productId" th:value="${product.id}">
+            
             <nav aria-label="breadcrumb" class="breadcrumb-nav">
                 <div class="container">
                     <ol class="breadcrumb">
@@ -344,62 +347,8 @@
     
                         <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
                             <div class="tab-content-wrapper">
-                                <div class="reviews-section">
-                                    <div class="reviews-summary">
-                                        <div class="rating-overview">
-                                            <div class="rating-score-large">
-                                                <span class="score" th:text="${averageRating ne null ? #numbers.formatDecimal(averageRating, 1, 1) : '0.0'}">0.0</span>
-                                                <div class="stars-large">
-                                                    <th:block th:each="star : ${#numbers.sequence(1, 5)}">
-                                                        <i class="bi bi-star-fill" 
-                                                           th:classappend="${averageRating ne null and star le averageRating ? 'filled' : 'empty'}"></i>
-                                                    </th:block>
-                                                </div>
-                                                <p class="reviews-count" th:text="${reviewCount ne null ? (reviewCount + ' đánh giá') : '0 đánh giá'}">0 đánh giá</p>
-                                            </div>
-                                        </div>
-                                    </div>
-    
-                                    <div class="reviews-list">
-                                        <div th:if="${reviews eq null or #lists.isEmpty(reviews)}" class="no-reviews">
-                                            <i class="bi bi-chat-square-text no-reviews-icon"></i>
-                                            <h4>Chưa có đánh giá nào</h4>
-                                            <p>Hãy là người đầu tiên đánh giá sản phẩm này!</p>
-                                        </div>
-    
-                                        <div th:each="review : ${reviews}" class="review-item">
-                                            <div class="review-header">
-                                                <div class="reviewer-info">
-                                                    <div class="reviewer-avatar">
-                                                        <i class="bi bi-person-circle"></i>
-                                                    </div>
-                                                    <div class="reviewer-details">
-                                                        <h5 class="reviewer-name" th:text="${review.user.firstname + ' ' + review.user.lastname}">Tên khách hàng</h5>
-                                                        <div class="review-rating">
-                                                            <th:block th:each="star : ${#numbers.sequence(1, 5)}">
-                                                                <i class="bi bi-star-fill" 
-                                                                   th:classappend="${star le review.rating ? 'filled' : 'empty'}"></i>
-                                                            </th:block>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="review-date" th:text="${#temporals.format(review.createdAt, 'dd/MM/yyyy')}">
-                                                    01/01/2024
-                                                </div>
-                                            </div>
-                                            <div class="review-content" th:if="${review.comment ne null}">
-                                                <p th:text="${review.comment}">Nội dung đánh giá...</p>
-                                            </div>
-                                        </div>
-                                    </div>
-    
-                                    <div class="write-review-section" sec:authorize="isAuthenticated()">
-                                        <button class="btn-write-review" onclick="openReviewModal()">
-                                            <i class="bi bi-pen"></i>
-                                            Viết đánh giá
-                                        </button>
-                                    </div>
-                                </div>
+                                <!-- Use new review display component -->
+                                <div th:replace="~{fragments/review-modal :: review-display}"></div>
                             </div>
                         </div>
     

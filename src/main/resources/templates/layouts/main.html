@@ -167,12 +167,19 @@
         <script th:src="@{${js}}"></script>
     </th:block>
     
+    <!-- Review Modal -->
+    <div th:replace="~{fragments/review-modal :: review-modal}"></div>
+
     <!-- Chat Widget for Customer Support -->
     <div th:replace="~{fragments/chat-bubble :: chat-widget}"></div>
 
     <!-- SockJS & STOMP for WebSocket (for chat widget) -->
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <!-- Review System CSS & JS -->
+    <link rel="stylesheet" th:href="@{/css/reviews.css}">
+    <script src="/js/reviews.js"></script>
 
     <!-- Chat CSS -->
     <link rel="stylesheet" th:href="@{/css/chat.css}">

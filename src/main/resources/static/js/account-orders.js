@@ -7,6 +7,7 @@
 let currentPage = 0;
 let currentStatus = 'all';
 const pageSize = 10;
+let ordersData = []; // Store orders data globally
 
 // Format currency VND
 function formatCurrency(amount) {
@@ -93,9 +94,11 @@ function getActionButtons(order) {
     
     // Review button - for COMPLETED status
     if (order.status === 'COMPLETED') {
+        console.log('Adding review button for order:', order.id);
         buttons.push(`
-            <button onclick="reviewOrder(${order.id})" 
-                    class="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all">
+            <button onclick="reviewOrder('${order.id}')" 
+                    class="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                    data-order-id="${order.id}">
                 <i class="bi bi-star mr-1"></i> Đánh giá
             </button>
         `);
@@ -244,9 +247,18 @@ async function loadOrders(status = 'all', page = 0) {
             return;
         }
         
+        // Store orders data globally for review functionality
+        ordersData = data.data.content;
+        console.log('Stored ordersData:', ordersData);
+        console.log('Full API response:', data);
+        console.log('Orders array:', data.data.content);
+        
         // Render orders
         const ordersHtml = data.data.content.map(order => renderOrderCard(order)).join('');
         ordersList.innerHTML = ordersHtml;
+        
+        // Bind review button events manually (fallback for onclick)
+        // bindReviewButtonEvents(); // Tạm comment để test
         
         // Update status counts in filter tabs
         updateStatusCounts();
@@ -362,6 +374,25 @@ async function cancelOrder(orderId) {
     }
 }
 
+// Bind review button events manually
+function bindReviewButtonEvents() {
+    console.log('Binding review button events...');
+    const reviewButtons = document.querySelectorAll('button[data-order-id]');
+    console.log('Found review buttons:', reviewButtons.length);
+    
+    reviewButtons.forEach(button => {
+        const orderId = button.getAttribute('data-order-id');
+        console.log('Binding event for order:', orderId);
+        
+        // Add new listener
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Review button clicked for order:', orderId);
+            reviewOrder(orderId);
+        });
+    });
+}
+
 // Track order
 function trackOrder(orderId) {
     // TODO: Implement order tracking
@@ -370,8 +401,130 @@ function trackOrder(orderId) {
 
 // Review order
 function reviewOrder(orderId) {
-    // TODO: Implement order review
-    showToast('Tính năng đánh giá đang được phát triển', 'info');
+    try {
+        console.log('Review order called with ID:', orderId);
+        console.log('Available orders data:', ordersData);
+        
+        // Check if openReviewModal function exists
+        if (typeof openReviewModal === 'undefined') {
+            alert('openReviewModal function not found. Make sure reviews.js is loaded.');
+            return;
+        }
+        
+        // Find the order data
+        const orderData = ordersData.find(order => order.id === orderId || order.id == orderId);
+        console.log('Found order data:', orderData);
+        
+        if (!orderData) {
+            alert('Order not found with ID: ' + orderId);
+            return;
+        }
+        
+        // Check if order has items
+        console.log('Order items:', orderData.items);
+        console.log('Order orderItems:', orderData.orderItems);
+        console.log('Order items type:', typeof orderData.items);
+        console.log('Order orderItems type:', typeof orderData.orderItems);
+        console.log('Order items length:', orderData.items ? orderData.items.length : 'undefined');
+        console.log('Order orderItems length:', orderData.orderItems ? orderData.orderItems.length : 'undefined');
+        
+        if (orderData.items) {
+            orderData.items.forEach((item, index) => {
+                console.log(`Item ${index}:`, item);
+                console.log(`Item ${index} productId:`, item.productId);
+                console.log(`Item ${index} productName:`, item.productName);
+            });
+        }
+        
+        if (orderData.orderItems) {
+            orderData.orderItems.forEach((item, index) => {
+                console.log(`OrderItem ${index}:`, item);
+                console.log(`OrderItem ${index} productId:`, item.productId);
+                console.log(`OrderItem ${index} productName:`, item.productName);
+            });
+        }
+        
+        if (!orderData.orderItems || orderData.orderItems.length === 0) {
+            alert('Order has no orderItems. Order data: ' + JSON.stringify(orderData));
+            return;
+        }
+        
+        // If order has multiple items, show selection modal
+        if (orderData.orderItems.length > 1) {
+            showProductSelectionModal(orderData);
+        } else {
+            // Single product, open review modal directly
+            const item = orderData.orderItems[0];
+            console.log('Opening review modal for item:', item);
+            openReviewModal(item.productId, orderId, item.productName);
+        }
+        
+    } catch (error) {
+        alert('ERROR in reviewOrder: ' + error.message);
+        console.error('Error in reviewOrder:', error);
+    }
+}
+
+// Show product selection modal for multi-item orders
+function showProductSelectionModal(orderData) {
+    const modalHTML = `
+        <div id="productSelectionModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-hidden">
+                <div class="bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-4 text-white">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-bold">Chọn sản phẩm để đánh giá</h3>
+                        <button onclick="closeProductSelectionModal()" class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6 max-h-96 overflow-y-auto">
+                    <div class="space-y-3">
+                        ${orderData.items.map(item => `
+                            <div class="flex items-center gap-4 p-4 border border-gray-200 rounded-xl hover:border-pink-300 cursor-pointer transition-colors"
+                                 onclick="selectProductForReview(${item.productId}, '${orderData.id}', '${item.productName.replace(/'/g, "\\'")}')">
+                                <img src="${item.productImage || '/images/default-product.jpg'}" 
+                                     alt="${item.productName}" 
+                                     class="w-16 h-16 object-cover rounded-lg">
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-900">${item.productName}</h4>
+                                    <p class="text-sm text-gray-500">Số lượng: ${item.quantity}</p>
+                                    <p class="text-sm font-medium text-pink-600">${formatCurrency(item.price)}</p>
+                                </div>
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+// Close product selection modal
+function closeProductSelectionModal() {
+    const modal = document.getElementById('productSelectionModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Select product for review
+function selectProductForReview(productId, orderId, productName) {
+    closeProductSelectionModal();
+    openReviewModal(productId, orderId, productName);
+}
+
+// Refresh review buttons after successful review
+function refreshOrderReviewButtons() {
+    // Reload orders to update review button states
+    loadOrders(currentPage);
 }
 
 // Reorder

@@ -20,4 +20,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     
     @Query("SELECT SUM(oi.quantity) FROM OrderItem oi WHERE oi.product.id = :productId")
     Long getTotalQuantitySoldByProduct(@Param("productId") Long productId);
+    
+    @Query("SELECT oi FROM OrderItem oi WHERE oi.order.id = :orderId AND oi.product.id = :productId")
+    java.util.Optional<OrderItem> findByOrderIdAndProductId(@Param("orderId") String orderId, @Param("productId") Long productId);
 }

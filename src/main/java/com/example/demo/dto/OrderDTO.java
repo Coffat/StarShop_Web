@@ -3,6 +3,8 @@ package com.example.demo.dto;
 import com.example.demo.entity.Order;
 import com.example.demo.entity.enums.OrderStatus;
 import com.example.demo.entity.enums.PaymentMethod;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -361,6 +363,7 @@ public class OrderDTO {
         this.notes = notes;
     }
     
+    @JsonProperty("orderItems")
     public List<OrderItemDTO> getOrderItems() {
         return orderItems;
     }

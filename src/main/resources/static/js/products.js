@@ -336,8 +336,45 @@
   }
 
   function loadReviews() {
-    // TODO: Implement lazy loading of reviews
     console.log("Loading reviews...");
+    
+    // Get product ID from URL or data attribute
+    const productId = getProductIdFromPage();
+    if (!productId) {
+      console.error('Product ID not found');
+      return;
+    }
+    
+    // Load reviews using the review system
+    if (typeof window.reviewSystem !== 'undefined') {
+      window.reviewSystem.loadProductReviews(productId);
+    } else {
+      console.error('Review system not loaded');
+    }
+  }
+  
+  // Get product ID from current page
+  function getProductIdFromPage() {
+    // Try to get from URL path (e.g., /products/123)
+    const pathParts = window.location.pathname.split('/');
+    const productIndex = pathParts.indexOf('products');
+    if (productIndex !== -1 && pathParts[productIndex + 1]) {
+      return parseInt(pathParts[productIndex + 1]);
+    }
+    
+    // Try to get from data attribute
+    const productElement = document.querySelector('[data-product-id]');
+    if (productElement) {
+      return parseInt(productElement.dataset.productId);
+    }
+    
+    // Try to get from hidden input
+    const productInput = document.getElementById('productId');
+    if (productInput) {
+      return parseInt(productInput.value);
+    }
+    
+    return null;
   }
 
   // ================================

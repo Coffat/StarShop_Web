@@ -63,7 +63,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf
                 .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**", "/api/cart/**", "/api/orders/**", "/api/payment/**", "/api/locations/**", "/api/addresses/**", "/api/shipping/**", "/api/catalogs/**", "/admin/orders/api/**", "/admin/products/api/**", "/admin/api/users/**", "/admin/api/employees/**", "/admin/api/**", "/api/staff/**", "/sse/**", "/swagger-ui/**", "/v3/api-docs/**")
+                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**", "/api/cart/**", "/api/orders/**", "/api/payment/**", "/api/locations/**", "/api/addresses/**", "/api/shipping/**", "/api/reviews/**", "/api/catalogs/**", "/admin/orders/api/**", "/admin/products/api/**", "/admin/api/users/**", "/admin/api/employees/**", "/admin/api/**", "/api/staff/**", "/sse/**", "/swagger-ui/**", "/v3/api-docs/**")
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -194,7 +194,7 @@ public class SecurityConfig {
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/login")
+                .logoutSuccessUrl(createRedirectUrl("/login"))
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
                 .deleteCookies("authToken", "JSESSIONID", "SPRING_SECURITY_REMEMBER_ME_COOKIE")
@@ -300,7 +300,7 @@ public class SecurityConfig {
                     }
                     
                     log.info("Form login successful for user: {} with role: {}", user.getEmail(), user.getRole());
-                    response.sendRedirect(redirectUrl);
+                    response.sendRedirect(createRedirectUrl(redirectUrl));
                     
                 } catch (Exception e) {
                     log.error("Form login error: {}", e.getMessage(), e);
@@ -369,7 +369,7 @@ public class SecurityConfig {
                     }
                     
                     log.info("OAuth2 login successful for user: {} with role: {}", user.getEmail(), user.getRole());
-                    response.sendRedirect(redirectUrl);
+                    response.sendRedirect(createRedirectUrl(redirectUrl));
                     
                 } catch (Exception e) {
                     log.error("OAuth2 login error: {}", e.getMessage(), e);

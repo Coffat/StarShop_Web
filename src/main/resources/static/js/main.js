@@ -489,10 +489,10 @@ function addToCart(button) {
         headers[csrfHeader] = csrfToken;
     }
 
-    fetch('/api/cart/add', {
+    fetch(window.location.origin + '/api/cart/add', {
         method: 'POST',
         headers: headers,
-        credentials: 'same-origin',
+        credentials: 'include',
         body: JSON.stringify({ 
             productId: parseInt(productId), 
             quantity: parseInt(quantity) 
@@ -525,7 +525,7 @@ function addToCart(button) {
         }
         
         // Always try to refresh cart count and show success
-        fetch('/api/cart/count', { credentials: 'same-origin' })
+        fetch(window.location.origin + '/api/cart/count', { credentials: 'include' })
             .then(response => response.json())
             .then(countData => {
                 const totalItems = countData.data !== undefined ? countData.data : countData;
@@ -589,10 +589,10 @@ function toggleWishlist(button) {
     }
     
     // API call to toggle wishlist
-    fetch('/api/wishlist/toggle', {
+    fetch(window.location.origin + '/api/wishlist/toggle', {
         method: 'POST',
         headers: headers,
-        credentials: 'same-origin',
+        credentials: 'include',
         body: JSON.stringify({ productId: parseInt(productId) })
     })
     .then(response => {
@@ -653,7 +653,7 @@ function toggleWishlist(button) {
             } else {
                 console.warn('⚠️ No wishlist count in response, fetching from list API...');
                 // Fallback: fetch from list API
-                fetch('/api/wishlist/list', { credentials: 'same-origin' })
+                fetch(window.location.origin + '/api/wishlist/list', { credentials: 'include' })
                     .then(response => response.json())
                     .then(countData => {
                         let count = 0;
@@ -1096,9 +1096,9 @@ function testSearchToggle() {
 
 // Load initial cart count
 function loadCartCount() {
-    fetch('/api/cart/count', {
+    fetch(window.location.origin + '/api/cart/count', {
         method: 'GET',
-        credentials: 'same-origin'
+        credentials: 'include'
     })
     .then(response => {
         if (response.ok) {

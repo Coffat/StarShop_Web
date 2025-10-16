@@ -109,14 +109,14 @@
 		console.log('Making shipping API request:', requestBody);
 		console.log('CSRF token:', csrfToken, 'Header:', csrfHeader);
 		
-		fetch('/api/shipping/fee', {
+		fetch(window.location.origin + '/api/shipping/fee', {
 			method: 'POST',
 			headers: { 
 				'Content-Type': 'application/json',
 				'X-Requested-With': 'XMLHttpRequest',
 				[csrfHeader]: csrfToken
 			},
-			credentials: 'same-origin',
+			credentials: 'include',
 			body: JSON.stringify(requestBody)
 		})
 		.then(r => {
@@ -189,7 +189,7 @@
 	}
 
 	function loadCartData() {
-		fetch('/api/cart/get', { credentials: 'same-origin' })
+		fetch(window.location.origin + '/api/cart/get', { credentials: 'include' })
 			.then(r => r.json())
 			.then(response => {
 				if (response.data && response.data.success) {
@@ -211,7 +211,7 @@
 	}
 
 	function loadPaymentMethods() {
-		fetch('/api/payment/methods', { credentials: 'same-origin' })
+		fetch(window.location.origin + '/api/payment/methods', { credentials: 'include' })
 			.then(r => r.json())
 			.then(response => {
 				if (response.data) displayPaymentMethods(response.data);
@@ -428,10 +428,10 @@
 		if (appliedVoucher && appliedVoucher.code) {
 			data.orderRequest.voucherCode = appliedVoucher.code;
 		}
-		fetch('/api/orders/create-with-payment', {
+		fetch(window.location.origin + '/api/orders/create-with-payment', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			credentials: 'same-origin',
+			credentials: 'include',
 			body: JSON.stringify(data)
 		})
 		.then(r => r.json())
@@ -483,14 +483,14 @@
 		// Include CSRF header for Spring Security to avoid 403
 		const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
 		const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
-		fetch('/api/vouchers/apply', {
+		fetch(window.location.origin + '/api/vouchers/apply', {
 			method: 'POST',
 			headers: (function(){
 				const h = { 'Content-Type': 'application/json' };
 				if (csrfToken && csrfHeader) { h[csrfHeader] = csrfToken; }
 				return h;
 			})(),
-			credentials: 'same-origin',
+			credentials: 'include',
 			body: JSON.stringify({ code, orderAmount: cartData.totalAmount })
 		})
 		.then(r => r.json())

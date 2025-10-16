@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,9 @@ import java.io.IOException;
 @Controller
 @Slf4j
 public class AuthPageController {
+
+    @Value("${vscode.forward.url:https://xq62dkmc-8080.asse.devtunnels.ms}")
+    private String forwardUrl;
 
     @GetMapping("/login")
     public String loginPage(@RequestParam(value = "error", required = false) String error,
@@ -85,7 +89,7 @@ public class AuthPageController {
         response.addCookie(createExpiredCookie("SPRING_SECURITY_REMEMBER_ME_COOKIE"));
         
         // Redirect to login page with success message
-        response.sendRedirect("/login?success=logout");
+        response.sendRedirect(forwardUrl + "/login?success=logout");
     }
     
     private jakarta.servlet.http.Cookie createExpiredCookie(String name) {

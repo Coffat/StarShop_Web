@@ -87,6 +87,8 @@ jwt:
 
 server:
   port: 8080
+  # Prevent Spring from adding port to redirect URLs when using tunnel
+  forward-headers-strategy: framework
   servlet:
     session:
       cookie:
