@@ -104,8 +104,35 @@ public class PaymentController {
 				// Redirect to success page with order info to maintain session
 				return "redirect:/orders/" + parseOrderId(orderId) + "?payment=success&transId=" + transId;
 			} else {
-				// Payment failed - redirect to orders page with error
-				return "redirect:/orders?payment=failed&message=" + (message != null ? message : "Payment failed");
+				// Payment failed - update order status to CANCELLED and show result page
+				if (orderId != null && orderId.startsWith("ORDER-")) {
+					Long orderIdLong = parseOrderId(orderId);
+					try {
+						orderService.updateOrderStatus(orderIdLong, OrderStatus.CANCELLED);
+						log.info("Order {} status updated to CANCELLED due to payment failure", orderIdLong);
+					} catch (Exception e) {
+						log.error("Failed to update order {} status to CANCELLED: {}", orderIdLong, e.getMessage());
+						// Fallback to direct repository access if service fails
+						Order order = orderRepository.findOrderWithAllDetails(orderIdLong);
+						if (order != null) {
+							order.setStatus(OrderStatus.CANCELLED);
+							orderRepository.save(order);
+							log.info("Order {} status updated to CANCELLED via fallback", orderIdLong);
+						}
+					}
+				}
+				
+				// Show payment result page with failure status
+				model.addAttribute("success", false);
+				model.addAttribute("message", message != null ? message : "Thanh toán thất bại. Vui lòng thử lại.");
+				model.addAttribute("pageTitle", "Thanh toán thất bại - StarShop");
+				if (orderId != null && orderId.startsWith("ORDER-")) {
+					Long orderIdLong = parseOrderId(orderId);
+					Order order = orderRepository.findOrderWithAllDetails(orderIdLong);
+					model.addAttribute("order", order);
+				}
+				model.addAttribute("transactionId", transId);
+				return "orders/payment-result";
 			}
 			
 		} catch (Exception e) {
@@ -177,8 +204,25 @@ public class PaymentController {
 					}
 				}
 			} else {
-				// Payment failed
+				// Payment failed - update order status to CANCELLED
 				log.warn("MoMo payment failed via notify for order {} with resultCode: {}", orderId, resultCode);
+				
+				if (orderId != null && orderId.startsWith("ORDER-")) {
+					Long orderIdLong = parseOrderId(orderId);
+					try {
+						orderService.updateOrderStatus(orderIdLong, OrderStatus.CANCELLED);
+						log.info("Order {} status updated to CANCELLED via notify due to payment failure", orderIdLong);
+					} catch (Exception e) {
+						log.error("Failed to update order {} status to CANCELLED via notify: {}", orderIdLong, e.getMessage());
+						// Fallback to direct repository access if service fails
+						Order order = orderRepository.findOrderWithAllDetails(orderIdLong);
+						if (order != null) {
+							order.setStatus(OrderStatus.CANCELLED);
+							orderRepository.save(order);
+							log.info("Order {} status updated to CANCELLED via fallback in notify", orderIdLong);
+						}
+					}
+				}
 				
 				// Push SSE event for failed payment
 				sseService.pushPaymentUpdate(orderId, "FAILED", message != null ? message : "Thanh toán thất bại", transId);
