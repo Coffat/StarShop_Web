@@ -1,92 +1,7 @@
 spring:
-  application:
-    name: starshop
-  datasource:
-    url: jdbc:postgresql://localhost:5432/flower_shop_system
-    username: flower_admin
-    password: flower_password_2024
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      connection-timeout: 20000
-      maximum-pool-size: 10
-      minimum-idle: 5
-      idle-timeout: 300000
-  
-  jpa:
-    hibernate:
-      ddl-auto: none
-    show-sql: false
-    properties:
-      hibernate:
-        format_sql: false
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        jdbc:
-          time_zone: Asia/Ho_Chi_Minh
-    open-in-view: false
-  
-  thymeleaf:
-    prefix: classpath:/templates/
-    suffix: .html
-    cache: false
-  
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: 45091665731-js8rgkgu5c662khuebpcieikh47eps6t.apps.googleusercontent.com
-            client-secret: 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
-            scope: profile,email
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-          facebook:
-            client-id: 1220413069770726
-            client-secret: c5b7d1d07a1564b8bf592045bafbc144
-            scope: email,public_profile
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-        provider:
-          facebook:
-            authorization-uri: https://www.facebook.com/v18.0/dialog/oauth
-            token-uri: https://graph.facebook.com/v18.0/oauth/access_token
-            user-info-uri: https://graph.facebook.com/v18.0/me?fields=id,name,email,picture
-            user-name-attribute: id
+  profiles:
+    active: dev
 
-  jackson:
-    serialization:
-      write-dates-as-timestamps: false
-    time-zone: Asia/Ho_Chi_Minh
-  
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
-
-  # Mail configuration for Gmail SMTP
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: starshop.a.6868@gmail.com
-    password: mqai nigf sweg imek
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
-          ssl:
-            trust: smtp.gmail.com
-    default-encoding: UTF-8
-    from: starshop.a.6868@gmail.com
-
-jwt:
-  secret: starshop_jwt_secret_key_2024_very_secure_key_for_production_use
-  expiration: 86400000 # 24 hours in milliseconds
-
-server:
-  port: 8080
   servlet:
     session:
       cookie:
@@ -96,14 +11,7 @@ server:
         same-site: lax
         max-age: 3600
 
-logging:
-  level:
-    root: INFO
-    com.example.demo: INFO
-    org.hibernate.SQL: WARN
-    org.hibernate.type.descriptor.sql.BasicBinder: WARN
-
-# Swagger/OpenAPI Configuration
+# Swagger/OpenAPI UI common settings (non-sensitive)
 springdoc:
   api-docs:
     path: /v3/api-docs
@@ -117,44 +25,8 @@ springdoc:
     filter: true
     display-request-duration: true
 
-momo:
-  base-url: https://test-payment.momo.vn
-  partner-code: MOMO
-  access-key: F8BBA842ECF85
-  secret-key: K951B6PE1waDMi640xX08PD3vg6EkVlz
-  return-url: ${VSCODE_FORWARD_URL:http://localhost:8080}/payment/momo/return
-  notify-url: ${VSCODE_FORWARD_URL:http://localhost:8080}/payment/momo/notify
-  request-type: captureWallet
-  endpoint-create: /v2/gateway/api/create
-  endpoint-query: /v2/gateway/api/query
-
-# VS Code Port Forwarding configuration for development
-vscode:
-  forward:
-    url: ${VSCODE_FORWARD_URL:http://localhost:8080}
-
-# GHN (Giao Hang Nhanh) Configuration
-ghn:
-  base-url: https://online-gateway.ghn.vn/shiip/public-api
-  token: ${GHN_TOKEN:cd8acb1f-9e9c-11f0-b0e8-f2157cd9069b}
-  shop-id: ${GHN_SHOP_ID:6040148}
-  service-type-id-default: 2
-  from:
-    # TODO: Fill these with actual GHN codes for HCMUTE location
-    province-id: ${GHN_FROM_PROVINCE_ID:202}   # TPHCM Province ID from GHN
-    district-id: ${GHN_FROM_DISTRICT_ID:3695}   # Thu Duc District ID from GHN  
-    ward-code: ${GHN_FROM_WARD_CODE:90745}       # Specific Ward Code from GHN
-  endpoints:
-    provinces: /master-data/province
-    districts: /master-data/district
-    wards: /master-data/ward
-    calculate-fee: /v2/shipping-order/fee
-
-# Gemini AI Configuration
+# Common non-sensitive Gemini settings
 gemini:
-  api-key: ${GEMINI_API_KEY:AIzaSyB4tCAr_Y5VqAGzpVF01_lc6fEOCbyd9Oo}
-  base-url: https://generativelanguage.googleapis.com/v1beta
-  model: gemini-2.5-flash
-  temperature: 0.5  # Giảm xuống để response nhanh hơn và consistent hơn
-  max-tokens: 2048  # Tăng lên để AI có thể response đầy đủ hơn
-  timeout-seconds: 15  # Giảm timeout để fail fast nếu API chậm
+  temperature: 0.5
+  max-tokens: 2048
+  timeout-seconds: 15

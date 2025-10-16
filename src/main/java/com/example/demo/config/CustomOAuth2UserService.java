@@ -5,6 +5,7 @@ import com.example.demo.entity.enums.UserRole;
 import com.example.demo.repository.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
@@ -22,6 +23,8 @@ import java.util.Optional;
  */
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+    @Value("${facebook.avatar.url.template}")
+    private String facebookAvatarUrlTemplate;
 
     private final UserRepository userRepository;
 
@@ -130,7 +133,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         } else if ("facebook".equals(registrationId)) {
             String id = (String) attributes.get("id");
             if (id != null) {
-                return "https://graph.facebook.com/" + id + "/picture?type=large";
+                return facebookAvatarUrlTemplate.replace("{id}", id);
             }
         }
         return null;
