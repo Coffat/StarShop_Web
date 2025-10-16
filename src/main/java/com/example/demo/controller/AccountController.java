@@ -88,33 +88,6 @@ public class AccountController {
         return "account/profile";
     }
 
-    /**
-     * Serve account settings page
-     * Only accessible to authenticated users
-     */
-    @GetMapping("/settings")
-    @PreAuthorize("isAuthenticated()")
-    @Transactional(readOnly = true)
-    public String accountSettings(Authentication authentication, Model model) {
-        log.info("Account settings page accessed by user: {}", authentication.getName());
-        
-        User user = userRepository.findByEmail(authentication.getName()).orElse(null);
-        if (user != null) {
-            model.addAttribute("userObject", user);
-            
-            // Get user statistics for sidebar
-            Long ordersCount = orderRepository.countOrdersByUser(user.getId());
-            Long wishlistCount = followRepository.countByUserId(user.getId());
-            
-            model.addAttribute("ordersCount", ordersCount);
-            model.addAttribute("wishlistCount", wishlistCount);
-        }
-        
-        model.addAttribute("isUserAuthenticated", authentication.isAuthenticated());
-        model.addAttribute("currentUser", authentication.getName());
-        model.addAttribute("pageTitle", "Cài đặt tài khoản");
-        return "account/settings";
-    }
 
     /**
      * Serve order history page

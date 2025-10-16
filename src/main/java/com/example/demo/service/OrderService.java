@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +56,9 @@ public class OrderService {
     
     @Autowired
     private ShippingService shippingService;
+
+    @Autowired
+    private OrderIdGeneratorService orderIdGeneratorService;
     
     /**
      * Create order from user's cart
@@ -92,14 +94,20 @@ public class OrderService {
             
             // Create order
             Order order = new Order(user, address, request.getPaymentMethod());
+            order.setId(orderIdGeneratorService.generateOrderId());
             order.setNotes(request.getNotes());
             
-            // Set delivery unit if provided
-            if (request.getDeliveryUnitId() != null) {
-                Optional<DeliveryUnit> deliveryUnitOpt = deliveryUnitRepository.findById(request.getDeliveryUnitId());
-                if (deliveryUnitOpt.isPresent()) {
-                    order.setDeliveryUnit(deliveryUnitOpt.get());
-                }
+            // Set delivery unit - default to GHN (ID = 2) if not provided
+            Long deliveryUnitId = request.getDeliveryUnitId() != null ? request.getDeliveryUnitId() : 2L;
+            logger.info("Setting delivery unit ID: {} (request provided: {})", deliveryUnitId, request.getDeliveryUnitId());
+            Optional<DeliveryUnit> deliveryUnitOpt = deliveryUnitRepository.findById(deliveryUnitId);
+            if (deliveryUnitOpt.isPresent()) {
+                DeliveryUnit deliveryUnit = deliveryUnitOpt.get();
+                order.setDeliveryUnit(deliveryUnit);
+                logger.info("Successfully set delivery unit: {} (ID: {})", deliveryUnit.getName(), deliveryUnitId);
+                logger.info("Order delivery unit after set: {}", order.getDeliveryUnit() != null ? order.getDeliveryUnit().getName() : "NULL");
+            } else {
+                logger.warn("Delivery unit with ID {} not found!", deliveryUnitId);
             }
             
             // Set voucher if provided
@@ -165,7 +173,18 @@ public class OrderService {
             order.calculateTotalAmountWithShippingFee(shippingFee);
             
             // Save order
+            logger.info("Saving order with delivery unit: {}", order.getDeliveryUnit() != null ? order.getDeliveryUnit().getName() + " (ID: " + order.getDeliveryUnit().getId() + ")" : "NULL");
             order = orderRepository.save(order);
+            orderRepository.flush(); // Force flush to database
+            logger.info("Order saved successfully with ID: {}, delivery unit: {}", order.getId(), order.getDeliveryUnit() != null ? order.getDeliveryUnit().getName() : "NULL");
+            
+            // Update voucher usage count if voucher was used
+            if (order.getVoucher() != null) {
+                Voucher voucher = order.getVoucher();
+                voucher.setUses(voucher.getUses() + 1);
+                voucherRepository.save(voucher);
+                logger.info("Updated voucher usage count for voucher {}: {} uses", voucher.getCode(), voucher.getUses());
+            }
             
             // Clear user's cart
             cartService.clearCart(userId);
@@ -214,14 +233,20 @@ public class OrderService {
             
             // Create order
             Order order = new Order(user, address, request.getPaymentMethod());
+            order.setId(orderIdGeneratorService.generateOrderId());
             order.setNotes(request.getNotes());
             
-            // Set delivery unit if provided
-            if (request.getDeliveryUnitId() != null) {
-                Optional<DeliveryUnit> deliveryUnitOpt = deliveryUnitRepository.findById(request.getDeliveryUnitId());
-                if (deliveryUnitOpt.isPresent()) {
-                    order.setDeliveryUnit(deliveryUnitOpt.get());
-                }
+            // Set delivery unit - default to GHN (ID = 2) if not provided
+            Long deliveryUnitId = request.getDeliveryUnitId() != null ? request.getDeliveryUnitId() : 2L;
+            logger.info("Setting delivery unit ID: {} (request provided: {})", deliveryUnitId, request.getDeliveryUnitId());
+            Optional<DeliveryUnit> deliveryUnitOpt = deliveryUnitRepository.findById(deliveryUnitId);
+            if (deliveryUnitOpt.isPresent()) {
+                DeliveryUnit deliveryUnit = deliveryUnitOpt.get();
+                order.setDeliveryUnit(deliveryUnit);
+                logger.info("Successfully set delivery unit: {} (ID: {})", deliveryUnit.getName(), deliveryUnitId);
+                logger.info("Order delivery unit after set: {}", order.getDeliveryUnit() != null ? order.getDeliveryUnit().getName() : "NULL");
+            } else {
+                logger.warn("Delivery unit with ID {} not found!", deliveryUnitId);
             }
             
             // Set voucher if provided
@@ -269,6 +294,14 @@ public class OrderService {
             // Save order
             order = orderRepository.save(order);
             
+            // Update voucher usage count if voucher was used
+            if (order.getVoucher() != null) {
+                Voucher voucher = order.getVoucher();
+                voucher.setUses(voucher.getUses() + 1);
+                voucherRepository.save(voucher);
+                logger.info("Updated voucher usage count for voucher {}: {} uses", voucher.getCode(), voucher.getUses());
+            }
+            
             // Generate order number
             String orderNumber = generateOrderNumber(order.getId());
             
@@ -313,7 +346,7 @@ public class OrderService {
      * Get order by ID
      */
     @Transactional(readOnly = true)
-    public OrderResponse getOrder(Long orderId, Long userId) {
+    public OrderResponse getOrder(String orderId, Long userId) {
         try {
             Optional<Order> orderOpt = Optional.ofNullable(orderRepository.findOrderWithItems(orderId));
             if (orderOpt.isEmpty()) {
@@ -379,7 +412,40 @@ public class OrderService {
             
             // Create order
             Order order = new Order(user, address, request.getPaymentMethod());
+            order.setId(orderIdGeneratorService.generateOrderId());
             order.setNotes(request.getNotes());
+            
+            // Set delivery unit - default to GHN (ID = 2) if not provided
+            Long deliveryUnitId = request.getDeliveryUnitId() != null ? request.getDeliveryUnitId() : 2L;
+            logger.info("Setting delivery unit ID: {} (request provided: {})", deliveryUnitId, request.getDeliveryUnitId());
+            Optional<DeliveryUnit> deliveryUnitOpt = deliveryUnitRepository.findById(deliveryUnitId);
+            if (deliveryUnitOpt.isPresent()) {
+                DeliveryUnit deliveryUnit = deliveryUnitOpt.get();
+                order.setDeliveryUnit(deliveryUnit);
+                logger.info("Successfully set delivery unit: {} (ID: {})", deliveryUnit.getName(), deliveryUnitId);
+                logger.info("Order delivery unit after set: {}", order.getDeliveryUnit() != null ? order.getDeliveryUnit().getName() : "NULL");
+            } else {
+                logger.warn("Delivery unit with ID {} not found!", deliveryUnitId);
+            }
+            
+            // Set voucher if provided
+            if (request.getVoucherCode() != null && !request.getVoucherCode().trim().isEmpty()) {
+                logger.info("Processing voucher code: {}", request.getVoucherCode());
+                Optional<Voucher> voucherOpt = voucherRepository.findByCode(request.getVoucherCode().trim());
+                if (voucherOpt.isPresent()) {
+                    Voucher voucher = voucherOpt.get();
+                    if (voucher.isValid()) {
+                        order.setVoucher(voucher);
+                        logger.info("Successfully set voucher: {} (ID: {})", voucher.getCode(), voucher.getId());
+                    } else {
+                        logger.warn("Voucher {} is not valid (expired, used up, or inactive)", request.getVoucherCode());
+                        throw new RuntimeException("Voucher không hợp lệ hoặc đã hết hạn");
+                    }
+                } else {
+                    logger.warn("Voucher with code {} not found", request.getVoucherCode());
+                    throw new RuntimeException("Không tìm thấy voucher với mã: " + request.getVoucherCode());
+                }
+            }
             
             // Create order items from cart items
             for (CartItem cartItem : cart.getCartItems()) {
@@ -434,6 +500,14 @@ public class OrderService {
             // Save order
             Order savedOrder = orderRepository.save(order);
             
+            // Update voucher usage count if voucher was used
+            if (savedOrder.getVoucher() != null) {
+                Voucher voucher = savedOrder.getVoucher();
+                voucher.setUses(voucher.getUses() + 1);
+                voucherRepository.save(voucher);
+                logger.info("Updated voucher usage count for voucher {}: {} uses", voucher.getCode(), voucher.getUses());
+            }
+            
             // Clear user's cart
             cartService.clearCart(userId);
             
@@ -450,7 +524,7 @@ public class OrderService {
      * Get order entity by ID and user ID (for internal use)
      */
     @Transactional(readOnly = true)
-    public Order getOrderEntity(Long orderId, Long userId) {
+    public Order getOrderEntity(String orderId, Long userId) {
         try {
             Optional<Order> orderOpt = Optional.ofNullable(orderRepository.findOrderWithItems(orderId));
             if (orderOpt.isEmpty()) {
@@ -475,7 +549,7 @@ public class OrderService {
     /**
      * Cancel order
      */
-    public OrderResponse cancelOrder(Long orderId, Long userId) {
+    public OrderResponse cancelOrder(String orderId, Long userId) {
         try {
             Optional<Order> orderOpt = orderRepository.findById(orderId);
             if (orderOpt.isEmpty()) {
@@ -520,7 +594,7 @@ public class OrderService {
      * This method is used by payment gateway callbacks to cancel orders and restore stock
      * when payment fails. It bypasses user ownership checks since it's triggered by payment system.
      */
-    public void cancelOrderByPaymentFailure(Long orderId) {
+    public void cancelOrderByPaymentFailure(String orderId) {
         try {
             Optional<Order> orderOpt = orderRepository.findById(orderId);
             if (orderOpt.isEmpty()) {
@@ -557,12 +631,11 @@ public class OrderService {
     }
     
     /**
-     * Generate order number
+     * Generate order number (legacy method - now orderId is already in correct format)
      */
-    private String generateOrderNumber(Long orderId) {
-        LocalDateTime now = LocalDateTime.now();
-        String dateStr = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        return "ORD" + dateStr + String.format("%06d", orderId);
+    private String generateOrderNumber(String orderId) {
+        // Order ID is already in DDMMYYXXX format, so just return it
+        return orderId;
     }
     
     /**
@@ -604,7 +677,7 @@ public class OrderService {
      * Get order by ID for admin
      */
     @Transactional(readOnly = true)
-    public OrderDTO getOrderById(Long orderId) {
+    public OrderDTO getOrderById(String orderId) {
         logger.debug("Getting order by ID: {}", orderId);
         try {
             Order order = orderRepository.findOrderWithAllDetails(orderId);
@@ -667,7 +740,7 @@ public class OrderService {
      * Update order status (Admin function)
      */
     @Transactional
-    public OrderDTO updateOrderStatus(Long orderId, OrderStatus newStatus) {
+    public OrderDTO updateOrderStatus(String orderId, OrderStatus newStatus) {
         logger.debug("Updating order {} status to {}", orderId, newStatus);
         try {
             Order order = orderRepository.findById(orderId)
@@ -734,7 +807,7 @@ public class OrderService {
      * Admin cancel order with reason
      */
     @Transactional
-    public OrderDTO adminCancelOrder(Long orderId, String reason) {
+    public OrderDTO adminCancelOrder(String orderId, String reason) {
         logger.debug("Admin cancelling order {} with reason: {}", orderId, reason);
         try {
             Order order = orderRepository.findById(orderId)

@@ -22,11 +22,11 @@ VALUES
 ('Tai', 'Nguyen', 'tai@gmail.com', '$2a$10$agFzx5FVfCDVt1rdzQTdcOV4Hy6I/4q9SiQRPbvh9r5umm4EOKuPC', '0901000009', NULL, 'CUSTOMER', NOW() - INTERVAL '1 days');
 
 -- ========== 2) DELIVERY UNITS ==========
-INSERT INTO DeliveryUnits(name, fee, estimated_time, is_active, created_at)
+INSERT INTO DeliveryUnits(name, estimated_time, is_active, created_at)
 VALUES
-('Giao Nhanh 2H', 25000, '2-4 giờ nội thành', TRUE, NOW() - INTERVAL '80 days'),
-('GHN', 30000, '1-2 ngày', TRUE, NOW() - INTERVAL '80 days'),
-('Viettel Post', 35000, '2-3 ngày', TRUE, NOW() - INTERVAL '80 days');
+('Giao Nhanh 2H', '2-4 giờ nội thành', TRUE, NOW() - INTERVAL '80 days'),
+('GHN', '1-2 ngày', TRUE, NOW() - INTERVAL '80 days'),
+('Viettel Post', '2-3 ngày', TRUE, NOW() - INTERVAL '80 days');
 
 -- ========== 3) CATALOGS ==========
 -- Danh mục sản phẩm dựa trên chủ đề
@@ -139,11 +139,11 @@ VALUES
 (5, 12, NOW() - INTERVAL '1 day');
 
 -- ========== 9) VOUCHERS ==========
-INSERT INTO Vouchers(code, discount_type, discount_value, min_order_value, max_uses, uses, expiry_date, is_active, created_at)
+INSERT INTO Vouchers(code, name, description, discount_type, discount_value, max_discount_amount, min_order_value, max_uses, uses, expiry_date, is_active, created_at)
 VALUES
-('WELCOME10', 'PERCENTAGE', 10, 500000, 100, 15, (NOW() + INTERVAL '30 days')::date, TRUE, NOW() - INTERVAL '30 days'),
-('NEWUSER20', 'PERCENTAGE', 20, 300000, 50, 8, (NOW() + INTERVAL '25 days')::date, TRUE, NOW() - INTERVAL '25 days'),
-('SAVE50K', 'FIXED', 50000, 800000, 200, 25, (NOW() + INTERVAL '20 days')::date, TRUE, NOW() - INTERVAL '20 days'),
-('VIP15', 'PERCENTAGE', 15, 1000000, 30, 5, (NOW() + INTERVAL '15 days')::date, TRUE, NOW() - INTERVAL '15 days');
+('WELCOME10', 'Chào mừng 10%', 'Giảm 10% cho đơn hàng từ 500k, tối đa 100k', 'PERCENTAGE', 10, 100000, 500000, 100, 15, (NOW() + INTERVAL '30 days')::date, TRUE, NOW() - INTERVAL '30 days'),
+('NEWUSER20', 'Khách mới 20%', 'Giảm 20% cho khách hàng mới, tối đa 200k', 'PERCENTAGE', 20, 200000, 300000, 50, 8, (NOW() + INTERVAL '25 days')::date, TRUE, NOW() - INTERVAL '25 days'),
+('SAVE50K', 'Tiết kiệm 50k', 'Giảm cố định 50k cho đơn hàng từ 800k', 'FIXED', 50000, NULL, 800000, 200, 25, (NOW() + INTERVAL '20 days')::date, TRUE, NOW() - INTERVAL '20 days'),
+('VIP15', 'VIP 15%', 'Giảm 15% cho khách VIP, tối đa 300k', 'PERCENTAGE', 15, 300000, 1000000, 30, 5, (NOW() + INTERVAL '15 days')::date, TRUE, NOW() - INTERVAL '15 days');
 
 COMMIT;

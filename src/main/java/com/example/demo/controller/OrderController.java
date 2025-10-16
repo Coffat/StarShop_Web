@@ -107,7 +107,7 @@ public class OrderController extends BaseController {
      * Display order detail page
      */
     @GetMapping("/orders/{orderId}")
-    public String orderDetailPage(@PathVariable Long orderId, 
+    public String orderDetailPage(@PathVariable String orderId, 
                             @RequestParam(required = false) String payment,
                             @RequestParam(required = false) String transId,
                             Authentication authentication, Model model) {
@@ -414,7 +414,7 @@ public class OrderController extends BaseController {
     @ResponseBody
     public ResponseEntity<ResponseWrapper<OrderResponse>> getOrder(
             @Parameter(description = "ID đơn hàng", required = true)
-            @PathVariable Long orderId,
+            @PathVariable String orderId,
             @Parameter(hidden = true) Authentication authentication) {
         
         try {
@@ -464,7 +464,7 @@ public class OrderController extends BaseController {
     @ResponseBody
     public ResponseEntity<ResponseWrapper<OrderResponse>> cancelOrder(
             @Parameter(description = "ID đơn hàng cần hủy", required = true)
-            @PathVariable Long orderId,
+            @PathVariable String orderId,
             @Parameter(hidden = true) Authentication authentication) {
         
         try {
@@ -515,7 +515,7 @@ public class OrderController extends BaseController {
     @ResponseBody
     public ResponseEntity<ResponseWrapper<OrderDTO>> updateOrderStatus(
             @Parameter(description = "ID đơn hàng", required = true)
-            @PathVariable Long orderId,
+            @PathVariable String orderId,
             @Parameter(description = "Trạng thái mới", required = true, example = "PROCESSING")
             @RequestParam OrderStatus status,
             @Parameter(hidden = true) Authentication authentication) {
@@ -620,7 +620,7 @@ public class OrderController extends BaseController {
     @PostMapping("/api/orders/{orderId}/payment")
     @ResponseBody
     public ResponseEntity<ResponseWrapper<PaymentService.PaymentResult>> processPayment(
-            @PathVariable Long orderId,
+            @PathVariable String orderId,
             @RequestParam PaymentMethod paymentMethod,
             Authentication authentication) {
         

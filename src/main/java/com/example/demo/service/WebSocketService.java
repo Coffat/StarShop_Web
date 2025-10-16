@@ -62,7 +62,7 @@ public class WebSocketService {
      * @param orderId Order ID
      * @param status New order status
      */
-    public void sendOrderStatusUpdate(Long userId, Long orderId, String status) {
+    public void sendOrderStatusUpdate(Long userId, String orderId, String status) {
         if (userId == null || orderId == null) {
             log.warn("Cannot send order update: userId or orderId is null");
             return;
@@ -431,11 +431,11 @@ public class WebSocketService {
     public static class OrderUpdatePayload {
         public final String type;
         public final String message;
-        public final Long orderId;
+        public final String orderId;
         public final String status;
         public final String timestamp;
         
-        public OrderUpdatePayload(String type, String message, Long orderId, String status, String timestamp) {
+        public OrderUpdatePayload(String type, String message, String orderId, String status, String timestamp) {
             this.type = type;
             this.message = message;
             this.orderId = orderId;

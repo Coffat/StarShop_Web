@@ -94,12 +94,10 @@ CREATE INDEX idx_products_catalog_id ON Products(catalog_id);
 CREATE TABLE DeliveryUnits (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) UNIQUE NOT NULL,
-    fee NUMERIC(10,2) NOT NULL DEFAULT 0.00,
     estimated_time VARCHAR(50) DEFAULT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP,
-    CHECK (fee >= 0)
+    updated_at TIMESTAMP
 );
 COMMENT ON TABLE DeliveryUnits IS 'Delivery service providers';
 
@@ -107,8 +105,11 @@ COMMENT ON TABLE DeliveryUnits IS 'Delivery service providers';
 CREATE TABLE Vouchers (
     id BIGSERIAL PRIMARY KEY,
     code VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(255),
+    description TEXT,
     discount_value NUMERIC(10,2) NOT NULL,
     discount_type discount_type NOT NULL,
+    max_discount_amount NUMERIC(10,2),
     expiry_date DATE NOT NULL,
     min_order_value NUMERIC(10,2) DEFAULT 0.00,
     max_uses INTEGER DEFAULT NULL,
@@ -124,7 +125,7 @@ CREATE INDEX idx_vouchers_code ON Vouchers(code);
 
 -- Table: Orders
 CREATE TABLE Orders (
-    id BIGSERIAL PRIMARY KEY,
+    id VARCHAR(20) PRIMARY KEY,
     user_id BIGINT NOT NULL,
     total_amount NUMERIC(10,2) NOT NULL DEFAULT 0.00,
     status order_status NOT NULL DEFAULT 'PENDING',
@@ -153,7 +154,7 @@ CREATE INDEX idx_orders_user_status ON Orders(user_id, status);
 -- Table: OrderItems
 CREATE TABLE OrderItems (
     id BIGSERIAL PRIMARY KEY,
-    order_id BIGINT NOT NULL,
+    order_id VARCHAR(20) NOT NULL,
     product_id BIGINT NOT NULL,
     quantity INTEGER NOT NULL DEFAULT 1,
     price NUMERIC(10,2) NOT NULL,
@@ -281,3 +282,6 @@ CREATE INDEX idx_vouchers_is_active ON Vouchers(is_active);
 CREATE INDEX idx_deliveryunits_is_active ON DeliveryUnits(is_active);
 CREATE INDEX idx_orders_total_amount ON Orders(total_amount);
 CREATE INDEX idx_orders_shipping_fee ON Orders(shipping_fee);
+
+-- Sequence for daily order counter
+CREATE SEQUENCE daily_order_counter START 1;

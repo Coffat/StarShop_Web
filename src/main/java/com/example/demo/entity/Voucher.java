@@ -80,11 +80,19 @@ public class Voucher extends BaseEntity {
             return BigDecimal.ZERO;
         }
 
+        BigDecimal discount;
         if (discountType == DiscountType.PERCENTAGE) {
-            return orderAmount.multiply(discountValue).divide(new BigDecimal(100));
+            discount = orderAmount.multiply(discountValue).divide(new BigDecimal(100));
+            // Apply max discount if set
+            if (maxDiscountAmount != null && discount.compareTo(maxDiscountAmount) > 0) {
+                discount = maxDiscountAmount;
+            }
         } else {
-            return discountValue;
+            discount = discountValue;
         }
+        
+        // Ensure discount doesn't exceed order amount
+        return discount.compareTo(orderAmount) > 0 ? orderAmount : discount;
     }
 
     // Getters and Setters

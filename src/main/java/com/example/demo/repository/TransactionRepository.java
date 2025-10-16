@@ -19,7 +19,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     
     Page<Transaction> findByUserId(Long userId, Pageable pageable);
     
-    List<Transaction> findByOrderId(Long orderId);
+    List<Transaction> findByOrderId(String orderId);
     
     List<Transaction> findByStatus(TransactionStatus status);
     

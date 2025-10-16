@@ -105,7 +105,7 @@ public class AdminOrderController extends BaseController {
      * Order Detail Page
      */
     @GetMapping("/{orderId}")
-    public String orderDetail(@PathVariable Long orderId, Model model) {
+    public String orderDetail(@PathVariable String orderId, Model model) {
 
         try {
             OrderDTO order = orderService.getOrderById(orderId);
@@ -143,7 +143,7 @@ public class AdminOrderController extends BaseController {
     @PutMapping("/api/{orderId}/status")
     @ResponseBody
     public ResponseEntity<ResponseWrapper<OrderDTO>> updateOrderStatus(
-            @PathVariable Long orderId,
+            @PathVariable String orderId,
             @RequestBody Map<String, String> request) {
         
 
@@ -229,7 +229,7 @@ public class AdminOrderController extends BaseController {
      */
     @PutMapping("/api/{orderId}/cancel")
     public ResponseEntity<ResponseWrapper<OrderDTO>> cancelOrder(
-            @PathVariable Long orderId,
+            @PathVariable String orderId,
             @RequestBody Map<String, String> request) {
         
         

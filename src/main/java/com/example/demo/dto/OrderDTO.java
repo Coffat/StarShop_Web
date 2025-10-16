@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
  */
 public class OrderDTO {
     
-    private Long id;
+    private String id;
     private Long userId;
     private String userFullName;
     private String userEmail;
@@ -40,7 +40,7 @@ public class OrderDTO {
     public OrderDTO() {
     }
     
-    public OrderDTO(Long id, Long userId, String userFullName, String userEmail, String userPhone,
+    public OrderDTO(String id, Long userId, String userFullName, String userEmail, String userPhone,
                     BigDecimal totalAmount, OrderStatus status, LocalDateTime orderDate,
                     Long deliveryUnitId, String deliveryUnitName, BigDecimal deliveryFee,
                     Long voucherId, String voucherCode, BigDecimal discountAmount,
@@ -217,11 +217,11 @@ public class OrderDTO {
     }
     
     // Getters and Setters
-    public Long getId() {
+    public String getId() {
         return id;
     }
     
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
     

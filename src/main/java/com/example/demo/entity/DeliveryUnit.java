@@ -1,7 +1,6 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,8 +11,6 @@ public class DeliveryUnit extends BaseEntity {
     @Column(nullable = false, unique = true, length = 100)
     private String name;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal fee = BigDecimal.ZERO;
 
     @Column(name = "estimated_time", length = 50)
     private String estimatedTime;
@@ -28,9 +25,8 @@ public class DeliveryUnit extends BaseEntity {
     public DeliveryUnit() {
     }
 
-    public DeliveryUnit(String name, BigDecimal fee, String estimatedTime) {
+    public DeliveryUnit(String name, String estimatedTime) {
         this.name = name;
-        this.fee = fee;
         this.estimatedTime = estimatedTime;
     }
 
@@ -43,13 +39,6 @@ public class DeliveryUnit extends BaseEntity {
         this.name = name;
     }
 
-    public BigDecimal getFee() {
-        return fee;
-    }
-
-    public void setFee(BigDecimal fee) {
-        this.fee = fee;
-    }
 
     public String getEstimatedTime() {
         return estimatedTime;

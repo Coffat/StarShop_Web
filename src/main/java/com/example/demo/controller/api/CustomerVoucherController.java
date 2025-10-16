@@ -1,6 +1,7 @@
 package com.example.demo.controller.api;
 
 import com.example.demo.dto.VoucherDTO;
+import com.example.demo.entity.enums.DiscountType;
 import com.example.demo.service.VoucherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -109,16 +110,13 @@ public class CustomerVoucherController {
             
             log.info("Applying voucher {} to order amount: {}", code, orderAmount);
             
-            VoucherDTO voucher = voucherService.getVoucherByCode(code.toUpperCase());
+            VoucherDTO voucher = voucherService.getValidVoucherByCode(code.toUpperCase());
+            
+            log.info("Voucher details: type={}, value={}, maxDiscount={}, minOrder={}", 
+                voucher.getDiscountType(), voucher.getDiscountValue(), 
+                voucher.getMaxDiscountAmount(), voucher.getMinOrderValue());
             
             Map<String, Object> response = new HashMap<>();
-            
-            // Validate voucher
-            if (!voucher.getIsActive() || !"ACTIVE".equals(voucher.getStatus())) {
-                response.put("success", false);
-                response.put("message", "Voucher không khả dụng");
-                return ResponseEntity.ok(response);
-            }
             
             // Check minimum order value
             if (voucher.getMinOrderValue() != null && orderAmount < voucher.getMinOrderValue().doubleValue()) {
@@ -129,19 +127,23 @@ public class CustomerVoucherController {
             
             // Calculate discount
             double discount = 0;
-            if ("PERCENTAGE".equals(voucher.getDiscountType())) {
+            if (voucher.getDiscountType() == DiscountType.PERCENTAGE) {
                 discount = orderAmount * (voucher.getDiscountValue().doubleValue() / 100.0);
+                log.info("Percentage discount calculated: {} ({}% of {})", discount, voucher.getDiscountValue(), orderAmount);
                 
                 // Apply max discount if set
                 if (voucher.getMaxDiscountAmount() != null && discount > voucher.getMaxDiscountAmount().doubleValue()) {
                     discount = voucher.getMaxDiscountAmount().doubleValue();
+                    log.info("Applied max discount limit: {}", discount);
                 }
-            } else if ("FIXED".equals(voucher.getDiscountType())) {
+            } else if (voucher.getDiscountType() == DiscountType.FIXED) {
                 discount = voucher.getDiscountValue().doubleValue();
+                log.info("Fixed discount applied: {}", discount);
             }
             
             // Ensure discount doesn't exceed order amount
             discount = Math.min(discount, orderAmount);
+            log.info("Final discount amount: {}", discount);
             
             double finalAmount = orderAmount - discount;
             
@@ -170,12 +172,5 @@ public class CustomerVoucherController {
         return String.format("%,.0f₫", amount);
     }
     
-    /**
-     * Format BigDecimal currency for display
-     */
-    private String formatCurrency(java.math.BigDecimal amount) {
-        if (amount == null) return "0₫";
-        return String.format("%,.0f₫", amount);
-    }
 }
 
