@@ -130,7 +130,6 @@ public class AccountController {
     public String updateProfile(
             @RequestParam("firstName") String firstName,
             @RequestParam("lastName") String lastName,
-            @RequestParam("email") String email,
             @RequestParam("phone") String phone,
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
@@ -144,11 +143,18 @@ public class AccountController {
                 return "redirect:/account/profile";
             }
             
-            // Validate email uniqueness (basic)
-            if (email != null && !email.trim().equalsIgnoreCase(user.getEmail())) {
-                var existing = userRepository.findByEmail(email.trim());
-                if (existing.isPresent() && !existing.get().getId().equals(user.getId())) {
-                    redirectAttributes.addFlashAttribute("error", "Email đã được sử dụng bởi tài khoản khác");
+            // Normalize and validate phone (digits only, 10 chars)
+            String normalizedPhone = phone == null ? null : phone.trim();
+            if (normalizedPhone != null && !normalizedPhone.matches("\\d{10}")) {
+                redirectAttributes.addFlashAttribute("error", "Số điện thoại không hợp lệ. Vui lòng nhập 10 chữ số.");
+                return "redirect:/account/profile";
+            }
+
+            // Validate phone uniqueness if changed
+            if (normalizedPhone != null && !normalizedPhone.equals(user.getPhone())) {
+                boolean phoneInUse = userRepository.existsByPhone(normalizedPhone);
+                if (phoneInUse) {
+                    redirectAttributes.addFlashAttribute("error", "Số điện thoại đã được sử dụng bởi tài khoản khác");
                     return "redirect:/account/profile";
                 }
             }
@@ -156,15 +162,16 @@ public class AccountController {
             // Update user information
             user.setFirstname(firstName.trim());
             user.setLastname(lastName.trim());
-            if (email != null && !email.trim().isEmpty()) {
-                user.setEmail(email.trim());
+            String oldPhone = user.getPhone();
+            if (normalizedPhone != null) {
+                user.setPhone(normalizedPhone);
             }
-            user.setPhone(phone.trim());
             
             // Save user
-            userRepository.save(user);
+            userRepository.saveAndFlush(user);
             
             log.info("Profile updated successfully for user: {}", authentication.getName());
+            log.info("Phone changed from {} to {} for userId={}", oldPhone, user.getPhone(), user.getId());
             redirectAttributes.addFlashAttribute("success", "Cập nhật thông tin thành công!");
             
         } catch (Exception e) {
