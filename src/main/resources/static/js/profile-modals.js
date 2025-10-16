@@ -92,13 +92,16 @@ async function loadProvinces() {
         const provinceSelect = document.getElementById('province');
         provinceSelect.innerHTML = '<option value="">-- Chọn Tỉnh/Thành phố --</option>';
         
-        if (data.success && data.data) {
+        if (data.data && !data.error) {
             data.data.forEach(province => {
                 const option = document.createElement('option');
-                option.value = province.ProvinceID;
-                option.textContent = province.ProvinceName;
+                option.value = province.id;
+                option.textContent = province.name;
                 provinceSelect.appendChild(option);
             });
+        } else {
+            console.error('Error loading provinces:', data.error);
+            showToast(data.error || 'Không thể tải danh sách tỉnh/thành phố', 'error');
         }
     } catch (error) {
         console.error('Error loading provinces:', error);
@@ -130,14 +133,17 @@ async function loadDistricts() {
         const response = await fetch(`/api/locations/districts?province_id=${provinceId}`);
         const data = await response.json();
         
-        if (data.success && data.data) {
+        if (data.data && !data.error) {
             data.data.forEach(district => {
                 const option = document.createElement('option');
-                option.value = district.DistrictID;
-                option.textContent = district.DistrictName;
+                option.value = district.id;
+                option.textContent = district.name;
                 districtSelect.appendChild(option);
             });
             districtSelect.disabled = false;
+        } else {
+            console.error('Error loading districts:', data.error);
+            showToast(data.error || 'Không thể tải danh sách quận/huyện', 'error');
         }
     } catch (error) {
         console.error('Error loading districts:', error);
@@ -156,7 +162,7 @@ async function loadWards() {
     if (mode === 'NEW') {
         const provinceId = document.getElementById('province').value;
         if (!provinceId) return;
-        url = `/api/locations/wards?province_id=${provinceId}`;
+        url = `/api/locations/wards-by-province?province_id=${provinceId}`;
     } else {
         const districtId = document.getElementById('district').value;
         if (!districtId) return;
@@ -167,14 +173,17 @@ async function loadWards() {
         const response = await fetch(url);
         const data = await response.json();
         
-        if (data.success && data.data) {
+        if (data.data && !data.error) {
             data.data.forEach(ward => {
                 const option = document.createElement('option');
-                option.value = ward.WardCode;
-                option.textContent = ward.WardName;
+                option.value = ward.code;
+                option.textContent = ward.name;
                 wardSelect.appendChild(option);
             });
             wardSelect.disabled = false;
+        } else {
+            console.error('Error loading wards:', data.error);
+            showToast(data.error || 'Không thể tải danh sách phường/xã', 'error');
         }
     } catch (error) {
         console.error('Error loading wards:', error);
@@ -191,12 +200,24 @@ async function submitAddress(event) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Đang xử lý...';
     
+    // Get selected option texts for names
+    const provinceSelect = document.getElementById('province');
+    const districtSelect = document.getElementById('district');
+    const wardSelect = document.getElementById('ward');
+    
+    const provinceName = provinceSelect.options[provinceSelect.selectedIndex]?.text || '';
+    const districtName = mode === 'OLD' ? (districtSelect.options[districtSelect.selectedIndex]?.text || '') : '';
+    const wardName = wardSelect.options[wardSelect.selectedIndex]?.text || '';
+    
     const addressData = {
         addressMode: mode,
         provinceId: parseInt(document.getElementById('province').value),
         districtId: mode === 'OLD' ? parseInt(document.getElementById('district').value) : null,
         wardCode: document.getElementById('ward').value,
         addressDetail: document.getElementById('addressDetail').value.trim(),
+        provinceName: provinceName,
+        districtName: districtName,
+        wardName: wardName,
         isDefault: document.getElementById('isDefault').checked
     };
     
@@ -211,12 +232,12 @@ async function submitAddress(event) {
         
         const result = await response.json();
         
-        if (result.success) {
+        if (result.data && !result.error) {
             showToast('Thêm địa chỉ thành công!', 'success');
             closeAddressModal();
             loadAddresses();
         } else {
-            showToast(result.message || 'Có lỗi xảy ra', 'error');
+            showToast(result.error || result.message || 'Có lỗi xảy ra', 'error');
         }
     } catch (error) {
         console.error('Error submitting address:', error);
@@ -236,7 +257,7 @@ async function loadAddresses() {
         const response = await fetch('/api/addresses');
         const data = await response.json();
         
-        if (data.success && data.data && data.data.length > 0) {
+        if (data.data && !data.error && data.data.length > 0) {
             addressesList.innerHTML = data.data.map(address => `
                 <div class="border border-gray-200 rounded-lg p-4 hover:border-pink-300 transition-all mb-3 ${address.isDefault ? 'border-pink-500 bg-pink-50' : ''}">
                     <div class="flex items-start justify-between">
@@ -282,11 +303,11 @@ async function deleteAddress(addressId) {
         
         const result = await response.json();
         
-        if (result.success) {
+        if (result.data !== undefined && !result.error) {
             showToast('Xóa địa chỉ thành công!', 'success');
             loadAddresses();
         } else {
-            showToast(result.message || 'Không thể xóa địa chỉ', 'error');
+            showToast(result.error || result.message || 'Không thể xóa địa chỉ', 'error');
         }
     } catch (error) {
         console.error('Error deleting address:', error);
