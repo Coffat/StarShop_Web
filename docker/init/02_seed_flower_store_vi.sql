@@ -22,11 +22,11 @@ VALUES
 ('Tai', 'Nguyen', 'tai@gmail.com', '$2a$10$agFzx5FVfCDVt1rdzQTdcOV4Hy6I/4q9SiQRPbvh9r5umm4EOKuPC', '0901000009', NULL, 'CUSTOMER', NOW() - INTERVAL '1 days');
 
 -- ========== 2) DELIVERY UNITS ==========
-INSERT INTO DeliveryUnits(name, fee, estimated_time, is_active, created_at)
+INSERT INTO DeliveryUnits(name, estimated_time, is_active, created_at)
 VALUES
-('Giao Nhanh 2H', 25000, '2-4 giờ nội thành', TRUE, NOW() - INTERVAL '80 days'),
-('GHN', 30000, '1-2 ngày', TRUE, NOW() - INTERVAL '80 days'),
-('Viettel Post', 35000, '2-3 ngày', TRUE, NOW() - INTERVAL '80 days');
+('Giao Nhanh 2H', '2-4 giờ nội thành', TRUE, NOW() - INTERVAL '80 days'),
+('GHN', '1-2 ngày', TRUE, NOW() - INTERVAL '80 days'),
+('Viettel Post', '2-3 ngày', TRUE, NOW() - INTERVAL '80 days');
 
 -- ========== 3) CATALOGS ==========
 -- Danh mục sản phẩm dựa trên chủ đề

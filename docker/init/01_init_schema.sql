@@ -94,12 +94,10 @@ CREATE INDEX idx_products_catalog_id ON Products(catalog_id);
 CREATE TABLE DeliveryUnits (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) UNIQUE NOT NULL,
-    fee NUMERIC(10,2) NOT NULL DEFAULT 0.00,
     estimated_time VARCHAR(50) DEFAULT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP,
-    CHECK (fee >= 0)
+    updated_at TIMESTAMP
 );
 COMMENT ON TABLE DeliveryUnits IS 'Delivery service providers';
 

@@ -98,12 +98,17 @@ public class OrderService {
             order.setId(orderIdGeneratorService.generateOrderId());
             order.setNotes(request.getNotes());
             
-            // Set delivery unit if provided
-            if (request.getDeliveryUnitId() != null) {
-                Optional<DeliveryUnit> deliveryUnitOpt = deliveryUnitRepository.findById(request.getDeliveryUnitId());
-                if (deliveryUnitOpt.isPresent()) {
-                    order.setDeliveryUnit(deliveryUnitOpt.get());
-                }
+            // Set delivery unit - default to GHN (ID = 2) if not provided
+            Long deliveryUnitId = request.getDeliveryUnitId() != null ? request.getDeliveryUnitId() : 2L;
+            logger.info("Setting delivery unit ID: {} (request provided: {})", deliveryUnitId, request.getDeliveryUnitId());
+            Optional<DeliveryUnit> deliveryUnitOpt = deliveryUnitRepository.findById(deliveryUnitId);
+            if (deliveryUnitOpt.isPresent()) {
+                DeliveryUnit deliveryUnit = deliveryUnitOpt.get();
+                order.setDeliveryUnit(deliveryUnit);
+                logger.info("Successfully set delivery unit: {} (ID: {})", deliveryUnit.getName(), deliveryUnitId);
+                logger.info("Order delivery unit after set: {}", order.getDeliveryUnit() != null ? order.getDeliveryUnit().getName() : "NULL");
+            } else {
+                logger.warn("Delivery unit with ID {} not found!", deliveryUnitId);
             }
             
             // Set voucher if provided
@@ -169,7 +174,10 @@ public class OrderService {
             order.calculateTotalAmountWithShippingFee(shippingFee);
             
             // Save order
+            logger.info("Saving order with delivery unit: {}", order.getDeliveryUnit() != null ? order.getDeliveryUnit().getName() + " (ID: " + order.getDeliveryUnit().getId() + ")" : "NULL");
             order = orderRepository.save(order);
+            orderRepository.flush(); // Force flush to database
+            logger.info("Order saved successfully with ID: {}, delivery unit: {}", order.getId(), order.getDeliveryUnit() != null ? order.getDeliveryUnit().getName() : "NULL");
             
             // Clear user's cart
             cartService.clearCart(userId);
@@ -221,12 +229,17 @@ public class OrderService {
             order.setId(orderIdGeneratorService.generateOrderId());
             order.setNotes(request.getNotes());
             
-            // Set delivery unit if provided
-            if (request.getDeliveryUnitId() != null) {
-                Optional<DeliveryUnit> deliveryUnitOpt = deliveryUnitRepository.findById(request.getDeliveryUnitId());
-                if (deliveryUnitOpt.isPresent()) {
-                    order.setDeliveryUnit(deliveryUnitOpt.get());
-                }
+            // Set delivery unit - default to GHN (ID = 2) if not provided
+            Long deliveryUnitId = request.getDeliveryUnitId() != null ? request.getDeliveryUnitId() : 2L;
+            logger.info("Setting delivery unit ID: {} (request provided: {})", deliveryUnitId, request.getDeliveryUnitId());
+            Optional<DeliveryUnit> deliveryUnitOpt = deliveryUnitRepository.findById(deliveryUnitId);
+            if (deliveryUnitOpt.isPresent()) {
+                DeliveryUnit deliveryUnit = deliveryUnitOpt.get();
+                order.setDeliveryUnit(deliveryUnit);
+                logger.info("Successfully set delivery unit: {} (ID: {})", deliveryUnit.getName(), deliveryUnitId);
+                logger.info("Order delivery unit after set: {}", order.getDeliveryUnit() != null ? order.getDeliveryUnit().getName() : "NULL");
+            } else {
+                logger.warn("Delivery unit with ID {} not found!", deliveryUnitId);
             }
             
             // Set voucher if provided
@@ -386,6 +399,19 @@ public class OrderService {
             Order order = new Order(user, address, request.getPaymentMethod());
             order.setId(orderIdGeneratorService.generateOrderId());
             order.setNotes(request.getNotes());
+            
+            // Set delivery unit - default to GHN (ID = 2) if not provided
+            Long deliveryUnitId = request.getDeliveryUnitId() != null ? request.getDeliveryUnitId() : 2L;
+            logger.info("Setting delivery unit ID: {} (request provided: {})", deliveryUnitId, request.getDeliveryUnitId());
+            Optional<DeliveryUnit> deliveryUnitOpt = deliveryUnitRepository.findById(deliveryUnitId);
+            if (deliveryUnitOpt.isPresent()) {
+                DeliveryUnit deliveryUnit = deliveryUnitOpt.get();
+                order.setDeliveryUnit(deliveryUnit);
+                logger.info("Successfully set delivery unit: {} (ID: {})", deliveryUnit.getName(), deliveryUnitId);
+                logger.info("Order delivery unit after set: {}", order.getDeliveryUnit() != null ? order.getDeliveryUnit().getName() : "NULL");
+            } else {
+                logger.warn("Delivery unit with ID {} not found!", deliveryUnitId);
+            }
             
             // Create order items from cart items
             for (CartItem cartItem : cart.getCartItems()) {
