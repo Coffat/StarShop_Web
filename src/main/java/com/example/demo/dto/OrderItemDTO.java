@@ -2,7 +2,6 @@ package com.example.demo.dto;
 
 import com.example.demo.entity.OrderItem;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 /**
  * DTO for OrderItem entity
@@ -22,8 +21,6 @@ public class OrderItemDTO {
     private Integer quantity;
     private BigDecimal price; // Price at time of order
     private BigDecimal subtotal;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
     
     // Constructors
     public OrderItemDTO() {
@@ -32,7 +29,7 @@ public class OrderItemDTO {
     public OrderItemDTO(Long id, Long orderId, Long productId, String productName,
                         String productDescription, String productImage, BigDecimal productPrice,
                         Integer productStockQuantity, String productStatus, Integer quantity,
-                        BigDecimal price, BigDecimal subtotal, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                        BigDecimal price, BigDecimal subtotal) {
         this.id = id;
         this.orderId = orderId;
         this.productId = productId;
@@ -45,8 +42,6 @@ public class OrderItemDTO {
         this.quantity = quantity;
         this.price = price;
         this.subtotal = subtotal;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
     
     // Static factory method to create from OrderItem entity
@@ -95,9 +90,7 @@ public class OrderItemDTO {
             productStatus,
             orderItem.getQuantity(),
             orderItem.getPrice(), // Price at time of order
-            subtotal,
-            orderItem.getCreatedAt(),
-            orderItem.getUpdatedAt()
+            subtotal
         );
     }
     
@@ -196,21 +189,5 @@ public class OrderItemDTO {
     
     public void setSubtotal(BigDecimal subtotal) {
         this.subtotal = subtotal;
-    }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-    
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-    
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 }

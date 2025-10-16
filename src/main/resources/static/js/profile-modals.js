@@ -10,8 +10,15 @@ function closeEditProfileModal() {
 }
 
 function openAddressModal() {
-    document.getElementById('addressModal').classList.remove('hidden');
+    console.log('=== Opening address modal ===');
+    const modal = document.getElementById('addressModal');
+    if (!modal) {
+        console.error('Address modal not found!');
+        return;
+    }
+    modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+    console.log('Modal opened, loading provinces...');
     loadProvinces();
 }
 
@@ -86,22 +93,69 @@ function toggleAddressMode() {
 // Load Provinces
 async function loadProvinces() {
     try {
+        console.log('Loading provinces...');
         const response = await fetch('/api/locations/provinces');
+        
+        if (!response.ok) {
+            console.error('Response not OK:', response.status, response.statusText);
+            showToast('Lỗi khi tải danh sách tỉnh/thành phố', 'error');
+            return;
+        }
+        
         const data = await response.json();
+        console.log('Provinces response:', data);
+        console.log('Response structure:', {
+            hasError: 'error' in data,
+            hasData: 'data' in data,
+            errorValue: data.error,
+            dataType: typeof data.data,
+            dataLength: Array.isArray(data.data) ? data.data.length : 'not array'
+        });
         
         const provinceSelect = document.getElementById('province');
+        if (!provinceSelect) {
+            console.error('Province select element not found!');
+            return;
+        }
+        
         provinceSelect.innerHTML = '<option value="">-- Chọn Tỉnh/Thành phố --</option>';
         
-        if (data.data && !data.error) {
-            data.data.forEach(province => {
+        // ResponseWrapper: success when error is null
+        if (data.error === null && data.data && Array.isArray(data.data)) {
+            console.log(`Loaded ${data.data.length} provinces`);
+            
+            if (data.data.length === 0) {
+                console.warn('Empty provinces array!');
+                showToast('Không có dữ liệu tỉnh/thành phố', 'error');
+                return;
+            }
+            
+            // Check first province structure
+            console.log('First province:', data.data[0]);
+            
+            data.data.forEach((province, index) => {
                 const option = document.createElement('option');
-                option.value = province.id;
-                option.textContent = province.name;
+                // Try different property names
+                option.value = province.ProvinceID || province.id || province.provinceId;
+                option.textContent = province.ProvinceName || province.name || province.provinceName;
                 provinceSelect.appendChild(option);
+                
+                if (index === 0) {
+                    console.log('First option created:', {
+                        value: option.value,
+                        text: option.textContent
+                    });
+                }
             });
+            
+            console.log('Total options in select:', provinceSelect.options.length);
         } else {
-            console.error('Error loading provinces:', data.error);
-            showToast(data.error || 'Không thể tải danh sách tỉnh/thành phố', 'error');
+            console.error('Invalid response structure:', {
+                error: data.error,
+                hasData: !!data.data,
+                isArray: Array.isArray(data.data)
+            });
+            showToast(data.error || data.message || 'Không thể tải danh sách tỉnh/thành phố', 'error');
         }
     } catch (error) {
         console.error('Error loading provinces:', error);
@@ -123,6 +177,7 @@ async function loadDistricts() {
     if (!provinceId) return;
     
     const mode = document.querySelector('input[name="addressMode"]:checked').value;
+    console.log('Loading districts for province:', provinceId, 'mode:', mode);
     
     if (mode === 'NEW') {
         loadWards();
@@ -133,17 +188,20 @@ async function loadDistricts() {
         const response = await fetch(`/api/locations/districts?province_id=${provinceId}`);
         const data = await response.json();
         
-        if (data.data && !data.error) {
+        console.log('Districts response:', data);
+        
+        if (data.error === null && data.data) {
+            console.log(`Loaded ${data.data.length} districts`);
             data.data.forEach(district => {
                 const option = document.createElement('option');
-                option.value = district.id;
-                option.textContent = district.name;
+                option.value = district.DistrictID || district.id || district.districtId;
+                option.textContent = district.DistrictName || district.name || district.districtName;
                 districtSelect.appendChild(option);
             });
             districtSelect.disabled = false;
         } else {
-            console.error('Error loading districts:', data.error);
-            showToast(data.error || 'Không thể tải danh sách quận/huyện', 'error');
+            console.error('Failed to load districts:', data.error);
+            showToast(data.error || data.message || 'Không thể tải danh sách quận/huyện', 'error');
         }
     } catch (error) {
         console.error('Error loading districts:', error);
@@ -173,17 +231,19 @@ async function loadWards() {
         const response = await fetch(url);
         const data = await response.json();
         
-        if (data.data && !data.error) {
+        console.log('Wards response:', data); // Debug log
+        
+        if (data.error === null && data.data) {
             data.data.forEach(ward => {
                 const option = document.createElement('option');
-                option.value = ward.code;
-                option.textContent = ward.name;
+                option.value = ward.WardCode || ward.code || ward.wardCode;
+                option.textContent = ward.WardName || ward.name || ward.wardName;
                 wardSelect.appendChild(option);
             });
             wardSelect.disabled = false;
         } else {
-            console.error('Error loading wards:', data.error);
-            showToast(data.error || 'Không thể tải danh sách phường/xã', 'error');
+            console.error('Failed to load wards:', data.error);
+            showToast(data.error || data.message || 'Không thể tải danh sách phường/xã', 'error');
         }
     } catch (error) {
         console.error('Error loading wards:', error);
@@ -200,20 +260,18 @@ async function submitAddress(event) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Đang xử lý...';
     
-    // Get selected option texts for names
     const provinceSelect = document.getElementById('province');
     const districtSelect = document.getElementById('district');
     const wardSelect = document.getElementById('ward');
     
-    const provinceName = provinceSelect.options[provinceSelect.selectedIndex]?.text || '';
-    const districtName = mode === 'OLD' ? (districtSelect.options[districtSelect.selectedIndex]?.text || '') : '';
-    const wardName = wardSelect.options[wardSelect.selectedIndex]?.text || '';
-    
     const addressData = {
         addressMode: mode,
-        provinceId: parseInt(document.getElementById('province').value),
-        districtId: mode === 'OLD' ? parseInt(document.getElementById('district').value) : null,
-        wardCode: document.getElementById('ward').value,
+        provinceId: parseInt(provinceSelect.value),
+        provinceName: provinceSelect.options[provinceSelect.selectedIndex].text,
+        districtId: mode === 'OLD' ? parseInt(districtSelect.value) : null,
+        districtName: mode === 'OLD' ? districtSelect.options[districtSelect.selectedIndex].text : null,
+        wardCode: wardSelect.value,
+        wardName: wardSelect.options[wardSelect.selectedIndex].text,
         addressDetail: document.getElementById('addressDetail').value.trim(),
         provinceName: provinceName,
         districtName: districtName,
@@ -232,7 +290,7 @@ async function submitAddress(event) {
         
         const result = await response.json();
         
-        if (result.data && !result.error) {
+        if (result.error === null) {
             showToast('Thêm địa chỉ thành công!', 'success');
             closeAddressModal();
             loadAddresses();
@@ -257,7 +315,7 @@ async function loadAddresses() {
         const response = await fetch('/api/addresses');
         const data = await response.json();
         
-        if (data.data && !data.error && data.data.length > 0) {
+        if (data.error === null && data.data && data.data.length > 0) {
             addressesList.innerHTML = data.data.map(address => `
                 <div class="border border-gray-200 rounded-lg p-4 hover:border-pink-300 transition-all mb-3 ${address.isDefault ? 'border-pink-500 bg-pink-50' : ''}">
                     <div class="flex items-start justify-between">
@@ -303,7 +361,7 @@ async function deleteAddress(addressId) {
         
         const result = await response.json();
         
-        if (result.data !== undefined && !result.error) {
+        if (result.error === null) {
             showToast('Xóa địa chỉ thành công!', 'success');
             loadAddresses();
         } else {

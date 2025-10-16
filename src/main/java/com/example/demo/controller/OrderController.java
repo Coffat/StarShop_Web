@@ -123,11 +123,12 @@ public class OrderController extends BaseController {
             }
             
             // Get order details
-            OrderResponse orderResponse = orderService.getOrder(user.getId(), orderId);
+            OrderResponse orderResponse = orderService.getOrder(orderId, user.getId());
             
             if (!orderResponse.isSuccess()) {
-                model.addAttribute("error", orderResponse.getMessage());
-                return "error/404";
+                logger.warn("Order not found or access denied: orderId={}, userId={}, message={}", 
+                    orderId, user.getId(), orderResponse.getMessage());
+                return "redirect:/account/orders?error=" + orderResponse.getMessage();
             }
             
             // Handle payment result messages
@@ -147,15 +148,14 @@ public class OrderController extends BaseController {
             addBreadcrumb(model, "Đơn hàng của tôi", "/orders");
             addBreadcrumb(model, "Chi tiết đơn hàng #" + orderId, "/orders/" + orderId);
             
-            // Add model attributes
-            model.addAttribute("order", orderResponse.getOrder());
+            // Add model attributes - pass OrderResponse instead of OrderDTO
+            model.addAttribute("order", orderResponse);
             
             return "orders/detail";
             
         } catch (Exception e) {
-            logger.error("Error displaying order detail page: {}", e.getMessage());
-            model.addAttribute("error", "Có lỗi xảy ra khi tải chi tiết đơn hàng");
-            return "error/500";
+            logger.error("Error displaying order detail page: {}", e.getMessage(), e);
+            return "redirect:/account/orders?error=Có lỗi xảy ra khi tải chi tiết đơn hàng";
         }
     }
     
@@ -355,6 +355,8 @@ public class OrderController extends BaseController {
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Số lượng items per page", example = "10")
             @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "Filter by status", example = "PENDING")
+            @RequestParam(required = false) String status,
             @Parameter(hidden = true) Authentication authentication) {
         
         try {
@@ -370,9 +372,21 @@ public class OrderController extends BaseController {
                     .body(ResponseWrapper.error("Người dùng không hợp lệ"));
             }
             
-            // Get user's orders
+            // Get user's orders with optional status filter
             Pageable pageable = PageRequest.of(page, size, Sort.by("orderDate").descending());
-            Page<OrderDTO> orders = orderService.getUserOrders(user.getId(), pageable);
+            Page<OrderDTO> orders;
+            
+            if (status != null && !status.isEmpty()) {
+                try {
+                    OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
+                    orders = orderService.getUserOrdersByStatus(user.getId(), orderStatus, pageable);
+                } catch (IllegalArgumentException e) {
+                    return ResponseEntity.badRequest()
+                        .body(ResponseWrapper.error("Trạng thái đơn hàng không hợp lệ"));
+                }
+            } else {
+                orders = orderService.getUserOrders(user.getId(), pageable);
+            }
             
             return ResponseEntity.ok(ResponseWrapper.success(orders));
             

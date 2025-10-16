@@ -445,6 +445,13 @@
                             sortDir: 'desc'
                         });
                         
+                        // Add filter parameters
+                        if (this.filters.status) params.append('status', this.filters.status);
+                        if (this.filters.type) params.append('type', this.filters.type);
+                        if (this.filters.fromDate) params.append('fromDate', this.filters.fromDate);
+                        if (this.filters.toDate) params.append('toDate', this.filters.toDate);
+                        if (this.filters.search) params.append('search', this.filters.search);
+                        
                         const response = await fetch(`/admin/api/users?${params}`);
                         const data = await response.json();
                         

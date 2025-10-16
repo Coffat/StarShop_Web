@@ -136,10 +136,9 @@ public class AccountController {
             
             model.addAttribute("ordersCount", ordersCount);
             model.addAttribute("wishlistCount", wishlistCount);
-            
-            // TODO: Add actual orders data from database
-            // List<Order> userOrders = orderRepository.findByUserId(user.getId(), PageRequest.of(0, 10));
-            // model.addAttribute("orders", userOrders);
+        } else {
+            model.addAttribute("ordersCount", 0L);
+            model.addAttribute("wishlistCount", 0L);
         }
         
         model.addAttribute("isUserAuthenticated", authentication.isAuthenticated());

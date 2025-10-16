@@ -18,6 +18,7 @@ public class OrderDTO {
     private Long userId;
     private String userFullName;
     private String userEmail;
+    private String userPhone;
     private BigDecimal totalAmount;
     private OrderStatus status;
     private LocalDateTime orderDate;
@@ -39,7 +40,7 @@ public class OrderDTO {
     public OrderDTO() {
     }
     
-    public OrderDTO(Long id, Long userId, String userFullName, String userEmail,
+    public OrderDTO(Long id, Long userId, String userFullName, String userEmail, String userPhone,
                     BigDecimal totalAmount, OrderStatus status, LocalDateTime orderDate,
                     Long deliveryUnitId, String deliveryUnitName, BigDecimal deliveryFee,
                     Long voucherId, String voucherCode, BigDecimal discountAmount,
@@ -50,6 +51,7 @@ public class OrderDTO {
         this.userId = userId;
         this.userFullName = userFullName;
         this.userEmail = userEmail;
+        this.userPhone = userPhone;
         this.totalAmount = totalAmount;
         this.status = status;
         this.orderDate = orderDate;
@@ -89,10 +91,12 @@ public class OrderDTO {
         Long userId = null;
         String userFullName = null;
         String userEmail = null;
+        String userPhone = null;
         try {
             if (order.getUser() != null) {
                 userId = order.getUser().getId();
                 userEmail = order.getUser().getEmail();
+                userPhone = order.getUser().getPhone();
                 // Safe full name extraction using User's getFullName method
                 userFullName = order.getUser().getFullName();
                 if (userFullName == null || userFullName.trim().isEmpty()) {
@@ -106,12 +110,12 @@ public class OrderDTO {
         // Safe extraction of other relationships
         Long deliveryUnitId = null;
         String deliveryUnitName = null;
-        BigDecimal deliveryFee = BigDecimal.ZERO;
+        BigDecimal deliveryFee = order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO;
         try {
             if (order.getDeliveryUnit() != null) {
                 deliveryUnitId = order.getDeliveryUnit().getId();
                 deliveryUnitName = order.getDeliveryUnit().getName();
-                deliveryFee = order.getDeliveryUnit().getFee();
+                // Use actual shipping fee from order, not delivery unit fee
             }
         } catch (Exception e) {
             // Ignore lazy loading exceptions
@@ -151,6 +155,7 @@ public class OrderDTO {
             userId,
             userFullName,
             userEmail,
+            userPhone,
             order.getTotalAmount(),
             order.getStatus(),
             order.getOrderDate(),
@@ -242,6 +247,14 @@ public class OrderDTO {
     
     public void setUserEmail(String userEmail) {
         this.userEmail = userEmail;
+    }
+    
+    public String getUserPhone() {
+        return userPhone;
+    }
+    
+    public void setUserPhone(String userPhone) {
+        this.userPhone = userPhone;
     }
     
     public BigDecimal getTotalAmount() {

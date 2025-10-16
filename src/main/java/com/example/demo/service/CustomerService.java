@@ -5,6 +5,7 @@ import com.example.demo.dto.CustomerDTO;
 import com.example.demo.dto.UpdateCustomerRequest;
 import com.example.demo.entity.User;
 import com.example.demo.entity.enums.UserRole;
+import com.example.demo.repository.FollowRepository;
 import com.example.demo.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class CustomerService {
     
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final FollowRepository followRepository;
     
     /**
      * Get all customers (CUSTOMER role only)
@@ -88,6 +90,131 @@ public class CustomerService {
             .filter(user -> user.getRole() == UserRole.CUSTOMER)
             .map(this::convertToDTO)
             .collect(Collectors.toList());
+    }
+    
+    /**
+     * Search customers by keyword with pagination
+     */
+    @Transactional(readOnly = true)
+    public Page<CustomerDTO> searchCustomers(String keyword, Pageable pageable) {
+        List<User> users = userRepository.searchUsers(keyword);
+        List<User> customers = users.stream()
+            .filter(user -> user.getRole() == UserRole.CUSTOMER)
+            .collect(Collectors.toList());
+        
+        // Apply pagination manually
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), customers.size());
+        
+        List<CustomerDTO> customerDTOs = customers.subList(start, end).stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+        
+        return new PageImpl<>(customerDTOs, pageable, customers.size());
+    }
+    
+    /**
+     * Get customers with filters
+     */
+    @Transactional(readOnly = true)
+    public Page<CustomerDTO> getCustomersWithFilters(
+            Pageable pageable, 
+            String status, 
+            String type, 
+            String fromDate, 
+            String toDate) {
+        
+        // Get all customers
+        List<User> allUsers = userRepository.findAll();
+        List<User> customers = allUsers.stream()
+            .filter(user -> user.getRole() == UserRole.CUSTOMER)
+            .collect(Collectors.toList());
+        
+        // Apply status filter
+        if (status != null && !status.isEmpty()) {
+            if ("active".equals(status)) {
+                customers = customers.stream()
+                    .filter(User::getIsActive)
+                    .collect(Collectors.toList());
+            } else if ("inactive".equals(status)) {
+                customers = customers.stream()
+                    .filter(user -> !user.getIsActive())
+                    .collect(Collectors.toList());
+            }
+        }
+        
+        // Apply type filter
+        if (type != null && !type.isEmpty()) {
+            if ("loyal".equals(type)) {
+                customers = customers.stream()
+                    .filter(user -> {
+                        try {
+                            return user.getOrders() != null && user.getOrders().size() > 10;
+                        } catch (Exception e) {
+                            return false;
+                        }
+                    })
+                    .collect(Collectors.toList());
+            } else if ("new".equals(type)) {
+                java.time.LocalDateTime oneMonthAgo = java.time.LocalDateTime.now().minusMonths(1);
+                customers = customers.stream()
+                    .filter(user -> user.getCreatedAt() != null && user.getCreatedAt().isAfter(oneMonthAgo))
+                    .collect(Collectors.toList());
+            } else if ("inactive".equals(type)) {
+                java.time.LocalDateTime threeMonthsAgo = java.time.LocalDateTime.now().minusMonths(3);
+                customers = customers.stream()
+                    .filter(user -> {
+                        try {
+                            if (user.getOrders() == null || user.getOrders().isEmpty()) {
+                                return true;
+                            }
+                            java.time.LocalDateTime lastOrder = user.getOrders().stream()
+                                .map(order -> order.getOrderDate())
+                                .max(java.time.LocalDateTime::compareTo)
+                                .orElse(null);
+                            return lastOrder != null && lastOrder.isBefore(threeMonthsAgo);
+                        } catch (Exception e) {
+                            return false;
+                        }
+                    })
+                    .collect(Collectors.toList());
+            }
+        }
+        
+        // Apply date range filter
+        if (fromDate != null && !fromDate.isEmpty()) {
+            try {
+                java.time.LocalDate from = java.time.LocalDate.parse(fromDate);
+                customers = customers.stream()
+                    .filter(user -> user.getCreatedAt() != null && 
+                           !user.getCreatedAt().toLocalDate().isBefore(from))
+                    .collect(Collectors.toList());
+            } catch (Exception e) {
+                log.warn("Invalid fromDate format: {}", fromDate);
+            }
+        }
+        
+        if (toDate != null && !toDate.isEmpty()) {
+            try {
+                java.time.LocalDate to = java.time.LocalDate.parse(toDate);
+                customers = customers.stream()
+                    .filter(user -> user.getCreatedAt() != null && 
+                           !user.getCreatedAt().toLocalDate().isAfter(to))
+                    .collect(Collectors.toList());
+            } catch (Exception e) {
+                log.warn("Invalid toDate format: {}", toDate);
+            }
+        }
+        
+        // Apply pagination manually
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), customers.size());
+        
+        List<CustomerDTO> customerDTOs = customers.subList(start, end).stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+        
+        return new PageImpl<>(customerDTOs, pageable, customers.size());
     }
     
     /**
@@ -179,6 +306,13 @@ public class CustomerService {
         
         if (customer.getRole() != UserRole.CUSTOMER) {
             throw new IllegalArgumentException("Người dùng không phải là khách hàng");
+        }
+        
+        // Delete all wishlist items (follows) first to avoid foreign key constraint violation
+        List<com.example.demo.entity.Follow> follows = followRepository.findByUserId(id);
+        if (!follows.isEmpty()) {
+            log.info("Deleting {} wishlist items for customer ID: {}", follows.size(), id);
+            followRepository.deleteAll(follows);
         }
         
         userRepository.delete(customer);

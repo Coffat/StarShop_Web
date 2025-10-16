@@ -26,14 +26,18 @@ public class AdminVoucherController {
     private final VoucherService voucherService;
     
     /**
-     * Get all vouchers
+     * Get all vouchers with filters
      */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllVouchers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir
+            @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String search
     ) {
         try {
             Sort sort = sortDir.equalsIgnoreCase("asc") 
@@ -41,7 +45,18 @@ public class AdminVoucherController {
                 : Sort.by(sortBy).descending();
             
             Pageable pageable = PageRequest.of(page, size, sort);
-            Page<VoucherDTO> voucherPage = voucherService.getVouchers(pageable);
+            
+            // Apply filters
+            Page<VoucherDTO> voucherPage;
+            if (search != null && !search.trim().isEmpty()) {
+                // Search by keyword (code, name)
+                voucherPage = voucherService.searchVouchers(search.trim(), pageable);
+            } else {
+                // Get all vouchers with optional filters
+                voucherPage = voucherService.getVouchersWithFilters(
+                    pageable, type, status, fromDate
+                );
+            }
             
             Map<String, Object> response = new HashMap<>();
             response.put("vouchers", voucherPage.getContent());
