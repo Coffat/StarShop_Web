@@ -336,7 +336,9 @@
         };
 
         // Main Correlation Chart - Customers vs Orders
-        const mainOverviewCtx = document.getElementById('mainOverviewChart').getContext('2d');
+        const mainOverviewCanvas = document.getElementById('mainOverviewChart');
+        if (mainOverviewCanvas) {
+        const mainOverviewCtx = mainOverviewCanvas.getContext('2d');
         const customersGradient = createGradient(mainOverviewCtx, 'rgba(139, 92, 246, 0.3)', 'rgba(139, 92, 246, 0.05)');
         const ordersGradient = createGradient(mainOverviewCtx, 'rgba(245, 158, 11, 0.3)', 'rgba(245, 158, 11, 0.05)');
         
@@ -472,9 +474,12 @@
                 }
             }
         });
+        }
 
         // Side Revenue Chart - Small Line Chart
-        const sideRevenueCtx = document.getElementById('sideRevenueChart').getContext('2d');
+        const sideRevenueCanvas = document.getElementById('sideRevenueChart');
+        if (sideRevenueCanvas) {
+        const sideRevenueCtx = sideRevenueCanvas.getContext('2d');
         new Chart(sideRevenueCtx, {
             type: 'line',
             data: {
@@ -545,9 +550,12 @@
                 elements: { point: { hoverRadius: 6 } }
             }
         });
+        }
 
         // Side Orders Status Chart - Doughnut
-        const sideOrdersStatusCtx = document.getElementById('sideOrdersStatusChart').getContext('2d');
+        const sideOrdersStatusCanvas = document.getElementById('sideOrdersStatusChart');
+        if (sideOrdersStatusCanvas) {
+        const sideOrdersStatusCtx = sideOrdersStatusCanvas.getContext('2d');
         new Chart(sideOrdersStatusCtx, {
             type: 'doughnut',
             data: {
@@ -588,9 +596,12 @@
                 }
             }
         });
+        }
 
         // Side Top Products Chart - Bar
-        const sideTopProductsCtx = document.getElementById('sideTopProductsChart').getContext('2d');
+        const sideTopProductsCanvas = document.getElementById('sideTopProductsChart');
+        if (sideTopProductsCanvas) {
+        const sideTopProductsCtx = sideTopProductsCanvas.getContext('2d');
         new Chart(sideTopProductsCtx, {
             type: 'bar',
             data: {
@@ -616,6 +627,7 @@
                 }
             }
         });
+        }
 
 
 
