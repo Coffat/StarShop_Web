@@ -27,7 +27,7 @@ public class HomeController {
     private final ProductService productService;
     private final CatalogService catalogService;
 
-    @GetMapping({"/", "/home"})
+    @GetMapping("/home")
     public String home(Authentication authentication, Model model) {
         log.info("Home page accessed");
         
@@ -43,6 +43,11 @@ public class HomeController {
         model.addAttribute("catalogs", catalogService.findAll());
 
         return "home";
+    }
+
+    @GetMapping("/")
+    public String root() {
+        return "redirect:/home";
     }
 
     @Operation(

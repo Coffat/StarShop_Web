@@ -15,7 +15,7 @@ DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
                    WHERE table_name='messages' AND column_name='conversation_id') THEN
-        ALTER TABLE Messages ADD COLUMN conversation_id VARCHAR(100);
+        ALTER TABLE Messages ADD COLUMN conversation_id BIGINT;
         COMMENT ON COLUMN Messages.conversation_id IS 'Links message to a conversation';
     END IF;
 END $$;
@@ -45,8 +45,8 @@ DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
                    WHERE table_name='messages' AND column_name='attachments') THEN
-        ALTER TABLE Messages ADD COLUMN attachments JSONB;
-        COMMENT ON COLUMN Messages.attachments IS 'JSON array of file attachments';
+        ALTER TABLE Messages ADD COLUMN attachments TEXT;
+        COMMENT ON COLUMN Messages.attachments IS 'JSON string of file attachments';
     END IF;
 END $$;
 
@@ -102,7 +102,7 @@ BEGIN
     UPDATE Conversations
     SET last_message_at = NEW.sent_at,
         updated_at = CURRENT_TIMESTAMP
-    WHERE id::TEXT = NEW.conversation_id;
+    WHERE id = NEW.conversation_id;
     
     RETURN NEW;
 END;
@@ -226,8 +226,8 @@ SELECT
     staff.id as staff_id,
     staff.firstname || ' ' || staff.lastname as staff_name,
     staff.employee_code as staff_code,
-    (SELECT COUNT(*) FROM Messages WHERE conversation_id = c.id::TEXT) as message_count,
-    (SELECT COUNT(*) FROM Messages WHERE conversation_id = c.id::TEXT AND is_read = FALSE) as unread_count
+    (SELECT COUNT(*) FROM Messages WHERE conversation_id = c.id) as message_count,
+    (SELECT COUNT(*) FROM Messages WHERE conversation_id = c.id AND is_read = FALSE) as unread_count
 FROM Conversations c
 INNER JOIN Users customer ON c.customer_id = customer.id
 LEFT JOIN Users staff ON c.assigned_staff_id = staff.id;

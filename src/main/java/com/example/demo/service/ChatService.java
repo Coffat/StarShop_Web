@@ -228,8 +228,12 @@ public class ChatService {
         // If no receiver found yet, find the other participant in the conversation
         if (receiver == null) {
             if (sender.getId().equals(conversation.getCustomer().getId())) {
-                // Customer is sending, receiver is assigned staff (if any)
+                // Customer is sending, receiver is assigned staff (if any). If none, route to system user
                 receiver = conversation.getAssignedStaff();
+                if (receiver == null) {
+                    // Ensure receiver_id is set for unassigned conversations
+                    receiver = getOrCreateSystemUser();
+                }
             } else {
                 // Staff is sending, receiver is customer
                 receiver = conversation.getCustomer();
@@ -428,7 +432,12 @@ public class ChatService {
         }
         
         // Save customer message
-        Message customerMessage = new Message(sender, conversation.getAssignedStaff(), messageDTO.getContent());
+        User initialReceiver = conversation.getAssignedStaff();
+        if (initialReceiver == null) {
+            // When no staff assigned yet, send to system user to avoid NULL receiver_id
+            initialReceiver = getOrCreateSystemUser();
+        }
+        Message customerMessage = new Message(sender, initialReceiver, messageDTO.getContent());
         customerMessage.setConversationId(conversation.getId());
         customerMessage.setMessageType(messageDTO.getMessageType() != null ? 
             messageDTO.getMessageType() : MessageType.TEXT);
