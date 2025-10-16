@@ -92,6 +92,14 @@
                         Dashboard
                     </a>
                     
+                    <!-- Đơn hàng -->
+                    <a href="/staff/orders" 
+                       th:classappend="${#strings.contains(currentPath, '/staff/orders') ? 'bg-primary-50 text-primary-700' : 'text-gray-700 hover:bg-gray-50'}"
+                       class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200">
+                        <i class="fas fa-receipt mr-3 text-lg"></i>
+                        Đơn hàng
+                    </a>
+
                     <!-- Chat / Hỗ trợ khách hàng -->
                     <a href="/staff/chat" 
                        th:classappend="${#strings.contains(currentPath, '/staff/chat') ? 'bg-primary-50 text-primary-700' : 'text-gray-700 hover:bg-gray-50'}"
@@ -158,6 +166,9 @@
                             <!-- Same navigation items as desktop -->
                             <a href="/staff/dashboard" class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
                                 <i class="fas fa-home mr-3"></i> Dashboard
+                            </a>
+                            <a href="/staff/orders" class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
+                                <i class="fas fa-receipt mr-3"></i> Đơn hàng
                             </a>
                             <a href="/staff/chat" class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
                                 <i class="fas fa-comments mr-3"></i> Hỗ trợ khách hàng

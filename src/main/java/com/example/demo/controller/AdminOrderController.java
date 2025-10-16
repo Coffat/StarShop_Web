@@ -106,33 +106,8 @@ public class AdminOrderController extends BaseController {
      */
     @GetMapping("/{orderId}")
     public String orderDetail(@PathVariable String orderId, Model model) {
-
-        try {
-            OrderDTO order = orderService.getOrderById(orderId);
-            if (order == null) {
-                model.addAttribute("error", "Không tìm thấy đơn hàng");
-                return "redirect:/admin/orders";
-            }
-
-            model.addAttribute("pageTitle", "Chi tiết Đơn hàng #" + orderId);
-            model.addAttribute("contentTemplate", "admin/orders/detail");
-            model.addAttribute("order", order);
-            model.addAttribute("orderStatuses", Arrays.asList(OrderStatus.values()));
-
-            // Breadcrumbs
-            List<BreadcrumbItem> breadcrumbs = new ArrayList<>();
-            breadcrumbs.add(new BreadcrumbItem("Dashboard", "/admin/dashboard"));
-            breadcrumbs.add(new BreadcrumbItem("Quản lý Đơn hàng", "/admin/orders"));
-            breadcrumbs.add(new BreadcrumbItem("Chi tiết #" + orderId, "/admin/orders/" + orderId));
-            model.addAttribute("breadcrumbs", breadcrumbs);
-
-            return "layouts/admin";
-
-        } catch (Exception e) {
-            log.error("Error loading order detail: {}", e.getMessage(), e);
-            model.addAttribute("error", "Có lỗi xảy ra khi tải chi tiết đơn hàng");
-            return "redirect:/admin/orders";
-        }
+        // Dialog UI is used; keep direct link as redirect to orders list
+        return "redirect:/admin/orders";
     }
 
     // ==================== REST API ENDPOINTS ====================
@@ -167,6 +142,26 @@ public class AdminOrderController extends BaseController {
             log.error("Error updating order status: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError()
                 .body(ResponseWrapper.error("Có lỗi xảy ra khi cập nhật trạng thái đơn hàng"));
+        }
+    }
+
+    /**
+     * API: Get order detail (for dialog)
+     */
+    @GetMapping("/api/{orderId}")
+    @ResponseBody
+    public ResponseEntity<ResponseWrapper<OrderDTO>> getOrderDetailApi(@PathVariable String orderId) {
+        try {
+            OrderDTO order = orderService.getOrderById(orderId);
+            if (order == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ResponseWrapper.error("Không tìm thấy đơn hàng"));
+            }
+            return ResponseEntity.ok(ResponseWrapper.success(order, "Lấy chi tiết đơn hàng thành công"));
+        } catch (Exception e) {
+            log.error("Error getting order detail: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                .body(ResponseWrapper.error("Có lỗi xảy ra khi tải chi tiết đơn hàng"));
         }
     }
 

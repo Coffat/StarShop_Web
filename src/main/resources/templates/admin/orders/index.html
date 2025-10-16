@@ -185,11 +185,11 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex space-x-2">
-                                    <a th:href="@{/admin/orders/{id}(id=${order.id})}" 
-                                       class="text-primary-600 hover:text-primary-900 transition-colors duration-200" 
-                                       title="Xem chi tiết">
+                                    <button class="text-primary-600 hover:text-primary-900 transition-colors duration-200 view-order-btn"
+                                            th:data-order-id="${order.id}"
+                                            title="Xem chi tiết">
                                         <i class="fas fa-eye"></i>
-                                    </a>
+                                    </button>
                                     <button class="text-blue-600 hover:text-blue-900 transition-colors duration-200 update-status-btn" 
                                             th:data-order-id="${order.id}"
                                             th:data-current-status="${order.status?.name()}"
@@ -296,6 +296,21 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Order Modal -->
+    <div id="viewOrderModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-10 mx-auto p-5 border w-full max-w-3xl shadow-lg rounded-md bg-white">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Chi tiết đơn hàng</h3>
+                <button onclick="closeViewOrderModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div id="orderDetailContent" class="space-y-4">
+                <div class="text-gray-500 text-sm">Đang tải...</div>
             </div>
         </div>
     </div>
@@ -752,6 +767,14 @@
 
         // Event Listeners
         document.addEventListener('DOMContentLoaded', function() {
+            // View Order (Dialog)
+            document.querySelectorAll('.view-order-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const orderId = this.dataset.orderId;
+                    openViewOrderModal(orderId);
+                });
+            });
+
             // Update Status Button Click
             document.querySelectorAll('.update-status-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -931,5 +954,93 @@
                 }
             });
         });
+
+        // ===== View Order Modal Logic =====
+        function openViewOrderModal(orderId) {
+            const modal = document.getElementById('viewOrderModal');
+            const content = document.getElementById('orderDetailContent');
+            content.innerHTML = '<div class="text-gray-500 text-sm">Đang tải...</div>';
+            modal.classList.remove('hidden');
+
+            fetch(`/admin/orders/api/${orderId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success || !data.data) {
+                        content.innerHTML = '<div class="text-red-600">Không tải được chi tiết đơn hàng</div>';
+                        return;
+                    }
+                    const o = data.data;
+                    content.innerHTML = renderOrderDetail(o);
+                })
+                .catch(() => {
+                    content.innerHTML = '<div class="text-red-600">Có lỗi xảy ra</div>';
+                });
+        }
+
+        function closeViewOrderModal() {
+            document.getElementById('viewOrderModal').classList.add('hidden');
+        }
+
+        function renderOrderDetail(o) {
+            const fmt = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0 }).format(v || 0).replace('₫', '₫');
+            const statusBadge = (s) => {
+                const m = {
+                    COMPLETED: 'bg-green-100 text-green-800',
+                    PROCESSING: 'bg-blue-100 text-blue-800',
+                    SHIPPED: 'bg-purple-100 text-purple-800',
+                    PENDING: 'bg-yellow-100 text-yellow-800',
+                    CANCELLED: 'bg-red-100 text-red-800'
+                };
+                return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${m[s?.name] || 'bg-gray-100 text-gray-800'}">${s?.displayName || s || 'N/A'}</span>`;
+            };
+
+            const items = (o.items || []).map(it => `
+                <div class="py-2 grid grid-cols-12 items-center">
+                    <div class="col-span-6">
+                        <div class="text-sm font-medium text-gray-900">${it.productName || ''}</div>
+                        <div class="text-xs text-gray-500">${it.productSku || ''}</div>
+                    </div>
+                    <div class="col-span-2 text-center text-sm">${fmt(it.price)}</div>
+                    <div class="col-span-2 text-center text-sm">${it.quantity}</div>
+                    <div class="col-span-2 text-right text-sm">${fmt((it.price || 0) * (it.quantity || 0))}</div>
+                </div>
+            `).join('');
+
+            return `
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-lg font-semibold text-gray-900">#${o.id || ''}</div>
+                        <div class="text-sm text-gray-500">${o.orderDate || ''}</div>
+                    </div>
+                    <div>${statusBadge(o.status)}</div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="text-sm font-medium text-gray-900 mb-2">Khách hàng</div>
+                        <div class="text-sm text-gray-900">${o.userFullName || ''}</div>
+                        <div class="text-xs text-gray-600">${o.userEmail || ''}</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="text-sm font-medium text-gray-900 mb-2">Giao hàng</div>
+                        <div class="text-sm text-gray-900">${o.shippingAddress || ''}</div>
+                        <div class="text-xs text-gray-600">${o.shippingPhone || ''}</div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg border p-4">
+                    <div class="grid grid-cols-12 text-xs font-medium text-gray-500 py-2">
+                        <div class="col-span-6">Sản phẩm</div>
+                        <div class="col-span-2 text-center">Giá</div>
+                        <div class="col-span-2 text-center">SL</div>
+                        <div class="col-span-2 text-right">Thành tiền</div>
+                    </div>
+                    <div class="divide-y divide-gray-100">${items || ''}</div>
+                    <div class="pt-4 mt-2 border-t space-y-1 text-sm">
+                        <div class="flex justify-between"><span class="text-gray-600">Tạm tính</span><span>${fmt(o.subtotal)}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-600">Phí vận chuyển</span><span>${fmt(o.shippingFee)}</span></div>
+                        <div class="flex justify-between font-semibold"><span>Tổng</span><span class="text-primary-600">${fmt(o.totalAmount)}</span></div>
+                    </div>
+                </div>
+            `;
+        }
     </script>
 </div>
