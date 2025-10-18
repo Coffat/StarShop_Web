@@ -783,6 +783,68 @@ fetch('/api/wishlist/toggle', {
   // Use showToast from main.js if available, otherwise create a simple fallback
   // Use global showToast provided by main.js
   // ================================
+  // REVIEW FUNCTIONS
+  // ================================
+
+  // Edit review
+  window.editReview = function (reviewId) {
+    // For now, show a message that editing is not implemented
+    if (typeof showToast === 'function') {
+      showToast('Tính năng chỉnh sửa đánh giá sẽ được cập nhật sớm', 'info');
+    } else {
+      alert('Tính năng chỉnh sửa đánh giá sẽ được cập nhật sớm');
+    }
+  };
+
+  // Delete review
+  window.deleteReview = function (reviewId) {
+    if (!confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) {
+      return;
+    }
+
+    fetch(`/api/reviews/${reviewId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        if (typeof showToast === 'function') {
+          showToast('Đánh giá đã được xóa thành công', 'success');
+        }
+        // Reload the page to update the reviews
+        window.location.reload();
+      } else {
+        if (typeof showToast === 'function') {
+          showToast(data.message || 'Có lỗi xảy ra khi xóa đánh giá', 'error');
+        } else {
+          alert(data.message || 'Có lỗi xảy ra khi xóa đánh giá');
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error deleting review:', error);
+      if (typeof showToast === 'function') {
+        showToast('Có lỗi xảy ra khi xóa đánh giá', 'error');
+      } else {
+        alert('Có lỗi xảy ra khi xóa đánh giá');
+      }
+    });
+  };
+
+  // Mark review as helpful
+  window.markHelpful = function (reviewId) {
+    // For now, show a message that helpful feature is not implemented
+    if (typeof showToast === 'function') {
+      showToast('Tính năng "Hữu ích" sẽ được cập nhật sớm', 'info');
+    } else {
+      alert('Tính năng "Hữu ích" sẽ được cập nhật sớm');
+    }
+  };
+
+  // ================================
   // DOM READY
   // ================================
 

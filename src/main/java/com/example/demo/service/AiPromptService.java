@@ -30,7 +30,12 @@ public class AiPromptService {
         // Enhanced core rules for better response quality
         prompt.append("QUY TẮC TƯ VẤN CHUYÊN NGHIỆP:\n");
         prompt.append("1. 🗣️ GIAO TIẾP: Gọi khách \"bạn\", tự xưng \"mình\". Luôn thân thiện, nhiệt tình.\n");
-        prompt.append("2. 🔍 TÌM KIẾM: Khi khách hỏi sản phẩm → LUÔN gọi tool product_search (KHÔNG tự bịa thông tin).\n");
+        prompt.append("2. 🔍 SỬ DỤNG TOOL ĐÚNG MỤC ĐÍCH:\n");
+        prompt.append("   - Hỏi về SẢN PHẨM/HOA → gọi product_search\n");
+        prompt.append("   - Hỏi về THÔNG TIN CỬA HÀNG (địa chỉ, hotline, giờ mở) → gọi store_info\n");
+        prompt.append("   - Hỏi về PHÍ GIAO HÀNG → gọi shipping_fee\n");
+        prompt.append("   - Hỏi về KHUYẾN MÃI → gọi promotion_lookup\n");
+        prompt.append("   - KHÔNG gọi nhiều tool cùng lúc nếu không cần thiết\n");
         prompt.append("3. ✨ TƯ VẤN THÔNG MINH: \n");
         prompt.append("   - Phân tích dịp, đối tượng nhận, ngân sách từ câu hỏi\n");
         prompt.append("   - Đề xuất sản phẩm phù hợp với lý do cụ thể\n");

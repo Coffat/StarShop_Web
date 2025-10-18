@@ -1,5 +1,8 @@
 package com.example.demo.security;
 
+import com.example.demo.entity.User;
+import com.example.demo.entity.enums.UserRole;
+import com.example.demo.repository.UserRepository;
 import com.example.demo.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -16,6 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import jakarta.servlet.http.Cookie;
 import org.springframework.lang.NonNull;
 
@@ -29,6 +33,7 @@ import org.springframework.lang.NonNull;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, 
@@ -57,11 +62,47 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (sessionToken != null && sessionEmail != null) {
                 try {
                     if (jwtService.validateToken(sessionToken)) {
-                        var userRole = jwtService.extractRole(sessionToken);
+                        var tokenRole = jwtService.extractRole(sessionToken);
                         var userId = jwtService.extractUserId(sessionToken);
                         
+                        // Check current role in database
+                        Optional<User> userOptional = userRepository.findByEmail(sessionEmail);
+                        if (userOptional.isPresent()) {
+                            User user = userOptional.get();
+                            UserRole dbRole = user.getRole();
+                            
+                            // If role in DB is different from token, refresh the token
+                            if (!dbRole.equals(tokenRole)) {
+                                log.info("Session role mismatch detected for user {}: token role={}, DB role={}. Refreshing token.", 
+                                    sessionEmail, tokenRole, dbRole);
+                                
+                                // Generate new token with updated role
+                                String newToken = jwtService.generateToken(user.getEmail(), user.getRole(), user.getId());
+                                
+                                // Update cookie with new token
+                                Cookie authCookie = new Cookie("authToken", newToken);
+                                authCookie.setHttpOnly(true);
+                                authCookie.setSecure(false); // Set to false for localhost development
+                                authCookie.setPath("/");
+                                authCookie.setMaxAge(4 * 60 * 60); // 4 hours
+                                response.addCookie(authCookie);
+                                
+                                // Update session with new token
+                                request.getSession().setAttribute("authToken", newToken);
+                                request.getSession().setAttribute("userRole", dbRole.name());
+                                
+                                // Use the updated role from DB
+                                tokenRole = dbRole;
+                                log.info("Session token refreshed for user {} with new role: {}", sessionEmail, dbRole);
+                            }
+                        } else {
+                            log.warn("User not found in database for session email: {}", sessionEmail);
+                            filterChain.doFilter(request, response);
+                            return;
+                        }
+                        
                         List<SimpleGrantedAuthority> authorities = List.of(
-                            new SimpleGrantedAuthority("ROLE_" + userRole.name().toUpperCase())
+                            new SimpleGrantedAuthority("ROLE_" + tokenRole.name().toUpperCase())
                         );
                         
                         UsernamePasswordAuthenticationToken authToken = 
@@ -69,15 +110,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         
                         request.setAttribute("userId", userId);
-                        request.setAttribute("userRole", userRole);
+                        request.setAttribute("userRole", tokenRole);
                         
                     // Also set session attributes for Thymeleaf access
                     request.getSession().setAttribute("userId", userId);
-                    request.getSession().setAttribute("userRole", userRole.name());
-                    log.info("Set session attributes - userId: {}, userRole: {}", userId, userRole.name());
+                    request.getSession().setAttribute("userRole", tokenRole.name());
+                    log.info("Set session attributes - userId: {}, userRole: {}", userId, tokenRole.name());
                     
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    log.info("Session-based JWT authentication successful for user: {}", sessionEmail);
+                    log.info("Session-based JWT authentication successful for user: {} with role: {}", sessionEmail, tokenRole);
                     }
                 } catch (Exception e) {
                     log.warn("Session token validation failed: {}", e.getMessage());
@@ -99,12 +140,49 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (jwtService.validateToken(jwt)) {
                     
                     // Extract user role from token
-                    var userRole = jwtService.extractRole(jwt);
+                    var tokenRole = jwtService.extractRole(jwt);
                     var userId = jwtService.extractUserId(jwt);
                     
-                    // Create authority based on user role
+                    // Check current role in database
+                    Optional<User> userOptional = userRepository.findByEmail(userEmail);
+                    if (userOptional.isPresent()) {
+                        User user = userOptional.get();
+                        UserRole dbRole = user.getRole();
+                        
+                        // If role in DB is different from token, refresh the token
+                        if (!dbRole.equals(tokenRole)) {
+                            log.info("Role mismatch detected for user {}: token role={}, DB role={}. Refreshing token.", 
+                                userEmail, tokenRole, dbRole);
+                            
+                            // Generate new token with updated role
+                            String newToken = jwtService.generateToken(user.getEmail(), user.getRole(), user.getId());
+                            
+                            // Update cookie with new token
+                            Cookie authCookie = new Cookie("authToken", newToken);
+                            authCookie.setHttpOnly(true);
+                            authCookie.setSecure(false); // Set to false for localhost development
+                            authCookie.setPath("/");
+                            authCookie.setMaxAge(4 * 60 * 60); // 4 hours
+                            response.addCookie(authCookie);
+                            
+                            // Update session with new token
+                            request.getSession().setAttribute("authToken", newToken);
+                            request.getSession().setAttribute("userRole", dbRole.name());
+                            
+                            // Use the updated role from DB
+                            tokenRole = dbRole;
+                            log.info("Token refreshed for user {} with new role: {}", userEmail, dbRole);
+                        }
+                    } else {
+                        log.warn("User not found in database for email: {}", userEmail);
+                        SecurityContextHolder.clearContext();
+                        filterChain.doFilter(request, response);
+                        return;
+                    }
+                    
+                    // Create authority based on user role (now updated from DB)
                     List<SimpleGrantedAuthority> authorities = List.of(
-                        new SimpleGrantedAuthority("ROLE_" + userRole.name().toUpperCase())
+                        new SimpleGrantedAuthority("ROLE_" + tokenRole.name().toUpperCase())
                     );
                     
                     // Create authentication token
@@ -116,18 +194,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     
                     // Add user ID to authentication details for easy access
                     request.setAttribute("userId", userId);
-                    request.setAttribute("userRole", userRole);
+                    request.setAttribute("userRole", tokenRole);
                     
                     // Also set session attributes for Thymeleaf access
                     request.getSession().setAttribute("userId", userId);
-                    request.getSession().setAttribute("userRole", userRole.name());
-                    log.info("Set session attributes from JWT - userId: {}, userRole: {}", userId, userRole.name());
+                    request.getSession().setAttribute("userRole", tokenRole.name());
+                    log.info("Set session attributes from JWT - userId: {}, userRole: {}", userId, tokenRole.name());
                     
                     // Set authentication in security context
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                     
                     log.info("JWT authentication successful for user: {} with role: {} and authorities: {}", 
-                        userEmail, userRole, authorities);
+                        userEmail, tokenRole, authorities);
                     
                 } else {
                     log.warn("Invalid JWT token for user: {}", userEmail);

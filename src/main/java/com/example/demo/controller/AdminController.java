@@ -129,21 +129,6 @@ public class AdminController extends BaseController {
         return "layouts/admin";
     }
 
-    /**
-     * Báo cáo
-     */
-    @GetMapping("/reports")
-    public String reports(Model model) {
-        model.addAttribute("pageTitle", "Báo cáo");
-        model.addAttribute("contentTemplate", "admin/reports/index");
-        
-        List<BreadcrumbItem> breadcrumbs = new ArrayList<>();
-        breadcrumbs.add(new BreadcrumbItem("Dashboard", "/admin/dashboard"));
-        breadcrumbs.add(new BreadcrumbItem("Báo cáo", "/admin/reports"));
-        model.addAttribute("breadcrumbs", breadcrumbs);
-        
-        return "layouts/admin";
-    }
 
     /**
      * Quản lý Danh mục
@@ -214,6 +199,16 @@ public class AdminController extends BaseController {
     @ResponseBody
     public Map<String, Object> getDashboardStats() {
         return dashboardService.getDashboardStats();
+    }
+    
+    /**
+     * Reviews Management Page - Trang quản lý đánh giá
+     */
+    @GetMapping("/reviews")
+    public String reviewsPage(Model model) {
+        model.addAttribute("pageTitle", "Quản lý đánh giá");
+        model.addAttribute("contentTemplate", "admin/reviews/index");
+        return "layouts/admin";
     }
     
 }

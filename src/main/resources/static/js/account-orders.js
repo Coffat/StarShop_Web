@@ -8,6 +8,15 @@ let currentPage = 0;
 let currentStatus = 'all';
 const pageSize = 10;
 
+// Review modal variables
+let currentReviewData = {
+    productId: null,
+    orderItemId: null,
+    productName: '',
+    productImage: ''
+};
+let selectedRating = 0;
+
 // Format currency VND
 function formatCurrency(amount) {
     return new Intl.NumberFormat('vi-VN', {
@@ -136,6 +145,12 @@ function renderOrderCard(order) {
                 <div class="flex-1 min-w-0">
                     <h4 class="font-semibold text-gray-900 truncate">${item.productName}</h4>
                     <p class="text-sm text-gray-600 mt-1">Số lượng: ${item.quantity} × ${formatCurrency(item.price)}</p>
+                    ${order.status === 'COMPLETED' ? `
+                        <button onclick="openReviewModal(${item.productId}, ${item.id}, '${item.productName}', '${item.productImage || '/images/placeholder.jpg'}')" 
+                                class="mt-2 px-3 py-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-medium rounded-lg hover:shadow-md transition-all">
+                            <i class="bi bi-star mr-1"></i> Đánh giá
+                        </button>
+                    ` : ''}
                 </div>
                 <div class="text-right">
                     <p class="font-bold text-gray-900">${formatCurrency(item.price * item.quantity)}</p>
@@ -399,10 +414,145 @@ function showToast(message, type = 'info') {
     }, 3000);
 }
 
+// ==================== REVIEW MODAL FUNCTIONS ====================
+
+// Open review modal
+function openReviewModal(productId, orderItemId, productName, productImage) {
+    currentReviewData = {
+        productId: productId,
+        orderItemId: orderItemId,
+        productName: productName,
+        productImage: productImage
+    };
+    
+    // Reset form
+    selectedRating = 0;
+    document.getElementById('reviewProductName').textContent = productName;
+    document.getElementById('reviewProductImage').src = productImage;
+    document.getElementById('reviewProductImage').alt = productName;
+    document.getElementById('reviewComment').value = '';
+    document.getElementById('commentCount').textContent = '0/1000';
+    
+    // Reset stars
+    const starButtons = document.querySelectorAll('.star-btn');
+    starButtons.forEach(btn => {
+        btn.classList.remove('text-yellow-400');
+        btn.classList.add('text-gray-300');
+        btn.innerHTML = '<i class="bi bi-star"></i>';
+    });
+    
+    document.getElementById('ratingText').textContent = 'Chọn số sao để đánh giá';
+    document.getElementById('submitReviewBtn').disabled = true;
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('reviewModal'));
+    modal.show();
+}
+
+// Handle star rating selection
+function selectRating(rating) {
+    selectedRating = rating;
+    
+    const starButtons = document.querySelectorAll('.star-btn');
+    const ratingTexts = [
+        '', 'Rất tệ', 'Tệ', 'Bình thường', 'Tốt', 'Rất tốt'
+    ];
+    
+    starButtons.forEach((btn, index) => {
+        if (index < rating) {
+            btn.classList.remove('text-gray-300');
+            btn.classList.add('text-yellow-400');
+            btn.innerHTML = '<i class="bi bi-star-fill"></i>';
+        } else {
+            btn.classList.remove('text-yellow-400');
+            btn.classList.add('text-gray-300');
+            btn.innerHTML = '<i class="bi bi-star"></i>';
+        }
+    });
+    
+    document.getElementById('ratingText').textContent = ratingTexts[rating];
+    document.getElementById('submitReviewBtn').disabled = false;
+}
+
+// Submit review
+async function submitReview() {
+    if (selectedRating === 0) {
+        showToast('Vui lòng chọn số sao đánh giá', 'error');
+        return;
+    }
+    
+    const comment = document.getElementById('reviewComment').value.trim();
+    
+    try {
+        const response = await fetch('/api/reviews', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                orderItemId: currentReviewData.orderItemId,
+                rating: selectedRating,
+                comment: comment
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showToast('Đánh giá đã được gửi thành công!', 'success');
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('reviewModal'));
+            modal.hide();
+            
+            // Reload orders to update UI
+            loadOrders(currentStatus, currentPage);
+        } else {
+            showToast(data.message || 'Có lỗi xảy ra khi gửi đánh giá', 'error');
+        }
+    } catch (error) {
+        console.error('Error submitting review:', error);
+        showToast('Có lỗi xảy ra khi gửi đánh giá', 'error');
+    }
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     // Setup filter tabs
     setupFilterTabs();
+    
+    // Setup star rating buttons
+    const starButtons = document.querySelectorAll('.star-btn');
+    starButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const rating = parseInt(this.dataset.rating);
+            selectRating(rating);
+        });
+        
+        btn.addEventListener('mouseenter', function() {
+            const rating = parseInt(this.dataset.rating);
+            const starButtons = document.querySelectorAll('.star-btn');
+            
+            starButtons.forEach((starBtn, index) => {
+                if (index < rating) {
+                    starBtn.classList.remove('text-gray-300');
+                    starBtn.classList.add('text-yellow-400');
+                } else {
+                    starBtn.classList.remove('text-yellow-400');
+                    starBtn.classList.add('text-gray-300');
+                }
+            });
+        });
+    });
+    
+    // Setup comment character counter
+    const commentTextarea = document.getElementById('reviewComment');
+    if (commentTextarea) {
+        commentTextarea.addEventListener('input', function() {
+            const count = this.value.length;
+            document.getElementById('commentCount').textContent = `${count}/1000`;
+        });
+    }
     
     // Load initial orders
     const ordersCount = parseInt(document.querySelector('[data-orders-count]')?.getAttribute('data-orders-count') || '0');

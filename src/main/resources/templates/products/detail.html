@@ -374,7 +374,12 @@
                                                         <i class="bi bi-person-circle"></i>
                                                     </div>
                                                     <div class="reviewer-details">
-                                                        <h5 class="reviewer-name" th:text="${review.user.firstname + ' ' + review.user.lastname}">Tên khách hàng</h5>
+                                                        <div class="flex items-center gap-2">
+                                                            <h5 class="reviewer-name" th:text="${review.user.firstname + ' ' + review.user.lastname}">Tên khách hàng</h5>
+                                                            <span th:if="${review.orderItem != null}" class="verified-badge inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                                                                <i class="bi bi-patch-check-fill"></i> Đã mua hàng
+                                                            </span>
+                                                        </div>
                                                         <div class="review-rating">
                                                             <th:block th:each="star : ${#numbers.sequence(1, 5)}">
                                                                 <i class="bi bi-star-fill" 
@@ -383,21 +388,46 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="review-date" th:text="${#temporals.format(review.createdAt, 'dd/MM/yyyy')}">
-                                                    01/01/2024
+                                                <div class="flex items-center gap-2">
+                                                    <div class="review-date" th:text="${#temporals.format(review.createdAt, 'dd/MM/yyyy')}">
+                                                        01/01/2024
+                                                    </div>
+                                                    <div class="review-actions" 
+                                                         sec:authorize="isAuthenticated()"
+                                                         th:if="${#authentication.principal.username == review.user.email}">
+                                                        <button class="btn-edit-review text-blue-600 hover:text-blue-700 text-sm" 
+                                                                th:onclick="'editReview(' + ${review.id} + ')'">
+                                                            <i class="bi bi-pencil"></i> Sửa
+                                                        </button>
+                                                        <button class="btn-delete-review text-red-600 hover:text-red-700 text-sm ml-2" 
+                                                                th:onclick="'deleteReview(' + ${review.id} + ')'">
+                                                            <i class="bi bi-trash"></i> Xóa
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div class="review-content" th:if="${review.comment ne null}">
                                                 <p th:text="${review.comment}">Nội dung đánh giá...</p>
                                             </div>
+                                            <div class="review-helpful mt-3">
+                                                <button class="btn-helpful inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-600 text-sm rounded-lg hover:bg-gray-200 transition-colors" 
+                                                        th:onclick="'markHelpful(' + ${review.id} + ')'">
+                                                    <i class="bi bi-hand-thumbs-up"></i> Hữu ích (<span>0</span>)
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
     
                                     <div class="write-review-section" sec:authorize="isAuthenticated()">
-                                        <button class="btn-write-review" onclick="openReviewModal()">
-                                            <i class="bi bi-pen"></i>
-                                            Viết đánh giá
-                                        </button>
+                                        <div class="text-center p-6 bg-gray-50 rounded-xl">
+                                            <i class="bi bi-info-circle text-2xl text-blue-500 mb-3"></i>
+                                            <h4 class="text-lg font-semibold text-gray-900 mb-2">Mua sản phẩm để có thể đánh giá</h4>
+                                            <p class="text-gray-600 mb-4">Bạn chỉ có thể đánh giá sản phẩm sau khi đã mua và đơn hàng hoàn thành.</p>
+                                            <a href="/account/orders" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-medium rounded-xl hover:shadow-lg transition-all">
+                                                <i class="bi bi-bag-check"></i>
+                                                Xem đơn hàng của tôi
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

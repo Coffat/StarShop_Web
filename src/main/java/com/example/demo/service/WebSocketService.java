@@ -254,12 +254,12 @@ public class WebSocketService {
             // PRIMARY: Send to conversation topic (both customer and staff subscribe to this)
             String conversationTopic = "/topic/chat/" + chatMessage.getConversationId();
             messagingTemplate.convertAndSend(conversationTopic, chatMessage);
-            log.info("Chat message sent to conversation topic {}: {}", conversationTopic, chatMessage.getContent());
+            log.debug("Chat message sent to conversation topic {}: {}", conversationTopic, chatMessage.getContent());
             
             // SECONDARY: Send to staff topic for staff interface updates 
             // (staff interface subscribes to both for comprehensive coverage)
             messagingTemplate.convertAndSend("/topic/chat/staff", chatMessage);
-            log.info("Chat message sent to staff topic: {}", chatMessage.getContent());
+            log.debug("Chat message sent to staff topic: {}", chatMessage.getContent());
             
             // TERTIARY: Send to receiver's personal queue if receiver exists
             if (chatMessage.getReceiverId() != null) {
@@ -271,7 +271,7 @@ public class WebSocketService {
                 log.info("Chat message sent to personal queue for user {}", chatMessage.getReceiverId());
             }
             
-            log.info("Chat message sent to conversation {}: {} (AI: {}, Sender: {}, Receiver: {})", 
+            log.debug("Chat message sent to conversation {}: {} (AI: {}, Sender: {}, Receiver: {})", 
                 chatMessage.getConversationId(), 
                 chatMessage.getContent().substring(0, Math.min(50, chatMessage.getContent().length())), 
                 chatMessage.getIsAiGenerated(),
