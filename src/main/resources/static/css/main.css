@@ -2175,3 +2175,44 @@ h6 { font-size: 1rem; }
         max-width: 58.333333%;
     }
 }
+
+/* ================================
+   MoMo Payment Gateway Error Handling
+   ================================ */
+
+/* Hide broken MoMo logo and provide fallback */
+img[src*="test-payment.momo.vn"][src*="logo.png"] {
+    display: none !important;
+}
+
+/* Alternative: Show fallback MoMo logo */
+img[src*="test-payment.momo.vn"][src*="logo.png"]:after {
+    content: "💳";
+    display: inline-block;
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #ec4899, #be185d);
+    border-radius: 8px;
+    text-align: center;
+    line-height: 40px;
+    color: white;
+}
+
+/* Hide 404 errors for MoMo assets */
+img[src*="test-payment.momo.vn"] {
+    object-fit: contain;
+    background: #f3f4f6;
+    border-radius: 4px;
+}
+
+/* Fallback for any broken MoMo images */
+img[src*="test-payment.momo.vn"]:not([src*="logo.png"]) {
+    background: linear-gradient(135deg, #ec4899, #be185d);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}

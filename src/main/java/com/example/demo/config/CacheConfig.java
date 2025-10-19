@@ -19,7 +19,13 @@ public class CacheConfig {
         // Sử dụng ConcurrentMapCacheManager đơn giản
         // Trong production có thể thay bằng Redis hoặc Caffeine
         ConcurrentMapCacheManager cacheManager = new ConcurrentMapCacheManager();
-        cacheManager.setCacheNames(java.util.Arrays.asList("adminAiInsights"));
+        cacheManager.setCacheNames(java.util.Arrays.asList(
+            "adminAiInsights",
+            "provinces",
+            "districts", 
+            "wards",
+            "wardsByProvince"
+        ));
         return cacheManager;
     }
 }

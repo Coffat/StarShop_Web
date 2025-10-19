@@ -39,8 +39,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.orders WHERE u.email = :email")
     Optional<User> findByEmailWithOrders(@Param("email") String email);
     
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.addresses LEFT JOIN FETCH u.orders WHERE u.email = :email")
-    Optional<User> findByEmailWithAddressesAndOrders(@Param("email") String email);
     
     @Query("SELECT new com.example.demo.dto.UserProfileDTO(u, " +
            "(SELECT COUNT(o) FROM Order o WHERE o.user.id = u.id), " +
