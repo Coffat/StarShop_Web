@@ -2,7 +2,7 @@
 -- SEED DATA (VIETNAMESE) - FLOWER STORE MANAGEMENT SYSTEM
 -- Phiên bản: PostgreSQL - Updated for GHN Integration
 -- Mục tiêu: Tạo dữ liệu mẫu phù hợp với schema hiện tại
--- Bao gồm: GHN fields, BCrypt passwords, shipping dimensions
+-- Bao gồm: GHN fields, BCrypt passwords, shipping dimensions, AI config
 -- =============================================
 
 BEGIN;
@@ -34,7 +34,7 @@ INSERT INTO Catalogs(value,image, created_at, updated_at)
 VALUES
 ('Tình yêu', 'https://images.pexels.com/photos/1382732/pexels-photo-1382732.jpeg', NOW() - INTERVAL '70 days',NULL),      -- id: 1
 ('Khai trương', 'https://images.pexels.com/photos/3779035/pexels-photo-3779035.jpeg', NOW() - INTERVAL '70 days', NULL),   -- id: 2
-('Hoa cười', 'https://images.pexels.com/photos/1391498/pexels-photo-1391498.jpeg', NOW() - INTERVAL '70 days', NULL),      -- id: 3
+('Hoa cưới', 'https://images.pexels.com/photos/1391498/pexels-photo-1391498.jpeg', NOW() - INTERVAL '70 days', NULL),      -- id: 3
 ('Đám tang', 'https://images.pexels.com/photos/1372137/pexels-photo-1372137.jpeg', NOW() - INTERVAL '70 days', NULL);      -- id: 4
 
 -- ========== 4) PRODUCTS ==========
@@ -145,5 +145,45 @@ VALUES
 ('NEWUSER20', 'Khách mới 20%', 'Giảm 20% cho khách hàng mới, tối đa 200k', 'PERCENTAGE', 20, 200000, 300000, 50, 8, (NOW() + INTERVAL '25 days')::date, TRUE, NOW() - INTERVAL '25 days'),
 ('SAVE50K', 'Tiết kiệm 50k', 'Giảm cố định 50k cho đơn hàng từ 800k', 'FIXED', 50000, NULL, 800000, 200, 25, (NOW() + INTERVAL '20 days')::date, TRUE, NOW() - INTERVAL '20 days'),
 ('VIP15', 'VIP 15%', 'Giảm 15% cho khách VIP, tối đa 300k', 'PERCENTAGE', 15, 300000, 1000000, 30, 5, (NOW() + INTERVAL '15 days')::date, TRUE, NOW() - INTERVAL '15 days');
+
+-- ========== 10) AI CHAT CONFIGURATION ==========
+-- Store information
+INSERT INTO ai_chat_config (config_key, config_value, config_type, description) VALUES
+('store.name', 'StarShop - Hoa tươi cao cấp', 'STRING', 'Tên cửa hàng'),
+('store.address', '01 Võ Văn Ngân, Phường Linh Chiểu, TP. Thủ Đức, TP.HCM', 'STRING', 'Địa chỉ cửa hàng'),
+('store.hotline', '1900 xxxx', 'STRING', 'Số hotline'),
+('store.email', 'starshop.a.6868@gmail.com', 'STRING', 'Email liên hệ'),
+('store.hours', '8:00 - 22:00 hàng ngày', 'STRING', 'Giờ mở cửa'),
+('store.description', 'Chuyên cung cấp hoa tươi cao cấp, thiết kế theo yêu cầu, giao hàng nhanh toàn TP.HCM', 'TEXT', 'Mô tả cửa hàng');
+
+-- AI behavior configuration
+INSERT INTO ai_chat_config (config_key, config_value, config_type, description) VALUES
+('ai.confidence_threshold_auto', '0.80', 'NUMBER', 'Ngưỡng confidence để AI tự động trả lời (≥0.80)'),
+('ai.confidence_threshold_suggest', '0.65', 'NUMBER', 'Ngưỡng confidence để AI gợi ý chuyển staff (0.65-0.79)'),
+('ai.confidence_threshold_handoff', '0.65', 'NUMBER', 'Ngưỡng confidence để bắt buộc chuyển staff (<0.65)'),
+('ai.max_conversation_history', '10', 'NUMBER', 'Số tin nhắn tối đa trong lịch sử hội thoại gửi cho AI'),
+('ai.response_timeout_seconds', '30', 'NUMBER', 'Timeout cho AI response (seconds)'),
+('ai.enable_auto_handoff', 'true', 'BOOLEAN', 'Tự động chuyển staff khi cần thiết'),
+('ai.enable_pii_detection', 'true', 'BOOLEAN', 'Bật phát hiện thông tin cá nhân'),
+('ai.enable_product_suggestions', 'true', 'BOOLEAN', 'Bật gợi ý sản phẩm'),
+('ai.max_product_suggestions', '3', 'NUMBER', 'Số sản phẩm tối đa gợi ý mỗi lần'),
+('ai.default_shipping_weight', '500', 'NUMBER', 'Trọng lượng mặc định để tính phí ship (gram)');
+
+-- AI personality and prompts
+INSERT INTO ai_chat_config (config_key, config_value, config_type, description) VALUES
+('ai.bot_name', 'Hoa AI', 'STRING', 'Tên của AI chatbot'),
+('ai.bot_emoji', '🌸', 'STRING', 'Emoji đại diện cho bot'),
+('ai.greeting_message', 'Xin chào! 👋 Mình là Hoa AI, trợ lý ảo của StarShop. Mình có thể giúp gì cho bạn hôm nay?', 'TEXT', 'Tin nhắn chào mừng'),
+('ai.personality', 'Lịch sự, thân thiện, nhiệt tình, chuyên nghiệp. Sử dụng ngôn ngữ gần gũi nhưng tôn trọng khách hàng.', 'TEXT', 'Tính cách của AI');
+
+-- Policies
+INSERT INTO ai_chat_config (config_key, config_value, config_type, description) VALUES
+('policy.shipping', 'Miễn phí ship đơn từ 500k trong bán kính 5km. Giao hàng trong 2-4 giờ. Hỗ trợ giao toàn TP.HCM.', 'TEXT', 'Chính sách vận chuyển'),
+('policy.return', 'Đổi trả trong 24h nếu hoa không đúng mô tả hoặc bị héo. Hoàn tiền 100% nếu giao trễ quá 1 giờ.', 'TEXT', 'Chính sách đổi trả'),
+('policy.payment', 'Hỗ trợ thanh toán: COD, MoMo, chuyển khoản ngân hàng, thẻ tín dụng.', 'TEXT', 'Phương thức thanh toán');
+
+-- ========== 11) UPDATE EXISTING USERS ==========
+-- Update existing users to set is_active to TRUE
+UPDATE Users SET is_active = TRUE WHERE is_active IS NULL;
 
 COMMIT;
