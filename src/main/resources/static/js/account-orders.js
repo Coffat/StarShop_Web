@@ -70,7 +70,9 @@ function getStatusBadge(status) {
     const statusInfo = statusMap[status] || statusMap['PENDING'];
     return `
         <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border ${statusInfo.class}">
-            <i class="bi bi-${statusInfo.icon}"></i>
+            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 14a6 6 0 1 1 0-12 6 6 0 0 1 0 12z"/>
+            </svg>
             ${statusInfo.text}
         </span>
     `;
@@ -85,7 +87,9 @@ function getActionButtons(order) {
         buttons.push(`
             <button onclick="cancelOrder(${order.id})" 
                     class="px-4 py-2 bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-100 transition-colors border border-red-200">
-                <i class="bi bi-x-circle mr-1"></i> Hủy đơn
+                <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/>
+                </svg> Hủy đơn
             </button>
         `);
     }
@@ -95,7 +99,9 @@ function getActionButtons(order) {
         buttons.push(`
             <button onclick="trackOrder(${order.id})" 
                     class="px-4 py-2 bg-purple-50 text-purple-600 rounded-lg font-medium hover:bg-purple-100 transition-colors border border-purple-200">
-                <i class="bi bi-geo-alt mr-1"></i> Theo dõi
+                <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                </svg> Theo dõi
             </button>
         `);
     }
@@ -105,7 +111,9 @@ function getActionButtons(order) {
         buttons.push(`
             <button onclick="reviewOrder(${order.id})" 
                     class="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all">
-                <i class="bi bi-star mr-1"></i> Đánh giá
+                <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"/>
+                </svg> Đánh giá
             </button>
         `);
     }
@@ -115,7 +123,9 @@ function getActionButtons(order) {
         buttons.push(`
             <button onclick="reorder(${order.id})" 
                     class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors border border-gray-300">
-                <i class="bi bi-arrow-clockwise mr-1"></i> Mua lại
+                <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z" clip-rule="evenodd"/>
+                </svg> Mua lại
             </button>
         `);
     }
@@ -148,7 +158,9 @@ function renderOrderCard(order) {
                     ${order.status === 'COMPLETED' ? `
                         <button onclick="openReviewModal(${item.productId}, ${item.id}, '${item.productName}', '${item.productImage || '/images/placeholder.jpg'}')" 
                                 class="mt-2 px-3 py-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-medium rounded-lg hover:shadow-md transition-all">
-                            <i class="bi bi-star mr-1"></i> Đánh giá
+                            <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"/>
+                </svg> Đánh giá
                         </button>
                     ` : ''}
                 </div>
@@ -161,7 +173,9 @@ function renderOrderCard(order) {
         if (remainingCount > 0) {
             itemsHTML += `
                 <div class="text-center py-2 text-sm text-gray-600">
-                    <i class="bi bi-three-dots"></i> Và ${remainingCount} sản phẩm khác
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM10 8.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM11.5 15.5a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z"/>
+                    </svg> Và ${remainingCount} sản phẩm khác
                 </div>
             `;
         }
@@ -177,12 +191,16 @@ function renderOrderCard(order) {
                         ${statusBadge}
                     </div>
                     <p class="text-sm text-gray-600">
-                        <i class="bi bi-calendar3 mr-1"></i>
+                        <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75z" clip-rule="evenodd"/>
+                        </svg>
                         ${formatDate(order.orderDate)}
                     </p>
                 </div>
                 <button onclick="viewOrderDetail(${order.id})" class="text-pink-600 hover:text-pink-700 font-medium text-sm">
-                    Chi tiết <i class="bi bi-arrow-right ml-1"></i>
+                    Chi tiết <svg class="w-4 h-4 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd"/>
+                    </svg>
                 </button>
             </div>
             
@@ -209,7 +227,13 @@ function renderOrderCard(order) {
 
 // Load orders from API
 async function loadOrders(status = 'all', page = 0) {
+    console.log('Loading orders with status:', status, 'page:', page);
     const ordersList = document.getElementById('ordersList');
+    
+    if (!ordersList) {
+        console.error('ordersList element not found');
+        return;
+    }
     
     // Show loading state
     ordersList.innerHTML = `
@@ -228,6 +252,8 @@ async function loadOrders(status = 'all', page = 0) {
             apiUrl += `&status=${status}`;
         }
         
+        console.log('Fetching orders from:', apiUrl);
+        
         const response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
@@ -235,18 +261,23 @@ async function loadOrders(status = 'all', page = 0) {
             }
         });
         
+        console.log('Response status:', response.status);
+        
         if (!response.ok) {
-            throw new Error('Failed to load orders');
+            throw new Error(`Failed to load orders: ${response.status} ${response.statusText}`);
         }
         
         const data = await response.json();
+        console.log('Orders data received:', data);
         
         // Check if we have orders
         if (!data.data || !data.data.content || data.data.content.length === 0) {
             ordersList.innerHTML = `
                 <div class="text-center py-20">
                     <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full mb-6">
-                        <i class="bi bi-inbox text-5xl bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
+                        <svg class="w-12 h-12 text-pink-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M1 11.27c0-.246.033-.492.099-.73l1.523-5.521A2.75 2.75 0 015.273 3h9.454a2.75 2.75 0 012.651 2.019l1.523 5.52c.066.239.099.485.099.732V15a2 2 0 01-2 2H3a2 2 0 01-2-2v-3.73zM15 16a1 1 0 100-2 1 1 0 000 2zm-8-1a1 1 0 11-2 0 1 1 0 012 0z" clip-rule="evenodd"/>
+                        </svg>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-3">Không có đơn hàng nào</h3>
                     <p class="text-gray-600">
@@ -268,11 +299,15 @@ async function loadOrders(status = 'all', page = 0) {
         
     } catch (error) {
         console.error('Error loading orders:', error);
+        console.error('Error details:', error.message);
         ordersList.innerHTML = `
             <div class="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-                <i class="bi bi-exclamation-triangle text-3xl text-red-600 mb-3"></i>
+                <svg class="w-8 h-8 text-red-600 mb-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+                </svg>
                 <p class="text-red-700 font-medium">Có lỗi xảy ra khi tải đơn hàng.</p>
                 <p class="text-red-600 text-sm mt-1">Vui lòng thử lại sau.</p>
+                <p class="text-red-500 text-xs mt-2">Lỗi: ${error.message}</p>
             </div>
         `;
     }
@@ -445,7 +480,14 @@ function showToast(message, type = 'info') {
     toast.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} position-fixed top-0 end-0 m-3`;
     toast.style.zIndex = '9999';
     toast.innerHTML = `
-        <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : 'info-circle'}"></i>
+        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            ${type === 'success' ? 
+                '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.236 4.53L7.53 10.53a.75.75 0 00-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/>' :
+                type === 'error' ?
+                '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/>' :
+                '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.01a.75.75 0 100-1.5H9zm1 3a.75.75 0 000 1.5h.01a.75.75 0 100-1.5H10z" clip-rule="evenodd"/>'
+            }
+        </svg>
         ${message}
     `;
     
@@ -596,32 +638,12 @@ async function submitReview() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded - Initializing orders page');
+    
     // Setup filter tabs
     setupFilterTabs();
     
-    // Setup star rating buttons
-    const starButtons = document.querySelectorAll('.star-btn');
-    starButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const rating = parseInt(this.dataset.rating);
-            selectRating(rating);
-        });
-        
-        btn.addEventListener('mouseenter', function() {
-            const rating = parseInt(this.dataset.rating);
-            const starButtons = document.querySelectorAll('.star-btn');
-            
-            starButtons.forEach((starBtn, index) => {
-                if (index < rating) {
-                    starBtn.classList.remove('text-gray-300');
-                    starBtn.classList.add('text-yellow-400');
-                } else {
-                    starBtn.classList.remove('text-yellow-400');
-                    starBtn.classList.add('text-gray-300');
-                }
-            });
-        });
-    });
+    // Star rating buttons will be set up when modal opens
     
     // Setup comment character counter
     const commentTextarea = document.getElementById('reviewComment');
@@ -633,9 +655,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Load initial orders
-    const ordersCount = parseInt(document.querySelector('[data-orders-count]')?.getAttribute('data-orders-count') || '0');
-    
-    if (ordersCount > 0) {
-        loadOrders('all', 0);
-    }
+    console.log('Loading initial orders...');
+    loadOrders('all', 0);
 });
