@@ -97,7 +97,7 @@ VALUES
 
 -- ========== 7) CART ITEMS ==========
 -- Thêm một số items vào carts để demo
-INSERT INTO CartItems(cart_id, product_id, quantity, created_at, updated_at)
+INSERT INTO cart_items(cart_id, product_id, quantity, created_at, updated_at)
 VALUES
 (1, 1, 2, NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
 (1, 3, 1, NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'),
@@ -109,13 +109,13 @@ VALUES
 UPDATE Carts SET 
     total_amount = (
         SELECT COALESCE(SUM(ci.quantity * p.price), 0)
-        FROM CartItems ci
+        FROM cart_items ci
         JOIN Products p ON ci.product_id = p.id
         WHERE ci.cart_id = Carts.id
     ),
     total_quantity = (
         SELECT COALESCE(SUM(ci.quantity), 0)
-        FROM CartItems ci
+        FROM cart_items ci
         WHERE ci.cart_id = Carts.id
     ),
     updated_at = NOW()

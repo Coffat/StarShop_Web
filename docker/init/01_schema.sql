@@ -217,8 +217,8 @@ CREATE TABLE Carts (
 );
 COMMENT ON TABLE Carts IS 'User shopping carts';
 
--- Table: CartItems
-CREATE TABLE CartItems (
+-- Table: cart_items
+CREATE TABLE cart_items (
     id BIGSERIAL PRIMARY KEY,
     cart_id BIGINT NOT NULL,
     product_id BIGINT NOT NULL,
@@ -230,8 +230,8 @@ CREATE TABLE CartItems (
     CHECK (quantity > 0),
     UNIQUE (cart_id, product_id)
 );
-COMMENT ON TABLE CartItems IS 'Items in user carts';
-CREATE UNIQUE INDEX idx_cartitems_unique ON CartItems(cart_id, product_id);
+COMMENT ON TABLE cart_items IS 'Items in user carts';
+CREATE UNIQUE INDEX idx_cartitems_unique ON cart_items(cart_id, product_id);
 
 -- Table: Reviews
 CREATE TABLE Reviews (
