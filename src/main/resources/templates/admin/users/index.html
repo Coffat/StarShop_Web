@@ -111,6 +111,92 @@
             </div>
         </div>
         
+        <!-- AI Customer Segmentation Filters -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">🤖 AI Phân khúc Khách hàng</h3>
+                <button @click="refreshSegmentStats()" class="text-sm text-blue-600 hover:text-blue-800">
+                    <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Làm mới
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- VIP Filter -->
+                <button @click="filterBySegment('VIP')" 
+                        :class="selectedSegment === 'VIP' ? 'ring-2 ring-yellow-500' : ''"
+                        class="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg border border-yellow-200 hover:shadow-md transition-all">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-yellow-500 rounded-lg">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                        </div>
+                        <div class="text-left">
+                            <p class="text-sm font-medium text-yellow-800">Khách VIP</p>
+                            <p class="text-2xl font-bold text-yellow-900" x-text="segmentStats.vip">0</p>
+                        </div>
+                    </div>
+                    <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+                
+                <!-- NEW Filter -->
+                <button @click="filterBySegment('NEW')"
+                        :class="selectedSegment === 'NEW' ? 'ring-2 ring-green-500' : ''"
+                        class="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200 hover:shadow-md transition-all">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-green-500 rounded-lg">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"/>
+                            </svg>
+                        </div>
+                        <div class="text-left">
+                            <p class="text-sm font-medium text-green-800">Khách mới</p>
+                            <p class="text-2xl font-bold text-green-900" x-text="segmentStats.new">0</p>
+                        </div>
+                    </div>
+                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+                
+                <!-- AT_RISK Filter -->
+                <button @click="filterBySegment('AT_RISK')"
+                        :class="selectedSegment === 'AT_RISK' ? 'ring-2 ring-red-500' : ''"
+                        class="flex items-center justify-between p-4 bg-gradient-to-r from-red-50 to-red-100 rounded-lg border border-red-200 hover:shadow-md transition-all">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-red-500 rounded-lg">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="text-left">
+                            <p class="text-sm font-medium text-red-800">Khách sắp mất</p>
+                            <p class="text-2xl font-bold text-red-900" x-text="segmentStats.atRisk">0</p>
+                        </div>
+                    </div>
+                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Campaign Button (hiện khi đã chọn segment) -->
+            <div x-show="selectedSegment" x-transition class="mt-4">
+                <button @click="openCampaignModal()" 
+                        class="w-full flex items-center justify-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <span x-text="'📧 Gửi chiến dịch cho ' + getSegmentCount() + ' người này'"></span>
+                </button>
+            </div>
+        </div>
+        
         <!-- Filters -->
         <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -436,9 +522,14 @@
                     newThisMonth: 0
                 },
                 
+                // AI Customer Segmentation
+                selectedSegment: null,
+                segmentStats: { vip: 0, new: 0, atRisk: 0 },
+                
                 init() {
                     this.fetchCustomers();
                     this.fetchStats();
+                    this.refreshSegmentStats();
                 },
                 
                 async fetchCustomers() {
@@ -744,9 +835,207 @@
                         console.error('Error submitting form:', error);
                         alert('Lỗi khi lưu khách hàng');
                     }
+                },
+                
+                // AI Customer Segmentation functions
+                async refreshSegmentStats() {
+                    try {
+                        const response = await fetch('/admin/api/marketing/segment-stats');
+                        const data = await response.json();
+                        if (data.success) {
+                            this.segmentStats = data.stats;
+                        }
+                    } catch (error) {
+                        console.error('Error fetching segment stats:', error);
+                    }
+                },
+                
+                filterBySegment(segment) {
+                    if (this.selectedSegment === segment) {
+                        this.selectedSegment = null;
+                        this.filters.type = '';
+                    } else {
+                        this.selectedSegment = segment;
+                        this.filters.type = segment;
+                    }
+                    this.fetchCustomers();
+                },
+                
+                getSegmentCount() {
+                    if (this.selectedSegment === 'VIP') return this.segmentStats.vip;
+                    if (this.selectedSegment === 'NEW') return this.segmentStats.new;
+                    if (this.selectedSegment === 'AT_RISK') return this.segmentStats.atRisk;
+                    return 0;
+                },
+                
+                openCampaignModal() {
+                    // This will be handled by campaignModalManager
+                    window.campaignModalManager().openModal(this.selectedSegment, this.getSegmentCount());
+                }
+            };
+        }
+        
+        // Campaign Modal Manager
+        function campaignModalManager() {
+            return {
+                showModal: false,
+                isLoading: false,
+                selectedSegment: null,
+                segmentCount: 0,
+                campaignForm: {
+                    campaignName: '',
+                    voucherCode: '',
+                    discountValue: 15,
+                    discountType: 'PERCENTAGE'
+                },
+                
+                openModal(segment, count) {
+                    this.selectedSegment = segment;
+                    this.segmentCount = count;
+                    this.showModal = true;
+                    
+                    // Set default values based on segment
+                    if (segment === 'AT_RISK') {
+                        this.campaignForm.campaignName = 'Nhớ Bạn';
+                        this.campaignForm.voucherCode = 'COMEBACK15';
+                    } else if (segment === 'NEW') {
+                        this.campaignForm.campaignName = 'Chào Mừng';
+                        this.campaignForm.voucherCode = 'WELCOME10';
+                    } else if (segment === 'VIP') {
+                        this.campaignForm.campaignName = 'Tri Ân VIP';
+                        this.campaignForm.voucherCode = 'VIP20';
+                    }
+                },
+                
+                closeModal() {
+                    this.showModal = false;
+                    this.isLoading = false;
+                    this.campaignForm = {
+                        campaignName: '',
+                        voucherCode: '',
+                        discountValue: 15,
+                        discountType: 'PERCENTAGE'
+                    };
+                },
+                
+                async sendCampaign() {
+                    this.isLoading = true;
+                    try {
+                        const response = await fetch('/admin/api/marketing/send-campaign', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                segment: this.selectedSegment,
+                                campaignName: this.campaignForm.campaignName,
+                                voucherCode: this.campaignForm.voucherCode,
+                                discountValue: this.campaignForm.discountValue,
+                                discountType: this.campaignForm.discountType
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            alert(`✅ ${data.message}\nVoucher: ${data.voucherCode}\nGửi thành công: ${data.emailsSent} email`);
+                            this.closeModal();
+                            // Refresh segment stats
+                            if (window.customerManager) {
+                                window.customerManager().refreshSegmentStats();
+                            }
+                        } else {
+                            alert(`❌ ${data.message}`);
+                        }
+                    } catch (error) {
+                        console.error('Error sending campaign:', error);
+                        alert('❌ Lỗi khi gửi chiến dịch');
+                    } finally {
+                        this.isLoading = false;
+                    }
                 }
             };
         }
     </script>
+    
+    <!-- Marketing Campaign Modal -->
+    <div x-data="campaignModalManager()" x-show="showModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="closeModal()"></div>
+            
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <form @submit.prevent="sendCampaign()">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-purple-100 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                                    📧 Gửi Chiến dịch Marketing
+                                </h3>
+                                
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Tên chiến dịch</label>
+                                        <input type="text" x-model="campaignForm.campaignName" 
+                                               placeholder="VD: Nhớ Bạn, Chào Mừng"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Mã voucher</label>
+                                        <input type="text" x-model="campaignForm.voucherCode" 
+                                               placeholder="VD: COMEBACK15"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Giá trị giảm</label>
+                                            <input type="number" x-model="campaignForm.discountValue" 
+                                                   placeholder="15"
+                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Loại giảm</label>
+                                            <select x-model="campaignForm.discountType" 
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                                                <option value="PERCENTAGE">Phần trăm (%)</option>
+                                                <option value="FIXED">Số tiền (VND)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-blue-50 p-3 rounded-md">
+                                        <p class="text-sm text-blue-800">
+                                            <strong>Phân khúc:</strong> <span x-text="selectedSegment"></span><br>
+                                            <strong>Số người nhận:</strong> <span x-text="getSegmentCount()"></span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="submit" 
+                                :disabled="isLoading"
+                                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 text-base font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50">
+                            <span x-show="!isLoading">Gửi chiến dịch</span>
+                            <span x-show="isLoading">Đang gửi...</span>
+                        </button>
+                        <button type="button" @click="closeModal()" 
+                                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Hủy
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

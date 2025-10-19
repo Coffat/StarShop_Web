@@ -187,4 +187,70 @@ public class AiPromptService {
         
         return String.join("\n", recentMessages);
     }
+    
+    /**
+     * Generate marketing email content with AI
+     * @param segment Customer segment (VIP, NEW, AT_RISK)
+     * @param customerName Customer first name
+     * @param voucherCode Voucher code
+     * @param expiryDate Voucher expiry date
+     * @return Map with "subject" and "body"
+     */
+    public java.util.Map<String, String> generateMarketingEmail(
+            String segment, 
+            String customerName,
+            String voucherCode, 
+            String expiryDate) {
+        
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("Bạn là chuyên gia Marketing của StarShop.\n\n");
+        prompt.append("NHIỆM VỤ: Viết email marketing cho phân khúc khách hàng '").append(segment).append("'.\n\n");
+        
+        // Context theo segment
+        if ("AT_RISK".equals(segment)) {
+            prompt.append("PHÂN KHÚC: Khách sắp mất (không mua ≥ 90 ngày)\n");
+            prompt.append("MỤC TIÊU: Thu hút họ quay lại, tạo cảm giác nhớ nhung và ưu đãi đặc biệt\n");
+        } else if ("NEW".equals(segment)) {
+            prompt.append("PHÂN KHÚC: Khách mới (vừa đăng ký hoặc mua lần đầu)\n");
+            prompt.append("MỤC TIÊU: Chào đón, xây dựng lòng tin, khuyến khích mua tiếp\n");
+        } else if ("VIP".equals(segment)) {
+            prompt.append("PHÂN KHÚC: Khách VIP (chi >5tr, ≥3 đơn)\n");
+            prompt.append("MỤC TIÊU: Tri ân, tăng trải nghiệm đặc quyền\n");
+        }
+        
+        prompt.append("\nTHÔNG TIN:\n");
+        prompt.append("- Tên khách: ").append(customerName).append("\n");
+        prompt.append("- Mã voucher: ").append(voucherCode).append("\n");
+        prompt.append("- Hạn sử dụng: ").append(expiryDate).append("\n\n");
+        
+        prompt.append("YÊU CẦU:\n");
+        prompt.append("1. Giọng điệu: Thân thiện, ấm áp, chân thành\n");
+        prompt.append("2. Độ dài: 150-250 từ\n");
+        prompt.append("3. CTA rõ ràng: Khuyến khích đặt hàng\n");
+        prompt.append("4. Sử dụng placeholder: {{name}}, {{voucher}}, {{expiry}}\n\n");
+        
+        prompt.append("OUTPUT FORMAT (JSON):\n");
+        prompt.append("{\n");
+        prompt.append("  \"subject\": \"Tiêu đề email (50-70 ký tự, hấp dẫn)\",\n");
+        prompt.append("  \"body\": \"Nội dung email HTML format với {{name}}, {{voucher}}, {{expiry}}\"\n");
+        prompt.append("}\n");
+        
+        // TODO: Call Gemini API và parse JSON response
+        // (Implementation tương tự các method khác trong service)
+        
+        // Placeholder implementation - sẽ cần implement thực tế
+        String subject = "🌸 Ưu đãi đặc biệt dành cho " + customerName;
+        String body = String.format("""
+            <h2>Xin chào %s!</h2>
+            <p>Chúng tôi có một ưu đãi đặc biệt dành riêng cho bạn.</p>
+            <p>Mã voucher: <strong>%s</strong></p>
+            <p>Hạn sử dụng: %s</p>
+            <p>Hãy nhanh tay đặt hàng ngay!</p>
+            """, customerName, voucherCode, expiryDate);
+        
+        return java.util.Map.of(
+            "subject", subject,
+            "body", body
+        );
+    }
 }

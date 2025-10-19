@@ -130,4 +130,11 @@ public interface OrderRepository extends JpaRepository<Order, String> {
     @Query("SELECT AVG(o.totalAmount) FROM Order o WHERE o.status = 'COMPLETED' " +
            "AND o.orderDate >= :startDate")
     BigDecimal getAverageOrderValue(@Param("startDate") LocalDateTime startDate);
+    
+    // AI Customer Segmentation queries
+    @Query("SELECT MAX(o.orderDate) FROM Order o WHERE o.user.id = :userId")
+    LocalDateTime getLastOrderDateByUser(@Param("userId") Long userId);
+    
+    @Query("SELECT MIN(o.orderDate) FROM Order o WHERE o.user.id = :userId")
+    LocalDateTime getFirstOrderDateByUser(@Param("userId") Long userId);
 }

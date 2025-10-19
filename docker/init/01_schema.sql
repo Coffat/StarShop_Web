@@ -30,6 +30,9 @@ CREATE TABLE Users (
     salary_per_hour NUMERIC(10,2) DEFAULT 0.00 CHECK (salary_per_hour >= 0),
     is_active BOOLEAN DEFAULT TRUE,
     last_login TIMESTAMP,
+    -- AI Customer Segmentation fields
+    customer_segment VARCHAR(20) DEFAULT NULL,
+    customer_segment_updated_at TIMESTAMP DEFAULT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     CHECK (LENGTH(password) >= 8)
@@ -42,12 +45,15 @@ COMMENT ON COLUMN Users.department IS 'Employee department';
 COMMENT ON COLUMN Users.salary_per_hour IS 'Hourly wage for employee';
 COMMENT ON COLUMN Users.is_active IS 'Whether user account is active';
 COMMENT ON COLUMN Users.last_login IS 'Last login timestamp';
+COMMENT ON COLUMN Users.customer_segment IS 'AI-generated customer segment: VIP, NEW, AT_RISK, or NULL';
+COMMENT ON COLUMN Users.customer_segment_updated_at IS 'Timestamp when customer segment was last updated';
 CREATE INDEX idx_users_email ON Users(email);
 CREATE INDEX idx_users_phone ON Users(phone);
 CREATE INDEX idx_users_role ON Users(role);
 CREATE INDEX idx_users_employee_code ON Users(employee_code) WHERE employee_code IS NOT NULL;
 CREATE INDEX idx_users_is_active ON Users(is_active);
 CREATE INDEX idx_users_role_active ON Users(role, is_active);
+CREATE INDEX idx_users_customer_segment ON Users(customer_segment) WHERE customer_segment IS NOT NULL;
 
 -- Table: Addresses
 CREATE TABLE Addresses (

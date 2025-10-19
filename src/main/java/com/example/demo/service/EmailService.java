@@ -1052,4 +1052,33 @@ public class EmailService {
             </html>
             """, firstName != null ? firstName : "bạn", currentDateTime, currentDateTime);
     }
+    
+    /**
+     * Send marketing campaign email
+     */
+    public void sendMarketingEmail(
+            String toEmail, 
+            String customerName,
+            String subject,
+            String htmlBody) {
+        try {
+            logger.info("=== SENDING MARKETING EMAIL ===");
+            logger.info("To: {}, Subject: {}", toEmail, subject);
+            
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom(fromEmail, "StarShop 🌸");
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(htmlBody, true);
+            
+            mailSender.send(message);
+            logger.info("✅ Marketing email sent to: {}", toEmail);
+            
+        } catch (Exception e) {
+            logger.error("❌ Failed to send marketing email to {}: {}", toEmail, e.getMessage());
+            throw new RuntimeException("Failed to send marketing email", e);
+        }
+    }
 }
