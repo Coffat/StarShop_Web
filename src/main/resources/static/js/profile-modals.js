@@ -100,11 +100,9 @@ async function loadProvinces() {
                 provinceSelect.appendChild(option);
             });
         } else {
-            console.error('Error loading provinces:', data.error);
             showToast(data.error || 'Không thể tải danh sách tỉnh/thành phố', 'error');
         }
     } catch (error) {
-        console.error('Error loading provinces:', error);
         showToast('Không thể tải danh sách tỉnh/thành phố', 'error');
     }
 }
@@ -142,11 +140,9 @@ async function loadDistricts() {
             });
             districtSelect.disabled = false;
         } else {
-            console.error('Error loading districts:', data.error);
             showToast(data.error || 'Không thể tải danh sách quận/huyện', 'error');
         }
     } catch (error) {
-        console.error('Error loading districts:', error);
         showToast('Không thể tải danh sách quận/huyện', 'error');
     }
 }
@@ -182,11 +178,9 @@ async function loadWards() {
             });
             wardSelect.disabled = false;
         } else {
-            console.error('Error loading wards:', data.error);
             showToast(data.error || 'Không thể tải danh sách phường/xã', 'error');
         }
     } catch (error) {
-        console.error('Error loading wards:', error);
         showToast('Không thể tải danh sách phường/xã', 'error');
     }
 }
@@ -237,7 +231,6 @@ async function submitAddress(event) {
             showToast(result.error || result.message || 'Có lỗi xảy ra', 'error');
         }
     } catch (error) {
-        console.error('Error submitting address:', error);
         showToast('Không thể thêm địa chỉ. Vui lòng thử lại.', 'error');
     } finally {
         submitBtn.disabled = false;
@@ -282,7 +275,6 @@ async function loadAddresses() {
             `;
         }
     } catch (error) {
-        console.error('Error loading addresses:', error);
         addressesList.innerHTML = '<div class="text-center py-8 text-red-600">Không thể tải danh sách địa chỉ</div>';
     }
 }
@@ -307,7 +299,6 @@ async function deleteAddress(addressId) {
             showToast(result.error || result.message || 'Không thể xóa địa chỉ', 'error');
         }
     } catch (error) {
-        console.error('Error deleting address:', error);
         showToast('Không thể xóa địa chỉ. Vui lòng thử lại.', 'error');
     }
 }

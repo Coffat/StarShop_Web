@@ -17,27 +17,18 @@
 				voucherBtn.addEventListener('click', applyVoucher);
 			}
 		const addressSelect = document.getElementById('addressSelect');
-		console.log('Address select element:', addressSelect);
 		if (addressSelect) {
-			console.log('Address select options:', addressSelect.options.length);
-			console.log('Selected value:', addressSelect.value);
 			
 			addressSelect.addEventListener('change', function() {
-				console.log('Address changed to:', this.value);
 				updateAddressDetails();
 				calculateShippingFee();
 				updatePlaceOrderButton();
 			});
 			// Show initial address if default is selected
 			if (addressSelect.value) {
-				console.log('Auto-calculating shipping for default address:', addressSelect.value);
 				updateAddressDetails();
 				calculateShippingFee();
-			} else {
-				console.log('No default address selected');
 			}
-		} else {
-			console.log('Address select element not found!');
 		}
 	});
 
@@ -46,11 +37,10 @@
 		const indicator = document.getElementById('addressSelectedIndicator');
 		const shippingSection = document.getElementById('shippingFeeSection');
 		
-		console.log('updateAddressDetails called, select value:', select?.value);
+		// Update address details
 		
 		if (select && select.value) {
 			const selectedOption = select.options[select.selectedIndex];
-			console.log('Selected option:', selectedOption?.text);
 			
 			// Show green indicator
 			if (indicator) {
@@ -80,10 +70,9 @@
 		const select = document.getElementById('addressSelect');
 		const shippingContent = document.getElementById('shippingFeeContent');
 		
-		console.log('calculateShippingFee called, select:', select, 'value:', select?.value);
+		// Calculate shipping fee
 		
 		if (!select || !select.value) {
-			console.log('No address selected, skipping shipping calculation');
 			return;
 		}
 		
@@ -106,8 +95,7 @@
 			serviceTypeId: 2 // Default GHN service type
 		};
 		
-		console.log('Making shipping API request:', requestBody);
-		console.log('CSRF token:', csrfToken, 'Header:', csrfHeader);
+		// Making shipping API request
 		
 		fetch('/api/shipping/fee', {
 			method: 'POST',
@@ -120,11 +108,9 @@
 			body: JSON.stringify(requestBody)
 		})
 		.then(r => {
-			console.log('Raw response status:', r.status, 'ok:', r.ok);
 			return r.json();
 		})
 		.then(response => {
-			console.log('Shipping fee API response:', response); // Debug log
 			if (response.data && response.data.success) {
 				shippingFee = response.data.shippingFee || 0;
 				shippingCalculated = true;
@@ -164,7 +150,6 @@
 			}
 		})
 		.catch(error => {
-			console.error('Error calculating shipping fee:', error);
 			// Fallback to free shipping
 			shippingFee = 0;
 			shippingCalculated = true;

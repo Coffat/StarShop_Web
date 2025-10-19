@@ -18,13 +18,12 @@ function staffNotificationComponent() {
          * Initialize component
          */
         init() {
-            console.log('🔔 Initializing staff notification component...');
-            console.log('📊 Initial state - notifications:', this.notifications.length, 'unreadCount:', this.unreadCount);
+            // Initializing staff notification component
             
             // Load notifications from localStorage
             this.loadNotifications();
             
-            console.log('📊 After load - notifications:', this.notifications.length, 'unreadCount:', this.unreadCount);
+            // Notifications loaded
             
             // Subscribe to WebSocket
             this.connectWebSocket();
@@ -40,8 +39,7 @@ function staffNotificationComponent() {
             if (typeof window.stompClient !== 'undefined' && window.stompClient && window.stompClient.connected) {
                 this.subscribeToNotifications();
             } else {
-                // Wait for WebSocket connection
-                console.log('⏳ Waiting for WebSocket connection...');
+                // Waiting for WebSocket connection
                 setTimeout(() => this.connectWebSocket(), 1000);
             }
         },
@@ -54,23 +52,22 @@ function staffNotificationComponent() {
             
             // Check if already subscribed
             if (this.stompSubscription) {
-                console.log('⚠️ Already subscribed to notifications, skipping');
                 return;
             }
             
             try {
-                console.log('🔗 Subscribing to /topic/staff/notifications...');
+                // Subscribing to staff notifications
                 
                 // Subscribe to broadcast notifications (like PII alerts)
                 this.stompSubscription = window.stompClient.subscribe('/topic/staff/notifications', function(message) {
                     const notification = JSON.parse(message.body);
-                    console.log('📩 Received staff notification:', notification);
+                    // Received staff notification
                     self.addNotification(notification);
                 });
                 
-                console.log('✅ Successfully subscribed to /topic/staff/notifications');
+                // Successfully subscribed to staff notifications
             } catch (error) {
-                console.error('❌ Error subscribing to notifications:', error);
+                // Error subscribing to notifications
             }
         },
         
@@ -107,7 +104,7 @@ function staffNotificationComponent() {
             // Show browser notification
             this.showBrowserNotification(notification);
             
-            console.log(`✅ Added notification (total: ${this.notifications.length}, unread: ${this.unreadCount})`);
+            // Notification added
         },
         
         /**
@@ -117,14 +114,14 @@ function staffNotificationComponent() {
             this.notifications.forEach(n => n.unread = false);
             this.updateUnreadCount();
             this.saveNotifications();
-            console.log('📖 Marked all notifications as read');
+            // Marked all notifications as read
         },
         
         /**
          * Handle notification click
          */
         handleNotificationClick(notification) {
-            console.log('👆 Notification clicked:', notification);
+            // Notification clicked
             
             // Mark as read
             notification.unread = false;
@@ -141,7 +138,7 @@ function staffNotificationComponent() {
                     if (typeof window.selectConversationById === 'function') {
                         window.selectConversationById(notification.conversationId);
                     } else {
-                        console.error('selectConversationById not available');
+                        // selectConversationById not available
                     }
                 } else {
                     // Navigate to chat page with conversation
@@ -158,7 +155,7 @@ function staffNotificationComponent() {
                 this.notifications = [];
                 this.updateUnreadCount();
                 this.saveNotifications();
-                console.log('🗑️ Cleared all notifications');
+                // Cleared all notifications
             }
         },
         
@@ -209,9 +206,9 @@ function staffNotificationComponent() {
                 }
                 
                 audio.volume = 0.5;
-                audio.play().catch(e => console.log('🔇 Could not play sound:', e));
+                audio.play().catch(e => {/* Could not play sound */});
             } catch (e) {
-                console.log('🔇 Notification sound not available:', e);
+                // Notification sound not available
             }
         },
         
@@ -263,7 +260,7 @@ function staffNotificationComponent() {
                 localStorage.setItem('staff_notifications', JSON.stringify(this.notifications));
                 localStorage.setItem('staff_notifications_unread', this.unreadCount.toString());
             } catch (e) {
-                console.error('❌ Failed to save notifications:', e);
+                // Failed to save notifications
             }
         },
         
@@ -273,18 +270,17 @@ function staffNotificationComponent() {
         loadNotifications() {
             try {
                 const stored = localStorage.getItem('staff_notifications');
-                console.log('🔍 localStorage raw data:', stored ? stored.substring(0, 100) + '...' : 'null');
+                // Loading notifications from localStorage
                 
                 if (stored) {
                     this.notifications = JSON.parse(stored);
                     this.updateUnreadCount();
-                    console.log(`📥 Loaded ${this.notifications.length} notifications from storage (unread: ${this.unreadCount})`);
-                    console.log('📋 First notification:', this.notifications[0]);
+                    // Loaded notifications from storage
                 } else {
-                    console.log('⚠️ No notifications in localStorage');
+                    // No notifications in localStorage
                 }
             } catch (e) {
-                console.error('❌ Failed to load notifications:', e);
+                // Failed to load notifications
                 this.notifications = [];
             }
         }
@@ -294,4 +290,4 @@ function staffNotificationComponent() {
 // Make component factory globally available
 window.staffNotificationComponent = staffNotificationComponent;
 
-console.log('✅ Staff notifications Alpine component loaded');
+// Staff notifications Alpine component loaded

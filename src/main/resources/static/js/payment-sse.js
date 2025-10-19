@@ -16,7 +16,6 @@ class PaymentSSE {
      */
     subscribe(orderId) {
         this.orderId = orderId;
-        console.log(`🔌 Connecting to SSE for order: ${orderId}`);
         
         // Close existing connection
         this.disconnect();
@@ -27,7 +26,6 @@ class PaymentSSE {
             
             // Handle connection opened
             this.eventSource.onopen = (event) => {
-                console.log('✅ SSE connection opened', event);
                 this.isConnected = true;
                 this.retryCount = 0;
                 this.showStatus('Đang chờ xác nhận thanh toán...', 'info');
@@ -35,35 +33,29 @@ class PaymentSSE {
             
             // Handle connection events
             this.eventSource.addEventListener('connected', (event) => {
-                console.log('🎯 SSE connected event:', event.data);
                 const data = JSON.parse(event.data);
                 this.showStatus(`Đã kết nối. Đang theo dõi đơn hàng ${data.orderId}...`, 'info');
             });
             
             // Handle payment events
             this.eventSource.addEventListener('payment', (event) => {
-                console.log('💳 Payment event received:', event.data);
                 const data = JSON.parse(event.data);
                 this.handlePaymentUpdate(data);
             });
             
             // Handle errors
             this.eventSource.onerror = (event) => {
-                console.error('❌ SSE error:', event);
                 this.isConnected = false;
                 
                 if (this.retryCount < this.maxRetries) {
                     this.retryCount++;
-                    console.log(`🔄 Retrying SSE connection (${this.retryCount}/${this.maxRetries})...`);
                     setTimeout(() => this.subscribe(orderId), 2000 * this.retryCount);
                 } else {
-                    console.log('🚫 Max retries reached. Stopping SSE.');
                     this.showStatus('Không thể kết nối real-time. Vui lòng refresh trang.', 'warning');
                 }
             };
             
         } catch (error) {
-            console.error('Failed to create SSE connection:', error);
             this.showStatus('Lỗi kết nối real-time. Vui lòng refresh trang.', 'error');
         }
     }
@@ -72,7 +64,6 @@ class PaymentSSE {
      * Handle payment status update
      */
     handlePaymentUpdate(data) {
-        console.log('🎉 Payment update:', data);
         
         const { status, message, transactionId, orderId } = data;
         
@@ -215,7 +206,6 @@ class PaymentSSE {
      */
     disconnect() {
         if (this.eventSource) {
-            console.log('🔌 Disconnecting SSE...');
             this.eventSource.close();
             this.eventSource = null;
             this.isConnected = false;
@@ -243,7 +233,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const orderId = urlParams.get('orderId');
     
     if (orderId) {
-        console.log('🚀 Auto-connecting SSE for orderId:', orderId);
         window.paymentSSE.subscribe(orderId);
     }
 });

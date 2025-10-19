@@ -49,15 +49,11 @@
         iconElement.className = className;
       }
     } catch (error) {
-      console.warn("Error setting icon class:", error);
       // Fallback: try setAttribute for all elements
       try {
         iconElement.setAttribute("class", className);
       } catch (fallbackError) {
-        console.error(
-          "Failed to set class even with setAttribute:",
-          fallbackError
-        );
+        // Failed to set class
       }
     }
   }
@@ -126,7 +122,6 @@
   function initializeProductActions() {
     // Event delegation is handled by main.js
     // No need to duplicate here - main.js already handles .btn-wishlist and .btn-add-to-cart
-    console.log('Product actions: Using event delegation from main.js');
   }
 
   function initializeViewToggle() {
@@ -337,7 +332,6 @@
 
   function loadReviews() {
     // TODO: Implement lazy loading of reviews
-    console.log("Loading reviews...");
   }
 
   // ================================
@@ -458,7 +452,6 @@
   function initializeErrorHandling() {
     // Global error handler for AJAX requests
     window.addEventListener("unhandledrejection", function (event) {
-      console.error("Unhandled promise rejection:", event.reason);
       showToast("Đã xảy ra lỗi. Vui lòng thử lại sau.", "error");
     });
 
@@ -477,17 +470,12 @@
   // ================================
 
   function initialize() {
-    console.log("Products.js: Initializing...");
-
     // Check if we're on a products page
     const isProductsPage =
       document.querySelector(".products-section") ||
       document.querySelector(".product-detail-section");
 
-    console.log("Products.js: isProductsPage =", isProductsPage);
-
     if (!isProductsPage) {
-      console.log("Products.js: Not on products page, skipping initialization");
       return;
     }
 
@@ -500,7 +488,6 @@
     // Initialize page-specific functionality
     if (document.querySelector(".products-section")) {
       // Products listing page
-      console.log("Products.js: Initializing product grid...");
 
       // Test toast notification
       setTimeout(() => {
@@ -515,7 +502,7 @@
       initializeProductDetail();
     }
 
-    console.log("Products page initialized successfully");
+    // Products page initialized successfully
   }
 
   // (Wishlist toggle logic handled by main.js)
@@ -527,7 +514,6 @@
 function initializeErrorHandling() {
 // Global error handler for AJAX requests
 window.addEventListener("unhandledrejection", function (event) {
-  console.error("Unhandled promise rejection:", event.reason);
   showToast("Đã xảy ra lỗi. Vui lòng thử lại sau.", "error");
 });
 
@@ -546,17 +532,12 @@ window.addEventListener("offline", function () {
 // ================================
 
 function initialize() {
-console.log("Products.js: Initializing...");
-
 // Check if we're on a products page
 const isProductsPage =
   document.querySelector(".products-section") ||
   document.querySelector(".product-detail-section");
 
-console.log("Products.js: isProductsPage =", isProductsPage);
-
 if (!isProductsPage) {
-  console.log("Products.js: Not on products page, skipping initialization");
   return;
 }
 
@@ -569,7 +550,6 @@ initializeSorting();
 // Initialize page-specific functionality
 if (document.querySelector(".products-section")) {
   // Products listing page
-  console.log("Products.js: Initializing product grid...");
 
   // Test toast notification
   setTimeout(() => {
@@ -584,7 +564,7 @@ if (document.querySelector(".product-detail-section")) {
   initializeProductDetail();
 }
 
-console.log("Products page initialized successfully");
+// Products page initialized successfully
 }
 
 // ================================
@@ -654,7 +634,7 @@ fetch('/api/wishlist/toggle', {
 .then(data => {
   if (!data) return;
   
-  console.log('Wishlist API response:', data);
+  // Process wishlist response
   
   if (data && data.success && data.data && data.data.success) {
     // Update UI based on server response
@@ -671,22 +651,22 @@ fetch('/api/wishlist/toggle', {
     }
     
     // Update wishlist count in header - ALWAYS update
-    console.log('Full API response data:', data.data);
+    // Process API response data
     
     // Try to get count from response
     let wishlistCount = data.data.userWishlistCount || data.data.favoriteCount || data.data.wishlistCount;
-    console.log('Wishlist count from API:', wishlistCount);
+    // Update wishlist count
     
     // If no count in response, fetch it
     if (wishlistCount === undefined || wishlistCount === null) {
-      console.warn('No wishlist count in toggle response, fetching from API...');
+      // No wishlist count in toggle response, fetching from API
       fetchAndUpdateWishlistCount();
     } else {
       // Update count immediately
-      console.log('Updating wishlist count to:', wishlistCount);
+      // Update wishlist count
       if (typeof window.updateWishlistCount === 'function') {
         window.updateWishlistCount(wishlistCount);
-        console.log('✅ updateWishlistCount called successfully');
+        // updateWishlistCount called successfully
       }
       return null;
     }
@@ -694,7 +674,7 @@ fetch('/api/wishlist/toggle', {
   .then(data => {
       if (!data) return;
       
-      console.log('Wishlist API response:', data);
+      // Process wishlist response
       
       if (data && data.success && data.data && data.data.success) {
         // Update UI based on server response
@@ -711,24 +691,24 @@ fetch('/api/wishlist/toggle', {
         }
         
         // Update wishlist count in header - ALWAYS update
-        console.log('Full API response data:', data.data);
+        // Process API response data
         
         // Try to get count from response
         let wishlistCount = data.data.userWishlistCount || data.data.favoriteCount || data.data.wishlistCount;
-        console.log('Wishlist count from API:', wishlistCount);
+        // Update wishlist count
         
         // If no count in response, fetch it
         if (wishlistCount === undefined || wishlistCount === null) {
-          console.warn('No wishlist count in toggle response, fetching from API...');
+          // No wishlist count in toggle response, fetching from API
           fetchAndUpdateWishlistCount();
         } else {
           // Update count immediately
-          console.log('Updating wishlist count to:', wishlistCount);
+          // Update wishlist count
           if (typeof window.updateWishlistCount === 'function') {
             window.updateWishlistCount(wishlistCount);
-            console.log('✅ updateWishlistCount called successfully');
+            // updateWishlistCount called successfully
           } else {
-            console.error('❌ updateWishlistCount function not found!');
+            // updateWishlistCount function not found
             // Try direct update as fallback
             updateWishlistCountDirect(wishlistCount);
           }
@@ -737,11 +717,11 @@ fetch('/api/wishlist/toggle', {
         if (icon) icon.className = originalIconClass;
         const errorMessage = (data && data.error) || (data && data.data && data.data.message) || 'Có lỗi xảy ra';
         showToast(errorMessage, 'error');
-        console.error('Wishlist error:', errorMessage, data);
+        // Wishlist error
       }
     })
     .catch(error => {
-      console.error('Error toggling wishlist:', error);
+      // Error toggling wishlist
       if (icon) icon.className = originalIconClass;
       showToast('Có lỗi xảy ra khi thực hiện yêu cầu', 'error');
     })
@@ -765,7 +745,7 @@ fetch('/api/wishlist/toggle', {
     const quantity = document.getElementById("quantity")?.value || 1;
 
     // TODO: Implement buy now functionality
-    console.log("Buy now:", { productId, quantity });
+    // Buy now functionality
 
     // For now, redirect to cart
     window.location.href = "/cart";
@@ -844,7 +824,7 @@ fetch('/api/wishlist/toggle', {
       }
     })
     .catch(error => {
-      console.error('Error deleting review:', error);
+      // Error deleting review
       if (typeof showToast === 'function') {
         showToast('Có lỗi xảy ra khi xóa đánh giá', 'error');
       } else {
