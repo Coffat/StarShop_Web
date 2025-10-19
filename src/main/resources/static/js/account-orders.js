@@ -109,9 +109,9 @@ function getActionButtons(order) {
     // Review button - for COMPLETED status
     if (order.status === 'COMPLETED') {
         buttons.push(`
-            <button onclick="reviewOrder(${order.id})" 
-                    class="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all">
-                <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <button onclick="openReviewModal(${order.orderItems[0].productId}, ${order.orderItems[0].id}, '${order.orderItems[0].productName}', '${order.orderItems[0].productImage}')" 
+                    class="px-6 py-3 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 text-white rounded-xl font-semibold hover:from-amber-500 hover:via-yellow-500 hover:to-orange-500 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border border-amber-300">
+                <svg class="w-5 h-5 mr-2 inline" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"/>
                 </svg> Đánh giá
             </button>
@@ -122,8 +122,8 @@ function getActionButtons(order) {
     if (order.status === 'COMPLETED' || order.status === 'CANCELLED') {
         buttons.push(`
             <button onclick="reorder(${order.id})" 
-                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors border border-gray-300">
-                <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    class="px-6 py-3 bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 text-white rounded-xl font-semibold hover:from-emerald-500 hover:via-green-500 hover:to-teal-500 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border border-emerald-300">
+                <svg class="w-5 h-5 mr-2 inline" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z" clip-rule="evenodd"/>
                 </svg> Mua lại
             </button>
@@ -605,11 +605,21 @@ async function submitReview() {
     const comment = document.getElementById('reviewComment').value.trim();
     
     try {
+        // Get CSRF token
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+        
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        if (csrfToken && csrfHeader) {
+            headers[csrfHeader] = csrfToken;
+        }
+        
         const response = await fetch('/api/reviews', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: headers,
             body: JSON.stringify({
                 orderItemId: currentReviewData.orderItemId,
                 rating: selectedRating,
