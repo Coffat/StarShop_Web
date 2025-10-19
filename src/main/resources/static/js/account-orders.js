@@ -385,8 +385,51 @@ function trackOrder(orderId) {
 
 // Review order
 function reviewOrder(orderId) {
-    // TODO: Implement order review
-    showToast('Tính năng đánh giá đang được phát triển', 'info');
+    // Fetch order details to get concrete order items, then open the review modal
+    fetch(`/api/orders/${orderId}`)
+        .then(async (res) => {
+            const body = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                const msg = (body && (body.message || body.error)) || 'Không thể lấy chi tiết đơn hàng';
+                throw new Error(msg);
+            }
+            return body;
+        })
+        .then((payload) => {
+            // ResponseWrapper shape: { data: { ...order... } } or nested { data: { data: { ... } } }
+            const wrapped = payload && payload.data ? payload.data : payload;
+            const orderData = wrapped && wrapped.data ? wrapped.data : wrapped;
+
+            // Try multiple shapes to find items
+            const items =
+                (orderData && orderData.items) ||
+                (orderData && orderData.orderItems) ||
+                (orderData && orderData.order && (orderData.order.items || orderData.order.orderItems)) ||
+                [];
+
+            if (!items || items.length === 0) {
+                showToast('Không tìm thấy sản phẩm để đánh giá trong đơn này', 'info');
+                return;
+            }
+
+            // Pick first item to review (UI also allows per-item review buttons)
+            const it = items[0];
+            const orderItemId = it.id || it.orderItemId;
+            const productId = it.productId || (it.product && it.product.id);
+            const productName = it.productName || (it.product && it.product.name) || 'Sản phẩm';
+            const productImage = it.productImage || (it.product && it.product.image) || '/images/placeholder.jpg';
+
+            if (!orderItemId || !productId) {
+                showToast('Không đủ dữ liệu để mở form đánh giá', 'error');
+                return;
+            }
+
+            openReviewModal(productId, orderItemId, productName, productImage);
+        })
+        .catch((err) => {
+            console.error('reviewOrder error:', err);
+            showToast(err.message || 'Có lỗi xảy ra khi mở form đánh giá', 'error');
+        });
 }
 
 // Reorder

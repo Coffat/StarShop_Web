@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "DeliveryUnits")
+@Table(name = "deliveryunits")
 public class DeliveryUnit extends BaseEntity {
 
     @Column(nullable = false, unique = true, length = 100)

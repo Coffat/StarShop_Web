@@ -433,6 +433,11 @@ public class ChatService {
                 }
             } else if (conversation.getStatus() == ConversationStatus.ASSIGNED) {
                 log.info("Customer message in ASSIGNED conversation {} - staff is handling, skipping AI", conversation.getId());
+                // If a streaming emitter is active, close it immediately to stop client typing indicator
+                if (streamingEmitters.containsKey(conversation.getId())) {
+                    sendStreamingComplete(conversation.getId(), null);
+                    log.info("Closed streaming emitter for conversation {} as staff is handling.", conversation.getId());
+                }
             } else {
                 log.info("Customer message in conversation {} with status {} - skipping AI (closed or other)", 
                     conversation.getId(), conversation.getStatus());

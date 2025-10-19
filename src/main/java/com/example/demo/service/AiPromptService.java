@@ -128,12 +128,20 @@ public class AiPromptService {
         prompt.append("- Kết nối cảm xúc: 'thể hiện tình cảm', 'mang lại niềm vui'\n");
         prompt.append("- Giọng điệu ấm áp, tự tin nhưng không áp đặt\n\n");
 
-        // Call-to-action rules
+        // Call-to-action rules and non-SALES handling
         if ("SALES".equals(intent)) {
-            prompt.append("🎯 CALL-TO-ACTION MẠNH MẼ:\n");
+            prompt.append("🎯 CALL-TO-ACTION MẠNH MẼ (CHỈ DÙNG CHO INTENT SALES):\n");
             prompt.append("- KẾT THÚC bằng CTA hấp dẫn: 'Bạn có muốn đặt hàng ngay không?'\n");
             prompt.append("- Hoặc: 'Mình có thể hỗ trợ đặt hàng luôn nếu bạn thích!'\n");
             prompt.append("- Tạo cảm giác dễ dàng, thuận tiện\n\n");
+        } else {
+            // QUY TẮC CHO CÁC INTENT KHÔNG PHẢI SALES (VD: STORE_INFO, SHIPPING, OTHER)
+            prompt.append("🎯 QUY TẮC TRẢ LỜI THÔNG TIN (KHÔNG BÁN HÀNG):\n");
+            prompt.append("1) ĐỌC KỸ: Đọc kỹ `DỮ LIỆU SẢN PHẨM` (toolResults) để hiểu thông tin.\n");
+            prompt.append("2) TRẢ LỜI THẲNG: Trình bày thông tin một cách rõ ràng, chính xác, đầy đủ theo yêu cầu.\n");
+            prompt.append("3) GIỮ NGUYÊN ĐỊNH DẠNG: Nếu có định dạng (địa chỉ, giờ mở cửa, chính sách), hãy giữ nguyên.\n");
+            prompt.append("4) KHÔNG TƯ VẤN SẢN PHẨM: Không giới thiệu/bán hàng trừ khi toolResults là thông tin sản phẩm.\n");
+            prompt.append("5) HỖ TRỢ THÊM: Kết thúc bằng câu hỏi mở thân thiện: 'Bạn có cần mình hỗ trợ gì thêm không ạ?'\n\n");
         }
 
         // Output format

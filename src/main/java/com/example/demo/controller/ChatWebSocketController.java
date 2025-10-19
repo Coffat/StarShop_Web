@@ -52,6 +52,12 @@ public class ChatWebSocketController {
                         
                         User authenticatedUser = userRepository.findByEmail(userEmail).orElse(null);
                         if (authenticatedUser != null) {
+                            // Guardrail: avoid resolving staff as system users
+                            if ("system@local".equalsIgnoreCase(authenticatedUser.getEmail()) ||
+                                "ai@system.local".equalsIgnoreCase(authenticatedUser.getEmail())) {
+                                log.error("CRITICAL: Authenticated principal resolved to a system user ({}). Blocking send.", authenticatedUser.getEmail());
+                                throw new RuntimeException("Authenticated user resolved to system user");
+                            }
                             message.setSenderId(authenticatedUser.getId());
                             log.info("Set senderId from authenticated user: {}", authenticatedUser.getId());
                         } else {
