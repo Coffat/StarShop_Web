@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.*;
 import com.example.demo.service.VoucherService;
+import com.example.demo.service.AdminAiInsightsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,7 @@ public class AdminVoucherController {
     
     private final VoucherService voucherService;
     private final com.example.demo.service.ExcelExportService excelExportService;
+    private final AdminAiInsightsService adminAiInsightsService;
     
     /**
      * Get all vouchers with filters
@@ -264,6 +266,30 @@ public class AdminVoucherController {
             errorResponse.put("valid", false);
             errorResponse.put("message", e.getMessage());
             return ResponseEntity.ok(errorResponse);
+        }
+    }
+    
+    /**
+     * Get AI suggestion for voucher configuration
+     */
+    @PostMapping("/suggest")
+    public ResponseWrapper<VoucherSuggestionResponse> suggestVoucher(
+            @Valid @RequestBody VoucherSuggestionRequest request
+    ) {
+        try {
+            log.info("AI voucher suggestion requested for objective: {}, targetProduct: {}", 
+                request.getObjective(), request.getTargetProduct());
+            
+            VoucherSuggestionResponse suggestion = adminAiInsightsService.suggestVoucher(
+                request.getObjective(), 
+                request.getTargetProduct()
+            );
+            
+            return ResponseWrapper.success(suggestion, "Đã tạo gợi ý voucher thành công");
+            
+        } catch (Exception e) {
+            log.error("Error generating voucher suggestion", e);
+            return ResponseWrapper.error("Lỗi khi tạo gợi ý voucher: " + e.getMessage());
         }
     }
 }

@@ -123,4 +123,11 @@ public interface OrderRepository extends JpaRepository<Order, String> {
            "WHERE order_date >= CURRENT_DATE - INTERVAL '7 days'", 
            nativeQuery = true)
     Long getTotalOrdersLast7Days();
+    
+    /**
+     * Get average order value (AOV) for completed orders in the last 30 days
+     */
+    @Query("SELECT AVG(o.totalAmount) FROM Order o WHERE o.status = 'COMPLETED' " +
+           "AND o.orderDate >= :startDate")
+    BigDecimal getAverageOrderValue(@Param("startDate") LocalDateTime startDate);
 }

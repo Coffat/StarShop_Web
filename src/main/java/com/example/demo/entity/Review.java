@@ -36,6 +36,10 @@ public class Review extends BaseEntity {
     @JoinColumn(name = "admin_response_by")
     private User adminResponseBy;
 
+    // AI sentiment analysis
+    @Column(name = "sentiment")
+    private String sentiment;
+
     // Constructors
     public Review() {
     }
@@ -110,5 +114,13 @@ public class Review extends BaseEntity {
 
     public void setAdminResponseBy(User adminResponseBy) {
         this.adminResponseBy = adminResponseBy;
+    }
+
+    public String getSentiment() {
+        return sentiment;
+    }
+
+    public void setSentiment(String sentiment) {
+        this.sentiment = sentiment;
     }
 }

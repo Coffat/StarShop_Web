@@ -2,10 +2,12 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.AdminReviewResponseRequest;
 import com.example.demo.dto.ResponseWrapper;
+import com.example.demo.dto.ReviewAiAnalysisResponse;
 import com.example.demo.dto.ReviewResponse;
 import com.example.demo.entity.Review;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.service.AdminAiInsightsService;
 import com.example.demo.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -39,6 +41,7 @@ public class AdminReviewController {
 
     private final ReviewService reviewService;
     private final UserRepository userRepository;
+    private final AdminAiInsightsService adminAiInsightsService;
 
     /**
      * Get all reviews with pagination
@@ -263,6 +266,40 @@ public class AdminReviewController {
             log.error("Error removing admin response from review {}: {}", id, e.getMessage(), e);
             return ResponseEntity.badRequest()
                 .body(ResponseWrapper.error("Không thể xóa phản hồi: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Analyze review with AI to get sentiment and suggested replies
+     */
+    @PostMapping("/{id}/analyze")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+        summary = "Phân tích đánh giá với AI",
+        description = "Sử dụng AI để phân tích sentiment và gợi ý câu trả lời cho đánh giá"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Phân tích thành công"),
+        @ApiResponse(responseCode = "400", description = "Dữ liệu không hợp lệ"),
+        @ApiResponse(responseCode = "403", description = "Không có quyền truy cập"),
+        @ApiResponse(responseCode = "404", description = "Đánh giá không tồn tại")
+    })
+    public ResponseEntity<ResponseWrapper<ReviewAiAnalysisResponse>> analyzeReview(
+            @PathVariable Long id,
+            Authentication authentication) {
+        
+        try {
+            log.info("Admin {} analyzing review {} with AI", authentication.getName(), id);
+            
+            ReviewAiAnalysisResponse analysis = adminAiInsightsService.analyzeReview(id);
+            
+            log.info("AI analysis completed for review {}", id);
+            return ResponseEntity.ok(ResponseWrapper.success(analysis, "Phân tích AI hoàn thành"));
+            
+        } catch (Exception e) {
+            log.error("Error analyzing review {} with AI: {}", id, e.getMessage(), e);
+            return ResponseEntity.badRequest()
+                .body(ResponseWrapper.error("Không thể phân tích đánh giá: " + e.getMessage()));
         }
     }
 }

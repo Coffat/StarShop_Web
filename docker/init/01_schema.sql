@@ -241,6 +241,8 @@ CREATE TABLE Reviews (
     admin_response TEXT DEFAULT NULL,
     admin_response_at TIMESTAMP DEFAULT NULL,
     admin_response_by BIGINT DEFAULT NULL,
+    -- AI sentiment analysis
+    sentiment VARCHAR(20) DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES Users(id),
     FOREIGN KEY (product_id) REFERENCES Products(id) ON DELETE CASCADE,
     FOREIGN KEY (order_item_id) REFERENCES OrderItems(id) ON DELETE CASCADE,
@@ -251,6 +253,7 @@ COMMENT ON TABLE Reviews IS 'Product reviews and ratings with admin response sup
 COMMENT ON COLUMN Reviews.admin_response IS 'Admin response to customer review';
 COMMENT ON COLUMN Reviews.admin_response_at IS 'Timestamp when admin responded';
 COMMENT ON COLUMN Reviews.admin_response_by IS 'Admin user who responded';
+COMMENT ON COLUMN Reviews.sentiment IS 'AI-analyzed sentiment: POSITIVE, NEUTRAL, NEGATIVE';
 CREATE INDEX idx_reviews_product_id ON Reviews(product_id);
 CREATE INDEX idx_reviews_admin_response_by ON Reviews(admin_response_by);
 CREATE INDEX idx_reviews_admin_response_at ON Reviews(admin_response_at);
