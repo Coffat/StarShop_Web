@@ -1081,6 +1081,27 @@ function staffChat() {
                 this.stompClient.connect({}, (frame) => {
                     console.log('WebSocket connected for chat');
                     
+                    // Subscribe to handoff queue updates to refresh conversations list
+                    try {
+                        this.stompClient.subscribe('/topic/handoff-queue', (message) => {
+                            try {
+                                const notification = JSON.parse(message.body);
+                                console.log('📥 Handoff queue update:', notification);
+                            } catch (e) { /* noop */ }
+                            // Always refresh conversations so staff sees new handoff immediately
+                            this.loadConversations();
+                            // Optionally also refresh any handoff-specific list if present
+                            if (typeof this.loadHandoffQueue === 'function') {
+                                this.loadHandoffQueue();
+                            }
+                            if (typeof this.showNotification === 'function') {
+                                this.showNotification('Có cuộc hội thoại mới cần hỗ trợ');
+                            }
+                        });
+                    } catch (e) {
+                        console.error('Error subscribing to handoff-queue:', e);
+                    }
+
                     // Subscribe to new conversation notifications
                     this.stompClient.subscribe('/topic/notifications', (message) => {
                         const notification = JSON.parse(message.body);
