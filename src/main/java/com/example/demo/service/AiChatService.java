@@ -184,10 +184,12 @@ public class AiChatService {
                 );
             } else {
                 log.debug("📝 Using NON-STREAMING generation for conversation {}", conversationId);
-                response = geminiClient.generateFinalResponseWithProfile(
-                    systemPrompt, 
+                // Use retry/backoff to improve resilience on transient errors
+                response = geminiClient.generateFinalResponseWithProfileAndRetry(
+                    systemPrompt,
                     finalPrompt,
-                    profile
+                    profile,
+                    3
                 );
             }
             
@@ -308,9 +310,12 @@ public class AiChatService {
         
         String trimmedResponse = response.trim();
         
-        // Check minimum length
-        if (trimmedResponse.length() < 30) {
-            log.warn("❌ Response too short: {} chars", trimmedResponse.length());
+        // Check minimum length (loosen for STORE_INFO/policy-like requests)
+        boolean looksLikePolicyOrStoreInfo =
+            customerMessage != null && customerMessage.toLowerCase().matches(".*(chính sách|policy|cửa hàng|địa chỉ|giờ mở|hotline).*");
+        int minLen = looksLikePolicyOrStoreInfo ? 20 : 30;
+        if (trimmedResponse.length() < minLen) {
+            log.warn("❌ Response too short for context (min {}): {} chars", minLen, trimmedResponse.length());
             return false;
         }
         

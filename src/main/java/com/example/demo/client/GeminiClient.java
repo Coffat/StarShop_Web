@@ -13,8 +13,6 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Client for interacting with Google Gemini API
@@ -307,9 +305,11 @@ public class GeminiClient {
             
             if (response == null && attempts < maxRetries) {
                 try {
-                    // Exponential backoff: 400ms, 800ms, 1600ms
-                    long backoffMs = (long) (400 * Math.pow(2, attempts - 1));
-                    log.debug("Retrying after {}ms backoff", backoffMs);
+                    // Exponential backoff: 400ms, 800ms, 1600ms with jitter
+                    long baseBackoff = (long) (400 * Math.pow(2, attempts - 1));
+                    long jitter = (long) (Math.random() * 150);
+                    long backoffMs = baseBackoff + jitter;
+                    log.warn("Retrying Gemini after {}ms backoff (attempt {}/{})", backoffMs, attempts + 1, maxRetries);
                     Thread.sleep(backoffMs);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -428,6 +428,46 @@ public class GeminiClient {
     }
 
     /**
+     * Generate final response with retry/backoff
+     */
+    public GeminiResponse generateFinalResponseWithProfileAndRetry(String systemPrompt, String userMessage,
+                                                                   AiGenerationProfileService.GenerationProfile profile,
+                                                                   int maxRetries) {
+        int attempts = 0;
+        GeminiResponse response = null;
+        long startTime = System.currentTimeMillis();
+
+        while (attempts < maxRetries && response == null) {
+            attempts++;
+            log.debug("Gemini FINAL call attempt {} of {} with profile", attempts, maxRetries);
+
+            response = generateFinalResponseWithProfile(systemPrompt, userMessage, profile);
+
+            if (response == null && attempts < maxRetries) {
+                try {
+                    long baseBackoff = (long) (400 * Math.pow(2, attempts - 1));
+                    long jitter = (long) (Math.random() * 150);
+                    long backoffMs = baseBackoff + jitter;
+                    log.warn("Retrying Gemini FINAL after {}ms backoff (attempt {}/{})", backoffMs, attempts + 1, maxRetries);
+                    Thread.sleep(backoffMs);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        }
+
+        long totalTime = System.currentTimeMillis() - startTime;
+        if (response == null) {
+            log.error("Failed to get FINAL response from Gemini after {} attempts in {}ms", maxRetries, totalTime);
+        } else {
+            log.debug("Gemini FINAL succeeded on attempt {} in {}ms", attempts, totalTime);
+        }
+
+        return response;
+    }
+
+    /**
      * Generate content with streaming support
      * 
      * @param systemPrompt System instructions
@@ -466,16 +506,7 @@ public class GeminiClient {
                                                  AiGenerationProfileService.GenerationProfile profile,
                                                  StreamingCallback streamCallback) {
         try {
-            String url = geminiProperties.getGenerateContentUrl() + "?alt=sse"; // Enable Server-Sent Events
-            
-            GeminiRequest request = GeminiRequest.createWithSystemPrompt(
-                systemPrompt,
-                userMessage,
-                profile.getTemperature(),
-                profile.getTopP(),
-                profile.getMaxTokens(),
-                "text/plain"
-            );
+            // Streaming parameters are intentionally not used in the current simulation
 
             // Use streaming-compatible HTTP client
             StringBuilder finalResponse = new StringBuilder();

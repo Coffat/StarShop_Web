@@ -134,6 +134,30 @@ function subscribeToChatWidgetConversation(conversationId) {
     }
 }
 
+// Subscribe to general chat updates to handle hide_typing broadcast
+if (!window.chatWidgetSubscribedChatUpdates) {
+    window.chatWidgetSubscribedChatUpdates = true;
+    try {
+        const ensureConnection = () => {
+            if (chatWidgetStompClient && chatWidgetIsConnected) {
+                chatWidgetStompClient.subscribe('/topic/chat-updates', function(message) {
+                    try {
+                        const update = JSON.parse(message.body);
+                        if (update && update.type === 'hide_typing') {
+                            if (!update.data || !chatWidgetConversationId || update.data.conversationId == chatWidgetConversationId) {
+                                hideTypingIndicator();
+                            }
+                        }
+                    } catch (e) { /* noop */ }
+                });
+            } else {
+                setTimeout(ensureConnection, 500);
+            }
+        };
+        ensureConnection();
+    } catch (e) { /* noop */ }
+}
+
 /**
  * Load existing conversation or create new one
  */
@@ -348,8 +372,17 @@ function sendWidgetMessage() {
         isRead: false
     });
     
-    // Show typing indicator for AI response
-    showTypingIndicator();
+    // Show typing indicator for AI response if conversation not assigned to staff
+    try {
+        if (window.chatWidgetConversation && window.chatWidgetConversation.status === 'ASSIGNED') {
+            // Do not show AI typing when staff is handling
+        } else {
+            showTypingIndicator();
+        }
+    } catch (e) {
+        // Fallback to showing typing indicator if state unknown
+        showTypingIndicator();
+    }
     
     // Get CSRF token
     const csrf = getCsrfToken();
