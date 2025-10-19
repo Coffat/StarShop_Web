@@ -9,6 +9,11 @@ import com.example.demo.repository.CartRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.ShippingService;
 import com.example.demo.dto.ResponseWrapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "🚚 Shipping", description = "Shipping fee calculation APIs")
 @RestController
 @RequestMapping("/api/shipping")
 public class ShippingController {
@@ -37,6 +43,17 @@ public class ShippingController {
     /**
      * Calculate shipping fee for current cart to specific address
      */
+    @Operation(
+        summary = "Calculate shipping fee",
+        description = "Calculate shipping fee for current user's cart to specified address using GHN API"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Shipping fee calculated successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request or cart is empty"),
+        @ApiResponse(responseCode = "401", description = "User not authenticated"),
+        @ApiResponse(responseCode = "500", description = "Error calculating shipping fee")
+    })
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/fee")
     @Transactional(readOnly = true)
     public ResponseEntity<ResponseWrapper<ShippingFeeResponse>> calculateShippingFee(
@@ -95,6 +112,14 @@ public class ShippingController {
     /**
      * Check if shipping service is available
      */
+    @Operation(
+        summary = "Check shipping service status",
+        description = "Check if GHN shipping service is available and accessible"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Service status retrieved"),
+        @ApiResponse(responseCode = "500", description = "Error checking service status")
+    })
     @GetMapping("/status")
     public ResponseEntity<ResponseWrapper<Boolean>> getShippingServiceStatus() {
         try {
@@ -110,6 +135,14 @@ public class ShippingController {
     /**
      * Get default service type ID
      */
+    @Operation(
+        summary = "Get default service type",
+        description = "Get the default GHN service type ID for shipping calculations"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Default service type retrieved"),
+        @ApiResponse(responseCode = "500", description = "Error retrieving service type")
+    })
     @GetMapping("/service-types/default")
     public ResponseEntity<ResponseWrapper<Integer>> getDefaultServiceType() {
         try {

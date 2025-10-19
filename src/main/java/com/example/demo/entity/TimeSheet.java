@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 @Entity
-@Table(name = "timesheets")
+@Table(name = "TimeSheets")
 public class TimeSheet {
 
     @Id

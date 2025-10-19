@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "products")
+@Table(name = "Products")
 public class Product extends BaseEntity {
 
     @Column(nullable = false)

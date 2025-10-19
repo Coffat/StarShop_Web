@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "salaries", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "month_year"}))
+@Table(name = "Salaries", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "month_year"}))
 public class Salary extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

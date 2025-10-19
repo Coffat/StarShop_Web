@@ -24,6 +24,10 @@ springdoc:
     try-it-out-enabled: true
     filter: true
     display-request-duration: true
+    groups-order: DESC
+    show-extensions: true
+    show-common-extensions: true
+    default-models-expand-depth: 2
 
 # Common non-sensitive Gemini settings
 gemini:

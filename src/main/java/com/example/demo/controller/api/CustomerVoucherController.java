@@ -3,6 +3,11 @@ package com.example.demo.controller.api;
 import com.example.demo.dto.VoucherDTO;
 import com.example.demo.entity.enums.DiscountType;
 import com.example.demo.service.VoucherService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -16,6 +21,7 @@ import java.util.Map;
 /**
  * REST API Controller for customer voucher operations
  */
+@Tag(name = "🎟️ Customer Vouchers", description = "Customer voucher operations APIs")
 @RestController
 @RequestMapping("/api/vouchers")
 @RequiredArgsConstructor
@@ -28,6 +34,11 @@ public class CustomerVoucherController {
      * Get all available vouchers for customers
      * Returns only active and valid vouchers
      */
+    @Operation(summary = "Get available vouchers", description = "Retrieve all active and valid vouchers for customers")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Available vouchers retrieved successfully"),
+        @ApiResponse(responseCode = "500", description = "Error retrieving vouchers")
+    })
     @GetMapping("/available")
     public ResponseEntity<Map<String, Object>> getAvailableVouchers() {
         try {
@@ -54,8 +65,14 @@ public class CustomerVoucherController {
      * Validate and get voucher by code
      * Used when customer enters voucher code at checkout
      */
+    @Operation(summary = "Validate voucher by code", description = "Validate a voucher code and retrieve its details if valid")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Voucher validated successfully"),
+        @ApiResponse(responseCode = "404", description = "Voucher not found")
+    })
     @GetMapping("/validate/{code}")
-    public ResponseEntity<Map<String, Object>> validateVoucherCode(@PathVariable String code) {
+    public ResponseEntity<Map<String, Object>> validateVoucherCode(
+            @Parameter(description = "Voucher code", required = true) @PathVariable String code) {
         try {
             log.info("Validating voucher code: {}", code);
             
@@ -101,6 +118,12 @@ public class CustomerVoucherController {
      * Apply voucher to order
      * Calculate discount based on voucher type and order amount
      */
+    @Operation(summary = "Apply voucher", description = "Apply voucher to order amount and calculate discount")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Voucher applied successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request data"),
+        @ApiResponse(responseCode = "500", description = "Error applying voucher")
+    })
     @PostMapping("/apply")
     public ResponseEntity<Map<String, Object>> applyVoucher(
             @RequestBody Map<String, Object> request) {

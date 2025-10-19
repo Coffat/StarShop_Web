@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "catalogs")
+@Table(name = "Catalogs")
 public class Catalog extends BaseEntity {
 
     @Column(nullable = false, unique = true, length = 100)

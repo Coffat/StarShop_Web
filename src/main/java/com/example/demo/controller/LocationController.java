@@ -5,6 +5,11 @@ import com.example.demo.dto.location.ProvinceDto;
 import com.example.demo.dto.location.WardDto;
 import com.example.demo.service.LocationService;
 import com.example.demo.dto.ResponseWrapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "📍 Locations", description = "GHN location APIs - provinces, districts, wards")
 @RestController
 @RequestMapping("/api/locations")
 public class LocationController {
@@ -27,6 +33,14 @@ public class LocationController {
     /**
      * Get all provinces
      */
+    @Operation(
+        summary = "Get all provinces",
+        description = "Retrieve all provinces from GHN shipping API"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved provinces"),
+        @ApiResponse(responseCode = "500", description = "GHN service unavailable")
+    })
     @GetMapping("/provinces")
     public ResponseEntity<ResponseWrapper<List<ProvinceDto>>> getProvinces() {
         try {
@@ -60,6 +74,14 @@ public class LocationController {
     /**
      * Debug endpoint to check GHN configuration
      */
+    @Operation(
+        summary = "Debug GHN configuration",
+        description = "Check GHN service configuration and connectivity status"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Configuration status retrieved"),
+        @ApiResponse(responseCode = "500", description = "Error checking configuration")
+    })
     @GetMapping("/debug")
     public ResponseEntity<ResponseWrapper<String>> debug() {
         try {
@@ -89,8 +111,17 @@ public class LocationController {
     /**
      * Get districts by province ID
      */
+    @Operation(
+        summary = "Get districts by province",
+        description = "Retrieve all districts for a specific province from GHN API"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved districts"),
+        @ApiResponse(responseCode = "500", description = "Error retrieving districts")
+    })
     @GetMapping("/districts")
-    public ResponseEntity<ResponseWrapper<List<DistrictDto>>> getDistricts(@RequestParam int province_id) {
+    public ResponseEntity<ResponseWrapper<List<DistrictDto>>> getDistricts(
+            @Parameter(description = "Province ID", required = true) @RequestParam int province_id) {
         try {
             List<DistrictDto> districts = locationService.getDistricts(province_id);
             
@@ -109,8 +140,17 @@ public class LocationController {
     /**
      * Get wards by district ID
      */
+    @Operation(
+        summary = "Get wards by district",
+        description = "Retrieve all wards for a specific district from GHN API"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved wards"),
+        @ApiResponse(responseCode = "500", description = "Error retrieving wards")
+    })
     @GetMapping("/wards")
-    public ResponseEntity<ResponseWrapper<List<WardDto>>> getWards(@RequestParam int district_id) {
+    public ResponseEntity<ResponseWrapper<List<WardDto>>> getWards(
+            @Parameter(description = "District ID", required = true) @RequestParam int district_id) {
         try {
             List<WardDto> wards = locationService.getWards(district_id);
             
@@ -129,8 +169,17 @@ public class LocationController {
     /**
      * Get all wards by province ID (for 2-level address mode)
      */
+    @Operation(
+        summary = "Get wards by province (2-level mode)",
+        description = "Retrieve all wards for a province in 2-level address mode from GHN API"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved wards"),
+        @ApiResponse(responseCode = "500", description = "Error retrieving wards")
+    })
     @GetMapping("/wards-by-province")
-    public ResponseEntity<ResponseWrapper<List<WardDto>>> getWardsByProvince(@RequestParam int province_id) {
+    public ResponseEntity<ResponseWrapper<List<WardDto>>> getWardsByProvince(
+            @Parameter(description = "Province ID", required = true) @RequestParam int province_id) {
         try {
             logger.info("Getting wards for province: {}", province_id);
             List<WardDto> wards = locationService.getWardsByProvince(province_id);
@@ -151,6 +200,14 @@ public class LocationController {
     /**
      * Check if GHN service is available
      */
+    @Operation(
+        summary = "Check GHN service status",
+        description = "Check if GHN shipping service is available and accessible"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Service status retrieved"),
+        @ApiResponse(responseCode = "500", description = "Error checking service status")
+    })
     @GetMapping("/status")
     public ResponseEntity<ResponseWrapper<Boolean>> getServiceStatus() {
         try {

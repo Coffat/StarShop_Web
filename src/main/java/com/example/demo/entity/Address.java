@@ -3,7 +3,7 @@ package com.example.demo.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "addresses")
+@Table(name = "Addresses")
 public class Address extends BaseEntity {
 
     // Legacy fields (for backward compatibility)
