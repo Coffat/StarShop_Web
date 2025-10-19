@@ -270,21 +270,56 @@
                      data-aos="fade-up"
                      data-aos-duration="600"
                      th:data-aos-delay="${iterStat.index * 100}">
-                    <div class="relative overflow-hidden aspect-square">
-                        <a th:href="@{/products/{id}(id=${product.id})}" class="block">
+                    
+                    <!-- Product Image Container với aspect ratio cố định -->
+                    <div class="relative overflow-hidden bg-gray-100" style="aspect-ratio: 1;">
+                        <a th:href="@{/products/{id}(id=${product.id})}" class="block w-full h-full">
                             <img th:src="${product.image != null ? product.image : '/images/products/default-flower.jpg'}"
                                  th:alt="${product.name}"
                                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                  loading="lazy" />
                         </a>
+                        
+                        <!-- Wishlist Button (chỉ hiện khi đăng nhập) -->
+                        <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300" sec:authorize="isAuthenticated()">
+                            <button class="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white hover:scale-110 transition-all duration-300 btn-wishlist"
+                                    th:data-product-id="${product.id}"
+                                    th:classappend="${#sets.contains(wishlistProductIds, product.id)} ? ' active'"
+                                    onclick="handleWishlistToggle(this)"
+                                    title="Thêm vào yêu thích">
+                                <i th:if="${#sets.contains(wishlistProductIds, product.id)}" class="fa-solid fa-heart text-rose-500"></i>
+                                <i th:unless="${#sets.contains(wishlistProductIds, product.id)}" class="fa-regular fa-heart text-gray-600 hover:text-rose-500"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Sale Badge -->
+                        <div class="absolute top-3 left-3 bg-gradient-to-r from-rose-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                            Nổi bật
+                        </div>
                     </div>
+                    
+                    <!-- Product Content -->
                     <div class="p-6">
                         <h3 class="text-lg font-bold text-gray-800 mb-2 line-clamp-2 group-hover:text-rose-500 transition-colors duration-300">
                             <a th:href="@{/products/{id}(id=${product.id})}"
                                th:text="${product.name}">Tên sản phẩm</a>
                         </h3>
-                        <div class="text-xl font-bold text-rose-500">
-                            <span th:text="${#numbers.formatCurrency(product.price)}">0₫</span>
+                        
+                        <!-- Product Price -->
+                        <div class="flex items-center justify-between">
+                            <div class="text-xl font-bold text-rose-500">
+                                <span th:text="${#numbers.formatCurrency(product.price)}">0₫</span>
+                            </div>
+                            
+                            <!-- Quick Add to Cart Button (chỉ hiện khi đăng nhập) -->
+                            <button class="opacity-0 group-hover:opacity-100 bg-gradient-to-r from-rose-500 to-pink-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:from-rose-600 hover:to-pink-600 transition-all duration-300 btn-add-to-cart"
+                                    th:data-product-id="${product.id}"
+                                    onclick="handleAddToCart(this)"
+                                    sec:authorize="isAuthenticated()"
+                                    title="Thêm vào giỏ hàng">
+                                <i class="fa-solid fa-cart-plus mr-1"></i>
+                                Thêm
+                            </button>
                         </div>
                     </div>
                 </div>
