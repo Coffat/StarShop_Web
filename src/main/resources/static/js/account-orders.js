@@ -549,8 +549,8 @@ function openReviewModal(productId, orderItemId, productName, productImage) {
     document.getElementById('modalBackdrop').onclick = closeReviewModal;
     
     // Add event listeners for star buttons
-    const starButtons = document.querySelectorAll('.star-btn');
-    starButtons.forEach((btn, index) => {
+    const starButtonsForModal = document.querySelectorAll('.star-btn');
+    starButtonsForModal.forEach((btn, index) => {
         btn.onclick = () => selectRating(index + 1);
     });
 }
