@@ -69,6 +69,7 @@ public class ProductController {
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) Long categoryId,
+            
             Model model,
             jakarta.servlet.http.HttpServletResponse response,
             Authentication authentication) {

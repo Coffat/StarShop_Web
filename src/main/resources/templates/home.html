@@ -230,8 +230,8 @@
                         <div class="absolute inset-0 flex flex-col justify-end p-6 text-white">
                             <div class="text-3xl mb-2">🌸</div>
                             <h3 class="text-xl font-bold mb-1" th:text="${catalog.value}">Tên danh mục</h3>
-                            <p class="text-sm text-white/90 mb-4">Khám phá bộ sưu tập đặc biệt</p>
-                            <a th:href="@{/categories/{categoryName}(categoryName=${catalog.value})}" 
+                            <p class="text-sm text-white/90 mb-4">Khám phá bộ sưu tập</p>
+                            <a th:href="@{/products(categoryId=${catalog.id})}"
                                class="inline-flex items-center gap-2 text-white font-semibold hover:text-pink-200 transition-colors duration-300">
                                 Khám phá
                                 <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
