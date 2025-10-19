@@ -204,9 +204,14 @@ CREATE TABLE Reviews (
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     order_item_id BIGINT UNIQUE,
+    -- Admin response fields
+    admin_response TEXT DEFAULT NULL,
+    admin_response_at TIMESTAMP DEFAULT NULL,
+    admin_response_by BIGINT DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES Users(id),
     FOREIGN KEY (product_id) REFERENCES Products(id) ON DELETE CASCADE,
     FOREIGN KEY (order_item_id) REFERENCES OrderItems(id) ON DELETE CASCADE,
+    FOREIGN KEY (admin_response_by) REFERENCES Users(id) ON DELETE SET NULL,
     CHECK (rating BETWEEN 1 AND 5)
 );
 COMMENT ON TABLE Reviews IS 'Product reviews and ratings';

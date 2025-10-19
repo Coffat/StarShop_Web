@@ -2,12 +2,10 @@ package com.example.demo.service;
 
 import com.example.demo.entity.Order;
 import com.example.demo.entity.OrderItem;
-import com.example.demo.entity.Product;
 import com.example.demo.entity.Review;
 import com.example.demo.entity.User;
 import com.example.demo.entity.enums.OrderStatus;
 import com.example.demo.repository.OrderItemRepository;
-import com.example.demo.repository.OrderRepository;
 import com.example.demo.repository.ReviewRepository;
 import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +14,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 import java.util.List;
 import java.util.Optional;
@@ -251,5 +251,101 @@ public class ReviewService {
     public Page<Review> getAllReviews(Pageable pageable) {
         log.debug("Getting all reviews with pagination: {}", pageable);
         return reviewRepository.findAllByOrderByCreatedAtDesc(pageable);
+    }
+
+    /**
+     * Add admin response to a review
+     */
+    @Transactional
+    public Review addAdminResponse(Long reviewId, Long adminUserId, String adminResponse) {
+        if (reviewId == null || adminUserId == null || adminResponse == null || adminResponse.trim().isEmpty()) {
+            throw new IllegalArgumentException("Invalid admin response parameters");
+        }
+
+        log.info("Adding admin response to review {} by admin {}", reviewId, adminUserId);
+
+        // Get review
+        Review review = reviewRepository.findById(reviewId)
+            .orElseThrow(() -> new IllegalArgumentException("Review not found"));
+
+        // Get admin user
+        User adminUser = userRepository.findById(adminUserId)
+            .orElseThrow(() -> new IllegalArgumentException("Admin user not found"));
+
+        // Update review with admin response
+        review.setAdminResponse(adminResponse.trim());
+        review.setAdminResponseAt(LocalDateTime.now());
+        review.setAdminResponseBy(adminUser);
+
+        Review savedReview = reviewRepository.save(review);
+        log.info("Admin response added successfully to review {}", reviewId);
+        
+        return savedReview;
+    }
+
+    /**
+     * Update admin response for a review
+     */
+    @Transactional
+    public Review updateAdminResponse(Long reviewId, Long adminUserId, String adminResponse) {
+        if (reviewId == null || adminUserId == null || adminResponse == null || adminResponse.trim().isEmpty()) {
+            throw new IllegalArgumentException("Invalid admin response parameters");
+        }
+
+        log.info("Updating admin response for review {} by admin {}", reviewId, adminUserId);
+
+        // Get review
+        Review review = reviewRepository.findById(reviewId)
+            .orElseThrow(() -> new IllegalArgumentException("Review not found"));
+
+        // Check if review has admin response
+        if (review.getAdminResponse() == null) {
+            throw new IllegalStateException("Review does not have an admin response to update");
+        }
+
+        // Get admin user
+        User adminUser = userRepository.findById(adminUserId)
+            .orElseThrow(() -> new IllegalArgumentException("Admin user not found"));
+
+        // Update admin response
+        review.setAdminResponse(adminResponse.trim());
+        review.setAdminResponseAt(LocalDateTime.now());
+        review.setAdminResponseBy(adminUser);
+
+        Review savedReview = reviewRepository.save(review);
+        log.info("Admin response updated successfully for review {}", reviewId);
+        
+        return savedReview;
+    }
+
+    /**
+     * Remove admin response from a review
+     */
+    @Transactional
+    public Review removeAdminResponse(Long reviewId, Long adminUserId) {
+        if (reviewId == null || adminUserId == null) {
+            throw new IllegalArgumentException("Review ID and admin user ID cannot be null");
+        }
+
+        log.info("Removing admin response from review {} by admin {}", reviewId, adminUserId);
+
+        // Get review
+        Review review = reviewRepository.findById(reviewId)
+            .orElseThrow(() -> new IllegalArgumentException("Review not found"));
+
+        // Check if review has admin response
+        if (review.getAdminResponse() == null) {
+            throw new IllegalStateException("Review does not have an admin response to remove");
+        }
+
+        // Remove admin response
+        review.setAdminResponse(null);
+        review.setAdminResponseAt(null);
+        review.setAdminResponseBy(null);
+
+        Review savedReview = reviewRepository.save(review);
+        log.info("Admin response removed successfully from review {}", reviewId);
+        
+        return savedReview;
     }
 }

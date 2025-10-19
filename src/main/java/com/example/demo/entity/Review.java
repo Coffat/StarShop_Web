@@ -1,6 +1,7 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "reviews")
@@ -23,6 +24,17 @@ public class Review extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_item_id", unique = true)
     private OrderItem orderItem;
+
+    // Admin response fields
+    @Column(columnDefinition = "TEXT")
+    private String adminResponse;
+
+    @Column(name = "admin_response_at")
+    private LocalDateTime adminResponseAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_response_by")
+    private User adminResponseBy;
 
     // Constructors
     public Review() {
@@ -74,5 +86,29 @@ public class Review extends BaseEntity {
 
     public void setOrderItem(OrderItem orderItem) {
         this.orderItem = orderItem;
+    }
+
+    public String getAdminResponse() {
+        return adminResponse;
+    }
+
+    public void setAdminResponse(String adminResponse) {
+        this.adminResponse = adminResponse;
+    }
+
+    public LocalDateTime getAdminResponseAt() {
+        return adminResponseAt;
+    }
+
+    public void setAdminResponseAt(LocalDateTime adminResponseAt) {
+        this.adminResponseAt = adminResponseAt;
+    }
+
+    public User getAdminResponseBy() {
+        return adminResponseBy;
+    }
+
+    public void setAdminResponseBy(User adminResponseBy) {
+        this.adminResponseBy = adminResponseBy;
     }
 }

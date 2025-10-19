@@ -1,7 +1,11 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.AdminReviewResponseRequest;
 import com.example.demo.dto.ResponseWrapper;
+import com.example.demo.dto.ReviewResponse;
 import com.example.demo.entity.Review;
+import com.example.demo.entity.User;
+import com.example.demo.repository.UserRepository;
 import com.example.demo.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,6 +23,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
+
 /**
  * Admin REST API Controller for Review Management
  * Following rules.mdc specifications for REST API
@@ -32,6 +38,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminReviewController {
 
     private final ReviewService reviewService;
+    private final UserRepository userRepository;
 
     /**
      * Get all reviews with pagination
@@ -141,6 +148,121 @@ public class AdminReviewController {
             log.error("Error getting review statistics: {}", e.getMessage(), e);
             return ResponseEntity.badRequest()
                 .body(ResponseWrapper.error("Không thể lấy thống kê: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Add admin response to a review
+     */
+    @PostMapping("/{id}/respond")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+        summary = "Phản hồi đánh giá",
+        description = "Admin phản hồi đánh giá của khách hàng"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Phản hồi thành công"),
+        @ApiResponse(responseCode = "400", description = "Dữ liệu không hợp lệ"),
+        @ApiResponse(responseCode = "403", description = "Không có quyền truy cập"),
+        @ApiResponse(responseCode = "404", description = "Đánh giá không tồn tại")
+    })
+    public ResponseEntity<ResponseWrapper<ReviewResponse>> addAdminResponse(
+            @PathVariable Long id,
+            @Valid @RequestBody AdminReviewResponseRequest request,
+            Authentication authentication) {
+        
+        try {
+            log.info("Admin {} adding response to review {}", authentication.getName(), id);
+            
+            User adminUser = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("Admin user not found"));
+            
+            Review review = reviewService.addAdminResponse(id, adminUser.getId(), request.getAdminResponse());
+            ReviewResponse response = new ReviewResponse(review, false);
+            
+            log.info("Admin response added successfully to review {}", id);
+            return ResponseEntity.ok(ResponseWrapper.success(response, "Phản hồi đã được thêm thành công"));
+            
+        } catch (Exception e) {
+            log.error("Error adding admin response to review {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.badRequest()
+                .body(ResponseWrapper.error("Không thể thêm phản hồi: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Update admin response for a review
+     */
+    @PutMapping("/{id}/response")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+        summary = "Cập nhật phản hồi đánh giá",
+        description = "Admin cập nhật phản hồi đánh giá của khách hàng"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Cập nhật phản hồi thành công"),
+        @ApiResponse(responseCode = "400", description = "Dữ liệu không hợp lệ"),
+        @ApiResponse(responseCode = "403", description = "Không có quyền truy cập"),
+        @ApiResponse(responseCode = "404", description = "Đánh giá không tồn tại")
+    })
+    public ResponseEntity<ResponseWrapper<ReviewResponse>> updateAdminResponse(
+            @PathVariable Long id,
+            @Valid @RequestBody AdminReviewResponseRequest request,
+            Authentication authentication) {
+        
+        try {
+            log.info("Admin {} updating response for review {}", authentication.getName(), id);
+            
+            User adminUser = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("Admin user not found"));
+            
+            Review review = reviewService.updateAdminResponse(id, adminUser.getId(), request.getAdminResponse());
+            ReviewResponse response = new ReviewResponse(review, false);
+            
+            log.info("Admin response updated successfully for review {}", id);
+            return ResponseEntity.ok(ResponseWrapper.success(response, "Phản hồi đã được cập nhật thành công"));
+            
+        } catch (Exception e) {
+            log.error("Error updating admin response for review {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.badRequest()
+                .body(ResponseWrapper.error("Không thể cập nhật phản hồi: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Remove admin response from a review
+     */
+    @DeleteMapping("/{id}/response")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+        summary = "Xóa phản hồi đánh giá",
+        description = "Admin xóa phản hồi đánh giá của khách hàng"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Xóa phản hồi thành công"),
+        @ApiResponse(responseCode = "403", description = "Không có quyền truy cập"),
+        @ApiResponse(responseCode = "404", description = "Đánh giá không tồn tại")
+    })
+    public ResponseEntity<ResponseWrapper<ReviewResponse>> removeAdminResponse(
+            @PathVariable Long id,
+            Authentication authentication) {
+        
+        try {
+            log.info("Admin {} removing response from review {}", authentication.getName(), id);
+            
+            User adminUser = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("Admin user not found"));
+            
+            Review review = reviewService.removeAdminResponse(id, adminUser.getId());
+            ReviewResponse response = new ReviewResponse(review, false);
+            
+            log.info("Admin response removed successfully from review {}", id);
+            return ResponseEntity.ok(ResponseWrapper.success(response, "Phản hồi đã được xóa thành công"));
+            
+        } catch (Exception e) {
+            log.error("Error removing admin response from review {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.badRequest()
+                .body(ResponseWrapper.error("Không thể xóa phản hồi: " + e.getMessage()));
         }
     }
 }

@@ -1,7 +1,6 @@
 package com.example.demo.dto;
 
 import com.example.demo.entity.Review;
-
 import java.time.LocalDateTime;
 
 /**
@@ -21,6 +20,11 @@ public class ReviewResponse {
     private String productName;
     private Long productId;
     
+    // Admin response fields
+    private String adminResponse;
+    private LocalDateTime adminResponseAt;
+    private String adminResponseByName;
+    
     // Constructors
     public ReviewResponse() {}
     
@@ -36,6 +40,12 @@ public class ReviewResponse {
         this.isVerified = review.getOrderItem() != null;
         this.productName = review.getProduct().getName();
         this.productId = review.getProduct().getId();
+        
+        // Admin response fields
+        this.adminResponse = review.getAdminResponse();
+        this.adminResponseAt = review.getAdminResponseAt();
+        this.adminResponseByName = review.getAdminResponseBy() != null ? 
+            review.getAdminResponseBy().getFirstname() + " " + review.getAdminResponseBy().getLastname() : null;
     }
     
     // Getters and Setters
@@ -125,5 +135,29 @@ public class ReviewResponse {
     
     public void setProductId(Long productId) {
         this.productId = productId;
+    }
+    
+    public String getAdminResponse() {
+        return adminResponse;
+    }
+    
+    public void setAdminResponse(String adminResponse) {
+        this.adminResponse = adminResponse;
+    }
+    
+    public LocalDateTime getAdminResponseAt() {
+        return adminResponseAt;
+    }
+    
+    public void setAdminResponseAt(LocalDateTime adminResponseAt) {
+        this.adminResponseAt = adminResponseAt;
+    }
+    
+    public String getAdminResponseByName() {
+        return adminResponseByName;
+    }
+    
+    public void setAdminResponseByName(String adminResponseByName) {
+        this.adminResponseByName = adminResponseByName;
     }
 }
