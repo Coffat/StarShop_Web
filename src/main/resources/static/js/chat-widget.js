@@ -48,7 +48,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
-            console.log('Chat widget: User not logged in');
             // Hide chat widget if not logged in
             const chatWidget = document.getElementById('chatWidget');
             if (chatWidget) {
@@ -79,7 +78,6 @@ function connectChatWidget() {
     chatWidgetStompClient.debug = null;
     
     chatWidgetStompClient.connect({}, function(frame) {
-        console.log('Chat Widget Connected: ' + frame);
         chatWidgetIsConnected = true;
         updateChatWidgetStatus('online');
         
@@ -94,7 +92,6 @@ function connectChatWidget() {
             subscribeToChatWidgetConversation(chatWidgetConversationId);
         }
     }, function(error) {
-        console.error('Chat Widget Connection Error:', error);
         chatWidgetIsConnected = false;
         updateChatWidgetStatus('offline');
         
@@ -148,20 +145,17 @@ function loadOrCreateConversation() {
                     chatWidgetConversationId = activeConversation.id;
                     loadChatWidgetMessages(chatWidgetConversationId);
                     subscribeToChatWidgetConversation(chatWidgetConversationId);
-                    console.log('✅ Loaded existing conversation:', activeConversation.id, 'Status:', activeConversation.status);
                 } else {
                     // Create new conversation
                     createNewConversation();
-                    console.log('📝 No active conversation found, will create new one');
                 }
             } else {
                 // Create new conversation
                 createNewConversation();
-                console.log('📝 No conversations found, will create new one');
             }
         })
         .catch(error => {
-            console.error('Error loading conversations:', error);
+            // Silent fail for conversation loading
         });
 }
 
@@ -170,7 +164,6 @@ function loadOrCreateConversation() {
  */
 function createNewConversation() {
     // Don't create conversation immediately, wait for first message
-    console.log('Conversation will be created when first message is sent');
 }
 
 /**
@@ -179,12 +172,10 @@ function createNewConversation() {
 function loadChatWidgetMessages(conversationId) {
     // Prevent multiple simultaneous loads
     if (chatWidgetLoadingMessages) {
-        console.log('Already loading messages, skipping...');
         return;
     }
     
     chatWidgetLoadingMessages = true;
-    console.log('Loading messages for conversation:', conversationId);
     
     // Load with pagination to get ALL messages (increase page size)
     fetch('/api/chat/conversations/' + conversationId + '/messages?page=0&size=100')
@@ -213,7 +204,6 @@ function loadChatWidgetMessages(conversationId) {
                 const hasNewMessages = sortedMessages.some(m => !existingMessageIds.has(m.id.toString()));
                 
                 if (hasNewMessages && sortedMessages.length > existingMessageIds.size) {
-                    console.log('New messages detected, reloading all messages');
                     
                     // Preserve temp user messages before clearing
                     const tempUserMessages = [];
@@ -241,7 +231,6 @@ function loadChatWidgetMessages(conversationId) {
                             parseMarkdown(m.content).trim() === tempMsg.content.trim()
                         );
                         if (!persistedExists) {
-                            console.log('Restoring temp user message:', tempMsg.id);
                             // Recreate temp message element
                             const tempDiv = document.createElement('div');
                             tempDiv.className = 'flex mb-4 justify-end';
@@ -263,10 +252,8 @@ function loadChatWidgetMessages(conversationId) {
                         }
                     });
                 } else {
-                    console.log('No new messages, keeping existing display');
+                    // No new messages, keeping existing display
                 }
-                
-                console.log(`Loaded ${sortedMessages.length} messages`);
                 
                 // Scroll to bottom after loading
                 setTimeout(() => {
@@ -275,7 +262,7 @@ function loadChatWidgetMessages(conversationId) {
             }
         })
         .catch(error => {
-            console.error('Error loading messages:', error);
+            // Silent fail for message loading
         })
         .finally(() => {
             chatWidgetLoadingMessages = false;
@@ -303,7 +290,6 @@ function toggleChatWidget() {
         
         // Force reload messages when opening chat to ensure we have latest
         if (chatWidgetConversationId && !chatWidgetLoadingMessages) {
-            console.log('Opening chat, reloading messages to ensure latest state');
             loadChatWidgetMessages(chatWidgetConversationId);
         } else {
             // Scroll to bottom
@@ -405,7 +391,7 @@ function sendMessageWithStreaming(message, headers, apiEndpoint) {
                 // và đồng thời fallback fetch lại nếu stream không tới
                 setTimeout(() => {
                     if (!chatWidgetLoadingMessages) {
-                        try { loadChatWidgetMessages(chatWidgetConversationId); } catch (e) { console.warn(e); }
+                        try { loadChatWidgetMessages(chatWidgetConversationId); } catch (e) { /* noop */ }
                     }
                 }, 150);
             }
@@ -414,7 +400,6 @@ function sendMessageWithStreaming(message, headers, apiEndpoint) {
             startStreamingResponse(chatWidgetConversationId);
         } else {
             hideTypingIndicator();
-            console.error('Error sending message:', data.error);
             displayChatWidgetMessage({
                 id: 'error-' + Date.now(),
                 senderId: 'system',
@@ -425,7 +410,6 @@ function sendMessageWithStreaming(message, headers, apiEndpoint) {
         }
     })
     .catch(error => {
-        console.error('Error sending message:', error);
         hideTypingIndicator();
         // Fallback to regular approach
         sendMessageRegular(message, headers, apiEndpoint);
@@ -454,15 +438,13 @@ function sendMessageRegular(message, headers, apiEndpoint) {
                 // để tránh miss phản hồi AI do subscribe trễ trong lần đầu
                 setTimeout(() => {
                     if (!chatWidgetLoadingMessages) {
-                        try { loadChatWidgetMessages(chatWidgetConversationId); } catch (e) { console.warn(e); }
+                        try { loadChatWidgetMessages(chatWidgetConversationId); } catch (e) { /* noop */ }
                     }
                 }, 150);
             }
             
             // AI response will come via WebSocket
-            console.log('Message sent, waiting for AI response via WebSocket');
         } else {
-            console.error('Error sending message:', data.error);
             displayChatWidgetMessage({
                 id: 'error-' + Date.now(),
                 senderId: 'system',
@@ -473,7 +455,6 @@ function sendMessageRegular(message, headers, apiEndpoint) {
         }
     })
     .catch(error => {
-        console.error('Error sending message:', error);
         hideTypingIndicator();
         displayChatWidgetMessage({
             id: 'error-' + Date.now(),
@@ -533,7 +514,7 @@ function startStreamingResponse(conversationId) {
                 // Streaming error
                 eventSource.close();
                 hideTypingIndicator();
-                console.error('Streaming error:', data.message);
+                // Streaming error
                 
                 // Show error message
                 if (accumulatedContent === '') {
@@ -547,19 +528,18 @@ function startStreamingResponse(conversationId) {
                 }
             }
         } catch (error) {
-            console.error('Error parsing streaming data:', error);
+            // Error parsing streaming data
         }
     };
     
     eventSource.onerror = function(error) {
-        console.error('EventSource error:', error);
         eventSource.close();
         hideTypingIndicator();
         
         // Fallback: the response will come via WebSocket
         setTimeout(() => {
             if (accumulatedContent === '') {
-                console.log('Streaming failed, waiting for WebSocket response');
+                // Streaming failed, waiting for WebSocket response
                 // Extra safety: reload messages to avoid missed AI reply
                 if (!chatWidgetLoadingMessages) {
                     try { loadChatWidgetMessages(conversationId); } catch (e) { /* noop */ }
@@ -589,7 +569,6 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
         // Check by message ID first (most reliable)
         const existingMessage = messagesContainer.querySelector(`[data-message-id="${message.id}"]`);
         if (existingMessage) {
-            console.log('Duplicate message detected by ID:', message.id);
             return;
         }
         
@@ -603,7 +582,6 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
                     return div && div.innerHTML.trim() === parseMarkdown(message.content).trim();
                 });
             if (tempDup) {
-                console.log('Replacing temp message with persisted message:', message.id);
                 try { tempDup.remove(); } catch (e) { /* noop */ }
             }
         }
@@ -611,7 +589,6 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
         // Special handling: if this is a temp user message, make sure it's not replaced by accident
         if (isOwn && String(message.id).startsWith('temp-user-')) {
             // This is a temp user message, ensure it stays visible
-            console.log('Preserving temp user message:', message.id);
         }
         
         // For AI messages, only check very recent duplicates (last 1 message) to avoid blocking legitimate responses
@@ -621,7 +598,6 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
             if (lastMessage) {
                 const contentDiv = lastMessage.querySelector('.text-sm.leading-relaxed');
                 if (contentDiv && contentDiv.innerHTML.trim() === parseMarkdown(message.content).trim()) {
-                    console.log('Duplicate AI message detected by content:', message.content.substring(0, 50));
                     return;
                 }
             }
@@ -781,10 +757,10 @@ function markChatWidgetMessagesAsRead(conversationId) {
     })
     .then(response => response.json())
     .then(data => {
-        console.log('Messages marked as read');
+        // Messages marked as read
     })
     .catch(error => {
-        console.error('Error marking messages as read:', error);
+        // Error marking messages as read
     });
 }
 

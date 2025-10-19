@@ -14,6 +14,8 @@ import org.springframework.ui.Model;
 
 import com.example.demo.service.ProductService;
 import com.example.demo.service.CatalogService;
+import com.example.demo.service.WishlistService;
+import com.example.demo.repository.UserRepository;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,21 +28,34 @@ public class HomeController {
 
     private final ProductService productService;
     private final CatalogService catalogService;
+    private final WishlistService wishlistService;
+    private final UserRepository userRepository;
 
     @GetMapping("/home")
     public String home(Authentication authentication, Model model) {
         log.info("Home page accessed");
         
-        if (authentication != null && authentication.isAuthenticated() && !authentication.getName().equals("anonymousUser")) {
-            log.info("Home accessed by authenticated user: {}", authentication.getName());
-        } else {
-            log.info("Home accessed by guest user");
-        }
         // Featured products for homepage
         model.addAttribute("featuredProducts", productService.getFeaturedProducts());
         
         // Catalogs for homepage
         model.addAttribute("catalogs", catalogService.findAll());
+        
+        // Wishlist product IDs for current user (for SSR wishlist state)
+        try {
+            if (authentication != null && authentication.isAuthenticated()) {
+                log.info("Home accessed by authenticated user: {}", authentication.getName());
+                userRepository.findByEmail(authentication.getName()).ifPresent(user -> {
+                    var ids = wishlistService.getWishlistProductIds(user.getId());
+                    model.addAttribute("wishlistProductIds", new java.util.HashSet<>(ids));
+                });
+            } else {
+                log.info("Home accessed by guest user");
+                model.addAttribute("wishlistProductIds", java.util.Collections.emptySet());
+            }
+        } catch (Exception ex) {
+            model.addAttribute("wishlistProductIds", java.util.Collections.emptySet());
+        }
 
         return "home";
     }
@@ -82,6 +97,4 @@ public class HomeController {
         response.put("developer", "Your Team");
         return response;
     }
-    
 }
-

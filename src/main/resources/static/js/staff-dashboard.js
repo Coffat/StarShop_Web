@@ -23,13 +23,11 @@ async function initializeCheckInOutButton() {
         
         if (response.ok && data.data) {
             currentShift = data.data;
-            console.log('Current shift loaded:', currentShift);
             renderCheckInOutButton();
         } else {
             renderCheckInOutButton();
         }
     } catch (error) {
-        console.error('Error loading shift status:', error);
         renderCheckInOutButton();
     }
 }
@@ -88,12 +86,11 @@ async function performCheckIn() {
         
         if (response.ok && data.data) {
             currentShift = data.data;
-            console.log('Checked in successfully:', currentShift);
             renderCheckInOutButton();
             
             // Show success with check-in time
             const checkInTime = new Date(currentShift.checkIn).toLocaleTimeString('vi-VN');
-            showNotification(`Check-in thành công lúc ${checkInTime}!`, 'success');
+            showToast(`Check-in thành công lúc ${checkInTime}!`, 'success');
             
             // Refresh page stats
             if (window.location.pathname.includes('/staff/dashboard')) {
@@ -102,13 +99,12 @@ async function performCheckIn() {
         } else {
             // Handle error response
             const errorMessage = data.message || 'Check-in thất bại';
-            showNotification(errorMessage, 'error');
+            showToast(errorMessage, 'error');
             button.disabled = false;
             renderCheckInOutButton();
         }
     } catch (error) {
-        console.error('Error checking in:', error);
-        showNotification('Đã xảy ra lỗi khi check-in', 'error');
+        showToast('Đã xảy ra lỗi khi check-in', 'error');
         const button = event.target.closest('button');
         if (button) {
             button.disabled = false;
@@ -121,68 +117,72 @@ async function performCheckIn() {
  * Perform check-out
  */
 async function performCheckOut() {
-    if (!confirm('Bạn có chắc muốn check-out?')) {
-        return;
-    }
-    
-    try {
-        const button = event.target.closest('button');
-        button.disabled = true;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
-        
-        const response = await fetch('/api/staff/check-out', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'same-origin'
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok && data.data) {
-            currentShift = data.data;
-            console.log('Checked out successfully:', currentShift);
-            
-            // After check-out, button should show "Check-in" for next day
-            // But prevent check-in again today
-            renderCheckInOutButton();
-            
-            // Show success with hours worked
-            const hours = data.data.hoursWorked || 0;
-            const checkOutTime = new Date(data.data.checkOut).toLocaleTimeString('vi-VN');
-            showNotification(
-                `Check-out thành công lúc ${checkOutTime}! Bạn đã làm việc ${hours} giờ hôm nay.`, 
-                'success'
-            );
-            
-            // Refresh page stats
-            if (window.location.pathname.includes('/staff/dashboard')) {
-                setTimeout(() => location.reload(), 1500);
+    // THAY THẾ confirm bằng SweetAlert2
+    Swal.fire({
+        title: 'Xác nhận Check-out?',
+        text: 'Bạn sẽ kết thúc ca làm việc hôm nay.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Đồng ý',
+        cancelButtonText: 'Hủy'
+    }).then(async (result) => {
+        if(result.isConfirmed){
+            try {
+                const button = event.target.closest('button');
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+                
+                const response = await fetch('/api/staff/check-out', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.data) {
+                    currentShift = data.data;
+                    
+                    // After check-out, button should show "Check-in" for next day
+                    // But prevent check-in again today
+                    renderCheckInOutButton();
+                    
+                    // Show success with hours worked
+                    const hours = data.data.hoursWorked || 0;
+                    const checkOutTime = new Date(data.data.checkOut).toLocaleTimeString('vi-VN');
+                    showToast(
+                        `Check-out thành công lúc ${checkOutTime}! Bạn đã làm việc ${hours} giờ hôm nay.`, 
+                        'success'
+                    );
+                    
+                    // Refresh page stats
+                    if (window.location.pathname.includes('/staff/dashboard')) {
+                        setTimeout(() => location.reload(), 1500);
+                    }
+                } else {
+                    showToast(data.message || 'Check-out thất bại', 'error');
+                    button.disabled = false;
+                    renderCheckInOutButton();
+                }
+            } catch (error) {
+                showToast('Đã xảy ra lỗi khi check-out', 'error');
+                const button = event.target.closest('button');
+                if (button) {
+                    button.disabled = false;
+                }
+                renderCheckInOutButton();
             }
-        } else {
-            showNotification(data.message || 'Check-out thất bại', 'error');
-            button.disabled = false;
-            renderCheckInOutButton();
         }
-    } catch (error) {
-        console.error('Error checking out:', error);
-        showNotification('Đã xảy ra lỗi khi check-out', 'error');
-        const button = event.target.closest('button');
-        if (button) {
-            button.disabled = false;
-        }
-        renderCheckInOutButton();
-    }
+    });
 }
 
 /**
  * Connect to WebSocket for real-time updates
  */
 function connectWebSocket() {
-    console.log('🔌 Attempting WebSocket connection, STAFF_ID:', STAFF_ID, 'type:', typeof STAFF_ID);
     if (!STAFF_ID) {
-        console.error('❌ Staff ID not available, skipping WebSocket connection');
         return;
     }
     
@@ -194,7 +194,6 @@ function connectWebSocket() {
         stompClient.debug = null;
         
         stompClient.connect({}, function(frame) {
-            console.log('✅ WebSocket connected for staff dashboard');
             
             // Make stompClient globally available AFTER connected
             window.stompClient = stompClient;
@@ -213,12 +212,11 @@ function connectWebSocket() {
                 handleNewConversation(data);
             });
         }, function(error) {
-            console.error('WebSocket connection error:', error);
             // Attempt to reconnect after 5 seconds
             setTimeout(connectWebSocket, 5000);
         });
     } catch (error) {
-        console.error('Error setting up WebSocket:', error);
+        // Error setting up WebSocket
     }
 }
 
@@ -226,7 +224,6 @@ function connectWebSocket() {
  * Handle WebSocket notifications
  */
 function handleWebSocketNotification(notification) {
-    console.log('Received notification:', notification);
     
     // Show notification dot
     const notificationDot = document.getElementById('notificationDot');
@@ -256,10 +253,9 @@ function handleWebSocketNotification(notification) {
  * Handle new conversation notification
  */
 function handleNewConversation(data) {
-    console.log('New conversation:', data);
     
     // Show notification
-    showNotification('Có cuộc hội thoại mới đang chờ xử lý!', 'info');
+    showToast('Có cuộc hội thoại mới đang chờ xử lý!', 'info');
     
     // Refresh unassigned queue if on dashboard
     if (window.location.pathname.includes('/staff/dashboard')) {
@@ -291,7 +287,7 @@ async function updateUnreadBadge() {
             }
         }
     } catch (error) {
-        console.error('Error updating unread badge:', error);
+        // Error updating unread badge
     }
 }
 
@@ -307,46 +303,7 @@ function startAutoRefresh() {
     }, 30000);
 }
 
-/**
- * Show notification message
- */
-function showNotification(message, type = 'info') {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg text-white transform transition-all duration-300 ${
-        type === 'success' ? 'bg-green-500' :
-        type === 'error' ? 'bg-red-500' :
-        type === 'warning' ? 'bg-yellow-500' :
-        'bg-blue-500'
-    }`;
-    
-    notification.innerHTML = `
-        <div class="flex items-center space-x-3">
-            <i class="fas ${
-                type === 'success' ? 'fa-check-circle' :
-                type === 'error' ? 'fa-exclamation-circle' :
-                type === 'warning' ? 'fa-exclamation-triangle' :
-                'fa-info-circle'
-            }"></i>
-            <span>${message}</span>
-        </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Animate in
-    setTimeout(() => {
-        notification.style.transform = 'translateX(0)';
-    }, 10);
-    
-    // Remove after 5 seconds
-    setTimeout(() => {
-        notification.style.transform = 'translateX(400px)';
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
-    }, 5000);
-}
+// Bỏ HÀM showNotification() riêng vì đã có hàm showToast toàn cục trong main.js
 
 /**
  * Play notification sound
@@ -370,7 +327,7 @@ function playNotificationSound() {
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.5);
     } catch (error) {
-        console.log('Could not play notification sound:', error);
+        // Could not play notification sound
     }
 }
 

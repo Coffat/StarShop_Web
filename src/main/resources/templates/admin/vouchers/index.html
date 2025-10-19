@@ -549,7 +549,7 @@
                         }
                     } catch (error) {
                         console.error('Error fetching vouchers:', error);
-                        alert('Lỗi khi tải danh sách voucher');
+                        showToast('Lỗi khi tải danh sách voucher', 'error');
                     } finally {
                         this.loading = false;
                     }
@@ -660,53 +660,69 @@
                 },
                 
                 async toggleStatus(voucher) {
-                    if (!confirm(`Bạn có chắc muốn ${voucher.isActive ? 'tạm dừng' : 'kích hoạt'} voucher này?`)) {
-                        return;
-                    }
-                    
-                    try {
-                        const response = await fetch(`/admin/api/vouchers/${voucher.id}/toggle-status`, {
-                            method: 'PATCH'
-                        });
-                        const data = await response.json();
-                        
-                        if (data.success) {
-                            await this.fetchVouchers();
-                            alert(data.message);
-                        } else {
-                            alert(data.message);
+                    // THAY THẾ confirm bằng SweetAlert2
+                    Swal.fire({
+                        title: `Xác nhận ${voucher.isActive ? 'tạm dừng' : 'kích hoạt'}?`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Đồng ý',
+                        cancelButtonText: 'Hủy'
+                    }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            try {
+                                const response = await fetch(`/admin/api/vouchers/${voucher.id}/toggle-status`, {
+                                    method: 'PATCH'
+                                });
+                                const data = await response.json();
+                                
+                                if (data.success) {
+                                    await this.fetchVouchers();
+                                    showToast(data.message, data.success ? 'success' : 'error');
+                                } else {
+                                    showToast(data.message, 'error');
+                                }
+                            } catch (error) {
+                                console.error('Error toggling voucher status:', error);
+                                showToast('Lỗi khi cập nhật trạng thái', 'error');
+                            }
                         }
-                    } catch (error) {
-                        console.error('Error toggling voucher status:', error);
-                        alert('Lỗi khi cập nhật trạng thái voucher');
-                    }
+                    });
                 },
                 
                 async deleteVoucher(voucher) {
-                    if (!confirm(`Bạn có chắc muốn xóa voucher ${voucher.code}? Hành động này không thể hoàn tác.`)) {
-                        return;
-                    }
-                    
-                    try {
-                        const response = await fetch(`/admin/api/vouchers/${voucher.id}`, {
-                            method: 'DELETE'
-                        });
-                        const data = await response.json();
-                        
-                        if (data.success) {
-                            await this.fetchVouchers();
-                            alert(data.message);
-                        } else {
-                            alert(data.message);
+                    // THAY THẾ confirm bằng SweetAlert2
+                    Swal.fire({
+                        title: `Bạn chắc chắn muốn xóa voucher "${voucher.code}"?`,
+                        text: 'Hành động này không thể hoàn tác!',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        confirmButtonText: 'Xóa ngay!',
+                        cancelButtonText: 'Hủy'
+                    }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            try {
+                                const response = await fetch(`/admin/api/vouchers/${voucher.id}`, {
+                                    method: 'DELETE'
+                                });
+                                const data = await response.json();
+                                
+                                if (data.success) {
+                                    await this.fetchVouchers();
+                                    showToast(data.message, 'success');
+                                } else {
+                                    showToast(data.message, 'error');
+                                }
+                            } catch (error) {
+                                console.error('Error deleting voucher:', error);
+                                showToast('Lỗi khi xóa voucher', 'error');
+                            }
                         }
-                    } catch (error) {
-                        console.error('Error deleting voucher:', error);
-                        alert('Lỗi khi xóa voucher');
-                    }
+                    });
                 },
                 
                 exportData() {
-                    alert('Chức năng xuất dữ liệu đang được phát triển');
+                    showToast('Chức năng đang được phát triển', 'info');
                 },
                 
                 prevPage() {
@@ -865,15 +881,15 @@
                         const data = await response.json();
                         
                         if (data.success) {
-                            alert(data.message);
+                            showToast(data.message, 'success');
                             this.closeModal();
                             window.location.reload(); // Reload to refresh the list
                         } else {
-                            alert(data.message);
+                            showToast(data.message, 'error');
                         }
                     } catch (error) {
                         console.error('Error submitting form:', error);
-                        alert('Lỗi khi lưu voucher');
+                        showToast('Lỗi khi lưu voucher', 'error');
                     }
                 },
                 
@@ -899,7 +915,7 @@
                 
                 async getAiSuggestion() {
                     if (!this.aiObjective) {
-                        alert('Vui lòng chọn mục tiêu');
+                        showToast('Vui lòng chọn mục tiêu!', 'warning');
                         return;
                     }
                     
@@ -931,13 +947,13 @@
                             this.aiExplanation = data.data.explanation;
                             this.aiWarnings = data.data.warnings || [];
                             
-                            alert('✅ AI đã tự động điền các trường chính. Vui lòng bổ sung Tên, Mô tả và Ngày hết hạn.');
+                            showToast('✅ AI đã tự động điền các trường chính!', 'success');
                         } else {
-                            alert('Lỗi: ' + (data.error || 'Không thể tạo gợi ý'));
+                            showToast('Lỗi: ' + (data.error || 'Không thể tạo gợi ý'), 'error');
                         }
                     } catch (error) {
                         console.error('Error getting AI suggestion:', error);
-                        alert('Lỗi khi gọi AI. Vui lòng thử lại.');
+                        showToast('Lỗi khi gọi AI. Vui lòng thử lại.', 'error');
                     } finally {
                         this.aiLoading = false;
                     }

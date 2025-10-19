@@ -37,7 +37,7 @@ function generateProductDescription() {
     
     // Validation
     if (!productName) {
-        alert('Vui lòng nhập tên sản phẩm trước khi tạo mô tả');
+        showToast('Vui lòng nhập tên sản phẩm!', 'warning');
         document.getElementById('productName').focus();
         return;
     }
@@ -93,7 +93,7 @@ function generateProductDescription() {
             localStorage.setItem('ai_description_draft', data.data);
             
             // Show success message
-            alert('Tạo mô tả thành công! Bạn có thể chỉnh sửa trước khi lưu.');
+            showToast('Tạo mô tả thành công!', 'success');
             
             // Focus on description for review
             descriptionField.focus();
@@ -121,7 +121,7 @@ function generateProductDescription() {
             }
         }
         
-        alert(errorMessage);
+        showToast(errorMessage, 'error');
     })
     .finally(() => {
         // Re-enable button

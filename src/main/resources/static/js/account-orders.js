@@ -267,7 +267,6 @@ async function loadOrders(status = 'all', page = 0) {
         updateStatusCounts();
         
     } catch (error) {
-        console.error('Error loading orders:', error);
         ordersList.innerHTML = `
             <div class="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
                 <i class="bi bi-exclamation-triangle text-3xl text-red-600 mb-3"></i>
@@ -313,7 +312,7 @@ async function updateStatusCounts() {
         if (completedCount) completedCount.textContent = counts['COMPLETED'];
         
     } catch (error) {
-        console.error('Error updating status counts:', error);
+        // Error updating status counts
     }
 }
 
@@ -349,32 +348,38 @@ function viewOrderDetail(orderId) {
 
 // Cancel order
 async function cancelOrder(orderId) {
-    if (!confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) {
-        return;
-    }
-    
-    try {
-        const response = await fetch(`/api/orders/${orderId}/cancel`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
+    // THAY THẾ confirm bằng SweetAlert2
+    Swal.fire({
+        title: 'Bạn chắc chắn muốn hủy?',
+        text: "Hành động này không thể hoàn tác!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Đồng ý hủy',
+        cancelButtonText: 'Không'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch(`/api/orders/${orderId}/cancel`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to cancel order');
+                }
+                
+                showToast('Đơn hàng đã được hủy thành công', 'success');
+                loadOrders(currentStatus, currentPage);
+                
+            } catch (error) {
+                showToast('Có lỗi xảy ra khi hủy đơn hàng', 'error');
             }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to cancel order');
         }
-        
-        // Show success message
-        showToast('Đơn hàng đã được hủy thành công', 'success');
-        
-        // Reload orders
-        loadOrders(currentStatus, currentPage);
-        
-    } catch (error) {
-        console.error('Error canceling order:', error);
-        showToast('Có lỗi xảy ra khi hủy đơn hàng', 'error');
-    }
+    });
 }
 
 // Track order
@@ -395,24 +400,7 @@ function reorder(orderId) {
     showToast('Tính năng mua lại đang được phát triển', 'info');
 }
 
-// Show toast notification
-function showToast(message, type = 'info') {
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} position-fixed top-0 end-0 m-3`;
-    toast.style.zIndex = '9999';
-    toast.innerHTML = `
-        <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : 'info-circle'}"></i>
-        ${message}
-    `;
-    
-    document.body.appendChild(toast);
-    
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
-}
+// Bỏ HÀM showToast() riêng vì đã có hàm toàn cục trong main.js
 
 // ==================== REVIEW MODAL FUNCTIONS ====================
 
@@ -511,7 +499,6 @@ async function submitReview() {
             showToast(data.message || 'Có lỗi xảy ra khi gửi đánh giá', 'error');
         }
     } catch (error) {
-        console.error('Error submitting review:', error);
         showToast('Có lỗi xảy ra khi gửi đánh giá', 'error');
     }
 }

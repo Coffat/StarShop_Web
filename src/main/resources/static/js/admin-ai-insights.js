@@ -10,11 +10,8 @@ function loadAiInsights() {
     const loadingIndicator = document.getElementById('aiLoadingIndicator');
     
     if (!widget || !content) {
-        console.warn('AI Insights widget not found');
         return;
     }
-    
-    console.log('Loading AI insights...');
     
     // Show loading state
     showLoadingState(content, loadingIndicator);
@@ -28,19 +25,15 @@ function loadAiInsights() {
             return response.json();
         })
         .then(data => {
-            console.log('AI insights response:', data);
-            
             if (data.success && data.data) {
                 renderInsights(data.data.insights, content);
             } else if (data.fallback) {
-                console.warn('Using fallback insights:', data.error);
                 renderInsights(data.fallback.insights, content);
             } else {
                 throw new Error('Invalid response format');
             }
         })
         .catch(error => {
-            console.error('Error loading AI insights:', error);
             showErrorState(content, 'Không thể tải phân tích AI. Vui lòng thử lại sau.');
         })
         .finally(() => {
@@ -146,7 +139,6 @@ function bindActionHandlers(content) {
     actionLinks.forEach(link => {
         link.addEventListener('click', function(e) {
             // Add click tracking if needed
-            console.log('AI insight action clicked:', this.href);
             
             // Optional: Add analytics tracking here
             // gtag('event', 'ai_insight_action', {
@@ -163,7 +155,6 @@ function bindActionHandlers(content) {
 function setupAutoRefresh() {
     // Refresh every hour (3600000 ms)
     setInterval(() => {
-        console.log('Auto-refreshing AI insights...');
         loadAiInsights();
     }, 3600000);
 }

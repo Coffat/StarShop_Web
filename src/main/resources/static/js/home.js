@@ -16,6 +16,7 @@ function initializeFloatingPetals() {
         petal.style.animationDelay = `${delay}ms`;
     });
 }
+
 // Page performance monitoring
 window.addEventListener('load', function() {
     document.body.classList.add('page-loaded');
@@ -23,13 +24,12 @@ window.addEventListener('load', function() {
     // Performance metrics
     if (window.performance && window.performance.timing) {
         const loadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
-        console.log(`Home page load time: ${loadTime}ms`);
     }
 });
 
 // Error handling
 window.addEventListener('error', function(e) {
-    console.error('Home page JavaScript error:', e.error);
+    // Handle JavaScript errors
 });
 
 // Ad popup logic - show on every visit
@@ -41,13 +41,11 @@ function initializeAdPopupAlways() {
         const closeBtn = document.getElementById('ad-popup-close');
 
         const open = () => {
-            console.debug('[AdPopup] opening');
             overlay.classList.add('show');
             overlay.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         };
         const close = () => {
-            console.debug('[AdPopup] closing');
             overlay.classList.remove('show');
             overlay.classList.add('hidden');
             document.body.style.overflow = '';
@@ -61,7 +59,6 @@ function initializeAdPopupAlways() {
             const isHidden = overlay.classList.contains('hidden');
             const computed = window.getComputedStyle(overlay);
             if (isHidden || computed.display === 'none') {
-                console.debug('[AdPopup] fallback open');
                 open();
             }
         }, 1200);
@@ -84,13 +81,13 @@ function initializeAdPopupAlways() {
 
         // Disable closing by clicking backdrop or pressing Esc
     } catch (err) {
-        console.error('Failed to init ad popup:', err);
+        // Failed to init ad popup
     }
 }
 
 // Utility: safe wrapper for optional initializers
 function safeCall(fn) {
-    try { if (typeof fn === 'function') fn(); } catch (e) { console.warn(e); }
+    try { if (typeof fn === 'function') fn(); } catch (e) { /* Safe call error */ }
 }
 
 // Utility: safe call by global name without ReferenceError for undeclared identifiers
@@ -101,7 +98,7 @@ function safeCallName(functionName) {
             maybeFn();
         }
     } catch (e) {
-        console.warn(e);
+        // Safe call by name error
     }
 }
 

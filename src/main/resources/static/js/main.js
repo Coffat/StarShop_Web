@@ -36,7 +36,6 @@ function initializeAOS() {
         
         // Skip AOS if user prefers reduced motion
         if (prefersReducedMotion) {
-            console.log('AOS disabled: User prefers reduced motion');
             return;
         }
         
@@ -93,9 +92,8 @@ function initializeAOS() {
             });
         }
         
-        console.log(`AOS initialized successfully - Mobile: ${isMobile}, Tablet: ${isTablet}, Reduced Motion: ${prefersReducedMotion}`);
     } else {
-        console.warn('AOS library not loaded');
+        console.error('AOS library not loaded');
     }
 }
 
@@ -108,8 +106,6 @@ function initializeHeader() {
     
     // Fix dropdown positioning issues
     fixDropdownPositioning();
-    
-    console.log('Simple header initialized - no scroll effects');
 }
 
 // Fix dropdown positioning issues
@@ -537,7 +533,6 @@ function addToCart(button) {
                 showToast('Đã thêm sản phẩm vào giỏ hàng', 'success');
             })
             .catch(() => {
-                console.log('Could not refresh cart count');
                 // Still show success even if count refresh fails
                 showToast('Đã thêm sản phẩm vào giỏ hàng', 'success');
             });
@@ -620,14 +615,6 @@ function toggleWishlist(button) {
         // Early return from error handling above
         if (!data) return;
         
-        console.log('Wishlist API response:', data);
-        console.log('Checking conditions:', {
-            hasData: !!data,
-            hasSuccess: !!data?.success,
-            hasDataData: !!data?.data,
-            hasDataSuccess: !!data?.data?.success
-        });
-        
         // Fix: Check data.success OR (data.data exists and no error)
         if (data && (data.success || (data.data && !data.error))) {
             // Update UI based on server response
@@ -645,13 +632,9 @@ function toggleWishlist(button) {
             // API trả về: userWishlistCount (tổng số sản phẩm yêu thích của user)
             const wishlistCount = data.data.userWishlistCount;
             
-            console.log('📦 Wishlist count from API:', wishlistCount);
-            
             if (wishlistCount !== undefined && wishlistCount !== null) {
-                console.log('✅ Updating wishlist count to:', wishlistCount);
                 updateWishlistCount(wishlistCount);
             } else {
-                console.warn('⚠️ No wishlist count in response, fetching from list API...');
                 // Fallback: fetch from list API
                 fetch('/api/wishlist/list', { credentials: 'same-origin' })
                     .then(response => response.json())
@@ -660,11 +643,10 @@ function toggleWishlist(button) {
                         if (countData && countData.success && countData.data) {
                             count = Array.isArray(countData.data) ? countData.data.length : 0;
                         }
-                        console.log('✅ Fetched wishlist count from list:', count);
                         updateWishlistCount(count);
                     })
                     .catch(error => {
-                        console.error('❌ Error fetching wishlist count:', error);
+                        console.error('Error fetching wishlist count:', error);
                     });
             }
             
@@ -678,11 +660,9 @@ function toggleWishlist(button) {
             button.innerHTML = originalHTML;
             const errorMessage = (data && data.error) || (data && data.data && data.data.message) || 'Có lỗi xảy ra';
             showToast(errorMessage, 'error');
-            console.error('Wishlist error:', errorMessage, data);
         }
     })
     .catch(error => {
-        console.error('Error toggling wishlist:', error);
         button.innerHTML = originalHTML;
         showToast('Có lỗi xảy ra khi thực hiện yêu cầu', 'error');
     })
@@ -700,35 +680,24 @@ function validateEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
 }
+// HÀM TIỆN ÍCH MỚI CHO TOAST SỬ DỤNG SWEETALERT2
 function showToast(message, type = 'success') {
-    // Remove existing toasts
-    const existingToasts = document.querySelectorAll('.toast-notification');
-    existingToasts.forEach(toast => toast.remove());
-
-    // Create new toast
-    const toast = document.createElement('div');
-    toast.className = `toast-notification toast-${type}`;
-    toast.innerHTML = `
-        <div class="toast-content">
-            <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                ${type === 'success' ? '<path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" />' : '<path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />'}
-            </svg>
-            <span>${message}</span>
-        </div>
-    `;
-
-    document.body.appendChild(toast);
-
-    // Show toast
-    requestAnimationFrame(() => {
-        toast.classList.add('show');
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
     });
 
-    // Hide toast after duration
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), CONFIG.ANIMATION_DURATION);
-    }, CONFIG.TOAST_DURATION);
+    Toast.fire({
+        icon: type, // 'success', 'error', 'warning', 'info'
+        title: message
+    });
 }
 
 
@@ -952,17 +921,13 @@ function initializeSearchToggle() {
     const searchToggleBtn = document.getElementById('searchToggleBtn') || document.querySelector('.search-toggle-btn');
     const searchCollapse = document.getElementById('searchCollapse');
     
-    console.log('Initializing search toggle:', { searchToggleBtn, searchCollapse });
-    
     if (!searchToggleBtn || !searchCollapse) {
-        console.error('Search elements not found during initialization');
         return;
     }
     
     // Add event listener as backup to onclick
     searchToggleBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        console.log('Search toggle clicked via event listener');
         toggleSearch();
     });
     
@@ -974,7 +939,6 @@ function initializeSearchToggle() {
         if (searchBox && toggleBtn && searchBox.classList.contains('show')) {
             // Check if click is outside both search box and toggle button
             if (!searchBox.contains(e.target) && !toggleBtn.contains(e.target)) {
-                console.log('👆 Clicked outside - closing search');
                 hideSearch();
             }
         }
@@ -985,7 +949,6 @@ function initializeSearchToggle() {
         if (e.key === 'Escape') {
             const searchBox = document.getElementById('searchCollapse');
             if (searchBox && searchBox.classList.contains('show')) {
-                console.log('⌨️ Escape pressed - closing search');
                 hideSearch();
             }
         }
@@ -994,18 +957,14 @@ function initializeSearchToggle() {
 
 // Enhanced Search Toggle Function
 function toggleSearch() {
-    console.log('🔍 === SEARCH TOGGLE ===');
-    
     const searchBox = document.getElementById('searchCollapse');
     const toggleBtn = document.getElementById('searchToggleBtn');
     
     if (!searchBox) {
-        console.error('❌ Search box not found!');
         return;
     }
     
     const isVisible = searchBox.classList.contains('show');
-    console.log('Current state:', isVisible ? 'VISIBLE' : 'HIDDEN');
     
     if (isVisible) {
         // Hide search
@@ -1018,8 +977,6 @@ function toggleSearch() {
 
 // Show Search Function
 function showSearch() {
-    console.log('🔓 SHOWING search...');
-    
     const searchBox = document.getElementById('searchCollapse');
     const toggleBtn = document.getElementById('searchToggleBtn');
     
@@ -1032,7 +989,6 @@ function showSearch() {
             if (input) {
                 input.focus();
                 input.select(); // Select all text if any
-                console.log('🎯 Input focused and selected');
             }
         }, 300);
     }
@@ -1040,14 +996,10 @@ function showSearch() {
     if (toggleBtn) {
         toggleBtn.classList.add('active');
     }
-    
-    console.log('✅ Search box is now VISIBLE');
 }
 
 // Hide Search Function
 function hideSearch() {
-    console.log('🔒 HIDING search...');
-    
     const searchBox = document.getElementById('searchCollapse');
     const toggleBtn = document.getElementById('searchToggleBtn');
     
@@ -1064,33 +1016,20 @@ function hideSearch() {
     if (toggleBtn) {
         toggleBtn.classList.remove('active');
     }
-    
-    console.log('✅ Search box is now HIDDEN');
 }
 
 // Close search function - specifically for X button
 function closeSearch() {
-    console.log('❌ CLOSE button clicked');
     hideSearch();
 }
 
 // Test function - call this from browser console to test
 function testSearchToggle() {
-    console.log('=== Testing Search Toggle ===');
     const searchCollapse = document.getElementById('searchCollapse');
     const searchToggleBtn = document.getElementById('searchToggleBtn');
     
-    console.log('Elements found:', {
-        searchCollapse: !!searchCollapse,
-        searchToggleBtn: !!searchToggleBtn,
-        searchCollapseClasses: searchCollapse ? searchCollapse.className : 'not found',
-        searchToggleBtnClasses: searchToggleBtn ? searchToggleBtn.className : 'not found'
-    });
-    
     if (searchCollapse) {
-        console.log('Manually adding show class...');
         searchCollapse.classList.add('show');
-        console.log('Classes after manual add:', searchCollapse.className);
     }
 }
 
@@ -1112,7 +1051,7 @@ function loadCartCount() {
         }
     })
     .catch(error => {
-        console.log('Could not load cart count:', error);
+        // Silent fail for cart count
     });
 }
 
