@@ -53,10 +53,10 @@ public class AiToolExecutorService {
         boolean hasShippingFee = toolRequests.stream().anyMatch(t -> "shipping_fee".equals(t.getName()));
         
         if (hasProductSearch && hasShippingFee) {
-            log.info("🚀 PARALLEL execution: product_search + shipping_fee");
+            log.debug("🚀 PARALLEL execution: product_search + shipping_fee");
             return executeToolsInParallel(analysis);
         } else {
-            log.info("📋 SEQUENTIAL execution: {} tools", toolRequests.size());
+            log.debug("📋 SEQUENTIAL execution: {} tools", toolRequests.size());
             return executeToolsSequentially(analysis);
         }
     }
@@ -220,7 +220,7 @@ public class AiToolExecutorService {
             
             if (products.isEmpty()) {
                 // Try broader search without the specific query
-                log.info("No exact match, trying broader search");
+                log.debug("No exact match, trying broader search");
                 products = searchProductsForAi("", priceMax, 5);
             }
             

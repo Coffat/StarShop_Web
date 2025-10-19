@@ -47,7 +47,7 @@ public class AiChatService {
         long startTime = System.currentTimeMillis();
         
         try {
-            log.info("Analyzing message for conversation {}", conversationId);
+            log.debug("Analyzing message for conversation {}", conversationId);
             
             // Check for PII first
             if (piiDetectionService.containsPII(customerMessage)) {
@@ -144,7 +144,7 @@ public class AiChatService {
         long startTime = System.currentTimeMillis();
         
         try {
-            log.info("Generating final AI response with tool results for conversation {}", conversationId);
+            log.debug("Generating final AI response with tool results for conversation {}", conversationId);
             
             // Get intent type for profile selection
             IntentType intent = initialAnalysis.getIntentType();
@@ -370,26 +370,59 @@ public class AiChatService {
                 .trim();
             
             if (!cleanToolResults.isEmpty()) {
-                response.append("Mình tìm thấy một số sản phẩm phù hợp cho bạn:\n\n");
-                response.append(cleanToolResults).append("\n\n");
+                // Check if this is store info or product info
+                String lowerToolResults = cleanToolResults.toLowerCase();
+                if (lowerToolResults.contains("thông tin cửa hàng") || 
+                    lowerToolResults.contains("địa chỉ") || 
+                    lowerToolResults.contains("hotline") ||
+                    lowerToolResults.contains("giờ mở cửa") ||
+                    lowerToolResults.contains("chính sách")) {
+                    // This is store information, don't add product prefix
+                    response.append(cleanToolResults).append("\n\n");
+                } else if (lowerToolResults.contains("sản phẩm") || 
+                          lowerToolResults.contains("hoa") ||
+                          lowerToolResults.contains("**")) {
+                    // This is product information
+                    response.append("Mình tìm thấy một số sản phẩm phù hợp cho bạn:\n\n");
+                    response.append(cleanToolResults).append("\n\n");
+                } else {
+                    // Generic tool results
+                    response.append(cleanToolResults).append("\n\n");
+                }
             }
         }
         
         // Add helpful next steps based on customer message content
         String lowerMessage = customerMessage.toLowerCase();
-        if (lowerMessage.contains("sinh nhật") || lowerMessage.contains("birthday")) {
+        
+        // Check if this is a store info request
+        boolean isStoreInfoRequest = lowerMessage.contains("thông tin") || 
+                                   lowerMessage.contains("địa chỉ") || 
+                                   lowerMessage.contains("cửa hàng") ||
+                                   lowerMessage.contains("shop") ||
+                                   lowerMessage.contains("hotline") ||
+                                   lowerMessage.contains("giờ mở") ||
+                                   lowerMessage.contains("chính sách");
+        
+        if (isStoreInfoRequest) {
+            // For store info requests, don't add unnecessary consultation suggestions
+            response.append("🌸 Nếu bạn cần thêm thông tin gì khác, đừng ngại hỏi mình nhé!");
+        } else if (lowerMessage.contains("sinh nhật") || lowerMessage.contains("birthday")) {
             response.append("💝 Để tư vấn chính xác hơn về hoa sinh nhật, ");
+            response.append("bạn có thể mô tả rõ hơn nhu cầu hoặc để mình chuyển cho nhân viên hỗ trợ bạn nhé!");
         } else if (lowerMessage.contains("cưới") || lowerMessage.contains("wedding")) {
             response.append("💒 Để tư vấn về hoa cưới phù hợp, ");
+            response.append("bạn có thể mô tả rõ hơn nhu cầu hoặc để mình chuyển cho nhân viên hỗ trợ bạn nhé!");
         } else if (lowerMessage.contains("tang") || lowerMessage.contains("chia buồn")) {
             response.append("🕯️ Để tư vấn về hoa tang lễ trang trọng, ");
+            response.append("bạn có thể mô tả rõ hơn nhu cầu hoặc để mình chuyển cho nhân viên hỗ trợ bạn nhé!");
         } else if (lowerMessage.contains("giá") || lowerMessage.contains("bao nhiêu")) {
             response.append("💰 Để biết thông tin giá cả chính xác, ");
+            response.append("bạn có thể mô tả rõ hơn nhu cầu hoặc để mình chuyển cho nhân viên hỗ trợ bạn nhé!");
         } else {
             response.append("🌸 Để được tư vấn chi tiết hơn, ");
+            response.append("bạn có thể mô tả rõ hơn nhu cầu hoặc để mình chuyển cho nhân viên hỗ trợ bạn nhé!");
         }
-        
-        response.append("bạn có thể mô tả rõ hơn nhu cầu hoặc để mình chuyển cho nhân viên hỗ trợ bạn nhé!");
         
         return response.toString();
     }
@@ -403,8 +436,20 @@ public class AiChatService {
             .replaceAll("(?i)HƯỚNG DẪN:.*", "")
             .trim();
         
-        return initialReply + "\n\n" + 
-            "Mình tìm thấy một số sản phẩm cho bạn nè:\n\n" + cleanToolResults;
+        // Check if this is store info or product info
+        String lowerToolResults = cleanToolResults.toLowerCase();
+        if (lowerToolResults.contains("thông tin cửa hàng") || 
+            lowerToolResults.contains("địa chỉ") || 
+            lowerToolResults.contains("hotline") ||
+            lowerToolResults.contains("giờ mở cửa") ||
+            lowerToolResults.contains("chính sách")) {
+            // This is store information
+            return initialReply + "\n\n" + cleanToolResults;
+        } else {
+            // This is product information
+            return initialReply + "\n\n" + 
+                "Mình tìm thấy một số sản phẩm cho bạn nè:\n\n" + cleanToolResults;
+        }
     }
     
     /**

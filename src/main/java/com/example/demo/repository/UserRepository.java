@@ -36,10 +36,26 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.addresses WHERE u.email = :email")
     Optional<User> findByEmailWithAddresses(@Param("email") String email);
     
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.orders WHERE u.email = :email")
+    Optional<User> findByEmailWithOrders(@Param("email") String email);
+    
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.addresses LEFT JOIN FETCH u.orders WHERE u.email = :email")
+    Optional<User> findByEmailWithAddressesAndOrders(@Param("email") String email);
+    
     @Query("SELECT new com.example.demo.dto.UserProfileDTO(u, " +
            "(SELECT COUNT(o) FROM Order o WHERE o.user.id = u.id), " +
            "(SELECT COUNT(f) FROM Follow f WHERE f.user.id = u.id), " +
            "(SELECT COALESCE(SUM(ci.quantity), 0) FROM CartItem ci WHERE ci.cart.user.id = u.id)) " +
            "FROM User u WHERE u.email = :email")
     Optional<UserProfileDTO> findUserProfileByEmail(@Param("email") String email);
+    
+    // AI Customer Segmentation queries
+    @Query("SELECT COUNT(u) FROM User u WHERE u.customerSegment = :segment AND u.role = 'CUSTOMER'")
+    Long countByCustomerSegment(@Param("segment") String segment);
+    
+    @Query("SELECT u FROM User u WHERE u.customerSegment = :segment AND u.role = 'CUSTOMER' ORDER BY u.createdAt DESC")
+    List<User> findByCustomerSegment(@Param("segment") String segment);
+    
+    @Query("SELECT u FROM User u WHERE u.role = 'CUSTOMER'")
+    List<User> findAllCustomers();
 }

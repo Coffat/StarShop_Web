@@ -70,7 +70,7 @@ public class OrderController extends BaseController {
                 return "redirect:/auth/login";
             }
             
-            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            User user = userRepository.findByEmailWithAddressesAndOrders(authentication.getName()).orElse(null);
             if (user == null) {
                 return "redirect:/auth/login";
             }
@@ -117,7 +117,7 @@ public class OrderController extends BaseController {
                 return "redirect:/auth/login";
             }
             
-            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            User user = userRepository.findByEmailWithAddressesAndOrders(authentication.getName()).orElse(null);
             if (user == null) {
                 return "redirect:/auth/login";
             }
@@ -171,7 +171,7 @@ public class OrderController extends BaseController {
                 return "redirect:/auth/login";
             }
             
-            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            User user = userRepository.findByEmailWithAddressesAndOrders(authentication.getName()).orElse(null);
             if (user == null) {
                 return "redirect:/auth/login";
             }
@@ -260,7 +260,7 @@ public class OrderController extends BaseController {
                     .body(ResponseWrapper.error("Vui lòng đăng nhập để sử dụng tính năng này"));
             }
             
-            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            User user = userRepository.findByEmailWithAddressesAndOrders(authentication.getName()).orElse(null);
             if (user == null) {
                 return ResponseEntity.status(401)
                     .body(ResponseWrapper.error("Người dùng không hợp lệ"));
@@ -313,7 +313,7 @@ public class OrderController extends BaseController {
                     .body(ResponseWrapper.error("Vui lòng đăng nhập để sử dụng tính năng này"));
             }
             
-            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            User user = userRepository.findByEmailWithAddressesAndOrders(authentication.getName()).orElse(null);
             if (user == null) {
                 return ResponseEntity.status(401)
                     .body(ResponseWrapper.error("Người dùng không hợp lệ"));
@@ -366,7 +366,7 @@ public class OrderController extends BaseController {
                     .body(ResponseWrapper.error("Vui lòng đăng nhập để sử dụng tính năng này"));
             }
             
-            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            User user = userRepository.findByEmailWithAddressesAndOrders(authentication.getName()).orElse(null);
             if (user == null) {
                 return ResponseEntity.status(401)
                     .body(ResponseWrapper.error("Người dùng không hợp lệ"));
@@ -424,7 +424,7 @@ public class OrderController extends BaseController {
                     .body(ResponseWrapper.error("Vui lòng đăng nhập để sử dụng tính năng này"));
             }
             
-            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            User user = userRepository.findByEmailWithAddressesAndOrders(authentication.getName()).orElse(null);
             if (user == null) {
                 return ResponseEntity.status(401)
                     .body(ResponseWrapper.error("Người dùng không hợp lệ"));
@@ -474,7 +474,7 @@ public class OrderController extends BaseController {
                     .body(ResponseWrapper.error("Vui lòng đăng nhập để sử dụng tính năng này"));
             }
             
-            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            User user = userRepository.findByEmailWithAddressesAndOrders(authentication.getName()).orElse(null);
             if (user == null) {
                 return ResponseEntity.status(401)
                     .body(ResponseWrapper.error("Người dùng không hợp lệ"));
@@ -527,7 +527,7 @@ public class OrderController extends BaseController {
                     .body(ResponseWrapper.error("Vui lòng đăng nhập để sử dụng tính năng này"));
             }
             
-            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            User user = userRepository.findByEmailWithAddressesAndOrders(authentication.getName()).orElse(null);
             if (user == null) {
                 return ResponseEntity.status(401)
                     .body(ResponseWrapper.error("Người dùng không hợp lệ"));
@@ -578,7 +578,7 @@ public class OrderController extends BaseController {
                     .body(ResponseWrapper.error("Vui lòng đăng nhập để sử dụng tính năng này"));
             }
             
-            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            User user = userRepository.findByEmailWithAddressesAndOrders(authentication.getName()).orElse(null);
             if (user == null) {
                 return ResponseEntity.status(401)
                     .body(ResponseWrapper.error("Người dùng không hợp lệ"));
@@ -631,7 +631,7 @@ public class OrderController extends BaseController {
                     .body(ResponseWrapper.error("Vui lòng đăng nhập để sử dụng tính năng này"));
             }
             
-            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            User user = userRepository.findByEmailWithAddressesAndOrders(authentication.getName()).orElse(null);
             if (user == null) {
                 return ResponseEntity.status(401)
                     .body(ResponseWrapper.error("Người dùng không hợp lệ"));

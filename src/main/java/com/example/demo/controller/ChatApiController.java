@@ -10,10 +10,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.io.IOException;
 
 import java.util.List;
 
@@ -61,14 +65,58 @@ public class ChatApiController extends BaseController {
     }
 
     /**
-     * Stream endpoint for AI responses (placeholder)
-     * This endpoint prevents 404 errors in customer chat widget
+     * Stream endpoint for AI responses using Server-Sent Events
+     * This endpoint provides real-time streaming of AI responses
      */
-    @GetMapping("/stream/{conversationId}")
-    public ResponseEntity<String> streamResponse(@PathVariable Long conversationId) {
-        // Return a simple message indicating streaming is not implemented
-        // The frontend will fallback to WebSocket approach
-        return ResponseEntity.notFound().build();
+    @GetMapping(value = "/stream/{conversationId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamResponse(@PathVariable Long conversationId, Authentication authentication) {
+        try {
+            Long userId = getUserIdFromAuthentication(authentication);
+            if (userId == null) {
+                log.warn("Unauthorized streaming request for conversation {}", conversationId);
+                return null;
+            }
+            
+            log.info("Creating SSE stream for conversation {} by user {}", conversationId, userId);
+            
+            // Create SSE emitter with 2 minute timeout
+            SseEmitter emitter = new SseEmitter(120_000L);
+            
+            // Store emitter for this conversation
+            chatService.registerStreamingEmitter(conversationId, emitter);
+            
+            // Handle completion and cleanup
+            emitter.onCompletion(() -> {
+                log.info("SSE stream completed for conversation {}", conversationId);
+                chatService.unregisterStreamingEmitter(conversationId);
+            });
+            
+            emitter.onTimeout(() -> {
+                log.info("SSE stream timeout for conversation {}", conversationId);
+                chatService.unregisterStreamingEmitter(conversationId);
+            });
+            
+            emitter.onError((ex) -> {
+                log.error("SSE stream error for conversation {}: {}", conversationId, ex.getMessage());
+                chatService.unregisterStreamingEmitter(conversationId);
+            });
+            
+            // Send initial connection message
+            try {
+                emitter.send(SseEmitter.event()
+                    .name("connected")
+                    .data("{\"type\":\"connected\",\"conversationId\":" + conversationId + ",\"message\":\"Connected to AI streaming\"}"));
+            } catch (IOException e) {
+                log.error("Failed to send initial SSE message for conversation {}: {}", conversationId, e.getMessage());
+                chatService.unregisterStreamingEmitter(conversationId);
+            }
+            
+            return emitter;
+            
+        } catch (Exception e) {
+            log.error("Error creating SSE stream for conversation {}", conversationId, e);
+            return null;
+        }
     }
 
     /**

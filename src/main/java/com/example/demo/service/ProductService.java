@@ -245,6 +245,31 @@ public class ProductService {
         return productRepository.findAll(sortedPageable);
     }
 
+    /**
+     * Get products with rating information for listing page
+     * @param sortBy Sort criteria
+     * @param direction Sort direction
+     * @param pageable Pagination information
+     * @return Map of product ID to rating info
+     */
+    public Map<Long, ProductWithRating> getProductsWithRatings(String sortBy, String direction, Pageable pageable) {
+        Page<Product> productsPage = getProductsSorted(sortBy, direction, pageable);
+        Map<Long, ProductWithRating> productsWithRatings = new HashMap<>();
+        
+        for (Product product : productsPage.getContent()) {
+            Double averageRating = reviewRepository.getAverageRatingByProductId(product.getId());
+            Long reviewCount = reviewRepository.countReviewsByProductId(product.getId());
+            
+            productsWithRatings.put(product.getId(), new ProductWithRating(
+                product, 
+                averageRating != null ? averageRating : 0.0, 
+                reviewCount != null ? reviewCount : 0L
+            ));
+        }
+        
+        return productsWithRatings;
+    }
+
     // ==================== ADMIN METHODS ====================
 
     /**

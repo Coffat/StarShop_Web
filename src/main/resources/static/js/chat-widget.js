@@ -8,6 +8,13 @@ let chatWidgetConversationId = null;
 let chatWidgetUserId = null;
 let chatWidgetUserName = null;
 let chatWidgetIsConnected = false;
+// Keep only one active subscription per conversation
+let chatWidgetConversationSubscription = null;
+let chatWidgetSubscribedConversationId = null;
+// Track last outbound message to trigger resync if response misses
+let chatWidgetLastSendAt = 0;
+// Prevent multiple simultaneous message loads
+let chatWidgetLoadingMessages = false;
 
 /**
  * Get CSRF token from meta tag
@@ -101,10 +108,29 @@ function connectChatWidget() {
  */
 function subscribeToChatWidgetConversation(conversationId) {
     if (chatWidgetStompClient && chatWidgetIsConnected) {
-        chatWidgetStompClient.subscribe('/topic/chat/' + conversationId, function(message) {
+        // Prevent duplicate subscriptions
+        if (chatWidgetSubscribedConversationId === conversationId && chatWidgetConversationSubscription) {
+            return;
+        }
+        if (chatWidgetConversationSubscription) {
+            try { chatWidgetConversationSubscription.unsubscribe(); } catch (e) { /* noop */ }
+            chatWidgetConversationSubscription = null;
+        }
+
+        chatWidgetConversationSubscription = chatWidgetStompClient.subscribe('/topic/chat/' + conversationId, function(message) {
             const chatMessage = JSON.parse(message.body);
             displayChatWidgetMessage(chatMessage);
         });
+        chatWidgetSubscribedConversationId = conversationId;
+        // Sau khi subscribe, đảm bảo đang ở cuối danh sách (trường hợp conversation vừa tạo)
+        setTimeout(scrollChatWidgetToBottom, 50);
+        // Safety resync right after subscribe to avoid missing early messages
+        // Only if we haven't loaded messages recently
+        setTimeout(() => {
+            if (!chatWidgetLoadingMessages) {
+                try { loadChatWidgetMessages(conversationId); } catch (e) { /* noop */ }
+            }
+        }, 200);
     }
 }
 
@@ -151,24 +177,94 @@ function createNewConversation() {
  * Load messages for conversation
  */
 function loadChatWidgetMessages(conversationId) {
+    // Prevent multiple simultaneous loads
+    if (chatWidgetLoadingMessages) {
+        console.log('Already loading messages, skipping...');
+        return;
+    }
+    
+    chatWidgetLoadingMessages = true;
+    console.log('Loading messages for conversation:', conversationId);
+    
     // Load with pagination to get ALL messages (increase page size)
     fetch('/api/chat/conversations/' + conversationId + '/messages?page=0&size=100')
         .then(response => response.json())
         .then(data => {
             if (data.data) {
                 const messagesContainer = document.getElementById('chatWidgetMessages');
-                // Clear ALL existing messages
-                messagesContainer.innerHTML = '';
                 
                 // Sort messages by sentAt ascending (oldest first)
                 const sortedMessages = data.data.sort((a, b) => {
                     return new Date(a.sentAt) - new Date(b.sentAt);
                 });
                 
-                // Display messages in order
-                sortedMessages.forEach(message => {
-                    displayChatWidgetMessage(message, true); // true = skip duplicate check for initial load
+                // Check if we need to reload or just add new messages
+                const existingMessageIds = new Set();
+                const existingMessages = messagesContainer.querySelectorAll('[data-message-id]');
+                existingMessages.forEach(el => {
+                    const id = el.getAttribute('data-message-id');
+                    if (id && !id.startsWith('temp-')) {
+                        existingMessageIds.add(id);
+                    }
                 });
+                
+                // Only clear and reload if we have significantly different messages
+                const newMessageIds = new Set(sortedMessages.map(m => m.id.toString()));
+                const hasNewMessages = sortedMessages.some(m => !existingMessageIds.has(m.id.toString()));
+                
+                if (hasNewMessages && sortedMessages.length > existingMessageIds.size) {
+                    console.log('New messages detected, reloading all messages');
+                    
+                    // Preserve temp user messages before clearing
+                    const tempUserMessages = [];
+                    const tempElements = messagesContainer.querySelectorAll('[data-message-id^="temp-user-"]');
+                    tempElements.forEach(el => {
+                        const id = el.getAttribute('data-message-id');
+                        const content = el.querySelector('.text-sm.leading-relaxed')?.innerHTML;
+                        if (id && content) {
+                            tempUserMessages.push({ id, content });
+                        }
+                    });
+                    
+                    // Clear ALL existing messages
+                    messagesContainer.innerHTML = '';
+                    
+                    // Display messages in order
+                    sortedMessages.forEach(message => {
+                        displayChatWidgetMessage(message, true); // true = skip duplicate check for initial load
+                    });
+                    
+                    // Restore temp user messages if they weren't replaced by persisted messages
+                    tempUserMessages.forEach(tempMsg => {
+                        const persistedExists = sortedMessages.some(m => 
+                            m.senderId === chatWidgetUserId && 
+                            parseMarkdown(m.content).trim() === tempMsg.content.trim()
+                        );
+                        if (!persistedExists) {
+                            console.log('Restoring temp user message:', tempMsg.id);
+                            // Recreate temp message element
+                            const tempDiv = document.createElement('div');
+                            tempDiv.className = 'flex mb-4 justify-end';
+                            tempDiv.setAttribute('data-message-id', tempMsg.id);
+                            tempDiv.innerHTML = `
+                                <div class="flex items-end space-x-2 max-w-xs">
+                                    <div class="flex flex-col items-end">
+                                        <div class="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-3 rounded-2xl rounded-br-md shadow-lg">
+                                            <div class="text-sm leading-relaxed">${tempMsg.content}</div>
+                                        </div>
+                                        <span class="text-xs text-gray-500 mt-1 px-2">✓</span>
+                                    </div>
+                                    <div class="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
+                                        ${chatWidgetUserName ? chatWidgetUserName.charAt(0).toUpperCase() : 'C'}
+                                    </div>
+                                </div>
+                            `;
+                            messagesContainer.appendChild(tempDiv);
+                        }
+                    });
+                } else {
+                    console.log('No new messages, keeping existing display');
+                }
                 
                 console.log(`Loaded ${sortedMessages.length} messages`);
                 
@@ -180,6 +276,9 @@ function loadChatWidgetMessages(conversationId) {
         })
         .catch(error => {
             console.error('Error loading messages:', error);
+        })
+        .finally(() => {
+            chatWidgetLoadingMessages = false;
         });
 }
 
@@ -202,8 +301,14 @@ function toggleChatWidget() {
             markChatWidgetMessagesAsRead(chatWidgetConversationId);
         }
         
-        // Scroll to bottom
-        scrollChatWidgetToBottom();
+        // Force reload messages when opening chat to ensure we have latest
+        if (chatWidgetConversationId && !chatWidgetLoadingMessages) {
+            console.log('Opening chat, reloading messages to ensure latest state');
+            loadChatWidgetMessages(chatWidgetConversationId);
+        } else {
+            // Scroll to bottom
+            scrollChatWidgetToBottom();
+        }
         
         // Focus input
         document.getElementById('chatWidgetInput').focus();
@@ -233,9 +338,10 @@ function sendWidgetMessage() {
         messageType: 'TEXT'
     };
     
-    // Display user message immediately
+    // Display user message immediately with a more unique ID
+    const tempMessageId = 'temp-user-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
     displayChatWidgetMessage({
-        id: 'temp-' + Date.now(),
+        id: tempMessageId,
         senderId: chatWidgetUserId,
         content: content,
         sentAt: new Date().toISOString(),
@@ -267,6 +373,15 @@ function sendWidgetMessage() {
         // Fallback to regular approach
         sendMessageRegular(message, headers, apiEndpoint);
     }
+
+    // Failsafe: if no new message arrives within 2.5s, reload messages
+    chatWidgetLastSendAt = Date.now();
+    setTimeout(() => {
+        const elapsed = Date.now() - chatWidgetLastSendAt;
+        if (elapsed >= 2400 && chatWidgetConversationId && !chatWidgetLoadingMessages) {
+            try { loadChatWidgetMessages(chatWidgetConversationId); } catch (e) { /* noop */ }
+        }
+    }, 2500);
 }
 
 /**
@@ -286,6 +401,13 @@ function sendMessageWithStreaming(message, headers, apiEndpoint) {
             if (!chatWidgetConversationId && data.data.conversationId) {
                 chatWidgetConversationId = data.data.conversationId;
                 subscribeToChatWidgetConversation(chatWidgetConversationId);
+                // Khi bắt đầu stream ngay lần đầu, đảm bảo đã có placeholder trước
+                // và đồng thời fallback fetch lại nếu stream không tới
+                setTimeout(() => {
+                    if (!chatWidgetLoadingMessages) {
+                        try { loadChatWidgetMessages(chatWidgetConversationId); } catch (e) { console.warn(e); }
+                    }
+                }, 150);
             }
             
             // Start streaming response
@@ -328,6 +450,13 @@ function sendMessageRegular(message, headers, apiEndpoint) {
             if (!chatWidgetConversationId && data.data.conversationId) {
                 chatWidgetConversationId = data.data.conversationId;
                 subscribeToChatWidgetConversation(chatWidgetConversationId);
+                // Safety: ngay sau khi có conversation đầu tiên, tải lại toàn bộ tin nhắn
+                // để tránh miss phản hồi AI do subscribe trễ trong lần đầu
+                setTimeout(() => {
+                    if (!chatWidgetLoadingMessages) {
+                        try { loadChatWidgetMessages(chatWidgetConversationId); } catch (e) { console.warn(e); }
+                    }
+                }, 150);
             }
             
             // AI response will come via WebSocket
@@ -431,6 +560,10 @@ function startStreamingResponse(conversationId) {
         setTimeout(() => {
             if (accumulatedContent === '') {
                 console.log('Streaming failed, waiting for WebSocket response');
+                // Extra safety: reload messages to avoid missed AI reply
+                if (!chatWidgetLoadingMessages) {
+                    try { loadChatWidgetMessages(conversationId); } catch (e) { /* noop */ }
+                }
             }
         }, 1000);
     };
@@ -453,26 +586,53 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
     
     // Enhanced duplicate check to prevent duplicate messages
     if (!skipDuplicateCheck) {
-        // Check by message ID first
+        // Check by message ID first (most reliable)
         const existingMessage = messagesContainer.querySelector(`[data-message-id="${message.id}"]`);
         if (existingMessage) {
             console.log('Duplicate message detected by ID:', message.id);
             return;
         }
         
-        // Also check for recent duplicate content to prevent streaming duplicates
-        const recentMessages = messagesContainer.querySelectorAll('.flex.mb-4');
-        const lastFewMessages = Array.from(recentMessages).slice(-3); // Check last 3 messages
+        // Only check for temp message replacement (not general content duplicates)
+        if (isOwn && message.id && !String(message.id).startsWith('temp')) {
+            // Find and remove temp message with same content
+            const tempDup = Array.from(messagesContainer.querySelectorAll('[data-message-id^="temp-"]'))
+                .reverse()
+                .find(el => {
+                    const div = el.querySelector('.text-sm.leading-relaxed');
+                    return div && div.innerHTML.trim() === parseMarkdown(message.content).trim();
+                });
+            if (tempDup) {
+                console.log('Replacing temp message with persisted message:', message.id);
+                try { tempDup.remove(); } catch (e) { /* noop */ }
+            }
+        }
         
-        for (const recentMsg of lastFewMessages) {
-            const contentDiv = recentMsg.querySelector('.text-sm.leading-relaxed');
-            if (contentDiv && contentDiv.innerHTML.trim() === parseMarkdown(message.content).trim()) {
-                console.log('Duplicate message detected by content:', message.content.substring(0, 50));
-                return;
+        // Special handling: if this is a temp user message, make sure it's not replaced by accident
+        if (isOwn && String(message.id).startsWith('temp-user-')) {
+            // This is a temp user message, ensure it stays visible
+            console.log('Preserving temp user message:', message.id);
+        }
+        
+        // For AI messages, only check very recent duplicates (last 1 message) to avoid blocking legitimate responses
+        if (!isOwn) {
+            const recentMessages = messagesContainer.querySelectorAll('.flex.mb-4');
+            const lastMessage = recentMessages[recentMessages.length - 1];
+            if (lastMessage) {
+                const contentDiv = lastMessage.querySelector('.text-sm.leading-relaxed');
+                if (contentDiv && contentDiv.innerHTML.trim() === parseMarkdown(message.content).trim()) {
+                    console.log('Duplicate AI message detected by content:', message.content.substring(0, 50));
+                    return;
+                }
             }
         }
     }
     
+    // If AI/system message arrives, ensure typing indicator is hidden
+    if (!isOwn) {
+        try { hideTypingIndicator(); } catch (e) { /* noop */ }
+    }
+
     // Create message element with MODERN BEAUTIFUL design
     const messageDiv = document.createElement('div');
     messageDiv.className = 'flex mb-4 animate-fade-in ' + (isOwn ? 'justify-end' : 'justify-start');
@@ -513,7 +673,13 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
         `;
     }
     
-    messagesContainer.appendChild(messageDiv);
+    // Insert message BEFORE typing indicator if it exists
+    const typingIndicator = messagesContainer.querySelector('.typing-indicator');
+    if (typingIndicator) {
+        messagesContainer.insertBefore(messageDiv, typingIndicator);
+    } else {
+        messagesContainer.appendChild(messageDiv);
+    }
     
     // Scroll to bottom
     scrollChatWidgetToBottom();
@@ -656,29 +822,36 @@ function showTypingIndicator() {
         existingIndicator.remove();
     }
     
-    // Create typing indicator
+    // Create typing indicator - ALWAYS append to the END of messages
     const typingDiv = document.createElement('div');
     typingDiv.className = 'flex justify-start mb-4 typing-indicator';
+    typingDiv.setAttribute('role', 'status');
+    typingDiv.setAttribute('aria-live', 'polite');
     typingDiv.innerHTML = `
-        <div class="flex items-start space-x-2 max-w-md">
-            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+        <div class="flex items-start gap-3 max-w-md">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-sm font-semibold shadow-md flex-shrink-0">
                 🌸
             </div>
             <div class="flex flex-col items-start">
-                <div class="bg-white text-gray-800 px-4 py-3 rounded-2xl rounded-bl-md shadow-lg border border-gray-100">
-                    <div class="flex space-x-1">
-                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                <div class="px-4 py-2 rounded-2xl rounded-bl-md shadow-lg border border-gray-100 bg-white/90 backdrop-blur-sm">
+                    <div class="flex items-center gap-1">
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
                     </div>
                 </div>
-                <span class="text-xs text-gray-500 mt-1 px-2">Hoa AI đang trả lời...</span>
+                <span class="text-[11px] text-gray-500 mt-1 px-1 leading-none typing-status">Hoa AI đang trả lời…</span>
             </div>
         </div>
     `;
     
+    // ALWAYS append to the very end, after all existing messages
     messagesContainer.appendChild(typingDiv);
-    scrollChatWidgetToBottom();
+    
+    // Force scroll to bottom to show typing indicator
+    setTimeout(() => {
+        scrollChatWidgetToBottom();
+    }, 50);
 }
 
 /**

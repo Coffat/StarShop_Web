@@ -72,4 +72,42 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     @Query("SELECT COUNT(r) FROM Review r WHERE r.product.id = :productId")
     Long getReviewCountByProductId(@Param("productId") Long productId);
+    
+    // AI Insights queries
+    @Query("SELECT p FROM Product p WHERE p.stockQuantity < :threshold ORDER BY p.stockQuantity ASC")
+    List<Product> findLowStockProducts(@Param("threshold") Integer threshold);
+    
+    @Query("SELECT p FROM Product p WHERE p.stockQuantity > :threshold ORDER BY p.stockQuantity DESC")
+    List<Product> findHighStockProducts(@Param("threshold") Integer threshold);
+    
+    @Query(value = "SELECT p.name, COUNT(oi.id) as order_count " +
+           "FROM products p " +
+           "LEFT JOIN orderitems oi ON p.id = oi.product_id " +
+           "LEFT JOIN orders o ON oi.order_id = o.id " +
+           "WHERE o.order_date >= CURRENT_DATE - INTERVAL '7 days' " +
+           "GROUP BY p.id, p.name " +
+           "ORDER BY order_count DESC " +
+           "LIMIT 3", nativeQuery = true)
+    List<Object[]> findTopSellingProductsLast7Days();
+    
+    /**
+     * Find products with high stock but low sales in the last 30 days
+     * Used for AI inventory clearance suggestions
+     */
+    @Query("SELECT p FROM Product p " +
+           "WHERE p.stockQuantity > 50 " +  // High stock threshold
+           "AND p.id NOT IN (" +
+           "    SELECT DISTINCT oi.product.id FROM OrderItem oi " +
+           "    JOIN oi.order o " +
+           "    WHERE o.orderDate >= :thirtyDaysAgo " +
+           "    AND o.status = 'COMPLETED'" +
+           ") " +
+           "ORDER BY p.stockQuantity DESC")
+    List<Product> findHighStockLowSalesProducts(@Param("thirtyDaysAgo") java.time.LocalDateTime thirtyDaysAgo);
+    
+    /**
+     * Find products by name for specific inventory clearance
+     */
+    @Query("SELECT p FROM Product p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :productName, '%'))")
+    List<Product> findProductsByName(@Param("productName") String productName);
 }

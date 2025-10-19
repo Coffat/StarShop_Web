@@ -2,6 +2,8 @@ package com.example.demo.dto;
 
 import com.example.demo.entity.enums.MessageType;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -54,6 +56,18 @@ public class ChatMessageDTO {
         dto.setIsAiGenerated(false);
         dto.setSentAt(LocalDateTime.now());
         return dto;
+    }
+    
+    /**
+     * Convert to JSON string for streaming
+     */
+    public String toJson() {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            return "{\"error\":\"Failed to serialize message\"}";
+        }
     }
 }
 

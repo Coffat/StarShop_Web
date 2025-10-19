@@ -22,4 +22,9 @@ public interface VoucherRepository extends JpaRepository<Voucher, Long> {
     Optional<Voucher> findValidVoucherByCode(@Param("code") String code, @Param("currentDate") LocalDate currentDate);
     
     boolean existsByCode(String code);
+    
+    /**
+     * Find all active vouchers that haven't expired yet
+     */
+    List<Voucher> findByIsActiveTrueAndExpiryDateAfter(LocalDate date);
 }

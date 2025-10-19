@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Product Controller for handling product-related web requests
@@ -100,9 +101,14 @@ public class ProductController {
                 model.addAttribute("maxPrice", maxPrice);
             }
 
+            // Get products with rating information
+            Map<Long, ProductService.ProductWithRating> productsWithRatings = 
+                productService.getProductsWithRatings(sort, direction, pageable);
+
             // Add model attributes
             model.addAttribute("productsPage", productsPage);
             model.addAttribute("products", productsPage.getContent());
+            model.addAttribute("productsWithRatings", productsWithRatings);
             model.addAttribute("currentPage", validPage);
             model.addAttribute("totalPages", productsPage.getTotalPages());
             model.addAttribute("totalElements", productsPage.getTotalElements());

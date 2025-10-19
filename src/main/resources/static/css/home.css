@@ -56,6 +56,33 @@
     animation: ad-pop-in 260ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+/* Ensure popup dialog and image scale responsively across browsers */
+#ad-popup .ad-dialog {
+    max-width: min(88vw, 820px);
+    width: 100%;
+}
+
+#ad-popup img {
+    display: block;
+    max-width: 100%;
+    max-height: 70vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+/* Ensure inner content never exceeds viewport */
+#ad-popup .ad-content {
+    max-height: 72vh;
+    padding: 0;
+}
+
+@media (max-width: 640px) {
+    #ad-popup .ad-dialog { max-width: 92vw; }
+    #ad-popup img { max-height: 62vh; }
+    #ad-popup .ad-content { max-height: 64vh; }
+}
+
 /* Hardening visibility if Tailwind classes conflict */
 .ad-overlay.show { visibility: visible !important; opacity: 1 !important; }
 .ad-overlay.hidden { display: none !important; }

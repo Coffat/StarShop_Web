@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.client.GeminiClient;
 import com.example.demo.dto.ChatMessageDTO;
 import com.example.demo.dto.ConversationDTO;
 import com.example.demo.entity.Conversation;
@@ -19,10 +20,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -47,6 +52,9 @@ public class ChatService {
     private final HandoffService handoffService;
     private final StoreConfigService storeConfigService;
     private final ConversationSupervisorService conversationSupervisorService;
+    
+    // SSE streaming emitters for real-time AI responses
+    private final Map<Long, SseEmitter> streamingEmitters = new ConcurrentHashMap<>();
     
     // Constructor with @Lazy for ConversationSupervisorService to break circular dependency
     public ChatService(
@@ -185,7 +193,7 @@ public class ChatService {
      * Send a message in a conversation
      */
     public ChatMessageDTO sendMessage(ChatMessageDTO messageDTO) {
-        log.info("Sending message in conversation: {}", messageDTO.getConversationId());
+        log.debug("Sending message in conversation: {}", messageDTO.getConversationId());
         
         // Validate required fields
         if (messageDTO.getSenderId() == null) {
@@ -291,7 +299,7 @@ public class ChatService {
                     
                     if (decision.isHandleByAi()) {
                         // AI can handle this message
-                        log.info("AI handling message for conversation {}", conversation.getId());
+                        log.debug("AI handling message for conversation {}", conversation.getId());
                         
                         com.example.demo.dto.AiAnalysisResult analysis = decision.getAiAnalysis();
                         
@@ -301,13 +309,47 @@ public class ChatService {
                             log.info("Executing tools and generating context-aware response");
                             String toolResults = aiToolExecutorService.executeTools(analysis);
                             
-                            // Generate final smart response based on tool results
-                            aiReply = aiChatService.generateFinalResponse(
-                                conversation.getId(), 
-                                messageDTO.getContent(),
-                                toolResults,
-                                analysis
-                            );
+                            // Check if streaming is available for this conversation
+                            boolean hasStreaming = streamingEmitters.containsKey(conversation.getId());
+                            
+                            if (hasStreaming) {
+                                // Generate with streaming support
+                                aiReply = aiChatService.generateFinalResponse(
+                                    conversation.getId(), 
+                                    messageDTO.getContent(),
+                                    toolResults,
+                                    analysis,
+                                    new GeminiClient.StreamingCallback() {
+                                        @Override
+                                        public void onChunk(String chunk) {
+                                            sendStreamingChunk(conversation.getId(), chunk);
+                                        }
+                                        
+                                        @Override
+                                        public void onComplete() {
+                                            // Will be handled after message is saved
+                                        }
+                                        
+                                        @Override
+                                        public void onError(String error) {
+                                            sendStreamingError(conversation.getId(), error);
+                                        }
+                                        
+                                        @Override
+                                        public void onStreamingUnavailable() {
+                                            log.warn("Streaming unavailable for conversation {}", conversation.getId());
+                                        }
+                                    }
+                                );
+                            } else {
+                                // Generate without streaming
+                                aiReply = aiChatService.generateFinalResponse(
+                                    conversation.getId(), 
+                                    messageDTO.getContent(),
+                                    toolResults,
+                                    analysis
+                                );
+                            }
                         } else {
                             // No tools needed, use initial reply
                             aiReply = analysis.getReply();
@@ -340,7 +382,12 @@ public class ChatService {
                         aiMessageDTO.setSenderName("Hoa AI 🌸");
                         webSocketService.sendChatMessage(aiMessageDTO);
                         
-                        log.info("AI response sent for conversation {}", conversation.getId());
+                        // Send streaming completion if streaming was used
+                        if (streamingEmitters.containsKey(conversation.getId())) {
+                            sendStreamingComplete(conversation.getId(), aiMessageDTO);
+                        }
+                        
+                        log.debug("AI response sent for conversation {}", conversation.getId());
                         
                     } else {
                         // Need to handoff to staff
@@ -463,7 +510,7 @@ public class ChatService {
             
             if (decision.isHandleByAi()) {
                 // AI can handle this message
-                log.info("AI handling message for conversation {}", conversation.getId());
+                log.debug("AI handling message for conversation {}", conversation.getId());
                 
                 com.example.demo.dto.AiAnalysisResult analysis = decision.getAiAnalysis();
                 
@@ -511,7 +558,7 @@ public class ChatService {
                 aiMessageDTO.setSenderName("Hoa AI 🌸");
                 webSocketService.sendChatMessage(aiMessageDTO);
                 
-                log.info("AI response sent for conversation {}", conversation.getId());
+                log.debug("AI response sent for conversation {}", conversation.getId());
                 
             } else {
                 // Need to handoff to staff
@@ -869,5 +916,89 @@ public class ChatService {
             systemUser.setRole(UserRole.STAFF);
             return userRepository.save(systemUser);
         });
+    }
+    
+    /**
+     * Register SSE emitter for streaming AI responses
+     */
+    public void registerStreamingEmitter(Long conversationId, SseEmitter emitter) {
+        log.info("Registering SSE emitter for conversation {}", conversationId);
+        streamingEmitters.put(conversationId, emitter);
+    }
+    
+    /**
+     * Unregister SSE emitter for conversation
+     */
+    public void unregisterStreamingEmitter(Long conversationId) {
+        log.info("Unregistering SSE emitter for conversation {}", conversationId);
+        streamingEmitters.remove(conversationId);
+    }
+    
+    /**
+     * Send streaming chunk to conversation
+     */
+    public void sendStreamingChunk(Long conversationId, String content) {
+        SseEmitter emitter = streamingEmitters.get(conversationId);
+        if (emitter != null) {
+            try {
+                String jsonData = String.format("{\"type\":\"chunk\",\"content\":\"%s\"}", 
+                    content.replace("\"", "\\\"").replace("\n", "\\n"));
+                emitter.send(SseEmitter.event()
+                    .name("message")
+                    .data(jsonData));
+                log.debug("Sent streaming chunk to conversation {}: {} chars", conversationId, content.length());
+            } catch (IOException e) {
+                log.error("Failed to send streaming chunk to conversation {}: {}", conversationId, e.getMessage());
+                streamingEmitters.remove(conversationId);
+            }
+        }
+    }
+    
+    /**
+     * Send streaming completion to conversation
+     */
+    public void sendStreamingComplete(Long conversationId, ChatMessageDTO finalMessage) {
+        SseEmitter emitter = streamingEmitters.get(conversationId);
+        if (emitter != null) {
+            try {
+                String jsonData = String.format("{\"type\":\"complete\",\"finalMessage\":%s}", 
+                    finalMessage != null ? finalMessage.toJson() : "null");
+                emitter.send(SseEmitter.event()
+                    .name("message")
+                    .data(jsonData));
+                log.info("Sent streaming completion to conversation {}", conversationId);
+                
+                // Close the emitter after completion
+                emitter.complete();
+                streamingEmitters.remove(conversationId);
+            } catch (IOException e) {
+                log.error("Failed to send streaming completion to conversation {}: {}", conversationId, e.getMessage());
+                streamingEmitters.remove(conversationId);
+            }
+        }
+    }
+    
+    /**
+     * Send streaming error to conversation
+     */
+    public void sendStreamingError(Long conversationId, String errorMessage) {
+        SseEmitter emitter = streamingEmitters.get(conversationId);
+        if (emitter != null) {
+            try {
+                String jsonData = String.format("{\"type\":\"error\",\"message\":\"%s\"}", 
+                    errorMessage.replace("\"", "\\\""));
+                emitter.send(SseEmitter.event()
+                    .name("message")
+                    .data(jsonData));
+                log.error("Sent streaming error to conversation {}: {}", conversationId, errorMessage);
+                
+                // Close the emitter after error
+                emitter.complete();
+                streamingEmitters.remove(conversationId);
+            } catch (IOException e) {
+                log.error("Failed to send streaming error to conversation {}: {}", conversationId, e.getMessage());
+                streamingEmitters.remove(conversationId);
+            }
+        }
     }
 }

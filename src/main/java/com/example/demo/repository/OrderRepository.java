@@ -102,4 +102,39 @@ public interface OrderRepository extends JpaRepository<Order, String> {
            "LOWER(CONCAT(u.firstname, ' ', u.lastname)) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
            "LOWER(u.email) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
     Page<Order> searchOrders(@Param("searchTerm") String searchTerm, Pageable pageable);
+    
+    // AI Insights queries
+    @Query(value = "SELECT COALESCE(SUM(total_amount), 0) FROM orders " +
+           "WHERE status = 'COMPLETED' AND DATE(order_date) = CURRENT_DATE - INTERVAL '1 day'", 
+           nativeQuery = true)
+    BigDecimal getYesterdayRevenue();
+    
+    @Query(value = "SELECT COALESCE(SUM(total_amount), 0) FROM orders " +
+           "WHERE status = 'COMPLETED' AND DATE(order_date) = CURRENT_DATE - INTERVAL '7 days'", 
+           nativeQuery = true)
+    BigDecimal getLastWeekRevenue();
+    
+    @Query(value = "SELECT COUNT(*) FROM orders " +
+           "WHERE status = 'CANCELLED' AND order_date >= CURRENT_DATE - INTERVAL '7 days'", 
+           nativeQuery = true)
+    Long getCancelledOrdersLast7Days();
+    
+    @Query(value = "SELECT COUNT(*) FROM orders " +
+           "WHERE order_date >= CURRENT_DATE - INTERVAL '7 days'", 
+           nativeQuery = true)
+    Long getTotalOrdersLast7Days();
+    
+    /**
+     * Get average order value (AOV) for completed orders in the last 30 days
+     */
+    @Query("SELECT AVG(o.totalAmount) FROM Order o WHERE o.status = 'COMPLETED' " +
+           "AND o.orderDate >= :startDate")
+    BigDecimal getAverageOrderValue(@Param("startDate") LocalDateTime startDate);
+    
+    // AI Customer Segmentation queries
+    @Query("SELECT MAX(o.orderDate) FROM Order o WHERE o.user.id = :userId")
+    LocalDateTime getLastOrderDateByUser(@Param("userId") Long userId);
+    
+    @Query("SELECT MIN(o.orderDate) FROM Order o WHERE o.user.id = :userId")
+    LocalDateTime getFirstOrderDateByUser(@Param("userId") Long userId);
 }

@@ -28,4 +28,36 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     
     @Query("SELECT r FROM Review r WHERE r.rating = :rating")
     List<Review> findByRating(@Param("rating") Integer rating);
+    
+    /**
+     * Find review by order item ID
+     */
+    Optional<Review> findByOrderItemId(Long orderItemId);
+    
+    /**
+     * Check if review exists for order item
+     */
+    boolean existsByOrderItemId(Long orderItemId);
+    
+    /**
+     * Find reviews by user ordered by creation date descending
+     */
+    List<Review> findByUserIdOrderByCreatedAtDesc(Long userId);
+    
+    /**
+     * Find all reviews ordered by creation date descending (for admin)
+     */
+    Page<Review> findAllByOrderByCreatedAtDesc(Pageable pageable);
+    
+    /**
+     * Count reviews with rating >= threshold created after date (for AI insights)
+     */
+    @Query("SELECT COUNT(r) FROM Review r WHERE r.rating >= :rating AND r.createdAt >= :date")
+    Long countByRatingGreaterThanEqualAndCreatedAtAfter(@Param("rating") Integer rating, @Param("date") java.time.LocalDateTime date);
+    
+    /**
+     * Count total reviews created after date (for AI insights)
+     */
+    @Query("SELECT COUNT(r) FROM Review r WHERE r.createdAt >= :date")
+    Long countByCreatedAtAfter(@Param("date") java.time.LocalDateTime date);
 }

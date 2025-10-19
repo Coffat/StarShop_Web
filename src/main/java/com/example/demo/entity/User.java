@@ -57,6 +57,13 @@ public class User extends BaseEntity {
     @Column(name = "last_login")
     private java.time.LocalDateTime lastLogin;
 
+    // AI Customer Segmentation fields
+    @Column(name = "customer_segment", length = 20)
+    private String customerSegment;
+
+    @Column(name = "customer_segment_updated_at")
+    private java.time.LocalDateTime customerSegmentUpdatedAt;
+
     // Relationships
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Address> addresses = new ArrayList<>();
@@ -297,5 +304,21 @@ public class User extends BaseEntity {
 
     public void setLastLogin(java.time.LocalDateTime lastLogin) {
         this.lastLogin = lastLogin;
+    }
+
+    public String getCustomerSegment() {
+        return customerSegment;
+    }
+
+    public void setCustomerSegment(String customerSegment) {
+        this.customerSegment = customerSegment;
+    }
+
+    public java.time.LocalDateTime getCustomerSegmentUpdatedAt() {
+        return customerSegmentUpdatedAt;
+    }
+
+    public void setCustomerSegmentUpdatedAt(java.time.LocalDateTime customerSegmentUpdatedAt) {
+        this.customerSegmentUpdatedAt = customerSegmentUpdatedAt;
     }
 }
