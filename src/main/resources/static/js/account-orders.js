@@ -481,15 +481,53 @@ function openReviewModal(productId, orderItemId, productName, productImage) {
     starButtons.forEach(btn => {
         btn.classList.remove('text-yellow-400');
         btn.classList.add('text-gray-300');
-        btn.innerHTML = '<i class="bi bi-star"></i>';
+        // Keep the SVG structure, just change color
     });
     
     document.getElementById('ratingText').textContent = 'Chọn số sao để đánh giá';
     document.getElementById('submitReviewBtn').disabled = true;
     
-    // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('reviewModal'));
-    modal.show();
+    // Show modal with Tailwind classes
+    const modal = document.getElementById('reviewModal');
+    const modalDialog = document.getElementById('modalDialog');
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    
+    modal.classList.remove('hidden');
+    
+    // Trigger animation after a small delay
+    setTimeout(() => {
+        modalDialog.classList.remove('scale-95', 'opacity-0');
+        modalDialog.classList.add('scale-100', 'opacity-100');
+        modalBackdrop.classList.add('opacity-100');
+    }, 10);
+    
+    // Add event listeners for close buttons
+    document.getElementById('closeModalBtn').onclick = closeReviewModal;
+    document.getElementById('cancelReviewBtn').onclick = closeReviewModal;
+    document.getElementById('modalBackdrop').onclick = closeReviewModal;
+    
+    // Add event listeners for star buttons
+    const starButtons = document.querySelectorAll('.star-btn');
+    starButtons.forEach((btn, index) => {
+        btn.onclick = () => selectRating(index + 1);
+    });
+}
+
+// Close review modal
+function closeReviewModal() {
+    const modal = document.getElementById('reviewModal');
+    const modalDialog = document.getElementById('modalDialog');
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    
+    // Start fade out animation
+    modalDialog.classList.remove('scale-100', 'opacity-100');
+    modalDialog.classList.add('scale-95', 'opacity-0');
+    modalBackdrop.classList.remove('opacity-100');
+    
+    // Hide modal after animation
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 300);
 }
 
 // Handle star rating selection
@@ -505,11 +543,9 @@ function selectRating(rating) {
         if (index < rating) {
             btn.classList.remove('text-gray-300');
             btn.classList.add('text-yellow-400');
-            btn.innerHTML = '<i class="bi bi-star-fill"></i>';
         } else {
             btn.classList.remove('text-yellow-400');
             btn.classList.add('text-gray-300');
-            btn.innerHTML = '<i class="bi bi-star"></i>';
         }
     });
     
@@ -545,8 +581,7 @@ async function submitReview() {
             showToast('Đánh giá đã được gửi thành công!', 'success');
             
             // Close modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('reviewModal'));
-            modal.hide();
+            closeReviewModal();
             
             // Reload orders to update UI
             loadOrders(currentStatus, currentPage);
