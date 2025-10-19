@@ -1,7 +1,6 @@
 spring:
   profiles:
     active: dev
-
   servlet:
     session:
       cookie:
@@ -10,6 +9,7 @@ spring:
         secure: false
         same-site: lax
         max-age: 3600
+
 
 # Swagger/OpenAPI UI common settings (non-sensitive)
 springdoc:

@@ -358,6 +358,10 @@
   function changeSorting(value) {
     const url = new URL(window.location);
 
+    // Preserve categoryId and search if present
+    const categoryId = url.searchParams.get("categoryId");
+    const search = url.searchParams.get("search");
+
     // Update URL parameters based on sort value
     switch (value) {
       case "newest":
@@ -380,6 +384,20 @@
         url.searchParams.set("sort", "price");
         url.searchParams.set("direction", "desc");
         break;
+    }
+
+    // Preserve categoryId
+    if (categoryId && categoryId !== "0" && categoryId !== "") {
+      url.searchParams.set("categoryId", categoryId);
+    } else {
+      url.searchParams.delete("categoryId");
+    }
+
+    // Preserve search
+    if (search && search.trim() !== "") {
+      url.searchParams.set("search", search.trim());
+    } else {
+      url.searchParams.delete("search");
     }
 
     // Reset to first page
@@ -740,6 +758,7 @@ fetch('/api/wishlist/toggle', {
   window.changeSorting = changeSorting;
   
   // Note: Wishlist now uses event delegation, no need for global function
+  // Note: changeCategory is now handled by form submit in index.html, not needed here
 
   window.buyNow = function (button) {
     const productId = button.dataset.productId;
