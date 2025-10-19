@@ -72,4 +72,21 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     @Query("SELECT COUNT(r) FROM Review r WHERE r.product.id = :productId")
     Long getReviewCountByProductId(@Param("productId") Long productId);
+    
+    // AI Insights queries
+    @Query("SELECT p FROM Product p WHERE p.stockQuantity < :threshold ORDER BY p.stockQuantity ASC")
+    List<Product> findLowStockProducts(@Param("threshold") Integer threshold);
+    
+    @Query("SELECT p FROM Product p WHERE p.stockQuantity > :threshold ORDER BY p.stockQuantity DESC")
+    List<Product> findHighStockProducts(@Param("threshold") Integer threshold);
+    
+    @Query(value = "SELECT p.name, COUNT(oi.id) as order_count " +
+           "FROM products p " +
+           "LEFT JOIN orderitems oi ON p.id = oi.product_id " +
+           "LEFT JOIN orders o ON oi.order_id = o.id " +
+           "WHERE o.order_date >= CURRENT_DATE - INTERVAL '7 days' " +
+           "GROUP BY p.id, p.name " +
+           "ORDER BY order_count DESC " +
+           "LIMIT 3", nativeQuery = true)
+    List<Object[]> findTopSellingProductsLast7Days();
 }

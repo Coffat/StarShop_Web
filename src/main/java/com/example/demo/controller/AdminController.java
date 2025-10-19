@@ -1,8 +1,10 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.AiInsightResponse;
 import com.example.demo.service.DashboardService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -11,7 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -52,6 +56,9 @@ public class AdminController extends BaseController {
         // Legacy chart data for backward compatibility
         Map<String, Object> revenueChartData = dashboardService.getRevenueChartData();
         model.addAttribute("revenueChart", revenueChartData);
+        
+        // Enable AI insights (lazy loaded via JavaScript)
+        model.addAttribute("aiInsightsEnabled", true);
         
         List<BreadcrumbItem> breadcrumbs = new ArrayList<>();
         breadcrumbs.add(new BreadcrumbItem("Dashboard", "/admin/dashboard"));
@@ -209,6 +216,48 @@ public class AdminController extends BaseController {
         model.addAttribute("pageTitle", "Quản lý đánh giá");
         model.addAttribute("contentTemplate", "admin/reviews/index");
         return "layouts/admin";
+    }
+    
+    /**
+     * API: Get AI insights for dashboard
+     */
+    @GetMapping("/api/ai-insights")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getAiInsights() {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            AiInsightResponse insights = dashboardService.getAiInsights();
+            
+            response.put("success", true);
+            response.put("data", insights);
+            response.put("timestamp", LocalDateTime.now());
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("Error getting AI insights", e);
+            
+            // Fallback insights
+            AiInsightResponse.InsightItem fallbackItem = AiInsightResponse.InsightItem.builder()
+                    .type("info")
+                    .icon("🤖")
+                    .title("Lỗi hệ thống")
+                    .message("Không thể tải phân tích AI. Vui lòng thử lại sau.")
+                    .severity("info")
+                    .build();
+            
+            AiInsightResponse fallbackResponse = AiInsightResponse.builder()
+                    .insights(List.of(fallbackItem))
+                    .build();
+            
+            response.put("success", false);
+            response.put("error", "Failed to generate AI insights");
+            response.put("fallback", fallbackResponse);
+            response.put("timestamp", LocalDateTime.now());
+            
+            return ResponseEntity.ok(response); // Return 200 with error flag
+        }
     }
     
 }

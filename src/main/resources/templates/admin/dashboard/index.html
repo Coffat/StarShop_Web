@@ -90,6 +90,26 @@
             </div>
         </div>
 
+        <!-- AI Insights Widget -->
+        <div class="ai-insights-widget" id="aiInsightsWidget" th:if="${aiInsightsEnabled}">
+            <div class="ai-widget-header">
+                <h3>🤖 AI Nhận định Nhanh</h3>
+                <span class="loading-indicator" id="aiLoadingIndicator">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </span>
+            </div>
+            <div class="ai-widget-content" id="aiWidgetContent">
+                <div class="insights-loading">
+                    <div class="loading-skeleton">
+                        <div class="skeleton-item"></div>
+                        <div class="skeleton-item"></div>
+                        <div class="skeleton-item"></div>
+                    </div>
+                    <p>Đang phân tích dữ liệu...</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Chart Section -->
         <div class="main-chart-section">
             <div class="main-chart-card">
@@ -291,6 +311,9 @@
             </div>
         </div>
     </div>
+    
+    <!-- AI Insights Script -->
+    <script th:src="@{/js/admin-ai-insights.js}"></script>
     
     <!-- Modern Chart.js Scripts -->
     <script th:inline="javascript">
@@ -710,6 +733,13 @@
                     console.error('Error updating revenue trend:', error);
                 });
         }
+        
+        // Initialize AI Insights with lazy loading
+        document.addEventListener('DOMContentLoaded', function() {
+            if (document.getElementById('aiInsightsWidget')) {
+                setTimeout(loadAiInsights, 500);
+            }
+        });
     </script>
     </div>
     </div>

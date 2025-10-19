@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.AiInsightResponse;
 import com.example.demo.entity.enums.OrderStatus;
 import com.example.demo.repository.OrderRepository;
 import com.example.demo.repository.ProductRepository;
@@ -28,6 +29,7 @@ public class DashboardService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final AdminAiInsightsService adminAiInsightsService;
 
     /**
      * Get dashboard statistics
@@ -278,5 +280,28 @@ public class DashboardService {
         }
         
         return trendData;
+    }
+
+    /**
+     * Get AI insights for dashboard
+     */
+    public AiInsightResponse getAiInsights() {
+        try {
+            return adminAiInsightsService.getAiInsights();
+        } catch (Exception e) {
+            log.error("Error getting AI insights", e);
+            // Return fallback insights
+            AiInsightResponse.InsightItem fallbackItem = AiInsightResponse.InsightItem.builder()
+                    .type("info")
+                    .icon("🤖")
+                    .title("Tạm thời không có dữ liệu")
+                    .message("Không thể tải phân tích AI. Vui lòng thử lại sau.")
+                    .severity("info")
+                    .build();
+            
+            return AiInsightResponse.builder()
+                    .insights(List.of(fallbackItem))
+                    .build();
+        }
     }
 }

@@ -7,6 +7,7 @@ import com.example.demo.entity.Product;
 import com.example.demo.entity.enums.ProductStatus;
 import com.example.demo.repository.CatalogRepository;
 import com.example.demo.service.ProductService;
+import com.example.demo.service.AdminProductAiService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,9 @@ public class AdminProductController extends BaseController {
     
     @Autowired
     private CatalogRepository catalogRepository;
+    
+    @Autowired
+    private AdminProductAiService adminProductAiService;
     @Autowired
     private com.example.demo.service.ExcelExportService excelExportService;
 
@@ -417,4 +421,46 @@ public class AdminProductController extends BaseController {
     }
 
     // Removed placeholder duplicate export endpoint to avoid ambiguous mapping
+
+    /**
+     * Generate product description using AI
+     */
+    @PostMapping("/api/generate-description")
+    @ResponseBody
+    public ResponseEntity<ResponseWrapper<String>> generateDescription(
+            @RequestParam String productName,
+            @RequestParam(required = false) Long catalogId,
+            @RequestParam(defaultValue = "") String keywords) {
+        
+        // Validate productName không rỗng
+        if (productName == null || productName.trim().isEmpty()) {
+            return ResponseEntity.badRequest()
+                .body(ResponseWrapper.error("Vui lòng nhập tên sản phẩm"));
+        }
+        
+        try {
+            String description = adminProductAiService.generateProductDescription(
+                productName.trim(), catalogId, keywords
+            );
+            return ResponseEntity.ok(ResponseWrapper.success(description, 
+                "Tạo mô tả thành công"));
+        } catch (Exception e) {
+            log.error("Error generating description for product: {}", productName, e);
+            
+            // Determine error type and return appropriate message
+            String errorMessage = "Không thể tạo mô tả. Vui lòng thử lại.";
+            if (e.getMessage() != null) {
+                if (e.getMessage().contains("timeout") || e.getMessage().contains("Timeout")) {
+                    errorMessage = "AI đang quá tải, vui lòng thử lại";
+                } else if (e.getMessage().contains("quota") || e.getMessage().contains("Quota")) {
+                    errorMessage = "Đã vượt giới hạn sử dụng AI hôm nay";
+                } else if (e.getMessage().contains("network") || e.getMessage().contains("Network")) {
+                    errorMessage = "Không thể kết nối với AI";
+                }
+            }
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ResponseWrapper.error(errorMessage));
+        }
+    }
 }
