@@ -215,6 +215,13 @@ public class AiChatService {
                 if (!isResponseComplete(finalResponse, customerMessage, toolResults)) {
                     log.warn("⚠️ Response quality check failed, using enhanced fallback");
                     finalResponse = createEnhancedFallbackResponse(toolResults, initialAnalysis.getReply(), customerMessage);
+                    
+                    // Stream fallback response if callback provided to avoid SSE timeout
+                    if (streamCallback != null) {
+                        log.info("Streaming fallback response to prevent SSE timeout");
+                        streamCallback.onChunk(finalResponse);
+                        streamCallback.onComplete();
+                    }
                 }
                 
                 // Log profile usage for monitoring

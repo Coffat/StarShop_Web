@@ -1,0 +1,89 @@
+# Môi trường Development (Local)
+
+# SERVER
+server.port=8080
+
+# JWT
+jwt.secret=starshop_jwt_secret_key_2024_very_secure_key_for_production_use
+jwt.expiration=86400000
+
+# MAIL
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=starshop.a.6868@gmail.com
+spring.mail.password=mqai nigf sweg imek
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.from=starshop.a.6868@gmail.com
+
+# OAUTH2 - GOOGLE
+spring.security.oauth2.client.registration.google.client-id=45091665731-js8rgkgu5c662khuebpcieikh47eps6t.apps.googleusercontent.com
+spring.security.oauth2.client.registration.google.client-secret=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
+spring.security.oauth2.client.registration.google.scope=profile,email
+
+# OAUTH2 - FACEBOOK
+spring.security.oauth2.client.registration.facebook.client-id=1220413069770726
+spring.security.oauth2.client.registration.facebook.client-secret=c5b7d1d07a1564b8bf592045bafbc144
+spring.security.oauth2.client.registration.facebook.scope=email,public_profile
+
+# URL ỨNG DỤNG
+app.base-url=http://localhost:8080
+app.upload.dir=uploads
+
+# URL DỊCH VỤ BÊN NGOÀI
+facebook.avatar.url.template=https://graph.facebook.com/{id}/picture?type=large
+sockjs.client.library.url=https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js
+swagger.server.prod.url=https://api.flowershop.com
+
+# CORS
+cors.allowed-origins=http://localhost:3000,http://localhost:4200
+
+# MOMO (TEST)
+momo.base-url=https://test-payment.momo.vn
+momo.partner-code=MOMO
+momo.access-key=F8BBA842ECF85
+momo.secret-key=K951B6PE1waDMi640xX08PD3vg6EkVlz
+momo.endpoint-create=/v2/gateway/api/create
+momo.endpoint-query=/v2/gateway/api/query
+# MOMO - Return URL (localhost cho user redirect)
+momo.return-url=http://localhost:8080/payment/momo/return
+# MOMO - Notify URL (VS Code tunnel cho MoMo webhook)
+momo.notify-url=${VSCODE_FORWARD_URL:http://localhost:8080}/payment/momo/notify
+# MOMO - Request type
+momo.request-type=captureWallet
+
+# GHN (SHIPPING)
+ghn.base-url=https://online-gateway.ghn.vn/shiip/public-api
+ghn.token=cd8acb1f-9e9c-11f0-b0e8-f2157cd9069b
+ghn.shop-id=6040148
+ghn.from.province-id=202
+ghn.from.district-id=3695
+ghn.from.ward-code=90745
+# GHN Endpoints
+ghn.endpoints.provinces=/master-data/province
+ghn.endpoints.districts=/master-data/district
+ghn.endpoints.wards=/master-data/ward
+ghn.endpoints.calculate-fee=/v2/shipping-order/fee
+
+# GEMINI (AI)
+# Gemini API Configuration
+gemini.api-key=AIzaSyB4tCAr_Y5VqAGzpVF01_lc6fEOCbyd9Oo
+gemini.base-url=https://generativelanguage.googleapis.com/v1beta
+# Model sẽ lấy từ GeminiProperties.java default = gemini-2.5-flash
+
+
+# DATABASE - PostgreSQL (Local Docker)
+spring.datasource.url=jdbc:postgresql://localhost:5432/flower_shop_system
+spring.datasource.username=flower_admin
+spring.datasource.password=flower_password_2024
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA / Hibernate
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.open-in-view=false
+
+# Bảo Hibernate giữ nguyên tên bảng/cột như đã định nghĩa trong Entity
+spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+

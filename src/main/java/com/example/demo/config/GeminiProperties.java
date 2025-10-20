@@ -13,11 +13,11 @@ public class GeminiProperties {
 
     private String apiKey;
     private String baseUrl;
-    private String model = "gemini-2.5-flash";
-    private Double temperature = 0.9; // Higher = faster, more creative responses
+    private String model = "gemini-2.0-flash-exp";
+    private Double temperature = 0.5; // Balanced creativity
     private Double topP = 0.85; // Default topP for nucleus sampling
-    private Integer maxTokens = 800; // Reduced for faster responses
-    private Integer timeoutSeconds = 15; // Reduced timeout for better UX
+    private Integer maxTokens = 8192; // Enough for 3-5 products with descriptions
+    private Integer timeoutSeconds = 30; // Sufficient for complex responses
 
     // Getters and Setters
     public String getApiKey() {
