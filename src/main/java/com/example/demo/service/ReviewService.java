@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.entity.Order;
 import com.example.demo.entity.OrderItem;
+import com.example.demo.entity.Product;
 import com.example.demo.entity.Review;
 import com.example.demo.entity.User;
 import com.example.demo.entity.enums.OrderStatus;
@@ -57,31 +58,47 @@ public class ReviewService {
      */
     public boolean canUserReviewOrderItem(Long userId, Long orderItemId) {
         if (userId == null || orderItemId == null) {
+            log.warn("canUserReviewOrderItem: userId or orderItemId is null - userId: {}, orderItemId: {}", userId, orderItemId);
             return false;
         }
 
-        log.debug("Checking if user {} can review order item {}", userId, orderItemId);
+        log.info("Checking if user {} can review order item {}", userId, orderItemId);
         
         Optional<OrderItem> orderItemOpt = orderItemRepository.findById(orderItemId);
         if (orderItemOpt.isEmpty()) {
+            log.warn("canUserReviewOrderItem: OrderItem {} not found", orderItemId);
             return false;
         }
 
         OrderItem orderItem = orderItemOpt.get();
         Order order = orderItem.getOrder();
         
-        // Check if order belongs to user and is completed
-        boolean canReview = order.getUser().getId().equals(userId) && 
-                           order.getStatus() == OrderStatus.COMPLETED;
+        log.info("OrderItem {}: orderId={}, orderUserId={}, orderStatus={}, currentUserId={}", 
+                orderItemId, order.getId(), order.getUser().getId(), order.getStatus(), userId);
         
-        // Check if already reviewed
-        if (canReview) {
-            boolean alreadyReviewed = reviewRepository.existsByOrderItemId(orderItemId);
-            canReview = !alreadyReviewed;
+        // Check if order belongs to user
+        if (!order.getUser().getId().equals(userId)) {
+            log.warn("canUserReviewOrderItem: Order {} does not belong to user {} (belongs to user {})", 
+                    order.getId(), userId, order.getUser().getId());
+            return false;
         }
         
-        log.debug("User {} can review order item {}: {}", userId, orderItemId, canReview);
-        return canReview;
+        // Check if order is completed
+        if (order.getStatus() != OrderStatus.COMPLETED) {
+            log.warn("canUserReviewOrderItem: Order {} status is {} (not COMPLETED)", 
+                    order.getId(), order.getStatus());
+            return false;
+        }
+        
+        // Check if already reviewed
+        boolean alreadyReviewed = reviewRepository.existsByOrderItemId(orderItemId);
+        if (alreadyReviewed) {
+            log.warn("canUserReviewOrderItem: OrderItem {} has already been reviewed", orderItemId);
+            return false;
+        }
+        
+        log.info("User {} CAN review order item {}", userId, orderItemId);
+        return true;
     }
 
     /**
@@ -107,15 +124,25 @@ public class ReviewService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+        // Force initialize lazy-loaded entities to prevent LazyInitializationException
+        Product product = orderItem.getProduct();
+        product.getName(); // Force load
+        user.getFirstname(); // Force load
+
         // Create review
         Review review = new Review();
         review.setUser(user);
-        review.setProduct(orderItem.getProduct());
+        review.setProduct(product);
         review.setRating(rating);
         review.setComment(comment != null ? comment.trim() : null);
         review.setOrderItem(orderItem);
 
         Review savedReview = reviewRepository.save(review);
+        
+        // Force initialize the saved review's lazy-loaded fields
+        savedReview.getProduct().getName();
+        savedReview.getUser().getFirstname();
+        
         log.info("Review created successfully with ID: {}", savedReview.getId());
         
         return savedReview;
