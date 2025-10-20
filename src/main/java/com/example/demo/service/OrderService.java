@@ -903,15 +903,109 @@ public class OrderService {
      * Create order directly (Admin function)
      */
     @Transactional
-    public OrderDTO createOrderDirect(Object request) {
+    public OrderDTO createOrderDirect(com.example.demo.controller.AdminOrderController.CreateOrderRequest request) {
         try {
-            // For now, return a simple implementation
-            // This would need to be properly implemented based on the request structure
-            logger.info("Creating order directly via admin");
+            logger.info("Creating order directly via admin for user: {}", request.getUserId());
             
-            // This is a placeholder - you would need to implement the actual logic
-            // based on your CreateOrderRequest structure
-            throw new RuntimeException("Direct order creation not yet implemented");
+            // Validate user
+            Optional<User> userOpt = userRepository.findById(request.getUserId());
+            if (userOpt.isEmpty()) {
+                throw new RuntimeException("Người dùng không tồn tại");
+            }
+            User user = userOpt.get();
+            
+            // Get user's default address
+            Address address = user.getAddresses().stream()
+                .filter(Address::getIsDefault)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy địa chỉ mặc định. Vui lòng thêm địa chỉ giao hàng cho khách hàng."));
+            
+            // Create order
+            com.example.demo.entity.enums.PaymentMethod paymentMethodEnum;
+            try {
+                paymentMethodEnum = com.example.demo.entity.enums.PaymentMethod.valueOf(request.getPaymentMethod());
+            } catch (IllegalArgumentException e) {
+                // Default to COD if invalid payment method
+                paymentMethodEnum = com.example.demo.entity.enums.PaymentMethod.COD;
+                logger.warn("Invalid payment method: {}, defaulting to COD", request.getPaymentMethod());
+            }
+            
+            Order order = new Order(user, address, paymentMethodEnum);
+            order.setId(orderIdGeneratorService.generateOrderId());
+            order.setNotes(request.getNotes());
+            
+            // Set delivery unit - default to GHN (ID = 2)
+            Long deliveryUnitId = 2L;
+            Optional<DeliveryUnit> deliveryUnitOpt = deliveryUnitRepository.findById(deliveryUnitId);
+            if (deliveryUnitOpt.isPresent()) {
+                DeliveryUnit deliveryUnit = deliveryUnitOpt.get();
+                order.setDeliveryUnit(deliveryUnit);
+                logger.info("Successfully set delivery unit: {} (ID: {})", deliveryUnit.getName(), deliveryUnitId);
+            } else {
+                logger.warn("Delivery unit with ID {} not found!", deliveryUnitId);
+            }
+            
+            // Set voucher if provided
+            if (request.getVoucherCode() != null && !request.getVoucherCode().trim().isEmpty()) {
+                logger.info("Processing voucher code: {}", request.getVoucherCode());
+                Optional<Voucher> voucherOpt = voucherRepository.findByCode(request.getVoucherCode().trim());
+                if (voucherOpt.isPresent()) {
+                    Voucher voucher = voucherOpt.get();
+                    if (voucher.isValid()) {
+                        order.setVoucher(voucher);
+                        logger.info("Successfully set voucher: {} (ID: {})", voucher.getCode(), voucher.getId());
+                    } else {
+                        logger.warn("Voucher {} is not valid (expired, used up, or inactive)", request.getVoucherCode());
+                        throw new RuntimeException("Voucher không hợp lệ hoặc đã hết hạn");
+                    }
+                } else {
+                    logger.warn("Voucher with code {} not found", request.getVoucherCode());
+                    throw new RuntimeException("Không tìm thấy voucher với mã: " + request.getVoucherCode());
+                }
+            }
+            
+            // Create order items
+            for (com.example.demo.controller.AdminOrderController.OrderItemRequest itemRequest : request.getOrderItems()) {
+                Optional<Product> productOpt = productRepository.findById(itemRequest.getProductId());
+                if (productOpt.isEmpty()) {
+                    throw new RuntimeException("Sản phẩm không tồn tại với ID: " + itemRequest.getProductId());
+                }
+                
+                Product product = productOpt.get();
+                
+                // Check stock availability
+                if (product.getStockQuantity() < itemRequest.getQuantity()) {
+                    throw new RuntimeException("Sản phẩm '" + product.getName() + "' không đủ hàng trong kho");
+                }
+                
+                // Create order item with current product price
+                OrderItem orderItem = new OrderItem();
+                orderItem.setProduct(product);
+                orderItem.setQuantity(itemRequest.getQuantity());
+                orderItem.setPrice(product.getPrice());
+                order.addOrderItem(orderItem);
+                
+                // Update product stock
+                product.setStockQuantity(product.getStockQuantity() - itemRequest.getQuantity());
+                productRepository.save(product);
+            }
+            
+            // Calculate total amount (no shipping fee calculation for admin direct orders)
+            order.calculateTotalAmount();
+            
+            // Save order
+            Order savedOrder = orderRepository.save(order);
+            
+            // Update voucher usage count if voucher was used
+            if (savedOrder.getVoucher() != null) {
+                Voucher voucher = savedOrder.getVoucher();
+                voucher.setUses(voucher.getUses() + 1);
+                voucherRepository.save(voucher);
+                logger.info("Updated voucher usage count for voucher {}: {} uses", voucher.getCode(), voucher.getUses());
+            }
+            
+            logger.info("Successfully created direct order {} for user {}", savedOrder.getId(), request.getUserId());
+            return OrderDTO.fromOrder(savedOrder);
             
         } catch (Exception e) {
             logger.error("Error creating direct order: {}", e.getMessage(), e);

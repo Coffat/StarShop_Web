@@ -184,7 +184,7 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex space-x-2">
+                                <div class="flex space-x-3">
                                     <button class="text-primary-600 hover:text-primary-900 transition-colors duration-200 view-order-btn"
                                             th:data-order-id="${order.id}"
                                             title="Xem chi tiết">
@@ -193,6 +193,7 @@
                                     <button class="text-blue-600 hover:text-blue-900 transition-colors duration-200 update-status-btn" 
                                             th:data-order-id="${order.id}"
                                             th:data-current-status="${order.status?.name()}"
+                                            th:if="${order.status?.name() != 'COMPLETED' && order.status?.name() != 'CANCELLED'}"
                                             title="Cập nhật trạng thái">
                                         <i class="fas fa-edit"></i>
                                     </button>
@@ -200,7 +201,7 @@
                                             th:data-order-id="${order.id}"
                                             th:if="${order.status?.name() != 'COMPLETED' && order.status?.name() != 'CANCELLED'}"
                                             title="Hủy đơn hàng">
-                                        <i class="fas fa-times"></i>
+                                        <i class="fas fa-ban"></i>
                                     </button>
                                 </div>
                             </td>
@@ -284,8 +285,11 @@
                             <option value="PROCESSING">Đang xử lý</option>
                             <option value="SHIPPED">Đã giao</option>
                             <option value="COMPLETED">Hoàn thành</option>
-                            <option value="CANCELLED">Đã hủy</option>
                         </select>
+                        <p class="mt-2 text-xs text-gray-500">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Để hủy đơn hàng, vui lòng sử dụng nút "Hủy đơn hàng" ở bảng danh sách
+                        </p>
                     </div>
                     <div class="flex justify-end space-x-3">
                         <button type="button" onclick="closeUpdateStatusModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors duration-200">
@@ -400,6 +404,20 @@
                         </div>
                     </div>
 
+                    <!-- Voucher Code -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Mã giảm giá (Voucher)</label>
+                        <div class="flex space-x-2">
+                            <input type="text" id="voucherCode" placeholder="Nhập mã voucher..." 
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <button type="button" onclick="applyVoucher()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200">
+                                <i class="fas fa-check mr-1"></i>
+                                Áp dụng
+                            </button>
+                        </div>
+                        <div id="voucherMessage" class="mt-2 text-sm hidden"></div>
+                    </div>
+
                     <!-- Order Summary -->
                     <div class="border-t pt-4">
                         <div class="flex justify-between items-center mb-2">
@@ -409,6 +427,10 @@
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-sm text-gray-600">Phí vận chuyển:</span>
                             <span class="text-sm font-medium" id="shippingFee">0₫</span>
+                        </div>
+                        <div id="voucherDiscountRow" class="flex justify-between items-center mb-2 hidden">
+                            <span class="text-sm text-gray-600">Giảm giá:</span>
+                            <span class="text-sm font-medium text-green-600" id="voucherDiscount">-0₫</span>
                         </div>
                         <div class="flex justify-between items-center text-lg font-semibold border-t pt-2">
                             <span>Tổng cộng:</span>
@@ -450,19 +472,32 @@
     <!-- Cancel Order Modal -->
     <div id="cancelOrderModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="mt-3 text-center">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Hủy đơn hàng</h3>
+            <div class="mt-3">
+                <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2 text-center">Xác nhận hủy đơn hàng</h3>
+                <p class="text-sm text-gray-500 mb-4 text-center">Hành động này sẽ hủy đơn hàng và khôi phục số lượng sản phẩm trong kho.</p>
                 <form id="cancelOrderForm">
                     <input type="hidden" id="cancelOrderId">
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Lý do hủy</label>
-                        <textarea id="cancelReason" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Nhập lý do hủy đơn hàng..."></textarea>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Lý do hủy <span class="text-red-500">*</span>
+                        </label>
+                        <textarea id="cancelReason" rows="3" required 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" 
+                                  placeholder="Vui lòng nhập lý do hủy đơn hàng (bắt buộc)..."></textarea>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Lý do này sẽ được lưu vào ghi chú đơn hàng
+                        </p>
                     </div>
                     <div class="flex justify-end space-x-3">
                         <button type="button" onclick="closeCancelOrderModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors duration-200">
-                            Hủy
+                            Đóng
                         </button>
                         <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200">
+                            <i class="fas fa-ban mr-2"></i>
                             Xác nhận hủy
                         </button>
                     </div>
@@ -535,6 +570,7 @@
         // Create Order Modal Functions
         let selectedProducts = [];
         let selectedCustomer = null;
+        let appliedVoucher = null;
 
         function openCreateOrderModal() {
             document.getElementById('createOrderModal').classList.remove('hidden');
@@ -550,12 +586,16 @@
             document.getElementById('createOrderForm').reset();
             selectedProducts = [];
             selectedCustomer = null;
+            appliedVoucher = null;
             document.getElementById('selectedCustomerId').value = '';
             document.getElementById('selectedCustomer').classList.add('hidden');
             document.getElementById('customerSearch').value = '';
             document.getElementById('productSearch').value = '';
             document.getElementById('customerDropdown').classList.add('hidden');
             document.getElementById('productDropdown').classList.add('hidden');
+            document.getElementById('voucherCode').value = '';
+            document.getElementById('voucherMessage').classList.add('hidden');
+            document.getElementById('voucherDiscountRow').classList.add('hidden');
             updateProductList();
             updateOrderSummary();
         }
@@ -636,10 +676,31 @@
                 shippingFee = 30000; // Default shipping fee when address is available
             }
             
-            const total = subtotal + shippingFee;
+            // Calculate discount from voucher
+            let discount = 0;
+            if (appliedVoucher) {
+                if (appliedVoucher.discountType === 'PERCENTAGE') {
+                    discount = (subtotal * appliedVoucher.discountValue) / 100;
+                    if (appliedVoucher.maxDiscountAmount && discount > appliedVoucher.maxDiscountAmount) {
+                        discount = appliedVoucher.maxDiscountAmount;
+                    }
+                } else if (appliedVoucher.discountType === 'FIXED') {
+                    discount = appliedVoucher.discountValue;
+                }
+            }
+            
+            const total = subtotal + shippingFee - discount;
             
             document.getElementById('subtotal').textContent = formatCurrency(subtotal);
             document.getElementById('shippingFee').textContent = shippingFee > 0 ? formatCurrency(shippingFee) : 'Chưa tính';
+            
+            if (discount > 0) {
+                document.getElementById('voucherDiscountRow').classList.remove('hidden');
+                document.getElementById('voucherDiscount').textContent = '-' + formatCurrency(discount);
+            } else {
+                document.getElementById('voucherDiscountRow').classList.add('hidden');
+            }
+            
             document.getElementById('totalAmount').textContent = formatCurrency(total);
         }
 
@@ -650,6 +711,46 @@
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
             }).format(amount).replace('₫', '₫');
+        }
+
+        // Apply voucher
+        function applyVoucher() {
+            const voucherCode = document.getElementById('voucherCode').value.trim();
+            const voucherMessage = document.getElementById('voucherMessage');
+            
+            if (!voucherCode) {
+                voucherMessage.textContent = 'Vui lòng nhập mã voucher';
+                voucherMessage.className = 'mt-2 text-sm text-red-600';
+                voucherMessage.classList.remove('hidden');
+                return;
+            }
+            
+            // Call API to validate voucher
+            fetch(`/api/vouchers/validate?code=${encodeURIComponent(voucherCode)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        appliedVoucher = data.data;
+                        voucherMessage.textContent = `✓ Áp dụng thành công: ${appliedVoucher.code} - ${appliedVoucher.description || 'Giảm giá'}`;
+                        voucherMessage.className = 'mt-2 text-sm text-green-600';
+                        voucherMessage.classList.remove('hidden');
+                        updateOrderSummary();
+                    } else {
+                        appliedVoucher = null;
+                        voucherMessage.textContent = data.error || 'Mã voucher không hợp lệ hoặc đã hết hạn';
+                        voucherMessage.className = 'mt-2 text-sm text-red-600';
+                        voucherMessage.classList.remove('hidden');
+                        updateOrderSummary();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error validating voucher:', error);
+                    appliedVoucher = null;
+                    voucherMessage.textContent = 'Có lỗi xảy ra khi kiểm tra voucher';
+                    voucherMessage.className = 'mt-2 text-sm text-red-600';
+                    voucherMessage.classList.remove('hidden');
+                    updateOrderSummary();
+                });
         }
 
         // Search customers
@@ -738,33 +839,44 @@
                 return;
             }
             
-            // Mock product search - replace with actual API call
-            const mockProducts = [
-                { id: 1, name: 'Hoa hồng đỏ', price: 50000, image: '/images/rose.jpg', stock: 100 },
-                { id: 2, name: 'Hoa tulip vàng', price: 75000, image: '/images/tulip.jpg', stock: 50 },
-                { id: 3, name: 'Hoa cúc trắng', price: 35000, image: '/images/daisy.jpg', stock: 80 }
-            ].filter(product => 
-                product.name.toLowerCase().includes(query.toLowerCase())
-            );
-            
-            const dropdown = document.getElementById('productDropdown');
-            if (mockProducts.length > 0) {
-                dropdown.innerHTML = mockProducts.map(product => `
-                    <div class="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0" onclick="addProduct(${product.id}, '${product.name}', ${product.price}, '${product.image}')">
-                        <div class="flex items-center">
-                            <img src="${product.image}" alt="${product.name}" class="w-10 h-10 object-cover rounded mr-3">
-                            <div class="flex-1">
-                                <div class="text-sm font-medium text-gray-900">${product.name}</div>
-                                <div class="text-sm text-gray-500">${formatCurrency(product.price)} - Còn ${product.stock} sản phẩm</div>
+            // Real API call to search products from database
+            fetch(`/admin/orders/api/search-products?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const dropdown = document.getElementById('productDropdown');
+                    
+                    if (data.success && data.data && data.data.length > 0) {
+                        dropdown.innerHTML = data.data.map(product => `
+                            <div class="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0" onclick="addProduct(${product.id}, '${escapeHtml(product.name)}', ${product.price}, '${product.image || '/images/default-product.jpg'}')">
+                                <div class="flex items-center">
+                                    <img src="${product.image || '/images/default-product.jpg'}" alt="${escapeHtml(product.name)}" class="w-10 h-10 object-cover rounded mr-3">
+                                    <div class="flex-1">
+                                        <div class="text-sm font-medium text-gray-900">${escapeHtml(product.name)}</div>
+                                        <div class="text-sm text-gray-500">${formatCurrency(product.price)} - Còn ${product.stock} sản phẩm</div>
+                                        ${!product.available ? '<div class="text-xs text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>Hết hàng</div>' : ''}
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                `).join('');
-                dropdown.classList.remove('hidden');
-            } else {
-                dropdown.innerHTML = '<div class="p-3 text-center text-gray-500">Không tìm thấy sản phẩm</div>';
-                dropdown.classList.remove('hidden');
-            }
+                        `).join('');
+                        dropdown.classList.remove('hidden');
+                    } else {
+                        dropdown.innerHTML = '<div class="p-3 text-center text-gray-500">Không tìm thấy sản phẩm</div>';
+                        dropdown.classList.remove('hidden');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error searching products:', error);
+                    const dropdown = document.getElementById('productDropdown');
+                    dropdown.innerHTML = '<div class="p-3 text-center text-red-500">Lỗi tìm kiếm sản phẩm</div>';
+                    dropdown.classList.remove('hidden');
+                });
+        }
+        
+        // Helper function to escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         function addProduct(id, name, price, image) {
@@ -843,7 +955,19 @@
                 e.preventDefault();
                 
                 const orderId = document.getElementById('cancelOrderId').value;
-                const reason = document.getElementById('cancelReason').value;
+                const reason = document.getElementById('cancelReason').value.trim();
+                
+                // Validate reason is not empty
+                if (!reason) {
+                    showToast('Vui lòng nhập lý do hủy đơn hàng', 'error');
+                    return;
+                }
+                
+                // Show loading state
+                const submitBtn = document.querySelector('#cancelOrderForm button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang hủy...';
+                submitBtn.disabled = true;
                 
                 fetch(`/admin/orders/api/${orderId}/cancel`, {
                     method: 'PUT',
@@ -855,16 +979,20 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        showToast('Hủy đơn hàng thành công!');
+                        showToast('Hủy đơn hàng thành công!', 'success');
                         closeCancelOrderModal();
                         setTimeout(() => location.reload(), 1000);
                     } else {
                         showToast(data.error || 'Có lỗi xảy ra', 'error');
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     showToast('Có lỗi xảy ra khi hủy đơn hàng', 'error');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
                 });
             });
 
@@ -904,7 +1032,8 @@
                         price: product.price
                     })),
                     paymentMethod: document.getElementById('paymentMethod').value,
-                    notes: document.getElementById('orderNotes').value
+                    notes: document.getElementById('orderNotes').value,
+                    voucherCode: appliedVoucher ? appliedVoucher.code : null
                 };
                 
                 // Show loading state

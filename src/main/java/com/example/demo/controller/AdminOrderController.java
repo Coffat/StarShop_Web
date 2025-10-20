@@ -1,8 +1,10 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.OrderDTO;
+import com.example.demo.entity.Product;
 import com.example.demo.entity.User;
 import com.example.demo.entity.enums.OrderStatus;
+import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.OrderService;
 import com.example.demo.util.ResponseWrapper;
@@ -38,6 +40,7 @@ public class AdminOrderController extends BaseController {
     
     private final OrderService orderService;
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
     private final com.example.demo.service.ExcelExportService excelExportService;
 
     /**
@@ -326,6 +329,7 @@ public class AdminOrderController extends BaseController {
         private List<OrderItemRequest> orderItems;
         private String paymentMethod;
         private String notes;
+        private String voucherCode;
         
         // Getters and Setters
         public Long getUserId() { return userId; }
@@ -339,6 +343,9 @@ public class AdminOrderController extends BaseController {
         
         public String getNotes() { return notes; }
         public void setNotes(String notes) { this.notes = notes; }
+        
+        public String getVoucherCode() { return voucherCode; }
+        public void setVoucherCode(String voucherCode) { this.voucherCode = voucherCode; }
     }
     
     /**
@@ -360,6 +367,50 @@ public class AdminOrderController extends BaseController {
         public void setPrice(java.math.BigDecimal price) { this.price = price; }
     }
 
+    /**
+     * Search products for order creation
+     */
+    @GetMapping("/api/search-products")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public ResponseEntity<ResponseWrapper<java.util.List<ProductSearchResult>>> searchProducts(
+            @RequestParam("q") String query) {
+        try {
+            if (query == null || query.trim().length() < 2) {
+                return ResponseEntity.badRequest()
+                    .body(ResponseWrapper.error("Query phải có ít nhất 2 ký tự"));
+            }
+            
+            // Search products using ProductRepository
+            org.springframework.data.domain.Pageable pageable = 
+                org.springframework.data.domain.PageRequest.of(0, 20);
+            org.springframework.data.domain.Page<Product> productsPage = 
+                productRepository.searchProducts(query.trim(), pageable);
+            
+            java.util.List<ProductSearchResult> results = new java.util.ArrayList<>();
+            
+            for (Product product : productsPage.getContent()) {
+                // Only include active products with stock
+                if (product.getStatus() == com.example.demo.entity.enums.ProductStatus.ACTIVE) {
+                    ProductSearchResult result = new ProductSearchResult();
+                    result.setId(product.getId());
+                    result.setName(product.getName());
+                    result.setPrice(product.getPrice());
+                    result.setImage(product.getImage());
+                    result.setStock(product.getStockQuantity());
+                    result.setAvailable(product.isInStock());
+                    results.add(result);
+                }
+            }
+            
+            return ResponseEntity.ok(ResponseWrapper.success(results, "Tìm kiếm thành công"));
+            
+        } catch (Exception e) {
+            log.error("Error searching products with query {}: {}", query, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ResponseWrapper.error("Có lỗi xảy ra khi tìm kiếm sản phẩm"));
+        }
+    }
+    
     /**
      * Search customers for order creation
      */
@@ -456,5 +507,36 @@ public class AdminOrderController extends BaseController {
         
         public boolean isHasDefaultAddress() { return hasDefaultAddress; }
         public void setHasDefaultAddress(boolean hasDefaultAddress) { this.hasDefaultAddress = hasDefaultAddress; }
+    }
+    
+    /**
+     * DTO for product search results
+     */
+    public static class ProductSearchResult {
+        private Long id;
+        private String name;
+        private java.math.BigDecimal price;
+        private String image;
+        private Integer stock;
+        private boolean available;
+        
+        // Getters and Setters
+        public Long getId() { return id; }
+        public void setId(Long id) { this.id = id; }
+        
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        
+        public java.math.BigDecimal getPrice() { return price; }
+        public void setPrice(java.math.BigDecimal price) { this.price = price; }
+        
+        public String getImage() { return image; }
+        public void setImage(String image) { this.image = image; }
+        
+        public Integer getStock() { return stock; }
+        public void setStock(Integer stock) { this.stock = stock; }
+        
+        public boolean isAvailable() { return available; }
+        public void setAvailable(boolean available) { this.available = available; }
     }
 }

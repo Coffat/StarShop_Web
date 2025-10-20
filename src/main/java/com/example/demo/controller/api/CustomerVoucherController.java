@@ -62,6 +62,15 @@ public class CustomerVoucherController {
     }
     
     /**
+     * Validate voucher by code (query parameter version for admin)
+     */
+    @GetMapping("/validate")
+    public ResponseEntity<Map<String, Object>> validateVoucherCodeByQuery(
+            @Parameter(description = "Voucher code", required = true) @RequestParam String code) {
+        return validateVoucherCode(code);
+    }
+    
+    /**
      * Validate and get voucher by code
      * Used when customer enters voucher code at checkout
      */
@@ -83,6 +92,7 @@ public class CustomerVoucherController {
             // Check if voucher is active
             if (!voucher.getIsActive()) {
                 response.put("success", false);
+                response.put("error", "Voucher này hiện không khả dụng");
                 response.put("message", "Voucher này hiện không khả dụng");
                 return ResponseEntity.ok(response);
             }
@@ -96,19 +106,22 @@ public class CustomerVoucherController {
                     default -> "Voucher không hợp lệ";
                 };
                 response.put("success", false);
+                response.put("error", message);
                 response.put("message", message);
                 return ResponseEntity.ok(response);
             }
             
             response.put("success", true);
             response.put("message", "Voucher hợp lệ");
-            response.put("voucher", voucher);
+            response.put("data", voucher);
+            response.put("voucher", voucher); // Keep for backward compatibility
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error validating voucher code: {}", code, e);
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
+            errorResponse.put("error", "Không tìm thấy voucher này");
             errorResponse.put("message", "Không tìm thấy voucher này");
             return ResponseEntity.ok(errorResponse);
         }

@@ -55,11 +55,12 @@ public class ReviewService {
 
     /**
      * Check if user can review a specific order item
+     * Returns specific error message if cannot review
      */
-    public boolean canUserReviewOrderItem(Long userId, Long orderItemId) {
+    public String canUserReviewOrderItemWithReason(Long userId, Long orderItemId) {
         if (userId == null || orderItemId == null) {
             log.warn("canUserReviewOrderItem: userId or orderItemId is null - userId: {}, orderItemId: {}", userId, orderItemId);
-            return false;
+            return "Thông tin không hợp lệ";
         }
 
         log.info("Checking if user {} can review order item {}", userId, orderItemId);
@@ -67,7 +68,7 @@ public class ReviewService {
         Optional<OrderItem> orderItemOpt = orderItemRepository.findById(orderItemId);
         if (orderItemOpt.isEmpty()) {
             log.warn("canUserReviewOrderItem: OrderItem {} not found", orderItemId);
-            return false;
+            return "Sản phẩm không tồn tại";
         }
 
         OrderItem orderItem = orderItemOpt.get();
@@ -80,25 +81,32 @@ public class ReviewService {
         if (!order.getUser().getId().equals(userId)) {
             log.warn("canUserReviewOrderItem: Order {} does not belong to user {} (belongs to user {})", 
                     order.getId(), userId, order.getUser().getId());
-            return false;
+            return "Đơn hàng không thuộc về bạn";
         }
         
         // Check if order is completed
         if (order.getStatus() != OrderStatus.COMPLETED) {
             log.warn("canUserReviewOrderItem: Order {} status is {} (not COMPLETED)", 
                     order.getId(), order.getStatus());
-            return false;
+            return "Đơn hàng chưa hoàn thành. Vui lòng đánh giá sau khi nhận được sản phẩm";
         }
         
         // Check if already reviewed
         boolean alreadyReviewed = reviewRepository.existsByOrderItemId(orderItemId);
         if (alreadyReviewed) {
             log.warn("canUserReviewOrderItem: OrderItem {} has already been reviewed", orderItemId);
-            return false;
+            return "Bạn đã đánh giá sản phẩm này rồi";
         }
         
         log.info("User {} CAN review order item {}", userId, orderItemId);
-        return true;
+        return null; // null means can review
+    }
+    
+    /**
+     * Check if user can review a specific order item (backward compatibility)
+     */
+    public boolean canUserReviewOrderItem(Long userId, Long orderItemId) {
+        return canUserReviewOrderItemWithReason(userId, orderItemId) == null;
     }
 
     /**
@@ -113,8 +121,9 @@ public class ReviewService {
         log.info("Creating review for user {} and order item {}", userId, orderItemId);
 
         // Validate user can review this order item
-        if (!canUserReviewOrderItem(userId, orderItemId)) {
-            throw new IllegalStateException("User cannot review this order item");
+        String errorReason = canUserReviewOrderItemWithReason(userId, orderItemId);
+        if (errorReason != null) {
+            throw new IllegalStateException(errorReason);
         }
 
         // Get order item and related entities

@@ -28,6 +28,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("SELECT p FROM Product p LEFT JOIN p.catalog c WHERE " +
                      "LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+                     "LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
                      "LOWER(c.value) LIKE LOWER(CONCAT('%', :keyword, '%'))")
        Page<Product> searchProducts(@Param("keyword") String keyword, Pageable pageable);
     // Enhanced search for AI - includes catalog
