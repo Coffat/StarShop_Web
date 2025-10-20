@@ -245,7 +245,7 @@ public class AiToolExecutorService {
                 }
                 
                 if (product.getImageUrl() != null) {
-                    result.append("  Hình ảnh: ![").append(product.getName())
+                    result.append("  ![").append(product.getName())
                           .append("](").append(product.getFullImageUrl()).append(")\n");
                 }
                 
@@ -434,7 +434,7 @@ public class AiToolExecutorService {
                 }
                 
                 if (product.getImageUrl() != null) {
-                    result.append("  Hình ảnh: ![").append(product.getName())
+                    result.append("  ![").append(product.getName())
                           .append("](").append(product.getFullImageUrl()).append(")\n");
                 }
                 

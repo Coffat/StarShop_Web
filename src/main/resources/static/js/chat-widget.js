@@ -668,13 +668,13 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
     } else {
         // Staff/AI message (left side) - parse markdown for images and links
         messageDiv.innerHTML = `
-            <div class="flex items-start space-x-2 max-w-md">
+            <div class="flex items-start space-x-2 max-w-lg">
                 <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
                     🌸
                 </div>
                 <div class="flex flex-col items-start flex-1">
                     <div class="bg-white text-gray-800 px-4 py-3 rounded-2xl rounded-bl-md shadow-lg border border-gray-100 w-full">
-                        <div class="text-sm leading-relaxed">${parseMarkdown(message.content)}</div>
+                        <div class="text-sm leading-relaxed break-words">${parseMarkdown(message.content)}</div>
                     </div>
                     <span class="text-xs text-gray-500 mt-1 px-2">${message.senderName || 'StarShop Support'}</span>
                 </div>

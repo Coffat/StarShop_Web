@@ -118,7 +118,7 @@ public class AiPromptService {
         prompt.append("- **Tên sản phẩm** (in đậm)\n");
         prompt.append("- Giá tiền (định dạng dễ đọc)\n");
         prompt.append("- 1-2 câu mô tả LỢI ÍCH/CẢM XÚC (không liệt kê spec kỹ thuật)\n");
-        prompt.append("- Hình ảnh: ![Tên](URL) nếu có\n");
+        prompt.append("- ![Tên sản phẩm](URL_hình_ảnh) - BẮT BUỘC phải giữ nguyên markdown images từ tool results\n");
         prompt.append("- KHÔNG hiển thị: ID, số lượng tồn kho, danh mục kỹ thuật\n\n");
 
         // Persuasive language guidelines

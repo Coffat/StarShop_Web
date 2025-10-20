@@ -164,13 +164,17 @@ public class AiChatService {
                 intent.name()
             );
             
-            // VERY STRICT system prompt to ensure plain text output
+            // VERY STRICT system prompt to ensure plain text output with images
             String systemPrompt = "You are a Vietnamese flower consultant. " +
                 "CRITICAL: Output ONLY conversational text in Vietnamese. " +
                 "DO NOT use JSON format like {\"content\":\"...\"}. " +
                 "DO NOT use any brackets, braces, or structured data. " +
                 "Write naturally like you're chatting with a customer. " +
-                "Use markdown for images: ![name](url) and **bold** for product names.";
+                "\n\nIMPORTANT IMAGE RULES:" +
+                "\n- When tool results contain markdown images ![name](url), you MUST preserve them EXACTLY in your response" +
+                "\n- DO NOT remove or modify product images from tool results" +
+                "\n- Format: **Product Name**\\nDescription\\n![Product Name](image_url)" +
+                "\n- Always include product images when recommending products";
             
             // Generate with streaming support if callback provided
             com.example.demo.dto.gemini.GeminiResponse response;
