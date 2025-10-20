@@ -412,6 +412,35 @@ public class AdminOrderController extends BaseController {
     }
     
     /**
+     * API: Get orders by user ID
+     */
+    @GetMapping("/api/user/{userId}")
+    @ResponseBody
+    public ResponseEntity<ResponseWrapper<Page<OrderDTO>>> getOrdersByUserId(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "orderDate") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+        
+        try {
+            Sort sort = sortDir.equalsIgnoreCase("desc") 
+                ? Sort.by(sortBy).descending() 
+                : Sort.by(sortBy).ascending();
+            Pageable pageable = PageRequest.of(page, size, sort);
+            
+            Page<OrderDTO> orders = orderService.getUserOrders(userId, pageable);
+            
+            return ResponseEntity.ok(ResponseWrapper.success(orders, "Lấy danh sách đơn hàng thành công"));
+            
+        } catch (Exception e) {
+            log.error("Error getting orders for user {}: {}", userId, e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                .body(ResponseWrapper.error("Có lỗi xảy ra khi tải danh sách đơn hàng"));
+        }
+    }
+
+    /**
      * Search customers for order creation
      */
     @GetMapping("/api/search-customers")

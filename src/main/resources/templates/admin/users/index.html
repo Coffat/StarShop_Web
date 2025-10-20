@@ -615,7 +615,9 @@
                 },
                 
                 viewOrders(customer) {
-                    alert('Xem đơn hàng của: ' + customer.firstname + ' ' + customer.lastname);
+                    window.dispatchEvent(new CustomEvent('open-orders-modal', { 
+                        detail: { customer: customer }
+                    }));
                 },
                 
                 sendEmail(customer) {
@@ -875,6 +877,132 @@
             };
         }
         
+        // Orders Modal Manager
+        function ordersModalManager() {
+            return {
+                showModal: false,
+                loading: false,
+                customer: null,
+                orders: [],
+                pagination: {
+                    currentPage: 0,
+                    size: 10,
+                    totalPages: 0,
+                    totalItems: 0
+                },
+                
+                init() {
+                    window.addEventListener('open-orders-modal', (e) => {
+                        this.openModal(e.detail.customer);
+                    });
+                },
+                
+                async openModal(customer) {
+                    this.customer = customer;
+                    this.showModal = true;
+                    this.pagination.currentPage = 0;
+                    await this.fetchOrders();
+                },
+                
+                closeModal() {
+                    this.showModal = false;
+                    this.customer = null;
+                    this.orders = [];
+                },
+                
+                async fetchOrders() {
+                    if (!this.customer) return;
+                    
+                    this.loading = true;
+                    try {
+                        const params = new URLSearchParams({
+                            page: this.pagination.currentPage,
+                            size: this.pagination.size,
+                            sortBy: 'orderDate',
+                            sortDir: 'desc'
+                        });
+                        
+                        const response = await fetch(`/admin/orders/api/user/${this.customer.id}?${params}`);
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.orders = data.data.content;
+                            this.pagination.totalPages = data.data.totalPages;
+                            this.pagination.totalItems = data.data.totalElements;
+                            this.pagination.currentPage = data.data.number;
+                        } else {
+                            alert('Lỗi: ' + data.message);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching orders:', error);
+                        alert('Lỗi khi tải danh sách đơn hàng');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                formatCurrency(value) {
+                    if (!value) return '0₫';
+                    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+                },
+                
+                formatDate(date) {
+                    if (!date) return '-';
+                    return new Date(date).toLocaleDateString('vi-VN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                },
+                
+                getStatusBadgeClass(status) {
+                    const statusClasses = {
+                        'PENDING': 'bg-yellow-100 text-yellow-800',
+                        'CONFIRMED': 'bg-blue-100 text-blue-800',
+                        'PROCESSING': 'bg-indigo-100 text-indigo-800',
+                        'SHIPPING': 'bg-purple-100 text-purple-800',
+                        'DELIVERED': 'bg-green-100 text-green-800',
+                        'CANCELLED': 'bg-red-100 text-red-800',
+                        'RETURNED': 'bg-gray-100 text-gray-800'
+                    };
+                    return statusClasses[status] || 'bg-gray-100 text-gray-800';
+                },
+                
+                getStatusText(status) {
+                    const statusTexts = {
+                        'PENDING': 'Chờ xác nhận',
+                        'CONFIRMED': 'Đã xác nhận',
+                        'PROCESSING': 'Đang xử lý',
+                        'SHIPPING': 'Đang giao',
+                        'DELIVERED': 'Đã giao',
+                        'CANCELLED': 'Đã hủy',
+                        'RETURNED': 'Đã trả'
+                    };
+                    return statusTexts[status] || status;
+                },
+                
+                viewOrderDetail(orderId) {
+                    window.location.href = `/admin/orders?orderId=${orderId}`;
+                },
+                
+                prevPage() {
+                    if (this.pagination.currentPage > 0) {
+                        this.pagination.currentPage--;
+                        this.fetchOrders();
+                    }
+                },
+                
+                nextPage() {
+                    if (this.pagination.currentPage < this.pagination.totalPages - 1) {
+                        this.pagination.currentPage++;
+                        this.fetchOrders();
+                    }
+                }
+            };
+        }
+        
         // Campaign Modal Manager
         function campaignModalManager() {
             return {
@@ -957,6 +1085,137 @@
             };
         }
     </script>
+    
+    <!-- Orders Modal -->
+    <div x-data="ordersModalManager()" x-show="showModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="closeModal()"></div>
+            
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full">
+                <div class="bg-white px-6 pt-5 pb-4">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900">Đơn hàng của khách hàng</h3>
+                            <p class="mt-1 text-sm text-gray-500" x-show="customer">
+                                <span x-text="customer ? customer.firstname + ' ' + customer.lastname : ''"></span>
+                                <span class="mx-2">•</span>
+                                <span x-text="customer ? customer.email : ''"></span>
+                            </p>
+                        </div>
+                        <button @click="closeModal()" class="text-gray-400 hover:text-gray-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Loading State -->
+                    <div x-show="loading" class="flex justify-center items-center py-12">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                    </div>
+                    
+                    <!-- Orders List -->
+                    <div x-show="!loading">
+                        <div x-show="orders.length === 0" class="text-center py-12">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">Chưa có đơn hàng</h3>
+                            <p class="mt-1 text-sm text-gray-500">Khách hàng này chưa có đơn hàng nào.</p>
+                        </div>
+                        
+                        <div x-show="orders.length > 0" class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mã đơn</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày đặt</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tổng tiền</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thanh toán</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <template x-for="order in orders" :key="order.id">
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm font-medium text-gray-900" x-text="order.id"></div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900" x-text="formatDate(order.orderDate)"></div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm font-semibold text-gray-900" x-text="formatCurrency(order.totalAmount)"></div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span :class="getStatusBadgeClass(order.status)" class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full" x-text="getStatusText(order.status)"></span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900" x-text="order.paymentMethod"></div>
+                                                <div class="text-xs" :class="order.paymentStatus === 'PAID' ? 'text-green-600' : 'text-yellow-600'" x-text="order.paymentStatus === 'PAID' ? 'Đã thanh toán' : 'Chưa thanh toán'"></div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                                <button @click="viewOrderDetail(order.id)" class="text-indigo-600 hover:text-indigo-900 font-medium">
+                                                    Xem chi tiết
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                            
+                            <!-- Pagination -->
+                            <div x-show="pagination.totalPages > 1" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4">
+                                <div class="flex-1 flex justify-between sm:hidden">
+                                    <button @click="prevPage()" :disabled="pagination.currentPage === 0" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">
+                                        Trước
+                                    </button>
+                                    <button @click="nextPage()" :disabled="pagination.currentPage >= pagination.totalPages - 1" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">
+                                        Sau
+                                    </button>
+                                </div>
+                                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-700">
+                                            Hiển thị <span class="font-medium" x-text="pagination.currentPage * pagination.size + 1"></span> đến 
+                                            <span class="font-medium" x-text="Math.min((pagination.currentPage + 1) * pagination.size, pagination.totalItems)"></span> trong 
+                                            <span class="font-medium" x-text="pagination.totalItems"></span> đơn hàng
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                                            <button @click="prevPage()" :disabled="pagination.currentPage === 0" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">
+                                                <span class="sr-only">Trước</span>
+                                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+                                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                                Trang <span x-text="pagination.currentPage + 1"></span> / <span x-text="pagination.totalPages"></span>
+                                            </span>
+                                            <button @click="nextPage()" :disabled="pagination.currentPage >= pagination.totalPages - 1" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">
+                                                <span class="sr-only">Sau</span>
+                                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </nav>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" @click="closeModal()" class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm">
+                        Đóng
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <!-- Marketing Campaign Modal -->
     <div x-data="campaignModalManager()" x-show="showModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
