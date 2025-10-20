@@ -26,7 +26,7 @@ public class Review extends BaseEntity {
     private OrderItem orderItem;
 
     // Admin response fields
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "admin_response", columnDefinition = "TEXT")
     private String adminResponse;
 
     @Column(name = "admin_response_at")
