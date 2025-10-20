@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "vouchers")
+@Table(name = "Vouchers")
 public class Voucher extends BaseEntity {
 
     @Column(nullable = false, unique = true, length = 50)

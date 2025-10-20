@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "messages")
+@Table(name = "Messages")
 public class Message extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

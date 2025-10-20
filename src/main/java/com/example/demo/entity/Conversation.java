@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  * Following rules.mdc specifications for MVC pattern
  */
 @Entity
-@Table(name = "conversations")
+@Table(name = "Conversations")
 public class Conversation extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

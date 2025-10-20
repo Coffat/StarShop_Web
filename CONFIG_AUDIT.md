@@ -1,4 +1,9 @@
 
+# Configuration Audit - StarShop
+
+**Lưu ý quan trọng:** Dự án đã chuyển từ sử dụng ngrok sang VS Code Dev Tunnels cho MoMo payment notifications. Các cấu hình MoMo đã được cập nhật để sử dụng `VSCODE_FORWARD_URL` thay vì `NGROK_URL`.
+
+---
 
 ## Server Port and Session/Cookie
 
@@ -115,21 +120,28 @@ jwt:
     - `partner-code=MOMO`
     - `access-key=F8BBA842ECF85`
     - `secret-key=K951B6PE1waDMi640xX08PD3vg6EkVlz`
-    - `return-url=${VSCODE_FORWARD_URL:http://localhost:8080}/payment/momo/return`
-    - `notify-url=${VSCODE_FORWARD_URL:http://localhost:8080}/payment/momo/notify`
+    - `return-url=http://localhost:8080/payment/momo/return` (localhost cho user redirect)
+    - `notify-url=${VSCODE_FORWARD_URL:http://localhost:8080}/payment/momo/notify` (VS Code tunnel cho webhook)
+    - `request-type=captureWallet`
     - `endpoint-create=/v2/gateway/api/create`, `endpoint-query=/v2/gateway/api/query`
   - Source:
-```120:129:src/main/resources/application.yml
-momo:
-  base-url: https://test-payment.momo.vn
-  partner-code: MOMO
-  access-key: F8BBA842ECF85
-  secret-key: K951B6PE1waDMi640xX08PD3vg6EkVlz
-  return-url: ${VSCODE_FORWARD_URL:http://localhost:8080}/payment/momo/return
-  notify-url: ${VSCODE_FORWARD_URL:http://localhost:8080}/payment/momo/notify
-  endpoint-create: /v2/gateway/api/create
-  endpoint-query: /v2/gateway/api/query
+```41:53:src/main/resources/application-dev.properties
+# MOMO (TEST)
+momo.base-url=https://test-payment.momo.vn
+momo.partner-code=MOMO
+momo.access-key=F8BBA842ECF85
+momo.secret-key=K951B6PE1waDMi640xX08PD3vg6EkVlz
+momo.endpoint-create=/v2/gateway/api/create
+momo.endpoint-query=/v2/gateway/api/query
+# MOMO - Return URL (localhost cho user redirect)
+momo.return-url=http://localhost:8080/payment/momo/return
+# MOMO - Notify URL (VS Code tunnel cho MoMo webhook)
+momo.notify-url=${VSCODE_FORWARD_URL:http://localhost:8080}/payment/momo/notify
+# MOMO - Request type
+momo.request-type=captureWallet
 ```
+
+**Lưu ý:** Đã chuyển từ ngrok sang VS Code Dev Tunnels. Return URL sử dụng localhost để user được redirect về local, trong khi Notify URL sử dụng VS Code tunnel để MoMo server có thể gọi webhook.
 
 
 

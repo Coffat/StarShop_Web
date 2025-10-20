@@ -99,7 +99,7 @@ public class AccountController {
     public String accountOrders(Authentication authentication, Model model) {
         log.info("Account orders page accessed by user: {}", authentication.getName());
         
-        User user = userRepository.findByEmailWithAddressesAndOrders(authentication.getName()).orElse(null);
+        User user = userRepository.findByEmail(authentication.getName()).orElse(null);
         if (user != null) {
             model.addAttribute("userObject", user);
             
@@ -137,7 +137,7 @@ public class AccountController {
         log.info("Profile update requested by user: {}", authentication.getName());
         
         try {
-            User user = userRepository.findByEmailWithAddressesAndOrders(authentication.getName()).orElse(null);
+            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
             if (user == null) {
                 redirectAttributes.addFlashAttribute("error", "Không tìm thấy thông tin người dùng");
                 return "redirect:/account/profile";

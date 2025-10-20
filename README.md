@@ -138,12 +138,7 @@ Yêu cầu:
 - JDK 17
 - Docker & Docker Compose (để chạy PostgreSQL nhanh)
 - Maven Wrapper (`./mvnw`) đã có sẵn
-- Ngrok (tùy chọn, để nhận callback MoMo từ internet)
-
-Cài ngrok trên macOS:
-```bash
-brew install ngrok
-```
+- VS Code Dev Tunnels (để nhận callback MoMo từ internet)
 
 ---
 
@@ -158,18 +153,16 @@ docker compose up -d
 ---
 
 ## Chạy development
-1) Chạy ngrok trước (để có public URL cho callback MoMo):
+1) Thiết lập VS Code Dev Tunnel (để có public URL cho callback MoMo):
 ```bash
-./dev.sh ngrok
+./dev-vscode.sh set-url
+# Nhập URL VS Code tunnel của bạn (ví dụ: https://abc123-8080.app.github.dev)
 ```
-Lưu ý: script sẽ ghi public URL vào file `.ngrok-url` và export biến `NGROK_URL` khi bạn chạy app.
 
 2) Chạy ứng dụng Spring Boot:
 ```bash
-./mvnw spring-boot:run
-# hoặc
-./dev.sh app
-# hoặc full: ./dev.sh start (ngrok + app)
+./dev-vscode.sh start
+# hoặc: ./mvnw spring-boot:run
 ```
 
 Ứng dụng chạy tại: `http://localhost:8080`
@@ -188,8 +181,8 @@ export GHN_FROM_PROVINCE_ID=202
 export GHN_FROM_DISTRICT_ID=3695
 export GHN_FROM_WARD_CODE=90745
 
-# MoMo
-export NGROK_URL=https://your-ngrok-url.example
+# MoMo (VS Code Dev Tunnel)
+export VSCODE_FORWARD_URL=https://your-vscode-tunnel-url.example
 
 # Gemini
 export GEMINI_API_KEY=your_gemini_api_key
@@ -214,11 +207,11 @@ Thiết lập khuyến nghị: set `GHN_TOKEN`, `GHN_SHOP_ID` bằng ENV.
 ---
 
 ## Thanh toán MoMo (test) + SSE
-- Cấu hình trong `application.yml` (`momo.*`) và script `dev.sh` hỗ trợ in `return`/`notify` URLs
+- Cấu hình trong `application-dev.properties` (`momo.*`) và script `dev-vscode.sh` hỗ trợ in `return`/`notify` URLs
 - Controller: `PaymentController`, SSE tại `SseController`
 - Luồng phát triển:
-  1. Chạy ngrok để có `https` public URL
-  2. Chạy ứng dụng; `NGROK_URL` sẽ dùng làm `notify-url`
+  1. Thiết lập VS Code Dev Tunnel để có `https` public URL
+  2. Chạy ứng dụng; `VSCODE_FORWARD_URL` sẽ dùng làm `notify-url`
   3. Thực hiện thanh toán, theo dõi trạng thái qua SSE
 
 Endpoints tham khảo:
@@ -252,7 +245,7 @@ Endpoints tham khảo:
 ## Khắc phục sự cố
 - DB không kết nối: kiểm tra `docker compose ps`, cổng 5432, biến môi trường JDBC
 - GHN 401/403: sai `GHN_TOKEN` hoặc `GHN_SHOP_ID`
-- MoMo notify không gọi được: kiểm tra `NGROK_URL` còn sống, dashboard ngrok `http://localhost:4040`
+- MoMo notify không gọi được: kiểm tra `VSCODE_FORWARD_URL` đã được set, VS Code tunnel còn hoạt động
 - SSE không stream: đảm bảo endpoint `/sse/orders/{orderId}` và network không chặn
 - OAuth2: kiểm tra callback URL trong Google/Facebook Console
 

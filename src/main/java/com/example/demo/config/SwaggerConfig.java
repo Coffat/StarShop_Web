@@ -8,6 +8,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.Components;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -86,5 +87,46 @@ public class SwaggerConfig {
                 
                 // Apply security globally
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName));
+    }
+
+    /**
+     * Group: Public/Customer APIs (non-admin)
+     */
+    @Bean
+    public GroupedOpenApi publicApi() {
+        return GroupedOpenApi.builder()
+                .group("public")
+                .pathsToMatch(
+                        "/api/**",
+                        "/sse/**",
+                        "/ws/**"
+                )
+                .pathsToExclude("/admin/api/**")
+                .build();
+    }
+
+    /**
+     * Group: Admin APIs
+     */
+    @Bean
+    public GroupedOpenApi adminApi() {
+        return GroupedOpenApi.builder()
+                .group("admin")
+                .pathsToMatch("/admin/api/**")
+                .build();
+    }
+
+    /**
+     * Group: Staff APIs (if any)
+     */
+    @Bean
+    public GroupedOpenApi staffApi() {
+        return GroupedOpenApi.builder()
+                .group("staff")
+                .pathsToMatch(
+                        "/api/staff/**",
+                        "/staff/**"
+                )
+                .build();
     }
 }

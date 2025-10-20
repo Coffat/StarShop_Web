@@ -3,6 +3,12 @@ package com.example.demo.controller;
 import com.example.demo.dto.*;
 import com.example.demo.service.VoucherService;
 import com.example.demo.service.AdminAiInsightsService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "🎫 Admin Vouchers", description = "Admin voucher management APIs")
 @RestController
 @RequestMapping("/admin/api/vouchers")
 @RequiredArgsConstructor
@@ -33,16 +40,25 @@ public class AdminVoucherController {
     /**
      * Get all vouchers with filters
      */
+    @Operation(
+        summary = "Get all vouchers with filters",
+        description = "Retrieve paginated list of vouchers with optional filters (type, status, date, search)"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Vouchers retrieved successfully"),
+        @ApiResponse(responseCode = "500", description = "Error retrieving vouchers")
+    })
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllVouchers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir,
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String fromDate,
-            @RequestParam(required = false) String search
+            @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size,
+            @Parameter(description = "Sort field") @RequestParam(defaultValue = "createdAt") String sortBy,
+            @Parameter(description = "Sort direction (asc/desc)") @RequestParam(defaultValue = "desc") String sortDir,
+            @Parameter(description = "Filter by discount type") @RequestParam(required = false) String type,
+            @Parameter(description = "Filter by status") @RequestParam(required = false) String status,
+            @Parameter(description = "Filter from date") @RequestParam(required = false) String fromDate,
+            @Parameter(description = "Search by code or name") @RequestParam(required = false) String search
     ) {
         try {
             Sort sort = sortDir.equalsIgnoreCase("asc") 
@@ -83,12 +99,21 @@ public class AdminVoucherController {
     /**
      * Export vouchers to Excel
      */
+    @Operation(
+        summary = "Export vouchers to Excel",
+        description = "Export filtered vouchers to Excel file for download"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Excel file generated successfully"),
+        @ApiResponse(responseCode = "500", description = "Error generating Excel file")
+    })
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/export")
     public ResponseEntity<byte[]> exportVouchers(
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String fromDate,
-            @RequestParam(required = false) String search
+            @Parameter(description = "Filter by discount type") @RequestParam(required = false) String type,
+            @Parameter(description = "Filter by status") @RequestParam(required = false) String status,
+            @Parameter(description = "Filter from date") @RequestParam(required = false) String fromDate,
+            @Parameter(description = "Search by code or name") @RequestParam(required = false) String search
     ) {
         try {
             var page = voucherService.getVouchersWithFilters(org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE), type, status, fromDate);
@@ -106,8 +131,19 @@ public class AdminVoucherController {
     /**
      * Get voucher by ID
      */
+    @Operation(
+        summary = "Get voucher by ID",
+        description = "Retrieve a specific voucher by its ID"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Voucher retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "Voucher not found"),
+        @ApiResponse(responseCode = "500", description = "Error retrieving voucher")
+    })
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> getVoucherById(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> getVoucherById(
+            @Parameter(description = "Voucher ID", required = true) @PathVariable Long id) {
         try {
             VoucherDTO voucher = voucherService.getVoucherById(id);
             Map<String, Object> response = new HashMap<>();
@@ -126,6 +162,15 @@ public class AdminVoucherController {
     /**
      * Get valid vouchers
      */
+    @Operation(
+        summary = "Get valid vouchers",
+        description = "Retrieve all active and valid vouchers"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Valid vouchers retrieved successfully"),
+        @ApiResponse(responseCode = "500", description = "Error retrieving valid vouchers")
+    })
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/valid")
     public ResponseEntity<Map<String, Object>> getValidVouchers() {
         try {
@@ -146,6 +191,16 @@ public class AdminVoucherController {
     /**
      * Create new voucher
      */
+    @Operation(
+        summary = "Create new voucher",
+        description = "Create a new voucher with specified discount type and value"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Voucher created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid voucher data"),
+        @ApiResponse(responseCode = "500", description = "Error creating voucher")
+    })
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping
     public ResponseEntity<Map<String, Object>> createVoucher(@Valid @RequestBody CreateVoucherRequest request) {
         try {
@@ -173,9 +228,20 @@ public class AdminVoucherController {
     /**
      * Update voucher
      */
+    @Operation(
+        summary = "Update voucher",
+        description = "Update an existing voucher with new data"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Voucher updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid voucher data"),
+        @ApiResponse(responseCode = "404", description = "Voucher not found"),
+        @ApiResponse(responseCode = "500", description = "Error updating voucher")
+    })
+    @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/{id}")
     public ResponseEntity<Map<String, Object>> updateVoucher(
-            @PathVariable Long id,
+            @Parameter(description = "Voucher ID", required = true) @PathVariable Long id,
             @Valid @RequestBody UpdateVoucherRequest request
     ) {
         try {
@@ -203,8 +269,19 @@ public class AdminVoucherController {
     /**
      * Delete voucher
      */
+    @Operation(
+        summary = "Delete voucher",
+        description = "Delete a voucher by its ID"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Voucher deleted successfully"),
+        @ApiResponse(responseCode = "404", description = "Voucher not found"),
+        @ApiResponse(responseCode = "500", description = "Error deleting voucher")
+    })
+    @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> deleteVoucher(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> deleteVoucher(
+            @Parameter(description = "Voucher ID", required = true) @PathVariable Long id) {
         try {
             voucherService.deleteVoucher(id);
             Map<String, Object> response = new HashMap<>();
@@ -223,8 +300,19 @@ public class AdminVoucherController {
     /**
      * Toggle voucher status
      */
+    @Operation(
+        summary = "Toggle voucher status",
+        description = "Toggle the active/inactive status of a voucher"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Voucher status toggled successfully"),
+        @ApiResponse(responseCode = "404", description = "Voucher not found"),
+        @ApiResponse(responseCode = "500", description = "Error toggling voucher status")
+    })
+    @SecurityRequirement(name = "bearerAuth")
     @PatchMapping("/{id}/toggle-status")
-    public ResponseEntity<Map<String, Object>> toggleVoucherStatus(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> toggleVoucherStatus(
+            @Parameter(description = "Voucher ID", required = true) @PathVariable Long id) {
         try {
             VoucherDTO voucher = voucherService.toggleVoucherStatus(id);
             Map<String, Object> response = new HashMap<>();
@@ -244,10 +332,19 @@ public class AdminVoucherController {
     /**
      * Validate voucher
      */
+    @Operation(
+        summary = "Validate voucher",
+        description = "Validate a voucher code against an order amount"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Voucher validation completed"),
+        @ApiResponse(responseCode = "500", description = "Error validating voucher")
+    })
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/validate")
     public ResponseEntity<Map<String, Object>> validateVoucher(
-            @RequestParam String code,
-            @RequestParam java.math.BigDecimal orderAmount
+            @Parameter(description = "Voucher code", required = true) @RequestParam String code,
+            @Parameter(description = "Order amount", required = true) @RequestParam java.math.BigDecimal orderAmount
     ) {
         try {
             boolean isValid = voucherService.validateVoucher(code, orderAmount);
@@ -272,6 +369,16 @@ public class AdminVoucherController {
     /**
      * Get AI suggestion for voucher configuration
      */
+    @Operation(
+        summary = "Get AI voucher suggestion",
+        description = "Get AI-powered suggestions for voucher configuration based on objective and target product"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Voucher suggestion generated successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request data"),
+        @ApiResponse(responseCode = "500", description = "Error generating suggestion")
+    })
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/suggest")
     public ResponseWrapper<VoucherSuggestionResponse> suggestVoucher(
             @Valid @RequestBody VoucherSuggestionRequest request

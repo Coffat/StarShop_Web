@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table(name = "Users")
 public class User extends BaseEntity {
 
     @Column(nullable = false, length = 100)

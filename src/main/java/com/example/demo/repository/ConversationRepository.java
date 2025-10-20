@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.rest.core.annotation.RestResource;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -28,6 +29,7 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
     /**
      * Find conversations by status with pagination
      */
+    @RestResource(path = "findByStatusOrderByLastMessageAtDescPaged", rel = "findByStatusOrderByLastMessageAtDescPaged")
     Page<Conversation> findByStatusOrderByLastMessageAtDesc(ConversationStatus status, Pageable pageable);
     
     /**
@@ -94,6 +96,7 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
      */
     @Query("SELECT c FROM Conversation c WHERE c.status = 'OPEN' " +
            "ORDER BY c.createdAt ASC")
+    @RestResource(path = "findUnassignedConversationsPaged", rel = "findUnassignedConversationsPaged")
     Page<Conversation> findUnassignedConversations(Pageable pageable);
     
     /**

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.rest.core.annotation.RestResource;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -20,6 +21,7 @@ public interface OrderRepository extends JpaRepository<Order, String> {
     
     List<Order> findByStatus(OrderStatus status);
     
+    @RestResource(path = "findByStatusPaged", rel = "findByStatusPaged")
     Page<Order> findByStatus(OrderStatus status, Pageable pageable);
     
     Page<Order> findByUserIdAndStatus(Long userId, OrderStatus status, Pageable pageable);

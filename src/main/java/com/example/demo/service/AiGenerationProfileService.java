@@ -47,8 +47,9 @@ public class AiGenerationProfileService {
     public GenerationProfile getProfileForIntent(IntentType intent) {
         switch (intent) {
             case STORE_INFO:
-                // Conservative settings for store info - fast and consistent
-                return new GenerationProfile(0.4, 0.85, 256, 12, true);
+                // Store policy/info often needs longer, complete answers
+                // Increase maxTokens and timeout slightly to avoid truncation
+                return new GenerationProfile(0.35, 0.85, 768, 20, true);
                 
             case CHITCHAT:
                 // More creative for casual conversation

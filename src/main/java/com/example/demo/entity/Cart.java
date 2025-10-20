@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "carts")
+@Table(name = "Carts")
 public class Cart extends BaseEntity {
 
     @OneToOne(fetch = FetchType.LAZY)

@@ -1060,3 +1060,74 @@ document.addEventListener('DOMContentLoaded', function() {
     loadCartCount();
 });
 
+// ================================
+// MoMo Payment Gateway Error Handling
+// ================================
+
+// Handle broken MoMo logo images gracefully
+function handleMoMoImageErrors() {
+    // Find all images from MoMo test environment
+    const momoImages = document.querySelectorAll('img[src*="test-payment.momo.vn"]');
+    
+    momoImages.forEach(img => {
+        // Add error handler for broken images
+        img.addEventListener('error', function() {
+            console.warn('MoMo image failed to load:', this.src);
+            
+            // Hide the broken image
+            this.style.display = 'none';
+            
+            // Create fallback element
+            const fallback = document.createElement('div');
+            fallback.className = 'momo-fallback';
+            fallback.innerHTML = '💳';
+            fallback.style.cssText = `
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                background: linear-gradient(135deg, #ec4899, #be185d);
+                border-radius: 8px;
+                color: white;
+                font-size: 20px;
+                margin: 0 8px;
+            `;
+            
+            // Insert fallback after the broken image
+            this.parentNode.insertBefore(fallback, this.nextSibling);
+        });
+        
+        // Add load handler for successful images
+        img.addEventListener('load', function() {
+            console.log('MoMo image loaded successfully:', this.src);
+        });
+    });
+}
+
+// Initialize MoMo error handling when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    handleMoMoImageErrors();
+});
+
+// Also handle dynamically loaded images (for payment pages)
+const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+        if (mutation.type === 'childList') {
+            mutation.addedNodes.forEach(function(node) {
+                if (node.nodeType === 1) { // Element node
+                    if (node.tagName === 'IMG' && node.src && node.src.includes('test-payment.momo.vn')) {
+                        handleMoMoImageErrors();
+                    }
+                }
+            });
+        }
+    });
+});
+
+// Start observing
+observer.observe(document.body, {
+    childList: true,
+    subtree: true
+});
+

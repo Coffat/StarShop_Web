@@ -433,6 +433,33 @@ public class ChatService {
                 }
             } else if (conversation.getStatus() == ConversationStatus.ASSIGNED) {
                 log.info("Customer message in ASSIGNED conversation {} - staff is handling, skipping AI", conversation.getId());
+                // CRITICAL: Handle race where client opens SSE after we send completion
+                final Long convId = conversation.getId();
+                if (streamingEmitters.containsKey(convId)) {
+                    // Emitter exists -> close immediately
+                    sendStreamingComplete(convId, null);
+                    log.info("Closed streaming emitter immediately for conversation {}", convId);
+                } else {
+                    // Emitter not yet registered -> wait briefly then close if appeared
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(1000);
+                            if (streamingEmitters.containsKey(convId)) {
+                                sendStreamingComplete(convId, null);
+                                log.info("Closed streaming emitter after 1s delay for conversation {}", convId);
+                            }
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }).start();
+                }
+                // Also broadcast hide typing to all clients for this conversation
+                try {
+                    java.util.Map<String, Object> payload = new java.util.HashMap<>();
+                    payload.put("conversationId", convId);
+                    payload.put("action", "hide_typing");
+                    webSocketService.sendChatUpdate("hide_typing", payload);
+                } catch (Exception ignore) {}
             } else {
                 log.info("Customer message in conversation {} with status {} - skipping AI (closed or other)", 
                     conversation.getId(), conversation.getStatus());

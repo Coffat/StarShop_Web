@@ -10,6 +10,11 @@ import com.example.demo.service.AiPromptService;
 import com.example.demo.service.CustomerSegmentationService;
 import com.example.demo.service.EmailService;
 import com.example.demo.service.VoucherService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +24,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "📢 Admin Marketing", description = "Marketing campaigns & customer segmentation APIs")
 @RestController
 @RequestMapping("/admin/api/marketing")
 @RequiredArgsConstructor
@@ -34,6 +40,16 @@ public class AdminMarketingController {
     /**
      * Gửi chiến dịch email marketing cho 1 phân khúc khách hàng
      */
+    @Operation(
+        summary = "Send marketing campaign",
+        description = "Send email marketing campaign to customer segment with voucher"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Campaign sent successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid campaign data"),
+        @ApiResponse(responseCode = "500", description = "Error sending campaign")
+    })
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/send-campaign")
     public ResponseEntity<Map<String, Object>> sendCampaign(
             @RequestBody MarketingCampaignRequest request) {
@@ -121,6 +137,15 @@ public class AdminMarketingController {
     /**
      * Lấy thống kê số lượng khách hàng theo từng phân khúc
      */
+    @Operation(
+        summary = "Get customer segment statistics",
+        description = "Retrieve statistics of customer count by segment (VIP, NEW, AT_RISK)"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Segment statistics retrieved successfully"),
+        @ApiResponse(responseCode = "500", description = "Error retrieving statistics")
+    })
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/segment-stats")
     public ResponseEntity<Map<String, Object>> getSegmentStats() {
         try {
@@ -148,6 +173,15 @@ public class AdminMarketingController {
     /**
      * Manual trigger để admin chạy phân khúc ngay (không cần đợi đến đêm)
      */
+    @Operation(
+        summary = "Trigger customer segmentation",
+        description = "Manually trigger customer segmentation process (normally runs at night)"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Segmentation triggered successfully"),
+        @ApiResponse(responseCode = "500", description = "Error triggering segmentation")
+    })
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/trigger-segmentation")
     public ResponseEntity<Map<String, Object>> triggerSegmentation() {
         try {

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "reviews")
+@Table(name = "Reviews")
 public class Review extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -26,7 +26,7 @@ public class Review extends BaseEntity {
     private OrderItem orderItem;
 
     // Admin response fields
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "admin_response", columnDefinition = "TEXT")
     private String adminResponse;
 
     @Column(name = "admin_response_at")
