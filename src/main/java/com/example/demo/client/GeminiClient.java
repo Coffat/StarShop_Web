@@ -79,8 +79,14 @@ public class GeminiClient {
             GeminiResponse responseBody = response.getBody();
             
             if (responseBody != null && responseBody.isSuccessful()) {
-                log.debug("Gemini API response: {}", responseBody.getTextResponse());
-                return responseBody;
+                String textResponse = responseBody.getTextResponse();
+                if (textResponse != null && !textResponse.trim().isEmpty()) {
+                    log.debug("Gemini API response: {}", textResponse);
+                    return responseBody;
+                } else {
+                    log.warn("Gemini API returned empty text response");
+                    return null;
+                }
             } else {
                 log.warn("Gemini API returned empty or unsuccessful response");
                 return null;
@@ -135,8 +141,14 @@ public class GeminiClient {
             GeminiResponse responseBody = response.getBody();
             
             if (responseBody != null && responseBody.isSuccessful()) {
-                log.debug("Gemini API response received successfully");
-                return responseBody;
+                String textResponse = responseBody.getTextResponse();
+                if (textResponse != null && !textResponse.trim().isEmpty()) {
+                    log.debug("Gemini API response received successfully");
+                    return responseBody;
+                } else {
+                    log.warn("Gemini API returned empty text response");
+                    return null;
+                }
             } else {
                 log.warn("Gemini API returned empty or unsuccessful response");
                 return null;
@@ -265,8 +277,14 @@ public class GeminiClient {
             GeminiResponse responseBody = response.getBody();
             
             if (responseBody != null && responseBody.isSuccessful()) {
-                log.debug("Gemini API response received successfully with profile");
-                return responseBody;
+                String textResponse = responseBody.getTextResponse();
+                if (textResponse != null && !textResponse.trim().isEmpty()) {
+                    log.debug("Gemini API response received successfully with profile");
+                    return responseBody;
+                } else {
+                    log.warn("Gemini API returned empty text response with profile");
+                    return null;
+                }
             } else {
                 log.warn("Gemini API returned empty or unsuccessful response");
                 return null;

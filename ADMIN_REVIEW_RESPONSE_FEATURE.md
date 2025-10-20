@@ -34,9 +34,9 @@ Tính năng này cho phép admin phản hồi trực tiếp các đánh giá c�
 #### Controller
 - **File**: `src/main/java/com/example/demo/controller/AdminReviewController.java`
 - **Thay đổi**: Thêm 3 API endpoints mới:
-  - `POST /api/admin/reviews/{id}/respond`: Thêm phản hồi
-  - `PUT /api/admin/reviews/{id}/response`: Cập nhật phản hồi
-  - `DELETE /api/admin/reviews/{id}/response`: Xóa phản hồi
+  - `POST /admin/api/reviews/{id}/respond`: Thêm phản hồi
+  - `PUT /admin/api/reviews/{id}/response`: Cập nhật phản hồi
+  - `DELETE /admin/api/reviews/{id}/response`: Xóa phản hồi
 
 ### 3. Frontend Changes
 
@@ -53,7 +53,7 @@ Tính năng này cho phép admin phản hồi trực tiếp các đánh giá c�
 
 ### 1. Thêm phản hồi admin
 ```
-POST /api/admin/reviews/{reviewId}/respond
+POST /admin/api/reviews/{reviewId}/respond
 Authorization: Bearer {admin_token}
 Content-Type: application/json
 
@@ -64,7 +64,7 @@ Content-Type: application/json
 
 ### 2. Cập nhật phản hồi admin
 ```
-PUT /api/admin/reviews/{reviewId}/response
+PUT /admin/api/reviews/{reviewId}/response
 Authorization: Bearer {admin_token}
 Content-Type: application/json
 
@@ -75,7 +75,7 @@ Content-Type: application/json
 
 ### 3. Xóa phản hồi admin
 ```
-DELETE /api/admin/reviews/{reviewId}/response
+DELETE /admin/api/reviews/{reviewId}/response
 Authorization: Bearer {admin_token}
 ```
 
@@ -135,19 +135,19 @@ docker-compose up -d
 ### Test API:
 ```bash
 # Thêm phản hồi
-curl -X POST "http://localhost:8080/api/admin/reviews/1/respond" \
+curl -X POST "http://localhost:8080/admin/api/reviews/1/respond" \
   -H "Authorization: Bearer {admin_token}" \
   -H "Content-Type: application/json" \
   -d '{"adminResponse": "Cảm ơn bạn đã đánh giá!"}'
 
 # Cập nhật phản hồi
-curl -X PUT "http://localhost:8080/api/admin/reviews/1/response" \
+curl -X PUT "http://localhost:8080/admin/api/reviews/1/response" \
   -H "Authorization: Bearer {admin_token}" \
   -H "Content-Type: application/json" \
   -d '{"adminResponse": "Cảm ơn bạn! Chúng tôi sẽ cải thiện."}'
 
 # Xóa phản hồi
-curl -X DELETE "http://localhost:8080/api/admin/reviews/1/response" \
+curl -X DELETE "http://localhost:8080/admin/api/reviews/1/response" \
   -H "Authorization: Bearer {admin_token}"
 ```
 

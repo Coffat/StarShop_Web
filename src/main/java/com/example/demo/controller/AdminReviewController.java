@@ -32,7 +32,7 @@ import jakarta.validation.Valid;
  * Following rules.mdc specifications for REST API
  */
 @RestController
-@RequestMapping("/api/admin/reviews")
+@RequestMapping("/admin/api/reviews")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "👑 Admin Reviews", description = "Admin APIs - Manage product reviews")

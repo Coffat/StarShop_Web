@@ -71,11 +71,32 @@ public class AdminAiInsightsService {
                 return getFallbackInsights();
             }
             
-            // 4. Parse JSON response
+            // 4. Parse JSON response with robust error handling
             String jsonResponse = response.getTextResponse();
             log.debug("AI response: {}", jsonResponse);
             
-            AiInsightResponse aiResponse = objectMapper.readValue(jsonResponse, AiInsightResponse.class);
+            // Validate JSON response before parsing
+            if (jsonResponse == null || jsonResponse.trim().isEmpty()) {
+                log.warn("AI returned empty response, using fallback");
+                return getFallbackInsights();
+            }
+            
+            // Clean and validate JSON response
+            String cleanedJsonResponse = cleanJsonResponse(jsonResponse);
+            if (cleanedJsonResponse == null) {
+                log.warn("Failed to clean JSON response, using fallback");
+                return getFallbackInsights();
+            }
+            
+            AiInsightResponse aiResponse;
+            try {
+                aiResponse = objectMapper.readValue(cleanedJsonResponse, AiInsightResponse.class);
+            } catch (Exception parseException) {
+                log.error("Failed to parse AI response JSON: {}", parseException.getMessage());
+                log.debug("Raw response that failed to parse: {}", jsonResponse);
+                log.debug("Cleaned response that failed to parse: {}", cleanedJsonResponse);
+                return getFallbackInsights();
+            }
             
             // 5. Validate response
             if (aiResponse.getInsights() == null || aiResponse.getInsights().isEmpty()) {
@@ -276,11 +297,32 @@ public class AdminAiInsightsService {
                 return createFallbackAnalysis(review.getRating());
             }
             
-            // 5. Parse JSON response
+            // 5. Parse JSON response with robust error handling
             String jsonResponse = response.getTextResponse();
             log.debug("AI response: {}", jsonResponse);
             
-            ReviewAiAnalysisResponse aiResponse = objectMapper.readValue(jsonResponse, ReviewAiAnalysisResponse.class);
+            // Validate JSON response before parsing
+            if (jsonResponse == null || jsonResponse.trim().isEmpty()) {
+                log.warn("AI returned empty response for review {}, using fallback", reviewId);
+                return createFallbackAnalysis(review.getRating());
+            }
+            
+            // Clean and validate JSON response
+            String cleanedJsonResponse = cleanJsonResponse(jsonResponse);
+            if (cleanedJsonResponse == null) {
+                log.warn("Failed to clean JSON response for review {}, using fallback", reviewId);
+                return createFallbackAnalysis(review.getRating());
+            }
+            
+            ReviewAiAnalysisResponse aiResponse;
+            try {
+                aiResponse = objectMapper.readValue(cleanedJsonResponse, ReviewAiAnalysisResponse.class);
+            } catch (Exception parseException) {
+                log.error("Failed to parse AI response JSON for review {}: {}", reviewId, parseException.getMessage());
+                log.debug("Raw response that failed to parse: {}", jsonResponse);
+                log.debug("Cleaned response that failed to parse: {}", cleanedJsonResponse);
+                return createFallbackAnalysis(review.getRating());
+            }
             
             // 6. Validate and save sentiment if not exists
             if (review.getSentiment() == null && aiResponse.getSentiment() != null) {
@@ -599,6 +641,212 @@ public class AdminAiInsightsService {
         return prefix + "-FALLBACK-" + timestamp;
     }
     
+    /**
+     * Clean and validate JSON response from AI
+     * Handles common JSON formatting issues from Gemini API
+     */
+    private String cleanJsonResponse(String jsonResponse) {
+        if (jsonResponse == null || jsonResponse.trim().isEmpty()) {
+            return null;
+        }
+        
+        try {
+            // Remove any leading/trailing whitespace
+            String cleaned = jsonResponse.trim();
+            
+            // If response doesn't start with {, try to extract JSON from markdown or other formats
+            if (!cleaned.startsWith("{")) {
+                // Try to find JSON block in markdown
+                int jsonStart = cleaned.indexOf("```json");
+                if (jsonStart != -1) {
+                    jsonStart = cleaned.indexOf("{", jsonStart);
+                } else {
+                    jsonStart = cleaned.indexOf("{");
+                }
+                
+                if (jsonStart != -1) {
+                    int jsonEnd = cleaned.lastIndexOf("}");
+                    if (jsonEnd > jsonStart) {
+                        cleaned = cleaned.substring(jsonStart, jsonEnd + 1);
+                    }
+                }
+            }
+            
+            // Fix common JSON issues
+            cleaned = fixCommonJsonIssues(cleaned);
+            
+            // Try to fix truncated JSON
+            cleaned = fixTruncatedJson(cleaned);
+            
+            // Validate that it's valid JSON by attempting to parse it
+            try {
+                objectMapper.readTree(cleaned);
+                return cleaned;
+            } catch (Exception e) {
+                log.warn("Cleaned JSON is still invalid: {}", e.getMessage());
+                return null;
+            }
+            
+        } catch (Exception e) {
+            log.error("Error cleaning JSON response: {}", e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * Fix common JSON formatting issues from AI responses
+     */
+    private String fixCommonJsonIssues(String json) {
+        if (json == null) return null;
+        
+        // Fix unclosed strings by finding and closing them
+        json = fixUnclosedStrings(json);
+        
+        // Fix common escape issues
+        json = json.replace("\\\"", "\"")
+                  .replace("\\n", "\n")
+                  .replace("\\t", "\t")
+                  .replace("\\r", "\r");
+        
+        // Remove any trailing commas before closing braces/brackets
+        json = json.replaceAll(",\\s*([}\\]])", "$1");
+        
+        return json;
+    }
+    
+    /**
+     * Fix truncated JSON responses
+     */
+    private String fixTruncatedJson(String json) {
+        if (json == null) return null;
+        
+        try {
+            // Count opening and closing braces/brackets
+            int openBraces = 0;
+            int openBrackets = 0;
+            boolean inString = false;
+            boolean escaped = false;
+            
+            for (int i = 0; i < json.length(); i++) {
+                char c = json.charAt(i);
+                
+                if (escaped) {
+                    escaped = false;
+                    continue;
+                }
+                
+                if (c == '\\') {
+                    escaped = true;
+                    continue;
+                }
+                
+                if (c == '"') {
+                    inString = !inString;
+                    continue;
+                }
+                
+                if (!inString) {
+                    if (c == '{') {
+                        openBraces++;
+                    } else if (c == '}') {
+                        openBraces--;
+                    } else if (c == '[') {
+                        openBrackets++;
+                    } else if (c == ']') {
+                        openBrackets--;
+                    }
+                }
+            }
+            
+            // If we have unclosed structures, try to close them
+            StringBuilder result = new StringBuilder(json);
+            
+            // Close any unclosed strings first
+            if (inString) {
+                result.append('"');
+            }
+            
+            // Close unclosed brackets
+            for (int i = 0; i < openBrackets; i++) {
+                result.append(']');
+            }
+            
+            // Close unclosed braces
+            for (int i = 0; i < openBraces; i++) {
+                result.append('}');
+            }
+            
+            if (openBraces > 0 || openBrackets > 0 || inString) {
+                log.warn("Fixed truncated JSON - closed {} braces, {} brackets, string: {}", 
+                    openBraces, openBrackets, inString);
+            }
+            
+            return result.toString();
+            
+        } catch (Exception e) {
+            log.error("Error fixing truncated JSON: {}", e.getMessage());
+            return json; // Return original if fixing fails
+        }
+    }
+
+    /**
+     * Fix unclosed string values in JSON
+     */
+    private String fixUnclosedStrings(String json) {
+        if (json == null) return null;
+        
+        try {
+            StringBuilder result = new StringBuilder();
+            boolean inString = false;
+            boolean escaped = false;
+            int lineNumber = 1;
+            int columnNumber = 1;
+            
+            for (int i = 0; i < json.length(); i++) {
+                char c = json.charAt(i);
+                
+                if (c == '\n') {
+                    lineNumber++;
+                    columnNumber = 1;
+                } else {
+                    columnNumber++;
+                }
+                
+                if (escaped) {
+                    result.append(c);
+                    escaped = false;
+                    continue;
+                }
+                
+                if (c == '\\') {
+                    escaped = true;
+                    result.append(c);
+                    continue;
+                }
+                
+                if (c == '"') {
+                    inString = !inString;
+                    result.append(c);
+                    continue;
+                }
+                
+                result.append(c);
+            }
+            
+            // If we ended in a string, close it
+            if (inString) {
+                result.append('"');
+                log.warn("Fixed unclosed string in JSON response at line {}, column {}", lineNumber, columnNumber);
+            }
+            
+            return result.toString();
+            
+        } catch (Exception e) {
+            log.error("Error fixing unclosed strings: {}", e.getMessage());
+            return json; // Return original if fixing fails
+        }
+    }
+
     /**
      * Data class for voucher suggestion business data
      */

@@ -93,6 +93,64 @@
     </div>
 </div>
 
+<!-- Update Image Modal -->
+<div id="imageModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-gray-900">Cập nhật hình ảnh danh mục</h3>
+            <button onclick="closeImageModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        
+        <form id="imageForm" onsubmit="saveCatalogImage(event)">
+            <input type="hidden" id="imageCatalogId">
+            
+            <!-- Catalog Name (Read-only) -->
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Tên danh mục
+                </label>
+                <input type="text" id="imageCatalogName" readonly
+                       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500 bg-gray-100 cursor-not-allowed">
+            </div>
+            
+            <!-- Image URL -->
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="imageCatalogImage">
+                    URL hình ảnh <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="imageCatalogImage" name="image" required
+                       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                       placeholder="/images/catalogs/example.jpg"
+                       oninput="previewImageModal()">
+                <p class="text-xs text-gray-500 mt-1">Nhập đường dẫn hoặc URL của hình ảnh</p>
+            </div>
+            
+            <!-- Image Preview -->
+            <div id="imagePreviewContainerModal" class="mb-4 hidden">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Xem trước</label>
+                <img id="imagePreviewModal" src="" alt="Preview" 
+                     class="w-full h-48 object-cover rounded-lg border-2 border-gray-300">
+            </div>
+            
+            <!-- Buttons -->
+            <div class="flex items-center justify-end gap-2">
+                <button type="button" onclick="closeImageModal()"
+                        class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
+                    Hủy
+                </button>
+                <button type="submit"
+                        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                    <span id="imageSubmitBtnText">Cập nhật hình ảnh</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Delete Confirmation Modal -->
 <div id="deleteModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
     <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
@@ -186,6 +244,10 @@ async function loadCatalogs() {
                         <button onclick="editCatalog(${catalog.id}, '${catalog.value}', '${catalog.image || ''}')"
                                 class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-3 rounded">
                             Sửa
+                        </button>
+                        <button onclick="updateCatalogImage(${catalog.id}, '${catalog.value}', '${catalog.image || ''}')"
+                                class="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm py-2 px-3 rounded">
+                            Hình ảnh
                         </button>
                         <button onclick="deleteCatalog(${catalog.id}, '${catalog.value}')"
                                 class="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-3 rounded">
@@ -316,9 +378,88 @@ async function confirmDelete() {
     }
 }
 
+// Update catalog image
+function updateCatalogImage(id, name, image) {
+    document.getElementById('imageCatalogId').value = id;
+    document.getElementById('imageCatalogName').value = name;
+    document.getElementById('imageCatalogImage').value = image || '';
+    
+    if (image) {
+        document.getElementById('imagePreviewModal').src = image;
+        document.getElementById('imagePreviewContainerModal').classList.remove('hidden');
+    } else {
+        document.getElementById('imagePreviewContainerModal').classList.add('hidden');
+    }
+    
+    document.getElementById('imageModal').classList.remove('hidden');
+    currentCatalogId = id;
+}
+
+// Preview image in modal
+function previewImageModal() {
+    const imageUrl = document.getElementById('imageCatalogImage').value;
+    const preview = document.getElementById('imagePreviewModal');
+    const container = document.getElementById('imagePreviewContainerModal');
+    
+    if (imageUrl) {
+        preview.src = imageUrl;
+        container.classList.remove('hidden');
+    } else {
+        container.classList.add('hidden');
+    }
+}
+
+// Save catalog image
+async function saveCatalogImage(event) {
+    event.preventDefault();
+    
+    const id = document.getElementById('imageCatalogId').value;
+    const image = document.getElementById('imageCatalogImage').value.trim();
+    
+    if (!image) {
+        showToast('Vui lòng nhập URL hình ảnh', 'error');
+        return;
+    }
+    
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<span>Đang cập nhật...</span>';
+    submitBtn.disabled = true;
+    
+    try {
+        const response = await fetch(`/api/catalogs/${id}/image`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ image })
+        });
+        
+        if (response.ok) {
+            showToast('Cập nhật hình ảnh thành công', 'success');
+            closeImageModal();
+            loadCatalogs();
+        } else {
+            const error = await response.text();
+            showToast('Lỗi: ' + error, 'error');
+        }
+    } catch (error) {
+        console.error('Error updating catalog image:', error);
+        showToast('Lỗi khi cập nhật hình ảnh', 'error');
+    } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
+}
+
 // Close modals
 function closeModal() {
     document.getElementById('catalogModal').classList.add('hidden');
+    currentCatalogId = null;
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').classList.add('hidden');
     currentCatalogId = null;
 }
 

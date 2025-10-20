@@ -138,12 +138,11 @@ public class SecurityConfig {
                 .requestMatchers("/api/messages/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/chat/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/staff/**").hasAnyRole("STAFF", "ADMIN")
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                
+                // Admin API endpoints - all under /admin/api/** or /admin/{module}/api/**
+                .requestMatchers("/admin/api/**").hasRole("ADMIN")
                 .requestMatchers("/admin/orders/api/**").hasRole("ADMIN")
                 .requestMatchers("/admin/products/api/**").hasRole("ADMIN")
-                .requestMatchers("/admin/api/users/**").hasRole("ADMIN")
-                .requestMatchers("/admin/api/employees/**").hasRole("ADMIN")
-                .requestMatchers("/admin/api/**").hasRole("ADMIN")
                 
                 // Admin page routes
                 .requestMatchers("/admin/**").hasRole("ADMIN")

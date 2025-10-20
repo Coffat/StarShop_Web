@@ -2,6 +2,9 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.*;
 import com.example.demo.service.EmployeeService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "👨‍💼 Admin Employees", description = "Admin employee/staff management APIs")
 @RestController
 @RequestMapping("/admin/api/employees")
 @RequiredArgsConstructor
@@ -31,6 +35,7 @@ public class AdminEmployeeController {
     /**
      * Get all employees with filters
      */
+    @Operation(summary = "Get all employees", description = "Retrieve paginated list of employees/staff with optional filters")
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllEmployees(
             @RequestParam(defaultValue = "0") int page,

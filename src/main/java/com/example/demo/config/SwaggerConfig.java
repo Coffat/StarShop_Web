@@ -90,43 +90,77 @@ public class SwaggerConfig {
     }
 
     /**
-     * Group: Public/Customer APIs (non-admin)
+     * Group: Public/Customer APIs
+     * Includes authentication, catalog browsing, cart, orders, payment, etc.
      */
     @Bean
     public GroupedOpenApi publicApi() {
         return GroupedOpenApi.builder()
-                .group("public")
+                .group("1-public-customer")
                 .pathsToMatch(
-                        "/api/**",
-                        "/sse/**",
-                        "/ws/**"
+                        "/api/auth/**",
+                        "/api/catalogs/**",
+                        "/api/products/**",
+                        "/api/cart/**",
+                        "/api/orders/**",
+                        "/api/payment/**",
+                        "/api/locations/**",
+                        "/api/addresses/**",
+                        "/api/shipping/**",
+                        "/api/reviews/**",
+                        "/api/vouchers/**",
+                        "/api/wishlist/**",
+                        "/api/favorite/**",
+                        "/api/chat/**",
+                        "/payment/**",
+                        "/sse/**"
                 )
-                .pathsToExclude("/admin/api/**")
+                .pathsToExclude(
+                        "/api/staff/**",
+                        "/api/admin/**",
+                        "/admin/**"
+                )
                 .build();
     }
 
     /**
      * Group: Admin APIs
+     * All admin management endpoints
      */
     @Bean
     public GroupedOpenApi adminApi() {
         return GroupedOpenApi.builder()
-                .group("admin")
-                .pathsToMatch("/admin/api/**")
+                .group("3-admin")
+                .pathsToMatch(
+                        "/admin/api/**",
+                        "/admin/orders/api/**",
+                        "/admin/products/api/**",
+                        "/api/admin/**"
+                )
                 .build();
     }
 
     /**
-     * Group: Staff APIs (if any)
+     * Group: Staff APIs
+     * Staff order management and operations
      */
     @Bean
     public GroupedOpenApi staffApi() {
         return GroupedOpenApi.builder()
-                .group("staff")
-                .pathsToMatch(
-                        "/api/staff/**",
-                        "/staff/**"
-                )
+                .group("2-staff")
+                .pathsToMatch("/api/staff/**")
+                .build();
+    }
+
+    /**
+     * Group: WebSocket APIs
+     * Real-time communication endpoints
+     */
+    @Bean
+    public GroupedOpenApi websocketApi() {
+        return GroupedOpenApi.builder()
+                .group("4-websocket")
+                .pathsToMatch("/ws/**")
                 .build();
     }
 }

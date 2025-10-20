@@ -4,6 +4,9 @@ import com.example.demo.dto.CreateCustomerRequest;
 import com.example.demo.dto.CustomerDTO;
 import com.example.demo.dto.UpdateCustomerRequest;
 import com.example.demo.service.CustomerService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "👥 Admin Users", description = "Admin user/customer management APIs")
 @RestController
 @RequestMapping("/admin/api/users")
 @RequiredArgsConstructor
@@ -33,6 +37,7 @@ public class AdminUserController {
     /**
      * Get all customers (excludes employees) with filters
      */
+    @Operation(summary = "Get all customers", description = "Retrieve paginated list of customers with optional filters")
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllCustomers(
             @RequestParam(defaultValue = "0") int page,
@@ -84,8 +89,10 @@ public class AdminUserController {
     /**
      * Get customer by ID
      */
+    @Operation(summary = "Get customer by ID", description = "Retrieve customer details by ID")
     @GetMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> getCustomerById(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> getCustomerById(
+            @Parameter(description = "Customer ID") @PathVariable Long id) {
         try {
             CustomerDTO customer = customerService.getCustomerById(id);
             Map<String, Object> response = new HashMap<>();
@@ -124,8 +131,11 @@ public class AdminUserController {
     /**
      * Create new customer
      */
+    @Operation(summary = "Create customer", description = "Create a new customer account")
     @PostMapping
-    public ResponseEntity<Map<String, Object>> createCustomer(@Valid @RequestBody CreateCustomerRequest request) {
+    public ResponseEntity<Map<String, Object>> createCustomer(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Customer data") 
+            @Valid @RequestBody CreateCustomerRequest request) {
         try {
             CustomerDTO customer = customerService.createCustomer(request);
             Map<String, Object> response = new HashMap<>();
@@ -151,9 +161,11 @@ public class AdminUserController {
     /**
      * Update customer
      */
+    @Operation(summary = "Update customer", description = "Update customer information")
     @PutMapping("/{id}")
     public ResponseEntity<Map<String, Object>> updateCustomer(
-            @PathVariable Long id,
+            @Parameter(description = "Customer ID") @PathVariable Long id,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Updated customer data") 
             @Valid @RequestBody UpdateCustomerRequest request
     ) {
         try {
@@ -181,8 +193,10 @@ public class AdminUserController {
     /**
      * Delete customer
      */
+    @Operation(summary = "Delete customer", description = "Delete customer account")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> deleteCustomer(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> deleteCustomer(
+            @Parameter(description = "Customer ID") @PathVariable Long id) {
         try {
             customerService.deleteCustomer(id);
             Map<String, Object> response = new HashMap<>();
@@ -241,6 +255,7 @@ public class AdminUserController {
     /**
      * Export users (customers) to Excel
      */
+    @Operation(summary = "Export customers to Excel", description = "Export filtered customer list to Excel file")
     @GetMapping("/export")
     public ResponseEntity<byte[]> exportUsers(
             @RequestParam(required = false) String status,

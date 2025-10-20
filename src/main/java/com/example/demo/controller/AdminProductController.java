@@ -8,6 +8,7 @@ import com.example.demo.entity.enums.ProductStatus;
 import com.example.demo.repository.CatalogRepository;
 import com.example.demo.service.ProductService;
 import com.example.demo.service.AdminProductAiService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "🌸 Admin Products", description = "Admin product management APIs - CRUD, stock, status, AI description")
 @Controller
 @RequestMapping("/admin/products")
 public class AdminProductController extends BaseController {
