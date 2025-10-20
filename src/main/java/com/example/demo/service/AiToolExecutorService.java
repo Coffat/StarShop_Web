@@ -245,8 +245,12 @@ public class AiToolExecutorService {
                 }
                 
                 if (product.getImageUrl() != null) {
+                    // Include product metadata for add-to-cart/wishlist functionality
                     result.append("  ![").append(product.getName())
-                          .append("](").append(product.getFullImageUrl()).append(")\n");
+                          .append("](").append(product.getFullImageUrl())
+                          .append(")<!--product:")
+                          .append(product.getId()).append(",")
+                          .append(product.getPrice()).append("-->\n");
                 }
                 
                 result.append("\n");
@@ -434,8 +438,12 @@ public class AiToolExecutorService {
                 }
                 
                 if (product.getImageUrl() != null) {
+                    // Include product metadata for add-to-cart/wishlist functionality
                     result.append("  ![").append(product.getName())
-                          .append("](").append(product.getFullImageUrl()).append(")\n");
+                          .append("](").append(product.getFullImageUrl())
+                          .append(")<!--product:")
+                          .append(product.getId()).append(",")
+                          .append(product.getPrice()).append("-->\n");
                 }
                 
                 result.append("\n");

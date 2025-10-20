@@ -170,11 +170,16 @@ public class AiChatService {
                 "DO NOT use JSON format like {\"content\":\"...\"}. " +
                 "DO NOT use any brackets, braces, or structured data. " +
                 "Write naturally like you're chatting with a customer. " +
-                "\n\nIMPORTANT IMAGE RULES:" +
-                "\n- When tool results contain markdown images ![name](url), you MUST preserve them EXACTLY in your response" +
-                "\n- DO NOT remove or modify product images from tool results" +
-                "\n- Format: **Product Name**\\nDescription\\n![Product Name](image_url)" +
-                "\n- Always include product images when recommending products";
+                "\n\nIMPORTANT PRODUCT DISPLAY RULES:" +
+                "\n- If customer requests X products, you MUST show ALL X products (never show less)" +
+                "\n- Display ALL products from tool results, don't skip any" +
+                "\n- Each product MUST have: name, price, description, and image" +
+                "\n\nIMAGE MARKDOWN RULES:" +
+                "\n- When tool results contain markdown images like ![name](url)<!--product:123,456789-->, you MUST preserve them EXACTLY" +
+                "\n- DO NOT remove the <!--product:...--> part after images - this is required metadata" +
+                "\n- Copy the entire image markdown including any HTML comments exactly as provided" +
+                "\n- Format: **Product Name**\\nDescription\\n![Product Name](image_url)<!--product:id,price-->" +
+                "\n- Always include product images with metadata when recommending products";
             
             // Generate with streaming support if callback provided
             com.example.demo.dto.gemini.GeminiResponse response;

@@ -234,7 +234,7 @@ function loadChatWidgetMessages(conversationId) {
                     const tempElements = messagesContainer.querySelectorAll('[data-message-id^="temp-user-"]');
                     tempElements.forEach(el => {
                         const id = el.getAttribute('data-message-id');
-                        const content = el.querySelector('.text-sm.leading-relaxed')?.innerHTML;
+                        const content = el.querySelector('.message-content-holder, .text-sm.leading-relaxed')?.innerHTML;
                         if (id && content) {
                             tempUserMessages.push({ id, content });
                         }
@@ -611,7 +611,7 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
             const tempDup = Array.from(messagesContainer.querySelectorAll('[data-message-id^="temp-"]'))
                 .reverse()
                 .find(el => {
-                    const div = el.querySelector('.text-sm.leading-relaxed');
+                    const div = el.querySelector('.message-content-holder, .text-sm.leading-relaxed');
                     return div && div.innerHTML.trim() === parseMarkdown(message.content).trim();
                 });
             if (tempDup) {
@@ -629,7 +629,7 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
             const recentMessages = messagesContainer.querySelectorAll('.flex.mb-4');
             const lastMessage = recentMessages[recentMessages.length - 1];
             if (lastMessage) {
-                const contentDiv = lastMessage.querySelector('.text-sm.leading-relaxed');
+                const contentDiv = lastMessage.querySelector('.message-content-holder, .text-sm.leading-relaxed');
                 if (contentDiv && contentDiv.innerHTML.trim() === parseMarkdown(message.content).trim()) {
                     return;
                 }
@@ -667,6 +667,7 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
         `;
     } else {
         // Staff/AI message (left side) - parse markdown for images and links
+        const senderName = message.senderName || 'StarShop Support';
         messageDiv.innerHTML = `
             <div class="flex items-start space-x-2 max-w-lg">
                 <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
@@ -674,9 +675,9 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
                 </div>
                 <div class="flex flex-col items-start flex-1">
                     <div class="bg-white text-gray-800 px-4 py-3 rounded-2xl rounded-bl-md shadow-lg border border-gray-100 w-full">
-                        <div class="text-sm leading-relaxed break-words">${parseMarkdown(message.content)}</div>
+                        <div class="message-content-holder text-sm leading-relaxed break-words"></div>
                     </div>
-                    <span class="text-xs text-gray-500 mt-1 px-2">${message.senderName || 'StarShop Support'}</span>
+                    <span class="text-xs text-gray-500 mt-1 px-2">${senderName}</span>
                 </div>
             </div>
         `;
@@ -688,6 +689,14 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
         messagesContainer.insertBefore(messageDiv, typingIndicator);
     } else {
         messagesContainer.appendChild(messageDiv);
+    }
+    
+    // Set innerHTML AFTER appending to DOM to ensure proper rendering
+    if (!isOwn) {
+        const contentHolder = messageDiv.querySelector('.message-content-holder');
+        if (contentHolder) {
+            contentHolder.innerHTML = parseMarkdown(message.content);
+        }
     }
     
     // Scroll to bottom
@@ -722,7 +731,31 @@ function parseMarkdown(text) {
     // Fix escaped newlines from JSON (\\n -> actual newline)
     html = html.replace(/\\n/g, '\n');
     
-    // Parse images first: ![alt](url)
+    // Parse images with product metadata: ![alt](url)<!--product:id,price-->
+    html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)<!--product:(\d+),([^-]+)-->/g, function(match, alt, url, productId, price) {
+        const safeAlt = alt.replace(/"/g, '&quot;');
+        const formattedPrice = formatPrice(price);
+        
+        // Build HTML without template literal to avoid escaping issues
+        return '<div class="product-card-chat my-3 bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">' +
+            '<img src="' + url + '" alt="' + safeAlt + '" class="w-full h-40 object-cover cursor-pointer" onclick="window.open(\'' + url + '\', \'_blank\')" />' +
+            '<div class="p-3">' +
+            '<h4 class="font-semibold text-gray-900 text-sm mb-1">' + safeAlt + '</h4>' +
+            '<p class="text-pink-600 font-bold text-base mb-3">' + formattedPrice + 'đ</p>' +
+            '<div class="flex gap-2">' +
+            '<button onclick="addToCartFromChat(' + productId + ')" class="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs py-2 px-3 rounded-lg hover:shadow-md transition-all flex items-center justify-center gap-1">' +
+            '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>' +
+            'Thêm vào giỏ' +
+            '</button>' +
+            '<button onclick="addToWishlistFromChat(' + productId + ')" class="bg-gray-100 hover:bg-pink-50 text-pink-600 text-xs py-2 px-3 rounded-lg transition-all flex items-center justify-center">' +
+            '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>' +
+            '</button>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+    });
+    
+    // Parse regular images without metadata: ![alt](url)
     html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, function(match, alt, url) {
         const safeAlt = alt.replace(/"/g, '&quot;');
         return `<img src="${url}" alt="${safeAlt}" class="max-w-full h-auto rounded-lg my-2 cursor-pointer message-image-hover" style="max-width: 200px;" onclick="window.open('${url}', '_blank')" />`;
@@ -882,7 +915,7 @@ function updateStreamingMessage(messageId, content) {
     const messageElement = messagesContainer.querySelector(`[data-message-id="${messageId}"]`);
     
     if (messageElement) {
-        const contentDiv = messageElement.querySelector('.text-sm.leading-relaxed');
+        const contentDiv = messageElement.querySelector('.message-content-holder, .text-sm.leading-relaxed');
         if (contentDiv) {
             contentDiv.innerHTML = parseMarkdown(content);
             scrollChatWidgetToBottom();
@@ -904,4 +937,122 @@ function replaceStreamingMessage(streamingMessageId, finalMessage) {
         // Display the final message
         displayChatWidgetMessage(finalMessage);
     }
+}
+
+/**
+ * Format price with thousands separator
+ */
+function formatPrice(price) {
+    if (!price) return '0';
+    // Remove any existing formatting
+    const numPrice = parseFloat(price.toString().replace(/,/g, ''));
+    return numPrice.toLocaleString('vi-VN');
+}
+
+/**
+ * Add product to cart from chat widget
+ */
+function addToCartFromChat(productId) {
+    const csrf = getCsrfToken();
+    const headers = {
+        'Content-Type': 'application/json'
+    };
+    if (csrf.token) {
+        headers[csrf.header] = csrf.token;
+    }
+    
+    // Add to cart with quantity 1
+    fetch('/api/cart/add', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+            productId: productId,
+            quantity: 1
+        })
+    })
+    .then(response => {
+        // Check HTTP status first
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.error || data.message || 'Không thể thêm vào giỏ hàng');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Response OK - show success
+        if (typeof showToast === 'function') {
+            showToast('Đã thêm vào giỏ hàng!', 'success');
+        }
+        
+        // Update cart badge if exists
+        updateCartBadge();
+    })
+    .catch(error => {
+        console.error('Error adding to cart:', error);
+        if (typeof showToast === 'function') {
+            showToast(error.message || 'Có lỗi xảy ra', 'error');
+        }
+    });
+}
+
+/**
+ * Add product to wishlist from chat widget
+ */
+function addToWishlistFromChat(productId) {
+    const csrf = getCsrfToken();
+    const headers = {
+        'Content-Type': 'application/json'
+    };
+    if (csrf.token) {
+        headers[csrf.header] = csrf.token;
+    }
+    
+    fetch('/api/wishlist/add', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+            productId: productId
+        })
+    })
+    .then(response => {
+        // Check HTTP status first
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.error || data.message || 'Không thể thêm vào yêu thích');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Response OK - show success
+        if (typeof showToast === 'function') {
+            showToast('Đã thêm vào danh sách yêu thích!', 'success');
+        }
+    })
+    .catch(error => {
+        console.error('Error adding to wishlist:', error);
+        if (typeof showToast === 'function') {
+            showToast(error.message || 'Có lỗi xảy ra', 'error');
+        }
+    });
+}
+
+/**
+ * Update cart badge count
+ */
+function updateCartBadge() {
+    // Try to update cart badge in header if exists
+    fetch('/api/cart/count')
+        .then(response => response.json())
+        .then(data => {
+            const cartBadge = document.querySelector('.cart-badge, #cartBadge');
+            if (cartBadge && data.data !== undefined) {
+                cartBadge.textContent = data.data;
+                cartBadge.style.display = data.data > 0 ? 'flex' : 'none';
+            }
+        })
+        .catch(error => {
+            // Silent fail
+        });
 }

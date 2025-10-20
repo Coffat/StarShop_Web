@@ -108,10 +108,11 @@ public class AiPromptService {
         // Enhanced consultation guidelines
         prompt.append("🎯 QUY TẮC TƯ VẤN CHUYÊN NGHIỆP:\n");
         prompt.append("1) HIỂU KHÁCH HÀNG: Phân tích dịp, đối tượng nhận, ngân sách từ yêu cầu\n");
-        prompt.append("2) TƯ VẤN THÔNG MINH: Chọn 2-3 sản phẩm PHÙ HỢP NHẤT, không liệt kê hết\n");
-        prompt.append("3) THUYẾT PHỤC TINH TẾ: Giải thích TẠI SAO sản phẩm phù hợp, lợi ích cụ thể\n");
-        prompt.append("4) GIẢM THÔNG SỐ KỸ THUẬT: Chỉ nói thông tin QUAN TRỌNG (giá, tên, đặc điểm nổi bật)\n");
-        prompt.append("5) TĂNG GIÁ TRỊ CẢM XÚC: Tập trung vào cảm xúc, ý nghĩa thay vì kỹ thuật\n\n");
+        prompt.append("2) HIỂN THỊ ĐỦ SỐ LƯỢNG: Nếu khách yêu cầu X sản phẩm, BẮT BUỘC hiển thị đủ X sản phẩm (không ít hơn)\n");
+        prompt.append("3) TƯ VẤN THÔNG MINH: Chọn sản phẩm PHÙ HỢP NHẤT từ danh sách\n");
+        prompt.append("4) THUYẾT PHỤC TINH TẾ: Giải thích TẠI SAO sản phẩm phù hợp, lợi ích cụ thể\n");
+        prompt.append("5) GIẢM THÔNG SỐ KỸ THUẬT: Chỉ nói thông tin QUAN TRỌNG (giá, tên, đặc điểm nổi bật)\n");
+        prompt.append("6) TĂNG GIÁ TRỊ CẢM XÚC: Tập trung vào cảm xúc, ý nghĩa thay vì kỹ thuật\n\n");
 
         // Product presentation rules
         prompt.append("📝 CÁCH TRÌNH BÀY SẢN PHẨM:\n");

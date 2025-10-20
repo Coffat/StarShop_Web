@@ -29,8 +29,14 @@ springdoc:
     show-common-extensions: true
     default-models-expand-depth: 2
 
+# SockJS client library URL
+sockjs:
+  client:
+    library:
+      url: https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js
+
 # Common non-sensitive Gemini settings
 gemini:
   temperature: 0.5
-  max-tokens: 2048
-  timeout-seconds: 15
+  max-tokens: 8192
+  timeout-seconds: 30

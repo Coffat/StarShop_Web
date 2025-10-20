@@ -89,6 +89,13 @@ public class GeminiClient {
                 }
             } else {
                 log.warn("Gemini API returned empty or unsuccessful response");
+                // Debug logging
+                if (responseBody != null) {
+                    log.warn("Response body candidates: {}", responseBody.getCandidates());
+                    log.warn("Response body usage: {}", responseBody.getUsageMetadata());
+                } else {
+                    log.warn("Response body is null");
+                }
                 return null;
             }
 
