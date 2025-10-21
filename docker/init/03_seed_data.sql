@@ -1017,323 +1017,144 @@ SET is_active = TRUE
 WHERE is_active IS NULL;
 
 
-
 -- =============================================
 -- SEED DATA FOR ORDERS & ORDER ITEMS (FOR CHARTING)
--- Dữ liệu thêm mới cho đơn hàng và chi tiết đơn hàng để vẽ biểu đồ
--- Tương thích với schema gốc (Orders.id là VARCHAR)
+-- PHIÊN BẢN ĐÃ SỬA LỖI ID - Tương thích với OrderIdGeneratorService.java
+-- ID Format: ddMMyy + sequence_number
 -- =============================================
--- Dữ liệu cho 3 tháng gần nhất để dễ phân tích theo thời gian
+
 -- ===== ĐƠN HÀNG THÁNG 08/2025 =====
 -- Order 1
 INSERT INTO Orders (
-        id,
-        user_id,
-        total_amount,
-        status,
-        order_date,
-        address_id,
-        payment_method,
-        shipping_fee,
-        notes
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee, notes
     )
 VALUES (
-        'SS-20250801',
-        1,
-        500000,
-        'COMPLETED',
-        '2025-08-01 10:30:00',
-        1,
-        'MOMO',
-        30000,
-        'Giao hàng nhanh'
+        '0108251', 1, 500000, 'COMPLETED', '2025-08-01 10:30:00', 1, 'MOMO', 30000, 'Giao hàng nhanh'
     );
 INSERT INTO OrderItems (order_id, product_id, quantity, price)
-VALUES ('SS-20250801', 1, 1, 450000);
+VALUES ('0108251', 1, 1, 450000);
+
 -- Order 2
 INSERT INTO Orders (
-        id,
-        user_id,
-        total_amount,
-        status,
-        order_date,
-        address_id,
-        payment_method,
-        shipping_fee
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee
     )
 VALUES (
-        'SS-20250805',
-        3,
-        1250000,
-        'COMPLETED',
-        '2025-08-05 14:00:00',
-        3,
-        'BANK_TRANSFER',
-        0
+        '0508252', 3, 1250000, 'COMPLETED', '2025-08-05 14:00:00', 3, 'BANK_TRANSFER', 0
     );
 INSERT INTO OrderItems (order_id, product_id, quantity, price)
-VALUES ('SS-20250805', 5, 1, 1200000);
+VALUES ('0508252', 5, 1, 1200000);
+
 -- Order 3
 INSERT INTO Orders (
-        id,
-        user_id,
-        total_amount,
-        status,
-        order_date,
-        address_id,
-        payment_method,
-        shipping_fee,
-        notes
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee, notes
     )
 VALUES (
-        'SS-20250810',
-        5,
-        420000,
-        'CANCELLED',
-        '2025-08-10 09:15:00',
-        5,
-        'COD',
-        30000,
-        'Khách hàng báo hủy'
+        '1008253', 5, 420000, 'CANCELLED', '2025-08-10 09:15:00', 5, 'COD', 30000, 'Khách hàng báo hủy'
     );
 INSERT INTO OrderItems (order_id, product_id, quantity, price)
-VALUES ('SS-20250810', 6, 1, 390000);
+VALUES ('1008253', 6, 1, 390000);
+
 -- ===== ĐƠN HÀNG THÁNG 09/2025 =====
 -- Order 4
 INSERT INTO Orders (
-        id,
-        user_id,
-        total_amount,
-        status,
-        order_date,
-        address_id,
-        payment_method,
-        shipping_fee
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee
     )
 VALUES (
-        'SS-20250902',
-        2,
-        1100000,
-        'COMPLETED',
-        '2025-09-02 11:20:00',
-        2,
-        'MOMO',
-        0
+        '0209254', 2, 1100000, 'COMPLETED', '2025-09-02 11:20:00', 2, 'MOMO', 0
     );
 INSERT INTO OrderItems (order_id, product_id, quantity, price)
-VALUES ('SS-20250902', 2, 1, 520000),
-    ('SS-20250902', 3, 1, 600000);
+VALUES ('0209254', 2, 1, 520000),
+       ('0209254', 3, 1, 600000);
+
 -- Order 5
 INSERT INTO Orders (
-        id,
-        user_id,
-        total_amount,
-        status,
-        order_date,
-        address_id,
-        payment_method,
-        shipping_fee
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee
     )
 VALUES (
-        'SS-20250915',
-        7,
-        1850000,
-        'COMPLETED',
-        '2025-09-15 18:00:00',
-        3,
-        'BANK_TRANSFER',
-        50000
+        '1509255', 7, 1850000, 'COMPLETED', '2025-09-15 18:00:00', 3, 'BANK_TRANSFER', 50000
     );
 INSERT INTO OrderItems (order_id, product_id, quantity, price)
-VALUES ('SS-20250915', 9, 1, 1800000);
+VALUES ('1509255', 9, 1, 1800000);
+
 -- Order 6
 INSERT INTO Orders (
-        id,
-        user_id,
-        total_amount,
-        status,
-        order_date,
-        address_id,
-        payment_method,
-        shipping_fee
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee
     )
 VALUES (
-        'SS-20250920',
-        8,
-        750000,
-        'COMPLETED',
-        '2025-09-20 16:45:00',
-        4,
-        'COD',
-        0
+        '2009256', 8, 750000, 'COMPLETED', '2025-09-20 16:45:00', 4, 'COD', 0
     );
 INSERT INTO OrderItems (order_id, product_id, quantity, price)
-VALUES ('SS-20250920', 4, 1, 750000);
+VALUES ('2009256', 4, 1, 750000);
+
 -- Order 7
 INSERT INTO Orders (
-        id,
-        user_id,
-        total_amount,
-        status,
-        order_date,
-        address_id,
-        payment_method,
-        shipping_fee
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee
     )
 VALUES (
-        'SS-20250928',
-        1,
-        870000,
-        'COMPLETED',
-        '2025-09-28 12:00:00',
-        1,
-        'MOMO',
-        20000
+        '2809257', 1, 870000, 'COMPLETED', '2025-09-28 12:00:00', 1, 'MOMO', 20000
     );
 INSERT INTO OrderItems (order_id, product_id, quantity, price)
-VALUES ('SS-20250928', 7, 1, 850000);
+VALUES ('2809257', 7, 1, 850000);
+
 -- ===== ĐƠN HÀNG THÁNG 10/2025 (THÁNG HIỆN TẠI) =====
 -- Order 8
 INSERT INTO Orders (
-        id,
-        user_id,
-        total_amount,
-        status,
-        order_date,
-        address_id,
-        payment_method,
-        shipping_fee,
-        notes
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee, notes
     )
 VALUES (
-        'SS-20251001',
-        10,
-        1520000,
-        'COMPLETED',
-        '2025-10-01 20:00:00',
-        1,
-        'COD',
-        20000,
-        'Tặng kèm thiệp chúc mừng'
+        '0110258', 10, 1520000, 'COMPLETED', '2025-10-01 20:00:00', 1, 'COD', 20000, 'Tặng kèm thiệp chúc mừng'
     );
 INSERT INTO OrderItems (order_id, product_id, quantity, price)
-VALUES ('SS-20251001', 8, 1, 1500000);
+VALUES ('0110258', 8, 1, 1500000);
+
 -- Order 9
 INSERT INTO Orders (
-        id,
-        user_id,
-        total_amount,
-        status,
-        order_date,
-        address_id,
-        payment_method,
-        shipping_fee
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee
     )
 VALUES (
-        'SS-20251005',
-        12,
-        970000,
-        'COMPLETED',
-        '2025-10-05 13:10:00',
-        4,
-        'BANK_TRANSFER',
-        20000
+        '0510259', 12, 970000, 'COMPLETED', '2025-10-05 13:10:00', 4, 'BANK_TRANSFER', 20000
     );
 INSERT INTO OrderItems (order_id, product_id, quantity, price)
-VALUES ('SS-20251005', 1, 1, 450000),
-    ('SS-20251005', 2, 1, 520000);
+VALUES ('0510259', 1, 1, 450000),
+       ('0510259', 2, 1, 520000);
+
 -- Order 10
 INSERT INTO Orders (
-        id,
-        user_id,
-        total_amount,
-        status,
-        order_date,
-        address_id,
-        payment_method,
-        shipping_fee
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee
     )
 VALUES (
-        'SS-20251010',
-        4,
-        1650000,
-        'SHIPPED',
-        '2025-10-10 08:00:00',
-        4,
-        'MOMO',
-        50000
+        '10102510', 4, 1650000, 'SHIPPED', '2025-10-10 08:00:00', 4, 'MOMO', 50000
     );
 INSERT INTO OrderItems (order_id, product_id, quantity, price)
-VALUES ('SS-20251010', 9, 1, 1600000);
+VALUES ('10102510', 9, 1, 1600000);
+
 -- Order 11
 INSERT INTO Orders (
-        id,
-        user_id,
-        total_amount,
-        status,
-        order_date,
-        address_id,
-        payment_method,
-        shipping_fee
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee
     )
 VALUES (
-        'SS-20251018',
-        6,
-        340000,
-        'SHIPPED',
-        '2025-10-18 17:00:00',
-        1,
-        'COD',
-        20000
+        '18102511', 6, 340000, 'SHIPPED', '2025-10-18 17:00:00', 1, 'COD', 20000
     );
 INSERT INTO OrderItems (order_id, product_id, quantity, price)
-VALUES ('SS-20251018', 10, 1, 320000);
+VALUES ('18102511', 10, 1, 320000);
+
 -- Order 12
 INSERT INTO Orders (
-        id,
-        user_id,
-        total_amount,
-        status,
-        order_date,
-        address_id,
-        payment_method,
-        shipping_fee,
-        notes
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee, notes
     )
 VALUES (
-        'SS-20251020',
-        1,
-        450000,
-        'PROCESSING',
-        '2025-10-20 09:45:00',
-        1,
-        'MOMO',
-        0,
-        'Giao trong giờ hành chính'
+        '20102512', 1, 450000, 'PROCESSING', '2025-10-20 09:45:00', 1, 'MOMO', 0, 'Giao trong giờ hành chính'
     );
 INSERT INTO OrderItems (order_id, product_id, quantity, price)
-VALUES ('SS-20251020', 1, 1, 450000);
+VALUES ('20102512', 1, 1, 450000);
+
 -- Order 13
 INSERT INTO Orders (
-        id,
-        user_id,
-        total_amount,
-        status,
-        order_date,
-        address_id,
-        payment_method,
-        shipping_fee
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee
     )
 VALUES (
-        'SS-20251021',
-        9,
-        710000,
-        'PENDING',
-        '2025-10-21 11:00:00',
-        5,
-        'COD',
-        30000
+        '21102513', 9, 710000, 'PENDING', '2025-10-21 11:00:00', 5, 'COD', 30000
     );
 INSERT INTO OrderItems (order_id, product_id, quantity, price)
-VALUES ('SS-20251021', 11, 1, 680000);
+VALUES ('21102513', 11, 1, 680000);
 COMMIT;
