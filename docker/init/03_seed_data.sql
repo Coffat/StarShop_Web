@@ -32,10 +32,12 @@ VALUES
 -- Danh mục sản phẩm dựa trên chủ đề
 INSERT INTO Catalogs(value,image, created_at, updated_at)
 VALUES
-('Tình yêu', 'https://images.pexels.com/photos/1382732/pexels-photo-1382732.jpeg', NOW() - INTERVAL '70 days',NULL),      -- id: 1
-('Khai trương', 'https://images.pexels.com/photos/3779035/pexels-photo-3779035.jpeg', NOW() - INTERVAL '70 days', NULL),   -- id: 2
-('Hoa cưới', 'https://images.pexels.com/photos/1391498/pexels-photo-1391498.jpeg', NOW() - INTERVAL '70 days', NULL),      -- id: 3
-('Đám tang', 'https://images.pexels.com/photos/1372137/pexels-photo-1372137.jpeg', NOW() - INTERVAL '70 days', NULL);      -- id: 4
+('Tình yêu', 'https://images.pexels.com/photos/66896/tulips-flowers-fish-eye-red-66896.jpeg', NOW() - INTERVAL '70 days',NULL),      -- id: 1
+('Trang trí', 'https://images.pexels.com/photos/32069314/pexels-photo-32069314.jpeg', NOW() - INTERVAL '70 days', NULL),   -- id: 2
+('Hoa cưới', 'https://media.istockphoto.com/id/929904308/vi/anh/b%C3%B3-hoa-tr%C3%AAn-b%C3%A3i-bi%E1%BB%83n.jpg?b=1&s=612x612&w=0&k=20&c=ZY5Ue05N97p7KanUmfPUxsnQyR71wUGQIu3YZq_Nl7s=', NOW() - INTERVAL '70 days', NULL),
+('Sinh nhật', 'https://images.pexels.com/photos/2072153/pexels-photo-2072153.jpeg', NOW() - INTERVAL '70 days', NULL),   -- id: 5
+('Chúc mừng', 'https://images.pexels.com/photos/5841240/pexels-photo-5841240.jpeg', NOW() - INTERVAL '70 days', NULL),  -- id: 6      -- id: 3
+('Đám tang', 'https://images.pexels.com/photos/8963916/pexels-photo-8963916.jpeg', NOW() - INTERVAL '70 days', NULL);      -- id: 4
 
 -- ========== 4) PRODUCTS ==========
 -- Thêm GHN shipping dimensions và catalog_id cho tất cả products
@@ -57,13 +59,20 @@ VALUES
 
 ('Vòng hoa chia buồn', 'Trang trọng, lịch sự, thể hiện sự tôn trọng và chia sẻ nỗi buồn. Thường được sử dụng trong các buổi lễ tang.', 1500000, 'https://images.pexels.com/photos/33327309/pexels-photo-33327309.jpeg', 10, 'ACTIVE', 3000, 80, 80, 20, 4, NOW() - INTERVAL '50 days', NOW() - INTERVAL '50 days'),
 
-('Hoa mừng khai trương', 'Kệ hoa chúc mừng, mang ý nghĩa thịnh vượng và thành công. Thích hợp cho các dịp khai trương cửa hàng, công ty.', 1800000, 'https://flowercorner.b-cdn.net/image/cache/catalog/products/August%202023/mon-qua-chuc-mung.jpg.webp', 8, 'ACTIVE', 5000, 100, 60, 150, 2, NOW() - INTERVAL '49 days', NOW() - INTERVAL '49 days'),
+('Hoa mừng khai trương', 'Kệ hoa chúc mừng, mang ý nghĩa thịnh vượng và thành công. Thích hợp cho các dịp khai trương cửa hàng, công ty.', 1800000, 'https://images.pexels.com/photos/2741479/pexels-photo-2741479.jpeg', 8, 'ACTIVE', 5000, 100, 60, 150, 2, NOW() - INTERVAL '49 days', NOW() - INTERVAL '49 days'),
 
 ('Hoa Lavender', 'Hoa lavender tím nhạt với hương thơm dịu nhẹ, có tác dụng thư giãn tinh thần. Thích hợp để trang trí phòng ngủ.', 320000, 'https://images.pexels.com/photos/29554274/pexels-photo-29554274.jpeg', 25, 'ACTIVE', 300, 40, 15, 25, 1, NOW() - INTERVAL '48 days', NOW() - INTERVAL '48 days'),
 
 ('Hoa Peony Hồng', 'Hoa peony hồng đậm đà, tượng trưng cho sự thịnh vượng và may mắn. Thường được chọn cho các dịp cưới hỏi.', 680000, 'https://images.pexels.com/photos/18881375/pexels-photo-18881375.jpeg', 18, 'ACTIVE', 700, 50, 25, 35, 1, NOW() - INTERVAL '47 days', NOW() - INTERVAL '47 days'),
 
-('Hoa Gerbera Cam', 'Hoa gerbera cam rực rỡ, mang năng lượng tích cực và niềm vui. Thích hợp để tặng trong các dịp vui mừng.', 420000, 'https://images.unsplash.com/photo-1597583995844-edce63cc1cb0?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Z2VyYmVyYXxlbnwwfHwwfHx8MA%3D%3D', 35, 'ACTIVE', 500, 45, 20, 30, 2, NOW() - INTERVAL '46 days', NOW() - INTERVAL '46 days');
+('Hoa Gerbera Cam', 'Hoa gerbera cam rực rỡ, mang năng lượng tích cực và niềm vui. Thích hợp để tặng trong các dịp vui mừng.', 420000, 'https://images.pexels.com/photos/34345125/pexels-photo-34345125.jpeg', 35, 'ACTIVE', 500, 45, 20, 30, 2, NOW() - INTERVAL '46 days', NOW() - INTERVAL '46 days'),
+('Bó hoa Hạnh Phúc', 'Bó hoa baby, cẩm chướng và hồng, tone màu rực rỡ, hoàn hảo cho một ngày sinh nhật vui vẻ.', 580000, 'https://images.pexels.com/photos/2232569/pexels-photo-2232569.jpeg', 30, 'ACTIVE', 850, 55, 25, 40, 5, NOW() - INTERVAL '45 days', NOW() - INTERVAL '45 days'),
+
+('Giỏ hoa Mặt Trời Nhỏ', 'Giỏ hoa hướng dương và cúc trắng, mang lại năng lượng tích cực và lời chúc sinh nhật ý nghĩa.', 650000, 'https://images.pexels.com/photos/23857345/pexels-photo-23857345.jpeg', 28, 'ACTIVE', 1300, 40, 30, 40, 5, NOW() - INTERVAL '44 days', NOW() - INTERVAL '44 days'),
+
+('Kệ hoa Thành Công', 'Kệ hoa đồng tiền và lan vũ nữ, thiết kế sang trọng để chúc mừng thành tựu, thăng chức.', 1600000, 'https://images.pexels.com/photos/8499569/pexels-photo-8499569.jpeg', 15, 'ACTIVE', 4500, 90, 50, 140, 6, NOW() - INTERVAL '43 days', NOW() - INTERVAL '43 days'),
+
+('Bình hoa Tươi Sáng', 'Bình hoa tulip và hồng vàng, tượng trưng cho sự khởi đầu mới và lời chúc may mắn.', 720000, 'https://images.pexels.com/photos/4790263/pexels-photo-4790263.jpeg', 22, 'ACTIVE', 1600, 30, 30, 50, 6, NOW() - INTERVAL '42 days', NOW() - INTERVAL '42 days');
 
 -- ========== 5) ADDRESSES ==========
 -- Thêm addresses cho users với GHN fields (mix OLD và NEW mode)

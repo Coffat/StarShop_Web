@@ -38,22 +38,25 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div
             th:if="${categories != null and not #lists.isEmpty(categories)}"
-            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"
+            class="grid grid-cols-3 gap-8"
           >
             <!-- Category Card -->
             <div
               th:each="category, iterStat : ${categories}"
-              class="group relative overflow-hidden rounded-lg shadow-soft hover:shadow-hover transition-all duration-300"
+              class="category-card group relative overflow-hidden rounded-lg shadow-soft hover:shadow-hover transition-all duration-300"
               th:attr="data-aos='fade-up', data-aos-delay=${iterStat.index * 100}"
             >
               <a
                 th:href="@{/products(categoryId=${category.id})}"
-                class="block"
+                class="block h-full"
               >
                 <img
                   th:src="${category.image != null ? category.image : '/images/placeholder.jpg'}"
                   class="category-card-image"
+                  alt="Hình ảnh danh mục sản phẩm"
+                  title="Hình ảnh danh mục sản phẩm"
                   th:alt="${category.value}"
+                  th:title="${category.value}"
                   loading="lazy"
                 />
                 <div

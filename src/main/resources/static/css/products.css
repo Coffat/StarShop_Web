@@ -1795,14 +1795,14 @@
 
 /* 2. Bắt buộc ảnh phải lấp đầy thẻ chứa */
 .category-card-image {
-    width: 100%;
-    height: 100%; /* Bắt buộc ảnh cao bằng thẻ chứa */
+    width: 100% !important;
+    height: 100% !important; /* Bắt buộc ảnh cao bằng thẻ chứa */
     display: block;
     transition: transform 0.3s ease;
 
     /* ---- DÒNG QUAN TRỌNG NHẤT ---- */
     /* Ảnh sẽ tự crop để vừa vặn mà không bị méo */
-    object-fit: cover; 
+    object-fit: cover !important; 
 }
 
 /* --- Các hiệu ứng hover có thể giữ nguyên --- */
