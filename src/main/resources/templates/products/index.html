@@ -173,15 +173,17 @@
                      class="product-card" 
                      th:data-product-id="${product.id}"
                      data-aos="fade-up" 
-                     data-aos-duration="600" 
-                     th:data-aos-delay="${iterStat.index * 100}">
+                     data-aos-duration="500" 
+                     th:data-aos-delay="${(iterStat.index % 8) * 80}">
                     <div class="product-image-container">
                         <a th:href="@{/products/{id}(id=${product.id})}" class="product-image-link">
                             <img th:src="${product.image != null ? product.image : '/images/products/default-flower.jpg'}" 
                                  th:alt="${product.name}" 
                                  th:title="${product.name}"
                                  class="product-image"
-                                 loading="lazy">
+                                 loading="lazy"
+                                 width="400"
+                                 height="400">
                         </a>
                         
                         <!-- Wishlist Button -->
@@ -307,73 +309,8 @@
     </nav>
 </th:block>
 
-<script>
-// Auto-submit form when any filter changes
-document.addEventListener('DOMContentLoaded', function() {
-    const filterForm = document.getElementById('filterForm');
-    const categoryFilter = document.getElementById('categoryFilter');
-    const sortSelect = document.getElementById('sortSelect');
-    const productsGrid = document.getElementById('productsGrid');
-
-    if (!filterForm) return;
-
-    // Function to show loading state
-    function showLoadingState() {
-        if (productsGrid) {
-            productsGrid.style.opacity = '0.6';
-            productsGrid.style.transition = 'opacity 0.3s';
-        }
-    }
-
-    // Auto-submit when category changes
-    if (categoryFilter) {
-        categoryFilter.addEventListener('change', function() {
-            showLoadingState();
-            filterForm.submit();
-        });
-    }
-
-    // Auto-submit when sort changes
-    if (sortSelect) {
-        sortSelect.addEventListener('change', function() {
-            showLoadingState();
-            filterForm.submit();
-        });
-    }
-});
-
-// View toggle functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const viewToggleButtons = document.querySelectorAll('.btn-view-toggle');
-    const productsGrid = document.getElementById('productsGrid');
-    
-    viewToggleButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const view = this.dataset.view;
-            
-            // Update active state
-            viewToggleButtons.forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Update grid class
-            if (view === 'list') {
-                productsGrid.classList.add('products-list-view');
-            } else {
-                productsGrid.classList.remove('products-list-view');
-            }
-            
-            // Save preference
-            localStorage.setItem('productsView', view);
-        });
-    });
-    
-    // Load saved view preference
-    const savedView = localStorage.getItem('productsView');
-    if (savedView === 'list') {
-        document.querySelector('[data-view="list"]').click();
-    }
-});
-</script>
+<!-- All JavaScript logic is handled in /js/products.js -->
+<!-- No inline scripts needed - AJAX filtering, view toggle, etc. are in products.js -->
 
 </body>
 </html>

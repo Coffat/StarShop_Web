@@ -27,74 +27,58 @@ const CONFIG = {
 
 // AOS (Animate On Scroll) initialization
 function initializeAOS() {
-    // Check if AOS is available
-    if (typeof AOS !== 'undefined') {
-        // Detect device capabilities
-        const isMobile = window.innerWidth < 768;
-        const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
-        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        
-        // Skip AOS if user prefers reduced motion
-        if (prefersReducedMotion) {
-            return;
-        }
-        
-        AOS.init({
-            // Global settings
-            duration: isMobile ? 600 : 800,   // Shorter duration on mobile
-            easing: 'ease-out-cubic',         // Smooth easing
-            once: false,                       // Animation happens only once
-            mirror: false,                    // Don't mirror animation on scroll up
-            anchorPlacement: 'top-bottom',    // When element triggers animation
+    // Wait for AOS library to load (lazy loaded in main.html)
+    const waitForAOS = setInterval(function() {
+        if (typeof AOS !== 'undefined') {
+            clearInterval(waitForAOS);
             
-            // Performance settings
-            disable: isMobile,                // Disable on mobile for better performance
-            startEvent: 'DOMContentLoaded',   // Event to start AOS
-            initClassName: 'aos-init',        // Class added after initialization
-            animatedClassName: 'aos-animate', // Class added on animation
-            useClassNames: false,             // Use data-aos-* as class names
-            disableMutationObserver: isMobile, // Disable on mobile for performance
-            debounceDelay: isMobile ? 100 : 50, // Longer debounce on mobile
-            throttleDelay: isMobile ? 150 : 99, // Longer throttle on mobile
+            // Detect device capabilities
+            const isMobile = window.innerWidth < 768;
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             
-            // Responsive settings
-            offset: isMobile ? 80 : 120,      // Smaller offset on mobile
-            delay: 0,                         // Delay before animation starts
-            anchor: null,                     // Anchor element for offset
-            placement: 'top-bottom',          // Placement of element
-        });
-        
-        // Only add event listeners if AOS is enabled
-        if (!isMobile) {
-            // Refresh AOS when new content is loaded
-            window.addEventListener('load', function() {
-                AOS.refresh();
+            // Skip AOS if user prefers reduced motion
+            if (prefersReducedMotion) {
+                return;
+            }
+            
+            AOS.init({
+                // Global settings - optimized for performance
+                duration: isMobile ? 400 : 600,   // Faster on mobile
+                easing: 'ease-out-cubic',         // Smooth natural easing
+                once: true,                       // Animation happens only once (better performance)
+                mirror: false,                    // Don't re-animate on scroll up
+                anchorPlacement: 'top-bottom',    // When element triggers animation
+                
+                // Performance settings
+                disable: false,                   // Don't disable, just simplify on mobile via CSS
+                startEvent: 'DOMContentLoaded',   
+                initClassName: 'aos-init',        
+                animatedClassName: 'aos-animate', 
+                useClassNames: false,             
+                disableMutationObserver: isMobile, // Disable observer on mobile
+                debounceDelay: isMobile ? 100 : 50, 
+                throttleDelay: isMobile ? 150 : 99, 
+                
+                // Responsive settings
+                offset: isMobile ? 50 : 100,      // Trigger earlier on mobile
+                delay: 0,                         
             });
             
-            // Refresh AOS on window resize with throttling
+            // Refresh AOS on window resize (throttled)
             let resizeTimeout;
             window.addEventListener('resize', function() {
                 clearTimeout(resizeTimeout);
                 resizeTimeout = setTimeout(function() {
-                    // Re-initialize AOS with new settings if screen size changes significantly
-                    const newIsMobile = window.innerWidth < 768;
-                    if (newIsMobile !== isMobile) {
-                        AOS.refresh();
-                    }
+                    AOS.refresh();
                 }, 250);
             });
-            
-            // Handle reduced motion preference changes
-            window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', function(e) {
-                if (e.matches) {
-                    AOS.refresh();
-                }
-            });
         }
-        
-    } else {
-        console.error('AOS library not loaded');
-    }
+    }, 100); // Check every 100ms
+    
+    // Safety timeout: stop checking after 5 seconds
+    setTimeout(function() {
+        clearInterval(waitForAOS);
+    }, 5000);
 }
 
 

@@ -107,21 +107,7 @@
     // View toggle functionality
     initializeViewToggle();
 
-    // Product actions - Event delegation for wishlist and cart
-    initializeProductActions();
-
-    // Tối ưu hóa hiệu ứng AOS cho lưới sản phẩm
-    const productCards = document.querySelectorAll(".product-card");
-    productCards.forEach((card, index) => {
-      // Gán độ trễ tăng dần cho mỗi sản phẩm (50ms, 100ms, 150ms...)
-      // Điều này giúp hiệu ứng xuất hiện nối tiếp nhau một cách mượt mà
-      card.setAttribute("data-aos-delay", (index % 10) * 100);
-    });
-  }
-  
-  function initializeProductActions() {
-    // Event delegation is handled by main.js
-    // No need to duplicate here - main.js already handles .btn-wishlist and .btn-add-to-cart
+    // Note: Product actions (wishlist, cart) are handled by main.js via event delegation
   }
 
   function initializeViewToggle() {
@@ -340,71 +326,156 @@
 
   function initializeSorting() {
     const sortSelect = document.getElementById("sortSelect");
+    const filterForm = document.getElementById("filterForm");
 
     if (!sortSelect) return;
 
+    // AJAX sorting on change
     sortSelect.addEventListener("change", function () {
       const value = this.value;
       changeSorting(value);
     });
+    
+    // AJAX filtering on form submit
+    if (filterForm) {
+      filterForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        await applyFiltersAjax();
+      });
+    }
+    
+    // Handle browser back/forward
+    window.addEventListener('popstate', function() {
+      location.reload();
+    });
   }
 
-  function changeSorting(value) {
-    const url = new URL(window.location);
+  async function changeSorting(value) {
+    const form = document.getElementById('filterForm');
+    if (!form) return;
+    
+    // Update sort value in form
+    const sortSelect = document.getElementById('sortSelect');
+    if (sortSelect) sortSelect.value = value;
+    
+    // Trigger AJAX filter
+    await applyFiltersAjax();
+  }
 
-    // Preserve categoryId and search if present
-    const categoryId = url.searchParams.get("categoryId");
-    const search = url.searchParams.get("search");
+  // AJAX filtering function
+  async function applyFiltersAjax() {
+    const form = document.getElementById('filterForm');
+    if (!form) return;
 
-    // Update URL parameters based on sort value
-    switch (value) {
-      case "newest":
-        url.searchParams.set("sort", "newest");
-        url.searchParams.delete("direction");
-        break;
-      case "oldest":
-        url.searchParams.set("sort", "oldest");
-        url.searchParams.delete("direction");
-        break;
-      case "name":
-        url.searchParams.set("sort", "name");
-        url.searchParams.set("direction", "asc");
-        break;
-      case "price-asc":
-        url.searchParams.set("sort", "price");
-        url.searchParams.set("direction", "asc");
-        break;
-      case "price-desc":
-        url.searchParams.set("sort", "price");
-        url.searchParams.set("direction", "desc");
-        break;
-    }
-
-    // Preserve categoryId
-    if (categoryId && categoryId !== "0" && categoryId !== "") {
-      url.searchParams.set("categoryId", categoryId);
-    } else {
-      url.searchParams.delete("categoryId");
-    }
-
-    // Preserve search
-    if (search && search.trim() !== "") {
-      url.searchParams.set("search", search.trim());
-    } else {
-      url.searchParams.delete("search");
-    }
-
-    // Reset to first page
-    url.searchParams.set("page", "0");
-
+    const formData = new FormData(form);
+    const params = new URLSearchParams(formData);
+    
     // Show loading state
-    const productsGrid = document.getElementById("productsGrid");
-    if (productsGrid) {
-      productsGrid.style.opacity = "0.6";
-    }
+    showLoadingState();
 
-    // Navigate to new URL
-    window.location.href = url.toString();
+    try {
+      // Fetch products with current filters
+      const response = await fetch(`/products?${params.toString()}`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+
+      if (!response.ok) throw new Error('Network response was not ok');
+
+      const html = await response.text();
+      
+      // Parse the HTML response
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      // Extract products grid
+      const newGrid = doc.getElementById('productsGrid');
+      const currentGrid = document.getElementById('productsGrid');
+      
+      if (newGrid && currentGrid) {
+        // Smooth transition
+        currentGrid.style.opacity = '0';
+        
+        setTimeout(() => {
+          currentGrid.innerHTML = newGrid.innerHTML;
+          currentGrid.style.opacity = '1';
+          
+          // Re-init wishlist buttons
+          initializeProductActions();
+          
+          // Add fade-in animation
+          document.querySelectorAll('.product-card').forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.05}s`;
+            card.classList.add('fade-in');
+          });
+        }, 300);
+      }
+      
+      // Update pagination if exists
+      const newPagination = doc.querySelector('.pagination-container');
+      const currentPagination = document.querySelector('.pagination-container');
+      if (newPagination && currentPagination) {
+        currentPagination.innerHTML = newPagination.innerHTML;
+      }
+      
+      // Update results info
+      const newResultsInfo = doc.querySelector('.text-center.text-sm.text-gray-600');
+      const currentResultsInfo = document.querySelector('.text-center.text-sm.text-gray-600');
+      if (newResultsInfo && currentResultsInfo) {
+        currentResultsInfo.innerHTML = newResultsInfo.innerHTML;
+      }
+
+      // Update URL without reload
+      const newUrl = `/products?${params.toString()}`;
+      history.pushState(null, '', newUrl);
+      
+      // Show success message
+      if (typeof showToast === 'function') {
+        showToast('Đã cập nhật kết quả', 'success');
+      }
+
+    } catch (error) {
+      console.error('Error filtering products:', error);
+      if (typeof showToast === 'function') {
+        showToast('Có lỗi xảy ra khi lọc sản phẩm', 'error');
+      }
+      // Fallback to page reload
+      form.submit();
+    } finally {
+      hideLoadingState();
+    }
+  }
+
+  // Show skeleton loading
+  function showLoadingState() {
+    const grid = document.getElementById('productsGrid');
+    if (!grid) return;
+    
+    grid.classList.add('loading');
+    
+    // Create skeleton cards
+    const skeletonHTML = Array(12).fill(0).map(() => `
+      <div class="skeleton-card">
+        <div class="skeleton-image"></div>
+        <div class="skeleton-content">
+          <div class="skeleton-title"></div>
+          <div class="skeleton-text"></div>
+          <div class="skeleton-text" style="width: 60%;"></div>
+          <div class="skeleton-price" style="margin-top: 1rem;"></div>
+        </div>
+      </div>
+    `).join('');
+    
+    grid.innerHTML = skeletonHTML;
+  }
+
+  // Hide loading state
+  function hideLoadingState() {
+    const grid = document.getElementById('productsGrid');
+    if (grid) {
+      grid.classList.remove('loading');
+    }
   }
 
   // ================================
@@ -488,12 +559,6 @@
     // Initialize page-specific functionality
     if (document.querySelector(".products-section")) {
       // Products listing page
-
-      // Test toast notification
-      setTimeout(() => {
-        showToast("Products.js loaded successfully!", "success");
-      }, 1000);
-
       initializeProductGrid();
     }
 
@@ -505,230 +570,8 @@
     // Products page initialized successfully
   }
 
-  // (Wishlist toggle logic handled by main.js)
-
-// ================================
-// ERROR HANDLING
-// ================================
-
-function initializeErrorHandling() {
-// Global error handler for AJAX requests
-window.addEventListener("unhandledrejection", function (event) {
-  showToast("Đã xảy ra lỗi. Vui lòng thử lại sau.", "error");
-});
-
-// Network error detection
-window.addEventListener("online", function () {
-  showToast("Kết nối internet đã được khôi phục");
-});
-
-window.addEventListener("offline", function () {
-  showToast("Mất kết nối internet", "error");
-});
-}
-
-// ================================
-// INITIALIZATION
-// ================================
-
-function initialize() {
-// Check if we're on a products page
-const isProductsPage =
-  document.querySelector(".products-section") ||
-  document.querySelector(".product-detail-section");
-
-if (!isProductsPage) {
-  return;
-}
-
-// Initialize common functionality
-initializeErrorHandling();
-initializePerformanceOptimizations();
-initializeSearch();
-initializeSorting();
-
-// Initialize page-specific functionality
-if (document.querySelector(".products-section")) {
-  // Products listing page
-
-  // Test toast notification
-  setTimeout(() => {
-    showToast("Products.js loaded successfully!", "success");
-  }, 1000);
-
-  initializeProductGrid();
-}
-
-if (document.querySelector(".product-detail-section")) {
-  // Product detail page
-  initializeProductDetail();
-}
-
-// Products page initialized successfully
-}
-
-// ================================
-// WISHLIST FUNCTIONALITY
-// ================================
-
-function handleWishlistToggle(button) {
-const productId = button.dataset.productId;
-  
-if (!productId) {
-  showToast('Không thể thêm sản phẩm vào danh sách yêu thích', 'error');
-  return;
-}
-  
-// Disable button to prevent multiple clicks
-button.disabled = true;
-const icon = button.querySelector('i');
-const originalIconClass = icon ? icon.className : '';
-  
-// Show loading state
-if (icon) {
-  icon.className = 'fa-solid fa-spinner fa-spin';
-}
-  
-// Get CSRF token
-const csrfToken = getCsrfToken();
-const csrfHeaderElement = document.querySelector('meta[name="_csrf_header"]');
-const csrfHeader = csrfHeaderElement ? csrfHeaderElement.getAttribute('content') : 'X-CSRF-TOKEN';
-  
-const headers = {
-  'Content-Type': 'application/json',
-  'X-Requested-With': 'XMLHttpRequest'
-};
-  
-if (csrfToken && csrfHeader) {
-  headers[csrfHeader] = csrfToken;
-}
-  
-// API call to toggle wishlist
-fetch('/api/wishlist/toggle', {
-  method: 'POST',
-  headers: headers,
-  credentials: 'same-origin',
-  body: JSON.stringify({ productId: parseInt(productId) })
-})
-.then(response => {
-  if (response.status === 401) {
-    showToast('Vui lòng đăng nhập để sử dụng tính năng yêu thích', 'warning');
-    if (icon) icon.className = originalIconClass;
-    button.disabled = false;
-    return null;
-  }
-  
-  if (response.status === 403) {
-    showToast('Lỗi bảo mật: Vui lòng refresh trang và thử lại', 'error');
-    if (icon) icon.className = originalIconClass;
-    button.disabled = false;
-    return null;
-  }
-  
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-  }
-  
-  return response.json();
-})
-.then(data => {
-  if (!data) return;
-  
-  // Process wishlist response
-  
-  if (data && data.success && data.data && data.data.success) {
-    // Update UI based on server response
-    const isInWishlist = data.data.isFavorite || data.data.isInWishlist;
-    
-    if (isInWishlist) {
-      button.classList.add('active');
-      if (icon) icon.className = 'fa-solid fa-heart';
-      showToast('Đã thêm vào danh sách yêu thích', 'success');
-    } else {
-      button.classList.remove('active');
-      if (icon) icon.className = 'fa-regular fa-heart';
-      showToast('Đã xóa khỏi danh sách yêu thích', 'success');
-    }
-    
-    // Update wishlist count in header - ALWAYS update
-    // Process API response data
-    
-    // Try to get count from response
-    let wishlistCount = data.data.userWishlistCount || data.data.favoriteCount || data.data.wishlistCount;
-    // Update wishlist count
-    
-    // If no count in response, fetch it
-    if (wishlistCount === undefined || wishlistCount === null) {
-      // No wishlist count in toggle response, fetching from API
-      fetchAndUpdateWishlistCount();
-    } else {
-      // Update count immediately
-      // Update wishlist count
-      if (typeof window.updateWishlistCount === 'function') {
-        window.updateWishlistCount(wishlistCount);
-        // updateWishlistCount called successfully
-      }
-      return null;
-    }
-  }})
-  .then(data => {
-      if (!data) return;
-      
-      // Process wishlist response
-      
-      if (data && data.success && data.data && data.data.success) {
-        // Update UI based on server response
-        const isInWishlist = data.data.isFavorite || data.data.isInWishlist;
-        
-        if (isInWishlist) {
-          button.classList.add('active');
-          if (icon) icon.className = 'fa-solid fa-heart';
-          showToast('Đã thêm vào danh sách yêu thích', 'success');
-        } else {
-          button.classList.remove('active');
-          if (icon) icon.className = 'fa-regular fa-heart';
-          showToast('Đã xóa khỏi danh sách yêu thích', 'success');
-        }
-        
-        // Update wishlist count in header - ALWAYS update
-        // Process API response data
-        
-        // Try to get count from response
-        let wishlistCount = data.data.userWishlistCount || data.data.favoriteCount || data.data.wishlistCount;
-        // Update wishlist count
-        
-        // If no count in response, fetch it
-        if (wishlistCount === undefined || wishlistCount === null) {
-          // No wishlist count in toggle response, fetching from API
-          fetchAndUpdateWishlistCount();
-        } else {
-          // Update count immediately
-          // Update wishlist count
-          if (typeof window.updateWishlistCount === 'function') {
-            window.updateWishlistCount(wishlistCount);
-            // updateWishlistCount called successfully
-          } else {
-            // updateWishlistCount function not found
-            // Try direct update as fallback
-            updateWishlistCountDirect(wishlistCount);
-          }
-        }
-      } else {
-        if (icon) icon.className = originalIconClass;
-        const errorMessage = (data && data.error) || (data && data.data && data.data.message) || 'Có lỗi xảy ra';
-        showToast(errorMessage, 'error');
-        // Wishlist error
-      }
-    })
-    .catch(error => {
-      // Error toggling wishlist
-      if (icon) icon.className = originalIconClass;
-      showToast('Có lỗi xảy ra khi thực hiện yêu cầu', 'error');
-    })
-    .finally(() => {
-      button.disabled = false;
-    });
-  }
+  // Wishlist functionality is handled by main.js via event delegation
+  // No duplicate code needed here
 
   // ================================
   // GLOBAL FUNCTIONS (for inline handlers)
