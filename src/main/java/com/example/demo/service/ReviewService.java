@@ -282,11 +282,48 @@ public class ReviewService {
     }
 
     /**
-     * Get all reviews with pagination (Admin)
+     * Get all reviews with pagination and filters (Admin)
      */
-    public Page<Review> getAllReviews(Pageable pageable) {
-        log.debug("Getting all reviews with pagination: {}", pageable);
-        return reviewRepository.findAllByOrderByCreatedAtDesc(pageable);
+    public Page<Review> getAllReviews(Pageable pageable, Integer rating, String search, String sentiment, String status) {
+        log.debug("Getting all reviews with pagination: {}, rating: {}, search: {}, sentiment: {}, status: {}", 
+                  pageable, rating, search, sentiment, status);
+        
+        // If no filters, use the simple query
+        if (rating == null && (search == null || search.trim().isEmpty()) && 
+            (sentiment == null || sentiment.trim().isEmpty()) && (status == null || status.trim().isEmpty())) {
+            return reviewRepository.findAllByOrderByCreatedAtDesc(pageable);
+        }
+        
+        // Use filtered query
+        return reviewRepository.findAllWithFilters(rating, search, sentiment, status, pageable);
+    }
+    
+    /**
+     * Get review statistics (Admin)
+     */
+    public java.util.Map<String, Object> getReviewStatistics() {
+        log.debug("Getting review statistics");
+        
+        java.util.Map<String, Object> statistics = new java.util.HashMap<>();
+        
+        // Total reviews
+        long totalReviews = reviewRepository.count();
+        statistics.put("totalReviews", totalReviews);
+        
+        // Average rating
+        Double averageRating = reviewRepository.getAverageRating();
+        statistics.put("averageRating", averageRating != null ? averageRating : 0.0);
+        
+        // 5 star reviews
+        Long fiveStarReviews = reviewRepository.countByRating(5);
+        statistics.put("fiveStarReviews", fiveStarReviews != null ? fiveStarReviews : 0L);
+        
+        // Today's reviews
+        LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+        Long todayReviews = reviewRepository.countByCreatedAtAfter(startOfDay);
+        statistics.put("todayReviews", todayReviews != null ? todayReviews : 0L);
+        
+        return statistics;
     }
 
     /**

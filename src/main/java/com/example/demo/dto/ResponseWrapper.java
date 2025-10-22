@@ -16,6 +16,7 @@ public class ResponseWrapper<T> {
     private T data;
     private String error;
     private String message;
+    private Boolean success;
     
     /**
      * Constructor with data and message (convenience constructor)
@@ -24,6 +25,7 @@ public class ResponseWrapper<T> {
         this.data = data;
         this.error = null;
         this.message = message;
+        this.success = true;
     }
     
     /**
@@ -32,7 +34,7 @@ public class ResponseWrapper<T> {
      * @return ResponseWrapper with data and null error
      */
     public static <T> ResponseWrapper<T> success(T data) {
-        return new ResponseWrapper<>(data, null, null);
+        return new ResponseWrapper<>(data, null, null, true);
     }
     
     /**
@@ -42,7 +44,7 @@ public class ResponseWrapper<T> {
      * @return ResponseWrapper with data and message
      */
     public static <T> ResponseWrapper<T> success(T data, String message) {
-        return new ResponseWrapper<>(data, null, message);
+        return new ResponseWrapper<>(data, null, message, true);
     }
     
     /**
@@ -51,6 +53,6 @@ public class ResponseWrapper<T> {
      * @return ResponseWrapper with null data and error message
      */
     public static <T> ResponseWrapper<T> error(String error) {
-        return new ResponseWrapper<>(null, error, null);
+        return new ResponseWrapper<>(null, error, null, false);
     }
 }
