@@ -392,7 +392,7 @@ async function loadReviews() {
         const response = await fetch(url);
         const data = await response.json();
         
-        if (data.success && data.data.content.length > 0) {
+        if (data.success && data.data.content && data.data.content.length > 0) {
             renderReviewsTable(data.data);
             renderPagination(data.data);
             reviewsTable.style.display = 'block';
@@ -420,18 +420,17 @@ function renderReviewsTable(reviewsPage) {
                 <div class="flex items-center">
                     <div class="flex-shrink-0 h-10 w-10">
                         <div class="h-10 w-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center">
-                            <span class="text-sm font-medium text-white">${review.user.firstname.charAt(0).toUpperCase()}</span>
+                            <span class="text-sm font-medium text-white">${review.userName ? review.userName.charAt(0).toUpperCase() : 'U'}</span>
                         </div>
                     </div>
                     <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-900">${review.user.firstname} ${review.user.lastname}</div>
-                        <div class="text-sm text-gray-500">${review.user.email}</div>
+                        <div class="text-sm font-medium text-gray-900">${review.userName || 'Unknown'}</div>
                     </div>
                 </div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">${review.product.name}</div>
-                <div class="text-sm text-gray-500">ID: ${review.product.id}</div>
+                <div class="text-sm font-medium text-gray-900">${review.productName || 'Unknown'}</div>
+                <div class="text-sm text-gray-500">ID: ${review.productId || 'N/A'}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
@@ -472,9 +471,9 @@ function renderReviewsTable(reviewsPage) {
                 <div class="text-xs">${formatTime(review.createdAt)}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${review.orderItem ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
-                    <i class="fas ${review.orderItem ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-1"></i>
-                    ${review.orderItem ? 'Đã xác minh' : 'Chưa xác minh'}
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${review.verified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                    <i class="fas ${review.verified ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-1"></i>
+                    ${review.verified ? 'Đã xác minh' : 'Chưa xác minh'}
                 </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
