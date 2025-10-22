@@ -13,19 +13,27 @@
     transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Optimize AOS performance on mobile */
+/* Optimize AOS performance on mobile - Simplify, don't disable */
 @media (max-width: 767px) {
     [data-aos] {
-        /* Disable animations on mobile for better performance */
-        transition: none !important;
-        animation: none !important;
-        transform: none !important;
-        opacity: 1 !important;
+        /* Faster, simpler animations on mobile */
+        transition-duration: 300ms !important;
+        animation-duration: 300ms !important;
     }
     
-    /* Ensure elements are visible on mobile */
-    [data-aos].aos-animate {
-        opacity: 1 !important;
+    /* Reduce transform distance for smoother mobile experience */
+    [data-aos="fade-up"] {
+        transform: translate3d(0, 15px, 0) !important; /* Reduced from 30px */
+    }
+    
+    [data-aos="fade-up"].aos-animate {
+        transform: translate3d(0, 0, 0) !important;
+    }
+    
+    /* Disable complex animations on mobile */
+    [data-aos="zoom-in"],
+    [data-aos="flip-left"],
+    [data-aos="flip-right"] {
         transform: none !important;
     }
 }

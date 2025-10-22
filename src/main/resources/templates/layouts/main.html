@@ -34,6 +34,17 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
     
+    <!-- DNS Prefetch & Preconnect for faster CDN loading -->
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -78,12 +89,13 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <!-- AOS - Animate On Scroll Library -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- AOS CSS will be lazy loaded by script below -->
     
     <!-- Google Fonts - Roboto -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Preload critical font for faster rendering -->
+    <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxK.woff2" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
     
     <!-- Main CSS -->
@@ -156,11 +168,26 @@
     <!-- Alpine.js for interactive components -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
-    <!-- AOS - Animate On Scroll Library -->
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <!-- Main JavaScript - Defer to prevent blocking -->
+    <script defer src="/js/main.js"></script>
     
-    <!-- Main JavaScript -->
-    <script src="/js/main.js"></script>
+    <!-- AOS - Lazy load library only, initialization handled by main.js -->
+    <script>
+        // Lazy load AOS library when elements with data-aos exist
+        window.addEventListener('DOMContentLoaded', function() {
+            if (document.querySelector('[data-aos]')) {
+                const aosLink = document.createElement('link');
+                aosLink.rel = 'stylesheet';
+                aosLink.href = 'https://unpkg.com/aos@2.3.1/dist/aos.css';
+                document.head.appendChild(aosLink);
+                
+                const aosScript = document.createElement('script');
+                aosScript.src = 'https://unpkg.com/aos@2.3.1/dist/aos.js';
+                // Note: AOS.init() is called by main.js after library loads
+                document.body.appendChild(aosScript);
+            }
+        });
+    </script>
     
     <!-- Language Switcher JS -->
     <script src="/js/language-switcher.js"></script>
@@ -173,9 +200,24 @@
     <!-- Chat Widget for Customer Support -->
     <div th:replace="~{fragments/chat-bubble :: chat-widget}"></div>
 
-    <!-- SockJS & STOMP for WebSocket (for chat widget) -->
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <!-- SockJS & STOMP - Lazy load only when chat widget exists -->
+    <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            const chatWidget = document.querySelector('.chat-widget, #chatWidget, [data-chat-widget]');
+            if (chatWidget) {
+                // Load SockJS
+                const sockjsScript = document.createElement('script');
+                sockjsScript.src = 'https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js';
+                sockjsScript.onload = function() {
+                    // Load STOMP after SockJS
+                    const stompScript = document.createElement('script');
+                    stompScript.src = 'https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js';
+                    document.body.appendChild(stompScript);
+                };
+                document.body.appendChild(sockjsScript);
+            }
+        });
+    </script>
 
     <!-- Chat CSS -->
     <link rel="stylesheet" th:href="@{/css/chat.css}">
