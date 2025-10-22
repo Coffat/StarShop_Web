@@ -46,7 +46,15 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     
     /**
      * Find all reviews ordered by creation date descending (for admin)
+     * Using LEFT JOIN FETCH to eagerly load related entities
      */
+    @Query(value = "SELECT DISTINCT r FROM Review r " +
+           "LEFT JOIN FETCH r.user " +
+           "LEFT JOIN FETCH r.product " +
+           "LEFT JOIN FETCH r.orderItem " +
+           "LEFT JOIN FETCH r.adminResponseBy " +
+           "ORDER BY r.createdAt DESC",
+           countQuery = "SELECT COUNT(r) FROM Review r")
     Page<Review> findAllByOrderByCreatedAtDesc(Pageable pageable);
     
     /**
@@ -60,4 +68,52 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
      */
     @Query("SELECT COUNT(r) FROM Review r WHERE r.createdAt >= :date")
     Long countByCreatedAtAfter(@Param("date") java.time.LocalDateTime date);
+    
+    /**
+     * Get average rating for all reviews
+     */
+    @Query("SELECT AVG(r.rating) FROM Review r")
+    Double getAverageRating();
+    
+    /**
+     * Count reviews by rating
+     */
+    @Query("SELECT COUNT(r) FROM Review r WHERE r.rating = :rating")
+    Long countByRating(@Param("rating") Integer rating);
+    
+    /**
+     * Find all reviews with filters (Admin)
+     */
+    @Query(value = "SELECT DISTINCT r FROM Review r " +
+           "LEFT JOIN FETCH r.user u " +
+           "LEFT JOIN FETCH r.product p " +
+           "LEFT JOIN FETCH r.orderItem oi " +
+           "LEFT JOIN FETCH r.adminResponseBy arb " +
+           "WHERE (:rating IS NULL OR r.rating = :rating) " +
+           "AND (:search IS NULL OR :search = '' OR " +
+           "     LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "     LOWER(u.firstname) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "     LOWER(u.lastname) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "AND (:sentiment IS NULL OR :sentiment = '' OR r.sentiment = :sentiment) " +
+           "AND (:status IS NULL OR :status = '' OR " +
+           "     (:status = 'verified' AND r.orderItem IS NOT NULL) OR " +
+           "     (:status = 'unverified' AND r.orderItem IS NULL)) " +
+           "ORDER BY r.createdAt DESC",
+           countQuery = "SELECT COUNT(r) FROM Review r " +
+           "LEFT JOIN r.user u " +
+           "LEFT JOIN r.product p " +
+           "WHERE (:rating IS NULL OR r.rating = :rating) " +
+           "AND (:search IS NULL OR :search = '' OR " +
+           "     LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "     LOWER(u.firstname) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "     LOWER(u.lastname) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "AND (:sentiment IS NULL OR :sentiment = '' OR r.sentiment = :sentiment) " +
+           "AND (:status IS NULL OR :status = '' OR " +
+           "     (:status = 'verified' AND r.orderItem IS NOT NULL) OR " +
+           "     (:status = 'unverified' AND r.orderItem IS NULL))")
+    Page<Review> findAllWithFilters(@Param("rating") Integer rating,
+                                     @Param("search") String search,
+                                     @Param("sentiment") String sentiment,
+                                     @Param("status") String status,
+                                     Pageable pageable);
 }

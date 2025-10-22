@@ -56,7 +56,7 @@ public class AdminReviewController {
         @ApiResponse(responseCode = "200", description = "Lấy danh sách thành công"),
         @ApiResponse(responseCode = "403", description = "Không có quyền truy cập")
     })
-    public ResponseEntity<ResponseWrapper<Page<Review>>> getAllReviews(
+    public ResponseEntity<ResponseWrapper<Page<ReviewResponse>>> getAllReviews(
             @Parameter(description = "Số trang (bắt đầu từ 0)", example = "0")
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Số đánh giá mỗi trang", example = "20")
@@ -65,18 +65,25 @@ public class AdminReviewController {
             @RequestParam(required = false) Integer rating,
             @Parameter(description = "Tìm kiếm theo tên sản phẩm hoặc người dùng", example = "hoa hồng")
             @RequestParam(required = false) String search,
+            @Parameter(description = "Lọc theo sentiment", example = "POSITIVE")
+            @RequestParam(required = false) String sentiment,
+            @Parameter(description = "Lọc theo trạng thái", example = "verified")
+            @RequestParam(required = false) String status,
             Authentication authentication) {
         
         try {
-            log.info("Admin {} getting all reviews with pagination: page={}, size={}, rating={}, search={}", 
-                    authentication.getName(), page, size, rating, search);
+            log.info("Admin {} getting all reviews with pagination: page={}, size={}, rating={}, search={}, sentiment={}, status={}", 
+                    authentication.getName(), page, size, rating, search, sentiment, status);
             
             Pageable pageable = PageRequest.of(page, size);
             
-            // Get all reviews with pagination
-            Page<Review> reviewsPage = reviewService.getAllReviews(pageable);
+            // Get all reviews with pagination and filters
+            Page<Review> reviewsPage = reviewService.getAllReviews(pageable, rating, search, sentiment, status);
             
-            return ResponseEntity.ok(ResponseWrapper.success(reviewsPage));
+            // Convert to DTO to avoid lazy loading issues
+            Page<ReviewResponse> responsePage = reviewsPage.map(review -> new ReviewResponse(review, false));
+            
+            return ResponseEntity.ok(ResponseWrapper.success(responsePage));
             
         } catch (Exception e) {
             log.error("Error getting all reviews: {}", e.getMessage(), e);
@@ -138,12 +145,7 @@ public class AdminReviewController {
         try {
             log.info("Admin {} getting review statistics", authentication.getName());
             
-            // For now, return basic statistics
-            // In the future, we can add more detailed statistics
-            java.util.Map<String, Object> statistics = new java.util.HashMap<>();
-            statistics.put("totalReviews", 0L); // This would need to be implemented
-            statistics.put("averageRating", 0.0); // This would need to be implemented
-            statistics.put("ratingDistribution", new java.util.HashMap<>()); // This would need to be implemented
+            java.util.Map<String, Object> statistics = reviewService.getReviewStatistics();
             
             return ResponseEntity.ok(ResponseWrapper.success(statistics));
             
