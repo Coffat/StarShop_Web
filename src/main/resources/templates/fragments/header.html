@@ -3,27 +3,7 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security" 
       lang="vi">
 
-<script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v3.x.x/dist/cdn.min.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-    tailwind.config = {
-        theme: {
-            extend: {
-                colors: {
-                    primary: '#F06292', // A vibrant pink/rose color
-                    'primary-dark': '#E91E63',
-                    'primary-hover': '#EC407A',
-                    'primary-light': '#FFC1E3',
-                    secondary: '#81C784',
-                },
-                boxShadow: {
-                    soft: '0 4px 10px rgba(240, 98, 146, 0.1)',
-                    hover: '0 6px 15px rgba(240, 98, 146, 0.2)',
-                }
-            }
-        }
-    }
-</script>
+<!-- Tailwind CSS và Alpine.js đã được import trong layout -->
 
 <div th:fragment="header" 
      class="sticky top-0 z-50 bg-white shadow-sm border-b border-primary/10" 
