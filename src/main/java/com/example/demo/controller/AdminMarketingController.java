@@ -5,6 +5,7 @@ import com.example.demo.dto.MarketingCampaignRequest;
 import com.example.demo.dto.VoucherDTO;
 import com.example.demo.entity.User;
 import com.example.demo.entity.enums.DiscountType;
+import com.example.demo.entity.enums.UserRole;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.AiPromptService;
 import com.example.demo.service.CustomerSegmentationService;
@@ -20,9 +21,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Tag(name = "📢 Admin Marketing", description = "Marketing campaigns & customer segmentation APIs")
 @RestController
@@ -57,8 +61,9 @@ public class AdminMarketingController {
         try {
             log.info("📧 Bắt đầu chiến dịch marketing cho segment: {}", request.getSegment());
             
-            // 1. Lấy danh sách khách hàng theo segment
-            List<User> customers = userRepository.findByCustomerSegment(request.getSegment());
+            // 1. Lấy danh sách khách hàng theo segment (real-time calculation)
+            List<User> allCustomers = userRepository.findByRole(UserRole.CUSTOMER);
+            List<User> customers = filterCustomersBySegment(allCustomers, request.getSegment());
             
             if (customers.isEmpty()) {
                 return ResponseEntity.ok(Map.of(
@@ -79,31 +84,37 @@ public class AdminMarketingController {
             VoucherDTO voucher = voucherService.createVoucher(voucherReq);
             log.info("✅ Voucher created: {}", voucher.getCode());
             
-            // 3. Gửi email cho từng khách
+            // 3. Generate subject based on segment
+            String subject = switch (request.getSegment()) {
+                case "VIP" -> "👑 Tri ân Khách hàng VIP - Ưu đãi độc quyền dành cho bạn!";
+                case "NEW" -> "🎉 Chào mừng bạn đến với StarShop - Quà tặng đặc biệt!";
+                case "AT_RISK" -> "💐 Chúng tôi nhớ bạn! Quay lại và nhận ưu đãi hấp dẫn";
+                default -> "🌸 " + request.getCampaignName() + " - Ưu đãi đặc biệt từ StarShop";
+            };
+            
+            // 4. Gửi email cho từng khách với template đẹp
             int successCount = 0;
             int failCount = 0;
             
             for (User customer : customers) {
                 try {
-                    // Generate email content với AI
-                    Map<String, String> emailContent = aiPromptService.generateMarketingEmail(
+                    // Build beautiful HTML email template
+                    String htmlBody = emailService.buildMarketingEmailTemplate(
                         request.getSegment(),
                         customer.getFirstname(),
                         voucher.getCode(),
-                        voucher.getExpiryDate().toString()
+                        voucher.getExpiryDate().toString(),
+                        request.getCampaignName(),
+                        request.getDiscountValue().intValue(),
+                        request.getDiscountType()
                     );
                     
-                    // Thay thế placeholders
-                    String body = emailContent.get("body")
-                        .replace("{{name}}", customer.getFirstname())
-                        .replace("{{voucher}}", voucher.getCode())
-                        .replace("{{expiry}}", voucher.getExpiryDate().toString());
-                    
+                    // Send email
                     emailService.sendMarketingEmail(
                         customer.getEmail(),
                         customer.getFirstname(),
-                        emailContent.get("subject"),
-                        body
+                        subject,
+                        htmlBody
                     );
                     
                     successCount++;
@@ -199,5 +210,59 @@ public class AdminMarketingController {
                 "message", "Lỗi: " + e.getMessage()
             ));
         }
+    }
+    
+    /**
+     * Filter customers by segment using real-time calculation
+     * VIP: >10 orders OR total spent > 10,000,000 VND
+     * NEW: Registered within last 30 days
+     * AT_RISK: Has orders but no orders in last 90 days
+     */
+    private List<User> filterCustomersBySegment(List<User> customers, String segment) {
+        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+        LocalDateTime ninetyDaysAgo = LocalDateTime.now().minusDays(90);
+        BigDecimal vipThreshold = new BigDecimal("10000000"); // 10 million VND
+        
+        return customers.stream()
+            .filter(customer -> {
+                try {
+                    switch (segment) {
+                        case "VIP":
+                            // VIP: High-value customers
+                            if (customer.getOrders() == null) return false;
+                            if (customer.getOrders().size() > 10) return true;
+                            
+                            BigDecimal totalSpent = customer.getOrders().stream()
+                                .map(order -> order.getTotalAmount())
+                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                            return totalSpent.compareTo(vipThreshold) > 0;
+                            
+                        case "NEW":
+                            // NEW: Recently registered
+                            return customer.getCreatedAt() != null && 
+                                   customer.getCreatedAt().isAfter(thirtyDaysAgo);
+                            
+                        case "AT_RISK":
+                            // AT_RISK: Has orders but inactive
+                            if (customer.getOrders() == null || customer.getOrders().isEmpty()) {
+                                return false;
+                            }
+                            
+                            LocalDateTime lastOrderDate = customer.getOrders().stream()
+                                .map(order -> order.getOrderDate())
+                                .max(LocalDateTime::compareTo)
+                                .orElse(null);
+                            
+                            return lastOrderDate != null && lastOrderDate.isBefore(ninetyDaysAgo);
+                            
+                        default:
+                            return false;
+                    }
+                } catch (Exception e) {
+                    log.warn("Error filtering customer {}: {}", customer.getId(), e.getMessage());
+                    return false;
+                }
+            })
+            .collect(Collectors.toList());
     }
 }

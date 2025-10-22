@@ -252,6 +252,27 @@ public class AdminUserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
+    
+    /**
+     * Get AI customer segment statistics
+     */
+    @Operation(summary = "Get segment stats", description = "Get customer counts by AI-generated segments (VIP, NEW, AT_RISK)")
+    @GetMapping("/segment-stats")
+    public ResponseEntity<Map<String, Object>> getSegmentStats() {
+        try {
+            Map<String, Object> segmentStats = customerService.getSegmentStats();
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("stats", segmentStats);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error getting segment stats", e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Lỗi khi lấy thống kê phân khúc: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
     /**
      * Export users (customers) to Excel
      */

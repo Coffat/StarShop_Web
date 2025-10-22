@@ -146,9 +146,32 @@ public class AdminProductAiService {
      */
     private String cleanAiResponse(String response) {
         try {
-            // Try to parse as JSON first
-            if (response.trim().startsWith("{")) {
-                // It's JSON, try to extract product_description
+            String trimmed = response.trim();
+            
+            // Case 1: JSON array - e.g. ["text content"]
+            if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+                log.debug("Detected JSON array response, extracting text");
+                
+                // Remove outer brackets and quotes
+                String content = trimmed.substring(1, trimmed.length() - 1).trim();
+                
+                // If it starts and ends with quotes, remove them
+                if (content.startsWith("\"") && content.endsWith("\"")) {
+                    content = content.substring(1, content.length() - 1);
+                }
+                
+                // Unescape JSON escapes
+                content = content.replaceAll("\\\\n", "\n")
+                                .replaceAll("\\\\\"", "\"")
+                                .replaceAll("\\\\\\\\", "\\\\");
+                
+                return content.trim();
+            }
+            
+            // Case 2: JSON object - e.g. {"product_description": "text"}
+            if (trimmed.startsWith("{")) {
+                log.debug("Detected JSON object response, extracting product_description field");
+                
                 response = response.replaceAll("\\\\n", "\n")
                                  .replaceAll("\\\\\"", "\"");
                 
@@ -162,7 +185,7 @@ public class AdminProductAiService {
                 }
             }
             
-            // If not JSON or extraction failed, return as is
+            // Case 3: Plain text - return as is
             return response;
             
         } catch (Exception e) {

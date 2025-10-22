@@ -23,6 +23,9 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
     
+    @Autowired
+    private MarketingEmailTemplates marketingTemplates;
+    
     /**
      * Send OTP email with HTML template
      */
@@ -408,6 +411,184 @@ public class EmailService {
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Chào mừng đến với StarShop</title>
+            </head>
+            <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <div style="background: #F8F9FF; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
+                        <!-- Header -->
+                        <div style="background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); padding: 60px 30px; text-align: center; position: relative;">
+                            <div style="font-size: 56px; margin-bottom: 15px;">🎉</div>
+                            <h1 style="color: white; font-size: 36px; font-weight: 700; margin: 0 0 12px 0; letter-spacing: -0.5px;">CHÀO MỪNG BẠN!</h1>
+                            <p style="color: rgba(255,255,255,0.95); font-size: 18px; margin: 0; font-weight: 500;">Bắt đầu hành trình mua sắm tuyệt vời cùng StarShop 🌸</p>
+                        </div>
+                        
+                        <!-- Content -->
+                        <div style="padding: 50px 30px;">
+                            <!-- Welcome Message -->
+                            <div style="text-align: center; margin-bottom: 40px;">
+                                <h2 style="font-size: 28px; font-weight: 700; color: #2D3748; margin: 0 0 16px 0; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                    Xin chào <span style="display: inline-block;">%s</span>! 👋
+                                </h2>
+                                <p style="font-size: 17px; color: #4A5568; line-height: 1.8; margin: 0;">
+                                    Cảm ơn bạn đã tham gia <strong style="color: #667eea;">gia đình StarShop</strong>!<br>
+                                    Hãy khám phá những trải nghiệm tuyệt vời đang chờ đón bạn 💝
+                                </p>
+                            </div>
+                            
+                            <!-- Special Welcome Offer -->
+                            <div style="background: white; border-radius: 16px; padding: 30px; margin: 35px 0; box-shadow: 0 10px 30px rgba(102,126,234,0.15); border: 2px solid #667eea; text-align: center;">
+                                <div style="font-size: 20px; color: #667eea; font-weight: 700; margin-bottom: 15px;">🎁 QUÀ TẶNG CHÀO MỪNG</div>
+                                <div style="font-size: 48px; font-weight: 800; color: #764ba2; margin: 20px 0;">10%%</div>
+                                <div style="font-size: 16px; color: #4A5568; margin-bottom: 10px;">Giảm giá cho đơn hàng đầu tiên của bạn</div>
+                                <div style="display: inline-block; background: #F0F4FF; padding: 12px 24px; border-radius: 8px; margin-top: 10px;">
+                                    <div style="font-size: 13px; color: #718096; margin-bottom: 5px;">Mã giảm giá:</div>
+                                    <div style="font-size: 24px; font-weight: 700; color: #667eea; letter-spacing: 3px; font-family: monospace;">WELCOME10</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Benefits Grid -->
+                            <div style="margin: 40px 0;">
+                                <h3 style="color: #2D3748; font-size: 22px; font-weight: 700; margin: 0 0 25px 0; text-align: center;">✨ Quyền lợi thành viên của bạn</h3>
+                                
+                                <!-- Row 1 -->
+                                <div style="display: table; width: 100%%; margin-bottom: 15px;">
+                                    <div style="display: table-cell; width: 50%%; padding-right: 8px;">
+                                        <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid #E2E8F0; text-align: center; height: 100%%;">
+                                            <div style="font-size: 36px; margin-bottom: 12px;">🚚</div>
+                                            <div style="font-size: 16px; color: #2D3748; font-weight: 600; margin-bottom: 6px;">Miễn phí ship</div>
+                                            <div style="font-size: 13px; color: #718096;">Đơn hàng từ 500k</div>
+                                        </div>
+                                    </div>
+                                    <div style="display: table-cell; width: 50%%; padding-left: 8px;">
+                                        <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid #E2E8F0; text-align: center; height: 100%%;">
+                                            <div style="font-size: 36px; margin-bottom: 12px;">📦</div>
+                                            <div style="font-size: 16px; color: #2D3748; font-weight: 600; margin-bottom: 6px;">Theo dõi đơn hàng</div>
+                                            <div style="font-size: 13px; color: #718096;">Cập nhật realtime</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Row 2 -->
+                                <div style="display: table; width: 100%%; margin-bottom: 15px;">
+                                    <div style="display: table-cell; width: 50%%; padding-right: 8px;">
+                                        <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid #E2E8F0; text-align: center; height: 100%%;">
+                                            <div style="font-size: 36px; margin-bottom: 12px;">🎁</div>
+                                            <div style="font-size: 16px; color: #2D3748; font-weight: 600; margin-bottom: 6px;">Ưu đãi sinh nhật</div>
+                                            <div style="font-size: 13px; color: #718096;">Voucher 20%%</div>
+                                        </div>
+                                    </div>
+                                    <div style="display: table-cell; width: 50%%; padding-left: 8px;">
+                                        <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid #E2E8F0; text-align: center; height: 100%%;">
+                                            <div style="font-size: 36px; margin-bottom: 12px;">💯</div>
+                                            <div style="font-size: 16px; color: #2D3748; font-weight: 600; margin-bottom: 6px;">Đổi trả 24h</div>
+                                            <div style="font-size: 13px; color: #718096;">Dễ dàng & nhanh chóng</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Row 3 -->
+                                <div style="display: table; width: 100%%;">
+                                    <div style="display: table-cell; width: 50%%; padding-right: 8px;">
+                                        <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid #E2E8F0; text-align: center; height: 100%%;">
+                                            <div style="font-size: 36px; margin-bottom: 12px;">⭐</div>
+                                            <div style="font-size: 16px; color: #2D3748; font-weight: 600; margin-bottom: 6px;">Tích điểm thưởng</div>
+                                            <div style="font-size: 13px; color: #718096;">Đổi quà hấp dẫn</div>
+                                        </div>
+                                    </div>
+                                    <div style="display: table-cell; width: 50%%; padding-left: 8px;">
+                                        <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid #E2E8F0; text-align: center; height: 100%%;">
+                                            <div style="font-size: 36px; margin-bottom: 12px;">💝</div>
+                                            <div style="font-size: 16px; color: #2D3748; font-weight: 600; margin-bottom: 6px;">Deal độc quyền</div>
+                                            <div style="font-size: 13px; color: #718096;">Ưu đãi đặc biệt</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Next Steps -->
+                            <div style="background: linear-gradient(135deg, #F0F4FF 0%%, #E8EEFF 100%%); border-radius: 12px; padding: 30px; margin: 40px 0; border-left: 4px solid #667eea;">
+                                <h3 style="color: #2D3748; font-size: 18px; font-weight: 700; margin: 0 0 20px 0;">🚀 Bắt đầu ngay thôi!</h3>
+                                <div style="margin: 15px 0;">
+                                    <div style="display: flex; align-items: start; margin-bottom: 15px;">
+                                        <div style="background: #667eea; color: white; font-weight: 700; width: 28px; height: 28px; border-radius: 50%%; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-right: 15px; flex-shrink: 0;">1</div>
+                                        <div>
+                                            <div style="font-size: 15px; color: #2D3748; font-weight: 600; margin-bottom: 4px;">Khám phá sản phẩm</div>
+                                            <div style="font-size: 14px; color: #718096;">Hơn 500+ loại hoa tươi đẹp đang chờ bạn</div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: start; margin-bottom: 15px;">
+                                        <div style="background: #667eea; color: white; font-weight: 700; width: 28px; height: 28px; border-radius: 50%%; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-right: 15px; flex-shrink: 0;">2</div>
+                                        <div>
+                                            <div style="font-size: 15px; color: #2D3748; font-weight: 600; margin-bottom: 4px;">Chọn và đặt hàng</div>
+                                            <div style="font-size: 14px; color: #718096;">Thanh toán an toàn, nhiều phương thức</div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: start;">
+                                        <div style="background: #667eea; color: white; font-weight: 700; width: 28px; height: 28px; border-radius: 50%%; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-right: 15px; flex-shrink: 0;">3</div>
+                                        <div>
+                                            <div style="font-size: 15px; color: #2D3748; font-weight: 600; margin-bottom: 4px;">Nhận hoa tươi tại nhà</div>
+                                            <div style="font-size: 14px; color: #718096;">Giao hàng nhanh 2-4h trong nội thành</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- CTA Buttons -->
+                            <div style="text-align: center; margin: 40px 0;">
+                                <a href="http://localhost:8080/catalog" style="display: inline-block; background: linear-gradient(135deg, #667eea, #764ba2); color: white; text-decoration: none; padding: 18px 42px; border-radius: 12px; font-weight: 700; font-size: 18px; box-shadow: 0 6px 20px rgba(102,126,234,0.4); margin: 8px;">
+                                    🛍️ KHÁM PHÁ NGAY
+                                </a>
+                            </div>
+                            
+                            <!-- Trust Badge -->
+                            <div style="text-align: center; margin-top: 40px;">
+                                <div style="background: #FFF9E6; border-radius: 12px; padding: 20px; display: inline-block;">
+                                    <div style="font-size: 14px; color: #92400E; font-weight: 600;">
+                                        ⭐⭐⭐⭐⭐
+                                    </div>
+                                    <div style="font-size: 13px; color: #78350F; margin-top: 8px;">
+                                        <strong>50,000+</strong> khách hàng hài lòng
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Help Section -->
+                            <div style="background: white; border-radius: 12px; padding: 25px; margin-top: 35px; border: 1px solid #E2E8F0; text-align: center;">
+                                <div style="font-size: 16px; color: #2D3748; font-weight: 600; margin-bottom: 12px;">💬 Cần hỗ trợ?</div>
+                                <div style="font-size: 14px; color: #718096; line-height: 1.6;">
+                                    Team hỗ trợ 24/7 luôn sẵn sàng giúp bạn!<br>
+                                    <strong style="color: #667eea;">Hotline: 1900-xxxx</strong> | <strong style="color: #667eea;">support@starshop.vn</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Footer -->
+                        <div style="background: #F7FAFC; padding: 35px 30px; text-align: center; border-top: 1px solid #E2E8F0;">
+                            <div style="margin-bottom: 20px;">
+                                <a href="#" style="display: inline-block; margin: 0 10px; color: #718096; text-decoration: none; font-size: 14px; font-weight: 500;">Facebook</a>
+                                <span style="color: #CBD5E0;">•</span>
+                                <a href="#" style="display: inline-block; margin: 0 10px; color: #718096; text-decoration: none; font-size: 14px; font-weight: 500;">Instagram</a>
+                                <span style="color: #CBD5E0;">•</span>
+                                <a href="#" style="display: inline-block; margin: 0 10px; color: #718096; text-decoration: none; font-size: 14px; font-weight: 500;">Zalo</a>
+                            </div>
+                            <div style="font-size: 12px; color: #718096; margin: 8px 0;">© 2024 StarShop - Nơi kết nối yêu thương qua từng đóa hoa 🌸</div>
+                            <div style="font-size: 12px; color: #A0AEC0; margin: 8px 0;">💌 Chào mừng bạn đến với gia đình StarShop!</div>
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """, firstName != null ? firstName : "bạn");
+    }
+    
+    // Remove old CSS-based template
+    private String buildWelcomeEmailTemplateOld(String firstName) {
+        return String.format("""
+            <!-- Old template removed, using new inline CSS version above -->
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
                 <style>
                     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
                     
@@ -1054,7 +1235,7 @@ public class EmailService {
     }
     
     /**
-     * Send marketing campaign email
+     * Send marketing campaign email with beautiful template
      */
     public void sendMarketingEmail(
             String toEmail, 
@@ -1080,5 +1261,26 @@ public class EmailService {
             logger.error("❌ Failed to send marketing email to {}: {}", toEmail, e.getMessage());
             throw new RuntimeException("Failed to send marketing email", e);
         }
+    }
+    
+    /**
+     * Build marketing email template based on segment
+     */
+    public String buildMarketingEmailTemplate(
+            String segment,
+            String customerName, 
+            String voucherCode,
+            String expiryDate,
+            String campaignName,
+            int discountValue,
+            String discountType) {
+        
+        // Choose template based on segment
+        return switch (segment) {
+            case "VIP" -> marketingTemplates.buildVipTemplate(customerName, voucherCode, expiryDate, discountValue, discountType);
+            case "NEW" -> marketingTemplates.buildNewCustomerTemplate(customerName, voucherCode, expiryDate, discountValue, discountType);
+            case "AT_RISK" -> marketingTemplates.buildWinBackTemplate(customerName, voucherCode, expiryDate, discountValue, discountType);
+            default -> marketingTemplates.buildGenericTemplate(customerName, voucherCode, expiryDate, campaignName, discountValue, discountType);
+        };
     }
 }

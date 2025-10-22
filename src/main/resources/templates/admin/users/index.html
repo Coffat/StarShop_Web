@@ -716,6 +716,63 @@
                     }
                     
                     return pages;
+                },
+                
+                // AI Customer Segmentation Functions
+                async refreshSegmentStats() {
+                    try {
+                        const response = await fetch('/admin/api/users/segment-stats');
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.segmentStats.vip = data.stats.vip || 0;
+                            this.segmentStats.new = data.stats.new || 0;
+                            this.segmentStats.atRisk = data.stats.atRisk || 0;
+                        }
+                    } catch (error) {
+                        console.error('Error fetching segment stats:', error);
+                        // Set default values if API fails
+                        this.segmentStats = { vip: 0, new: 0, atRisk: 0 };
+                    }
+                },
+                
+                filterBySegment(segment) {
+                    this.selectedSegment = this.selectedSegment === segment ? null : segment;
+                    this.filters.segment = this.selectedSegment;
+                    this.fetchCustomers();
+                },
+                
+                getSegmentCount() {
+                    if (!this.selectedSegment) return 0;
+                    
+                    const segmentMap = {
+                        'VIP': this.segmentStats.vip,
+                        'NEW': this.segmentStats.new,
+                        'AT_RISK': this.segmentStats.atRisk
+                    };
+                    
+                    return segmentMap[this.selectedSegment] || 0;
+                },
+                
+                openCampaignModal() {
+                    if (!this.selectedSegment) {
+                        alert('Vui lòng chọn một phân khúc khách hàng');
+                        return;
+                    }
+                    
+                    const count = this.getSegmentCount();
+                    if (count === 0) {
+                        alert('Không có khách hàng nào trong phân khúc này');
+                        return;
+                    }
+                    
+                    // Dispatch event to open campaign modal
+                    window.dispatchEvent(new CustomEvent('open-campaign-modal', {
+                        detail: {
+                            segment: this.selectedSegment,
+                            count: count
+                        }
+                    }));
                 }
             };
         }
@@ -1016,6 +1073,17 @@
                     discountType: 'PERCENTAGE'
                 },
                 
+                init() {
+                    // Listen for campaign modal open event
+                    window.addEventListener('open-campaign-modal', (e) => {
+                        this.openModal(e.detail.segment, e.detail.count);
+                    });
+                },
+                
+                getSegmentCount() {
+                    return this.segmentCount;
+                },
+                
                 openModal(segment, count) {
                     this.selectedSegment = segment;
                     this.segmentCount = count;
@@ -1025,12 +1093,15 @@
                     if (segment === 'AT_RISK') {
                         this.campaignForm.campaignName = 'Nhớ Bạn';
                         this.campaignForm.voucherCode = 'COMEBACK15';
+                        this.campaignForm.discountValue = 15;
                     } else if (segment === 'NEW') {
                         this.campaignForm.campaignName = 'Chào Mừng';
                         this.campaignForm.voucherCode = 'WELCOME10';
+                        this.campaignForm.discountValue = 10;
                     } else if (segment === 'VIP') {
                         this.campaignForm.campaignName = 'Tri Ân VIP';
                         this.campaignForm.voucherCode = 'VIP20';
+                        this.campaignForm.discountValue = 20;
                     }
                 },
                 

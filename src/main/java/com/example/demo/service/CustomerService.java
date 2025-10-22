@@ -397,6 +397,83 @@ public class CustomerService {
     }
     
     /**
+     * Get AI customer segment statistics
+     * VIP: Customers with >10 orders OR total spent > 10,000,000 VND
+     * NEW: Customers registered within last 30 days
+     * AT_RISK: Customers with no orders in last 90 days (but have at least 1 order)
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> getSegmentStats() {
+        List<User> allCustomers = userRepository.findByRole(UserRole.CUSTOMER);
+        
+        java.time.LocalDateTime thirtyDaysAgo = java.time.LocalDateTime.now().minusDays(30);
+        java.time.LocalDateTime ninetyDaysAgo = java.time.LocalDateTime.now().minusDays(90);
+        java.math.BigDecimal vipThreshold = new java.math.BigDecimal("10000000"); // 10 million VND
+        
+        long vipCount = 0;
+        long newCount = 0;
+        long atRiskCount = 0;
+        
+        try {
+            // VIP: High-value customers
+            vipCount = allCustomers.stream()
+                .filter(c -> {
+                    try {
+                        if (c.getOrders() == null) return false;
+                        
+                        // Check if has >10 orders
+                        if (c.getOrders().size() > 10) return true;
+                        
+                        // Check if total spent > threshold
+                        java.math.BigDecimal totalSpent = c.getOrders().stream()
+                            .map(order -> order.getTotalAmount())
+                            .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+                        
+                        return totalSpent.compareTo(vipThreshold) > 0;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
+                .count();
+            
+            // NEW: Recently registered customers
+            newCount = allCustomers.stream()
+                .filter(c -> c.getCreatedAt() != null && c.getCreatedAt().isAfter(thirtyDaysAgo))
+                .count();
+            
+            // AT_RISK: Customers with no recent orders
+            atRiskCount = allCustomers.stream()
+                .filter(c -> {
+                    try {
+                        if (c.getOrders() == null || c.getOrders().isEmpty()) {
+                            return false; // Never ordered, not at risk
+                        }
+                        
+                        java.time.LocalDateTime lastOrderDate = c.getOrders().stream()
+                            .map(order -> order.getOrderDate())
+                            .max(java.time.LocalDateTime::compareTo)
+                            .orElse(null);
+                        
+                        return lastOrderDate != null && lastOrderDate.isBefore(ninetyDaysAgo);
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
+                .count();
+                
+        } catch (Exception e) {
+            log.warn("Could not calculate segment statistics: {}", e.getMessage());
+        }
+        
+        Map<String, Object> segmentStats = new HashMap<>();
+        segmentStats.put("vip", vipCount);
+        segmentStats.put("new", newCount);
+        segmentStats.put("atRisk", atRiskCount);
+        
+        return segmentStats;
+    }
+    
+    /**
      * Convert User entity to CustomerDTO
      */
     private CustomerDTO convertToDTO(User user) {
