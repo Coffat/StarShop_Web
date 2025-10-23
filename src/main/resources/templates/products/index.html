@@ -172,16 +172,15 @@
                 <div th:each="product, iterStat : ${products}" 
                      class="product-card" 
                      th:data-product-id="${product.id}"
-                     data-aos="fade-up" 
-                     data-aos-duration="500" 
-                     th:data-aos-delay="${(iterStat.index % 8) * 80}">
+                     data-aos="fade-up"
+                     data-aos-duration="600"
+                     th:data-aos-delay="${(iterStat.index % 8) * 100}">
                     <div class="product-image-container">
                         <a th:href="@{/products/{id}(id=${product.id})}" class="product-image-link">
                             <img th:src="${product.image != null ? product.image : '/images/products/default-flower.jpg'}" 
                                  th:alt="${product.name}" 
                                  th:title="${product.name}"
                                  class="product-image"
-                                 loading="lazy"
                                  width="400"
                                  height="400">
                         </a>

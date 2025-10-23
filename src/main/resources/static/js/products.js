@@ -401,20 +401,19 @@
           currentGrid.innerHTML = newGrid.innerHTML;
           currentGrid.style.opacity = '1';
           
-          // Re-init wishlist buttons
-          initializeProductActions();
+          // Re-observe lazy images
+          initializePerformanceOptimizations();
           
-          // Add fade-in animation
-          document.querySelectorAll('.product-card').forEach((card, index) => {
-            card.style.animationDelay = `${index * 0.05}s`;
-            card.classList.add('fade-in');
-          });
+          // ✅ Refresh AOS for new products (no conflict now)
+          if (typeof AOS !== 'undefined') {
+            AOS.refresh();
+          }
         }, 300);
       }
       
       // Update pagination if exists
-      const newPagination = doc.querySelector('.pagination-container');
-      const currentPagination = document.querySelector('.pagination-container');
+      const newPagination = doc.querySelector('.pagination-nav');
+      const currentPagination = document.querySelector('.pagination-nav');
       if (newPagination && currentPagination) {
         currentPagination.innerHTML = newPagination.innerHTML;
       }
@@ -447,10 +446,16 @@
     }
   }
 
-  // Show skeleton loading
+  // Show skeleton loading with height preservation
   function showLoadingState() {
     const grid = document.getElementById('productsGrid');
     if (!grid) return;
+    
+    // Preserve current height to prevent layout shift (CLS)
+    const currentHeight = grid.offsetHeight;
+    if (currentHeight > 0) {
+      grid.style.minHeight = currentHeight + 'px';
+    }
     
     grid.classList.add('loading');
     
@@ -470,11 +475,12 @@
     grid.innerHTML = skeletonHTML;
   }
 
-  // Hide loading state
+  // Hide loading state and restore natural height
   function hideLoadingState() {
     const grid = document.getElementById('productsGrid');
     if (grid) {
       grid.classList.remove('loading');
+      grid.style.minHeight = ''; // Restore natural height
     }
   }
 
