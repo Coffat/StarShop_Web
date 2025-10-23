@@ -187,6 +187,37 @@ VALUES (
         'CUSTOMER',
         NOW() - INTERVAL '20 days'
     ),
+    -- AT_RISK Customers (Khách hàng sắp mất - có đơn hàng nhưng không mua >= 90 ngày)
+    (
+        'Nguyễn',
+        'Tony',
+        'ngtony1025@gmail.com',
+        '$2a$10$agFzx5FVfCDVt1rdzQTdcOV4Hy6I/4q9SiQRPbvh9r5umm4EOKuPC',
+        '0913000001',
+        NULL,
+        'CUSTOMER',
+        NOW() - INTERVAL '150 days'
+    ),
+    (
+        'Trần',
+        'Quỳnh',
+        'nghuynhat077@gmail.com',
+        '$2a$10$agFzx5FVfCDVt1rdzQTdcOV4Hy6I/4q9SiQRPbvh9r5umm4EOKuPC',
+        '0913000002',
+        NULL,
+        'CUSTOMER',
+        NOW() - INTERVAL '120 days'
+    ),
+    (
+        'Lê',
+        'Sơn',
+        'son.le@inactive.net',
+        '$2a$10$agFzx5FVfCDVt1rdzQTdcOV4Hy6I/4q9SiQRPbvh9r5umm4EOKuPC',
+        '0913000003',
+        NULL,
+        'CUSTOMER',
+        NOW() - INTERVAL '110 days'
+    ),
     (
         'Lý',
         'Phúc',
@@ -206,6 +237,27 @@ VALUES (
         NULL,
         'CUSTOMER',
         NOW() - INTERVAL '10 days'
+    ),
+    -- VIP Customers (Khách hàng VIP - chi tiêu >5M và >=3 đơn COMPLETED)
+    (
+        'Phạm',
+        'Thảo',
+        'thao.pham@vip.com',
+        '$2a$10$agFzx5FVfCDVt1rdzQTdcOV4Hy6I/4q9SiQRPbvh9r5umm4EOKuPC',
+        '0914000001',
+        NULL,
+        'CUSTOMER',
+        NOW() - INTERVAL '180 days'
+    ),
+    (
+        'Hoàng',
+        'Uyên',
+        'uyen.hoang@premium.net',
+        '$2a$10$agFzx5FVfCDVt1rdzQTdcOV4Hy6I/4q9SiQRPbvh9r5umm4EOKuPC',
+        '0914000002',
+        NULL,
+        'CUSTOMER',
+        NOW() - INTERVAL '200 days'
     );
 -- ========== 2) DELIVERY UNITS ==========
 INSERT INTO DeliveryUnits(name, estimated_time, is_active, created_at)
@@ -653,6 +705,98 @@ VALUES -- User 1: Nguyễn An (OLD mode - HCM)
         'OLD',
         NOW() - INTERVAL '20 days',
         NOW() - INTERVAL '20 days'
+    ),
+    -- AT_RISK Customers Addresses
+    -- User 16: Nguyễn Tony (ngtony1025@gmail.com)
+    (
+        16,
+        '100 Lê Lợi, Phường Bến Nghé, Quận 1',
+        'Thành phố Hồ Chí Minh',
+        'TP. Hồ Chí Minh',
+        TRUE,
+        202,
+        1440,
+        '21001',
+        '100 Lê Lợi',
+        'Thành phố Hồ Chí Minh',
+        'Quận 1',
+        'Phường Bến Nghé',
+        'OLD',
+        NOW() - INTERVAL '150 days',
+        NOW() - INTERVAL '150 days'
+    ),
+    -- User 17: Trần Quỳnh
+    (
+        17,
+        '200 Trần Hưng Đạo, Phường 5, Quận 5',
+        'Thành phố Hồ Chí Minh',
+        'TP. Hồ Chí Minh',
+        TRUE,
+        202,
+        1450,
+        '21205',
+        '200 Trần Hưng Đạo',
+        'Thành phố Hồ Chí Minh',
+        'Quận 5',
+        'Phường 05',
+        'OLD',
+        NOW() - INTERVAL '120 days',
+        NOW() - INTERVAL '120 days'
+    ),
+    -- User 18: Lê Sơn
+    (
+        18,
+        '300 Hai Bà Trưng, Phường Tân Định, Quận 1',
+        'Thành phố Hồ Chí Minh',
+        'TP. Hồ Chí Minh',
+        TRUE,
+        202,
+        1440,
+        '21009',
+        '300 Hai Bà Trưng',
+        'Thành phố Hồ Chí Minh',
+        'Quận 1',
+        'Phường Tân Định',
+        'OLD',
+        NOW() - INTERVAL '110 days',
+        NOW() - INTERVAL '110 days'
+    ),
+    -- VIP Customers Addresses
+    -- User 19: Phạm Thảo
+    (
+        19,
+        '500 Nguyễn Trãi, Phường 7, Quận 5',
+        'Thành phố Hồ Chí Minh',
+        'TP. Hồ Chí Minh',
+        TRUE,
+        202,
+        1450,
+        '21207',
+        '500 Nguyễn Trãi',
+        'Thành phố Hồ Chí Minh',
+        'Quận 5',
+        'Phường 07',
+        'OLD',
+        NOW() - INTERVAL '180 days',
+        NOW() - INTERVAL '180 days'
+    ),
+    -- User 20: Hoàng Uyên
+    (
+        20,
+        '88 Đồng Khởi, Phường Bến Nghé, Quận 1',
+        'Thành phố Hồ Chí Minh',
+        'TP. Hồ Chí Minh',
+        TRUE,
+        202,
+        1440,
+        '21001',
+        '88 Đồng Khởi',
+        'Thành phố Hồ Chí Minh',
+        'Quận 1',
+        'Phường Bến Nghé',
+        'OLD',
+        NOW() - INTERVAL '200 days',
+        NOW() - INTERVAL '200 days'
     );
 -- ========== 6) CARTS ==========
 -- Tạo carts cho customers
@@ -1157,4 +1301,139 @@ VALUES (
     );
 INSERT INTO OrderItems (order_id, product_id, quantity, price)
 VALUES ('21102513', 11, 1, 680000);
+
+-- ===== ĐƠN HÀNG CỦA KHÁCH AT_RISK (Đơn cũ >= 90 ngày) =====
+-- Order 14: Nguyễn Tony (ngtony1025@gmail.com) - User 16
+INSERT INTO Orders (
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee, notes
+    )
+VALUES (
+        '01062514', 16, 1250000, 'COMPLETED', NOW() - INTERVAL '120 days', 6, 'BANK_TRANSFER', 30000, 'Đơn hàng cũ'
+    );
+INSERT INTO OrderItems (order_id, product_id, quantity, price)
+VALUES ('01062514', 5, 1, 1200000);
+
+-- Order 15: Nguyễn Tony - Đơn thứ 2
+INSERT INTO Orders (
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee
+    )
+VALUES (
+        '15062515', 16, 920000, 'COMPLETED', NOW() - INTERVAL '100 days', 6, 'MOMO', 20000
+    );
+INSERT INTO OrderItems (order_id, product_id, quantity, price)
+VALUES ('15062515', 1, 2, 450000);
+
+-- Order 16: Trần Quỳnh (quynh.tran@oldcustomer.com) - User 17
+INSERT INTO Orders (
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee
+    )
+VALUES (
+        '10072516', 17, 1350000, 'COMPLETED', NOW() - INTERVAL '110 days', 7, 'COD', 50000
+    );
+INSERT INTO OrderItems (order_id, product_id, quantity, price)
+VALUES ('10072516', 4, 1, 750000),
+       ('10072516', 2, 1, 520000);
+
+-- Order 17: Lê Sơn (son.le@inactive.net) - User 18
+INSERT INTO Orders (
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee, notes
+    )
+VALUES (
+        '20072517', 18, 1820000, 'COMPLETED', NOW() - INTERVAL '95 days', 8, 'BANK_TRANSFER', 20000, 'Giao nhanh'
+    );
+INSERT INTO OrderItems (order_id, product_id, quantity, price)
+VALUES ('20072517', 9, 1, 1800000);
+
+-- ===== NÂNG CẤP NGUYỄN TONY LÊN VIP =====
+-- Thêm 2 đơn hàng gần đây để đủ điều kiện VIP (>5M VND và >=3 đơn COMPLETED)
+-- Order 18: Nguyễn Tony - Đơn thứ 3 (gần đây)
+INSERT INTO Orders (
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee, notes
+    )
+VALUES (
+        '15102518', 16, 1850000, 'COMPLETED', NOW() - INTERVAL '15 days', 6, 'MOMO', 50000, 'Khách VIP - Ưu tiên giao hàng'
+    );
+INSERT INTO OrderItems (order_id, product_id, quantity, price)
+VALUES ('15102518', 9, 1, 1800000);
+
+-- Order 19: Nguyễn Tony - Đơn thứ 4 (mới nhất)
+INSERT INTO Orders (
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee, notes
+    )
+VALUES (
+        '20102519', 16, 1580000, 'COMPLETED', NOW() - INTERVAL '5 days', 6, 'BANK_TRANSFER', 80000, 'Giao tận nơi - Khách VIP'
+    );
+INSERT INTO OrderItems (order_id, product_id, quantity, price)
+VALUES ('20102519', 8, 1, 1500000);
+
+-- Tổng chi tiêu của Nguyễn Tony: 1,250,000 + 920,000 + 1,850,000 + 1,580,000 = 5,600,000 VND
+-- Tổng đơn COMPLETED: 4 đơn
+-- => ĐỦ ĐIỀU KIỆN VIP (>5M VND và >=3 đơn)
+
+-- ===== ĐƠN HÀNG CỦA KHÁCH VIP KHÁC =====
+-- Order 20-22: Phạm Thảo (thao.pham@vip.com) - User 19
+INSERT INTO Orders (
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee, notes
+    )
+VALUES (
+        '10082520', 19, 1520000, 'COMPLETED', NOW() - INTERVAL '60 days', 9, 'BANK_TRANSFER', 20000, 'Khách VIP'
+    );
+INSERT INTO OrderItems (order_id, product_id, quantity, price)
+VALUES ('10082520', 8, 1, 1500000);
+
+INSERT INTO Orders (
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee
+    )
+VALUES (
+        '05092521', 19, 1850000, 'COMPLETED', NOW() - INTERVAL '45 days', 9, 'MOMO', 50000
+    );
+INSERT INTO OrderItems (order_id, product_id, quantity, price)
+VALUES ('05092521', 9, 1, 1800000);
+
+INSERT INTO Orders (
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee
+    )
+VALUES (
+        '10102522', 19, 2050000, 'COMPLETED', NOW() - INTERVAL '10 days', 9, 'BANK_TRANSFER', 50000
+    );
+INSERT INTO OrderItems (order_id, product_id, quantity, price)
+VALUES ('10102522', 5, 1, 1200000),
+       ('10102522', 4, 1, 750000);
+
+-- Tổng chi tiêu Phạm Thảo: 1,520,000 + 1,850,000 + 2,050,000 = 5,420,000 VND
+-- Tổng đơn COMPLETED: 3 đơn => VIP
+
+-- Order 23-25: Hoàng Uyên (uyen.hoang@premium.net) - User 20
+INSERT INTO Orders (
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee, notes
+    )
+VALUES (
+        '15072523', 20, 2050000, 'COMPLETED', NOW() - INTERVAL '80 days', 10, 'BANK_TRANSFER', 50000, 'Khách hàng thân thiết'
+    );
+INSERT INTO OrderItems (order_id, product_id, quantity, price)
+VALUES ('15072523', 9, 1, 1800000),
+       ('15072523', 1, 1, 450000);
+
+INSERT INTO Orders (
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee
+    )
+VALUES (
+        '20082524', 20, 1770000, 'COMPLETED', NOW() - INTERVAL '50 days', 10, 'MOMO', 20000
+    );
+INSERT INTO OrderItems (order_id, product_id, quantity, price)
+VALUES ('20082524', 8, 1, 1500000),
+       ('20082524', 6, 1, 390000);
+
+INSERT INTO Orders (
+        id, user_id, total_amount, status, order_date, address_id, payment_method, shipping_fee
+    )
+VALUES (
+        '12102525', 20, 1880000, 'COMPLETED', NOW() - INTERVAL '8 days', 10, 'BANK_TRANSFER', 80000
+    );
+INSERT INTO OrderItems (order_id, product_id, quantity, price)
+VALUES ('12102525', 9, 1, 1800000);
+
+-- Tổng chi tiêu Hoàng Uyên: 2,050,000 + 1,770,000 + 1,880,000 = 5,700,000 VND
+-- Tổng đơn COMPLETED: 3 đơn => VIP
+
 COMMIT;

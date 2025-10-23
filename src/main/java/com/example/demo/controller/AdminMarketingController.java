@@ -61,9 +61,11 @@ public class AdminMarketingController {
         try {
             log.info("📧 Bắt đầu chiến dịch marketing cho segment: {}", request.getSegment());
             
-            // 1. Lấy danh sách khách hàng theo segment (real-time calculation)
-            List<User> allCustomers = userRepository.findByRole(UserRole.CUSTOMER);
+            // 1. Lấy danh sách khách hàng theo segment (real-time calculation with orders loaded)
+            List<User> allCustomers = userRepository.findByRoleWithOrders(UserRole.CUSTOMER);
+            log.info("Loaded {} customers with orders for filtering", allCustomers.size());
             List<User> customers = filterCustomersBySegment(allCustomers, request.getSegment());
+            log.info("Filtered {} customers for segment: {}", customers.size(), request.getSegment());
             
             if (customers.isEmpty()) {
                 return ResponseEntity.ok(Map.of(
@@ -214,33 +216,50 @@ public class AdminMarketingController {
     
     /**
      * Filter customers by segment using real-time calculation
-     * VIP: >10 orders OR total spent > 10,000,000 VND
-     * NEW: Registered within last 30 days
+     * VIP: total_spent > 5M VND AND orders_count >= 3 (matches CustomerSegmentationService)
+     * NEW: Registered within last 30 days OR first order within 30 days
      * AT_RISK: Has orders but no orders in last 90 days
      */
     private List<User> filterCustomersBySegment(List<User> customers, String segment) {
         LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
         LocalDateTime ninetyDaysAgo = LocalDateTime.now().minusDays(90);
-        BigDecimal vipThreshold = new BigDecimal("10000000"); // 10 million VND
+        BigDecimal vipThreshold = new BigDecimal("5000000"); // 5 million VND (matches CustomerSegmentationService)
         
         return customers.stream()
             .filter(customer -> {
                 try {
                     switch (segment) {
                         case "VIP":
-                            // VIP: High-value customers
+                            // VIP: total_spent > 5M VND AND orders_count >= 3
                             if (customer.getOrders() == null) return false;
-                            if (customer.getOrders().size() > 10) return true;
+                            
+                            long ordersCount = customer.getOrders().stream()
+                                .filter(order -> order.getStatus() == com.example.demo.entity.enums.OrderStatus.COMPLETED)
+                                .count();
                             
                             BigDecimal totalSpent = customer.getOrders().stream()
+                                .filter(order -> order.getStatus() == com.example.demo.entity.enums.OrderStatus.COMPLETED)
                                 .map(order -> order.getTotalAmount())
                                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-                            return totalSpent.compareTo(vipThreshold) > 0;
+                            
+                            return totalSpent.compareTo(vipThreshold) > 0 && ordersCount >= 3;
                             
                         case "NEW":
-                            // NEW: Recently registered
-                            return customer.getCreatedAt() != null && 
-                                   customer.getCreatedAt().isAfter(thirtyDaysAgo);
+                            // NEW: Registered within 30 days OR first order within 30 days
+                            if (customer.getCreatedAt() != null && customer.getCreatedAt().isAfter(thirtyDaysAgo)) {
+                                return true;
+                            }
+                            
+                            if (customer.getOrders() != null && !customer.getOrders().isEmpty()) {
+                                LocalDateTime firstOrderDate = customer.getOrders().stream()
+                                    .map(order -> order.getOrderDate())
+                                    .min(LocalDateTime::compareTo)
+                                    .orElse(null);
+                                
+                                return firstOrderDate != null && firstOrderDate.isAfter(thirtyDaysAgo);
+                            }
+                            
+                            return false;
                             
                         case "AT_RISK":
                             // AT_RISK: Has orders but inactive
