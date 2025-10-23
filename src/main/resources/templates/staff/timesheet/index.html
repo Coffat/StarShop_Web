@@ -1,7 +1,7 @@
 <!-- Staff Timesheet Management Content -->
 <div class="space-y-6" x-data="staffTimesheet()" x-init="init()">
     
-    <!-- Current Shift Status Card -->
+    <!-- Current Shift Status Card
     <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
         <div class="flex items-center justify-between">
             <div>
@@ -38,7 +38,7 @@
                 </template>
             </div>
         </div>
-    </div>
+    </div> -->
     
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -333,20 +333,31 @@ function staffTimesheet() {
                 const data = await response.json();
                 if (data.success) {
                     this.currentShift = data.data;
-                    alert('Check-in thành công!');
+                    showToast('Check-in thành công!', 'success');
                     this.startWorkingTimer();
                     await this.loadMonthlyTimesheet();
                 } else {
-                    alert(data.message || 'Check-in thất bại');
+                    showToast(data.message || 'Check-in thất bại', 'error');
                 }
             } catch (error) {
                 console.error('Error checking in:', error);
-                alert('Đã xảy ra lỗi khi check-in');
+                showToast('Đã xảy ra lỗi khi check-in', 'error');
             }
         },
         
         async checkOut() {
-            if (!confirm('Bạn có chắc muốn check-out?')) return;
+            const result = await Swal.fire({
+                title: 'Xác nhận Check-out?',
+                text: 'Bạn sẽ kết thúc ca làm việc hôm nay.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Xác nhận',
+                cancelButtonText: 'Hủy',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33'
+            });
+            
+            if (!result.isConfirmed) return;
             
             try {
                 const response = await fetch('/api/staff/check-out', {
@@ -354,17 +365,17 @@ function staffTimesheet() {
                 });
                 const data = await response.json();
                 if (data.success) {
-                    alert(`Check-out thành công! Bạn đã làm việc ${data.data.hoursWorked} giờ hôm nay.`);
+                    showToast(`Check-out thành công! Bạn đã làm việc ${data.data.hoursWorked} giờ hôm nay.`, 'success');
                     this.currentShift = null;
                     this.stopWorkingTimer();
                     await this.loadMonthlyTimesheet();
                     await this.loadSummary();
                 } else {
-                    alert(data.message || 'Check-out thất bại');
+                    showToast(data.message || 'Check-out thất bại', 'error');
                 }
             } catch (error) {
                 console.error('Error checking out:', error);
-                alert('Đã xảy ra lỗi khi check-out');
+                showToast('Đã xảy ra lỗi khi check-out', 'error');
             }
         },
         
@@ -393,11 +404,19 @@ function staffTimesheet() {
         showDayDetail(day) {
             const record = this.timesheetRecords.find(r => r.date === day.date);
             if (record) {
-                alert(`Chi tiết ngày ${this.formatDate(record.date)}:\n` +
-                      `Check-in: ${this.formatTime(record.checkIn)}\n` +
-                      `Check-out: ${record.checkOut ? this.formatTime(record.checkOut) : 'Đang làm'}\n` +
-                      `Giờ làm: ${record.hoursWorked || 0} giờ\n` +
-                      `Ghi chú: ${record.notes || 'Không có'}`);
+                Swal.fire({
+                    title: `Chi tiết ngày ${this.formatDate(record.date)}`,
+                    html: `
+                        <div class="text-left">
+                            <p><strong>Check-in:</strong> ${this.formatTime(record.checkIn)}</p>
+                            <p><strong>Check-out:</strong> ${record.checkOut ? this.formatTime(record.checkOut) : 'Đang làm'}</p>
+                            <p><strong>Giờ làm:</strong> ${record.hoursWorked || 0} giờ</p>
+                            <p><strong>Ghi chú:</strong> ${record.notes || 'Không có'}</p>
+                        </div>
+                    `,
+                    icon: 'info',
+                    confirmButtonText: 'Đóng'
+                });
             }
         },
         

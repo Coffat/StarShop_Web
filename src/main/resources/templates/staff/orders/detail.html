@@ -99,10 +99,10 @@
                 if (data.success) {
                     location.reload();
                 } else {
-                    alert(data.error || 'Có lỗi xảy ra');
+                    showToast(data.error || 'Có lỗi xảy ra', 'error');
                 }
             })
-            .catch(() => alert('Có lỗi xảy ra khi cập nhật trạng thái'));
+            .catch(() => showToast('Có lỗi xảy ra khi cập nhật trạng thái', 'error'));
         });
         /*]]>*/
     </script>

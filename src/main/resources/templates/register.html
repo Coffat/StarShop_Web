@@ -31,6 +31,12 @@
       };
     </script>
 
+    <!-- SweetAlert2 - MUST load before notifications.js -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Notifications Utility - Centralized notification system -->
+    <script src="/js/notifications.js"></script>
+
     <!-- Alpine.js -->
     <script
       defer
@@ -758,10 +764,12 @@
 
           if (response.ok) {
             // Registration successful
-            alert(
+            showSuccess(
               "Đăng ký thành công! Bạn sẽ được chuyển đến trang đăng nhập."
             );
-            window.location.href = "/login?success=register";
+            setTimeout(() => {
+              window.location.href = "/login?success=register";
+            }, 1500);
           } else {
             console.log(
               "OTP verification failed:",
