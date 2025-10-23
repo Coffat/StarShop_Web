@@ -285,7 +285,6 @@
                             <button class="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white hover:scale-110 transition-all duration-300 btn-wishlist"
                                     th:data-product-id="${product.id}"
                                     th:classappend="${#sets.contains(wishlistProductIds, product.id)} ? ' active'"
-                                    onclick="handleWishlistToggle(this)"
                                     title="Thêm vào yêu thích">
                                 <!-- Heroicons: Solid heart when active -->
                                 <svg th:if="${#sets.contains(wishlistProductIds, product.id)}" class="w-5 h-5 text-rose-500" fill="currentColor" viewBox="0 0 24 24">
@@ -320,7 +319,6 @@
                             <!-- Quick Add to Cart Button (chỉ hiện khi đăng nhập) -->
                             <button class="opacity-0 group-hover:opacity-100 bg-gradient-to-r from-rose-500 to-pink-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:from-rose-600 hover:to-pink-600 transition-all duration-300 btn-add-to-cart"
                                     th:data-product-id="${product.id}"
-                                    onclick="handleAddToCart(this)"
                                     sec:authorize="isAuthenticated()"
                                     title="Thêm vào giỏ hàng">
                                 <i class="fa-solid fa-cart-plus mr-1"></i>
