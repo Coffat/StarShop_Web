@@ -284,9 +284,29 @@ public class ReviewService {
     /**
      * Get all reviews with pagination and filters (Admin)
      */
-    public Page<Review> getAllReviews(Pageable pageable, Integer rating, String search, String sentiment, String status) {
-        log.debug("Getting all reviews with pagination: {}, rating: {}, search: {}, sentiment: {}, status: {}", 
-                  pageable, rating, search, sentiment, status);
+    public Page<Review> getAllReviews(Pageable pageable, Integer rating, String search, String sentiment, String status, String sort) {
+        log.debug("Getting all reviews with pagination: {}, rating: {}, search: {}, sentiment: {}, status: {}, sort: {}", 
+                  pageable, rating, search, sentiment, status, sort);
+        
+        // Apply sorting to pageable
+        org.springframework.data.domain.Sort sortObj;
+        switch (sort != null ? sort : "newest") {
+            case "oldest":
+                sortObj = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "createdAt");
+                break;
+            case "rating-high":
+                sortObj = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "rating");
+                break;
+            case "rating-low":
+                sortObj = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "rating");
+                break;
+            case "newest":
+            default:
+                sortObj = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt");
+                break;
+        }
+        
+        pageable = org.springframework.data.domain.PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortObj);
         
         // If no filters, use the simple query
         if (rating == null && (search == null || search.trim().isEmpty()) && 

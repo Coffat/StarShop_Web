@@ -125,7 +125,7 @@
                 <!-- Sort -->
                 <div>
                     <label for="sortBy" class="block text-sm font-medium text-gray-700 mb-2">Sắp xếp</label>
-                    <select id="sortBy" onchange="sortReviews()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                    <select id="sortBy" onchange="filterReviews()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
                         <option value="newest">Mới nhất</option>
                         <option value="oldest">Cũ nhất</option>
                         <option value="rating-high">Đánh giá cao</option>
@@ -327,6 +327,7 @@ let currentRating = '';
 let currentSearch = '';
 let currentStatus = '';
 let currentSentiment = '';
+let currentSort = 'newest';
 let deleteReviewId = null;
 let currentAdminResponseReviewId = null;
 let isEditingAdminResponse = false;
@@ -388,6 +389,10 @@ async function loadReviews() {
         if (currentSearch) url += `&search=${encodeURIComponent(currentSearch)}`;
         if (currentStatus) url += `&status=${currentStatus}`;
         if (currentSentiment) url += `&sentiment=${currentSentiment}`;
+        if (currentSort) url += `&sort=${currentSort}`;
+        
+        console.log('Loading reviews with URL:', url);
+        console.log('Current sort value:', currentSort);
         
         const response = await fetch(url);
         const data = await response.json();
@@ -577,18 +582,24 @@ function filterReviews() {
     currentRating = document.getElementById('ratingFilter').value;
     currentStatus = document.getElementById('statusFilter').value;
     currentSentiment = document.getElementById('sentimentFilter').value;
+    currentSort = document.getElementById('sortBy').value;
     currentPage = 0;
+    
+    console.log('Filter/Sort changed:', {
+        rating: currentRating,
+        status: currentStatus,
+        sentiment: currentSentiment,
+        sort: currentSort,
+        page: currentPage
+    });
+    
     loadReviews();
 }
 
 function searchReviews() {
     currentSearch = document.getElementById('searchInput').value;
+    currentSort = document.getElementById('sortBy').value;
     currentPage = 0;
-    loadReviews();
-}
-
-function sortReviews() {
-    // Implementation for sorting
     loadReviews();
 }
 

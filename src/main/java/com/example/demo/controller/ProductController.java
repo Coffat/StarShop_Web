@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.security.core.Authentication;
 import org.springframework.ui.Model;
@@ -222,9 +223,9 @@ public class ProductController {
 
             Product product = productDetail.getProduct();
             
-            // Get product reviews with pagination
-            Pageable reviewPageable = PageRequest.of(0, 10);
-            Page<Review> reviewsPage = reviewRepository.findByProductId(id, reviewPageable);
+            // Get product reviews with pagination (eager fetch user and admin data)
+            Pageable reviewPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+            Page<Review> reviewsPage = reviewRepository.findByProductIdWithUser(id, reviewPageable);
 
             // Get related products (same category or similar)
             List<Product> relatedProducts = productService.getLatestProducts(4);
@@ -243,17 +244,18 @@ public class ProductController {
             model.addAttribute("reviewsPage", reviewsPage);
             model.addAttribute("relatedProducts", relatedProducts);
              // 5. Wishlist product IDs for current user (for SSR wishlist state)
+            // Always initialize to prevent null pointer exceptions
+            model.addAttribute("wishlistProductIds", java.util.Collections.emptySet());
+            
             try {
                 if (authentication != null && authentication.isAuthenticated()) {
                     userRepository.findByEmail(authentication.getName()).ifPresent(user -> {
                         var ids = wishlistService.getWishlistProductIds(user.getId());
                         model.addAttribute("wishlistProductIds", new java.util.HashSet<>(ids));
                     });
-                } else {
-                    model.addAttribute("wishlistProductIds", java.util.Collections.emptySet());
                 }
             } catch (Exception ex) {
-                model.addAttribute("wishlistProductIds", java.util.Collections.emptySet());
+                log.error("Error loading wishlist for product detail: {}", ex.getMessage());
             }
 
             // Breadcrumbs removed - no longer extending BaseController

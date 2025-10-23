@@ -69,16 +69,18 @@ public class AdminReviewController {
             @RequestParam(required = false) String sentiment,
             @Parameter(description = "Lọc theo trạng thái", example = "verified")
             @RequestParam(required = false) String status,
+            @Parameter(description = "Sắp xếp", example = "newest")
+            @RequestParam(defaultValue = "newest") String sort,
             Authentication authentication) {
         
         try {
-            log.info("Admin {} getting all reviews with pagination: page={}, size={}, rating={}, search={}, sentiment={}, status={}", 
-                    authentication.getName(), page, size, rating, search, sentiment, status);
+            log.info("Admin {} getting all reviews with pagination: page={}, size={}, rating={}, search={}, sentiment={}, status={}, sort={}", 
+                    authentication.getName(), page, size, rating, search, sentiment, status, sort);
             
             Pageable pageable = PageRequest.of(page, size);
             
             // Get all reviews with pagination and filters
-            Page<Review> reviewsPage = reviewService.getAllReviews(pageable, rating, search, sentiment, status);
+            Page<Review> reviewsPage = reviewService.getAllReviews(pageable, rating, search, sentiment, status, sort);
             
             // Convert to DTO to avoid lazy loading issues
             Page<ReviewResponse> responsePage = reviewsPage.map(review -> new ReviewResponse(review, false));

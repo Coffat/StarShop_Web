@@ -312,7 +312,6 @@
                 </div>
             </section>
 
-            <!--/*
         <section class="product-tabs-section">
             <div class="container">
                 <div class="tabs-container">
@@ -387,6 +386,10 @@
                                                             <span th:if="${review.orderItem != null}" class="verified-badge inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
                                                                 <i class="bi bi-patch-check-fill"></i> Đã mua hàng
                                                             </span>
+                                                            <span th:if="${review.sentiment != null}" 
+                                                                  th:class="'sentiment-badge ' + ${review.sentiment.toLowerCase()}"
+                                                                  th:text="${review.sentiment == 'POSITIVE' ? '😊 Tích cực' : (review.sentiment == 'NEGATIVE' ? '😞 Tiêu cực' : '😐 Trung lập')}">
+                                                            </span>
                                                         </div>
                                                         <div class="review-rating">
                                                             <th:block th:each="star : ${#numbers.sequence(1, 5)}">
@@ -402,7 +405,7 @@
                                                     </div>
                                                     <div class="review-actions" 
                                                          sec:authorize="isAuthenticated()"
-                                                         th:if="${#authentication.principal.username == review.user.email}">
+                                                         th:if="${#authentication.name == review.user.email}">
                                                         <button class="btn-edit-review text-blue-600 hover:text-blue-700 text-sm" 
                                                                 th:onclick="'editReview(' + ${review.id} + ')'">
                                                             <i class="bi bi-pencil"></i> Sửa
@@ -417,6 +420,17 @@
                                             <div class="review-content" th:if="${review.comment ne null}">
                                                 <p th:text="${review.comment}">Nội dung đánh giá...</p>
                                             </div>
+                                            
+                                            <!-- Admin Response -->
+                                            <div th:if="${review.adminResponse != null}" class="admin-response mt-3 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                                                <div class="flex items-center gap-2 mb-2">
+                                                    <i class="bi bi-shield-check text-blue-600"></i>
+                                                    <span class="font-semibold text-blue-900">Phản hồi từ StarShop</span>
+                                                    <span class="text-sm text-gray-500" th:text="${review.adminResponseAt != null ? #temporals.format(review.adminResponseAt, 'dd/MM/yyyy') : ''}"></span>
+                                                </div>
+                                                <p class="text-gray-700 mb-0" th:text="${review.adminResponse}"></p>
+                                            </div>
+                                            
                                             <div class="review-helpful mt-3">
                                                 <button class="btn-helpful inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-600 text-sm rounded-lg hover:bg-gray-200 transition-colors" 
                                                         th:onclick="'markHelpful(' + ${review.id} + ')'">
@@ -464,7 +478,7 @@
                                             <i class="bi bi-thermometer care-tip-icon"></i>
                                             <div class="care-tip-content">
                                                 <h5>Nhiệt độ phù hợp</h5>
-                                                <p>Giữ nhiệt độ 18-22°C, tránh nơi quá nóng hoặc lạnh.</p>
+                                                <p>Giữ nhiệt độ phòng từ 18-22°C để hoa tươi lâu hơn.</p>
                                             </div>
                                         </div>
                                     </div>
@@ -475,9 +489,7 @@
                 </div>
             </div>
         </section>
-        */-->
 
-            <!--/*
         <section class="related-products-section" th:if="${relatedProducts ne null and not #lists.isEmpty(relatedProducts)}">
             <div class="container">
                 <div class="section-header">
@@ -512,7 +524,6 @@
                 </div>
             </div>
         </section>
-        */-->
         </div>
     </th:block>
 

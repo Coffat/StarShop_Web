@@ -42,6 +42,9 @@ public class HomeController {
         model.addAttribute("catalogs", catalogService.findAll());
         
         // Wishlist product IDs for current user (for SSR wishlist state)
+        // Always initialize to prevent null pointer exceptions
+        model.addAttribute("wishlistProductIds", java.util.Collections.emptySet());
+        
         try {
             if (authentication != null && authentication.isAuthenticated()) {
                 log.info("Home accessed by authenticated user: {}", authentication.getName());
@@ -51,10 +54,9 @@ public class HomeController {
                 });
             } else {
                 log.info("Home accessed by guest user");
-                model.addAttribute("wishlistProductIds", java.util.Collections.emptySet());
             }
         } catch (Exception ex) {
-            model.addAttribute("wishlistProductIds", java.util.Collections.emptySet());
+            log.error("Error loading wishlist: {}", ex.getMessage());
         }
 
         return "home";

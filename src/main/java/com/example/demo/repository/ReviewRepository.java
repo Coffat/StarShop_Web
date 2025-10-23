@@ -16,6 +16,19 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     
     Page<Review> findByProductId(Long productId, Pageable pageable);
     
+    /**
+     * Find reviews by product ID with eager loading of user and admin data
+     */
+    @Query(value = "SELECT DISTINCT r FROM Review r " +
+           "LEFT JOIN FETCH r.user " +
+           "LEFT JOIN FETCH r.product " +
+           "LEFT JOIN FETCH r.orderItem " +
+           "LEFT JOIN FETCH r.adminResponseBy " +
+           "WHERE r.product.id = :productId " +
+           "ORDER BY r.createdAt DESC",
+           countQuery = "SELECT COUNT(r) FROM Review r WHERE r.product.id = :productId")
+    Page<Review> findByProductIdWithUser(@Param("productId") Long productId, Pageable pageable);
+    
     List<Review> findByUserId(Long userId);
     
     Optional<Review> findByUserIdAndProductId(Long userId, Long productId);
@@ -97,8 +110,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
            "AND (:sentiment IS NULL OR :sentiment = '' OR r.sentiment = :sentiment) " +
            "AND (:status IS NULL OR :status = '' OR " +
            "     (:status = 'verified' AND r.orderItem IS NOT NULL) OR " +
-           "     (:status = 'unverified' AND r.orderItem IS NULL)) " +
-           "ORDER BY r.createdAt DESC",
+           "     (:status = 'unverified' AND r.orderItem IS NULL))",
            countQuery = "SELECT COUNT(r) FROM Review r " +
            "LEFT JOIN r.user u " +
            "LEFT JOIN r.product p " +
