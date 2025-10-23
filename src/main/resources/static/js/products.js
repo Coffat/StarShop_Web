@@ -401,22 +401,37 @@
           currentGrid.innerHTML = newGrid.innerHTML;
           currentGrid.style.opacity = '1';
           
-          // Re-init wishlist buttons
-          initializeProductActions();
+          // Re-observe lazy images
+          initializePerformanceOptimizations();
           
-          // Add fade-in animation
-          document.querySelectorAll('.product-card').forEach((card, index) => {
-            card.style.animationDelay = `${index * 0.05}s`;
-            card.classList.add('fade-in');
-          });
+          // ✅ Refresh AOS for new products (no conflict now)
+          if (typeof AOS !== 'undefined') {
+            AOS.refresh();
+          }
         }, 300);
       }
       
-      // Update pagination if exists
-      const newPagination = doc.querySelector('.pagination-container');
-      const currentPagination = document.querySelector('.pagination-container');
-      if (newPagination && currentPagination) {
-        currentPagination.innerHTML = newPagination.innerHTML;
+      // ✅ Update pagination - Ẩn/hiện dựa trên isPaginationEnabled
+      const newPagination = doc.querySelector('.pagination-nav');
+      const currentPagination = document.querySelector('.pagination-nav');
+      
+      if (newPagination) {
+        // Backend trả về pagination → Hiển thị
+        if (currentPagination) {
+          currentPagination.innerHTML = newPagination.innerHTML;
+          currentPagination.style.display = '';
+        } else {
+          // Chưa có pagination trong DOM → Thêm vào
+          const productsSection = document.querySelector('.products-section');
+          if (productsSection) {
+            productsSection.insertAdjacentHTML('afterend', newPagination.outerHTML);
+          }
+        }
+      } else {
+        // Backend KHÔNG trả về pagination → Ẩn đi
+        if (currentPagination) {
+          currentPagination.style.display = 'none';
+        }
       }
       
       // Update results info
@@ -430,10 +445,10 @@
       const newUrl = `/products?${params.toString()}`;
       history.pushState(null, '', newUrl);
       
-      // Show success message
-      if (typeof showToast === 'function') {
-        showToast('Đã cập nhật kết quả', 'success');
-      }
+      // ❌ Tắt thông báo khi lọc (theo yêu cầu user)
+      // if (typeof showToast === 'function') {
+      //   showToast('Đã cập nhật kết quả', 'success');
+      // }
 
     } catch (error) {
       console.error('Error filtering products:', error);
@@ -447,10 +462,16 @@
     }
   }
 
-  // Show skeleton loading
+  // Show skeleton loading with height preservation
   function showLoadingState() {
     const grid = document.getElementById('productsGrid');
     if (!grid) return;
+    
+    // Preserve current height to prevent layout shift (CLS)
+    const currentHeight = grid.offsetHeight;
+    if (currentHeight > 0) {
+      grid.style.minHeight = currentHeight + 'px';
+    }
     
     grid.classList.add('loading');
     
@@ -470,11 +491,12 @@
     grid.innerHTML = skeletonHTML;
   }
 
-  // Hide loading state
+  // Hide loading state and restore natural height
   function hideLoadingState() {
     const grid = document.getElementById('productsGrid');
     if (grid) {
       grid.classList.remove('loading');
+      grid.style.minHeight = ''; // Restore natural height
     }
   }
 
@@ -633,8 +655,6 @@
     // For now, show a message that editing is not implemented
     if (typeof showToast === 'function') {
       showToast('Tính năng chỉnh sửa đánh giá sẽ được cập nhật sớm', 'info');
-    } else {
-      alert('Tính năng chỉnh sửa đánh giá sẽ được cập nhật sớm');
     }
   };
 
@@ -661,8 +681,6 @@
       } else {
         if (typeof showToast === 'function') {
           showToast(data.message || 'Có lỗi xảy ra khi xóa đánh giá', 'error');
-        } else {
-          alert(data.message || 'Có lỗi xảy ra khi xóa đánh giá');
         }
       }
     })
@@ -670,8 +688,6 @@
       // Error deleting review
       if (typeof showToast === 'function') {
         showToast('Có lỗi xảy ra khi xóa đánh giá', 'error');
-      } else {
-        alert('Có lỗi xảy ra khi xóa đánh giá');
       }
     });
   };
@@ -681,8 +697,6 @@
     // For now, show a message that helpful feature is not implemented
     if (typeof showToast === 'function') {
       showToast('Tính năng "Hữu ích" sẽ được cập nhật sớm', 'info');
-    } else {
-      alert('Tính năng "Hữu ích" sẽ được cập nhật sớm');
     }
   };
 

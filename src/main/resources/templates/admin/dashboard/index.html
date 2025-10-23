@@ -698,7 +698,9 @@
                 .catch(error => {
                     console.error('Error updating chart:', error);
                     // Show error message
-                    alert('Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại.');
+                    if (typeof showError === 'function') {
+                        showError('Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại.');
+                    }
                 });
 
             // Also update revenue trend chart

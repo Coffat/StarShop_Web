@@ -262,11 +262,11 @@ function staffDashboard() {
                     // Redirect to chat page
                     window.location.href = `/staff/chat?conversation=${conversationId}`;
                 } else {
-                    alert('Không thể nhận cuộc hội thoại: ' + data.message);
+                    showToast('Không thể nhận cuộc hội thoại: ' + data.message, 'error');
                 }
             } catch (error) {
                 console.error('Error assigning conversation:', error);
-                alert('Đã xảy ra lỗi khi nhận cuộc hội thoại');
+                showToast('Đã xảy ra lỗi khi nhận cuộc hội thoại', 'error');
             }
         }
     }

@@ -381,7 +381,7 @@
                     
                     if (!firstName || !lastName || !email) {
                         e.preventDefault();
-                        alert('Vui lòng nhập đầy đủ họ, tên và email');
+                        showToast('Vui lòng nhập đầy đủ họ, tên và email', 'warning');
                         return false;
                     }
                     
