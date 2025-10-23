@@ -270,7 +270,12 @@
     </section>
 
     <!-- Pagination -->
-    <nav th:if="${totalPages > 1}" class="pagination-nav" aria-label="Phân trang sản phẩm" data-aos="fade-up" data-aos-duration="600">
+    <!-- ✅ Chỉ hiện khi: isPaginationEnabled=true VÀ có nhiều hơn 1 trang -->
+    <nav th:if="${isPaginationEnabled != null && isPaginationEnabled && totalPages > 1}" 
+         class="pagination-nav" 
+         aria-label="Phân trang sản phẩm" 
+         data-aos="fade-up" 
+         data-aos-duration="600">
         <div class="container">
             <div class="pagination-wrapper">
                 <ul class="pagination">

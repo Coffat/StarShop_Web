@@ -87,13 +87,23 @@ public class ProductController {
             // 1. Setup Pagination
             int validPage = Math.max(0, page);
             int validSize = Math.min(Math.max(1, size), 50);
-            Pageable pageable = PageRequest.of(validPage, validSize);
-
-            Page<Product> productsPage;
             
             // 2. Apply Combined Filtering Logic (Category AND Search)
             boolean isCatalogFilter = categoryId != null && categoryId > 0;
             boolean isSearchFilter = search != null && !search.trim().isEmpty();
+            
+            // ✅ NEW LOGIC: Khi filter theo category cụ thể → Không phân trang (lấy tất cả)
+            Pageable pageable;
+            if (isCatalogFilter) {
+                // Lấy TẤT CẢ sản phẩm của category (max 1000)
+                pageable = PageRequest.of(0, 1000);
+                log.info("Category filter active - disabling pagination, fetching all products");
+            } else {
+                // Phân trang bình thường cho "Tất cả danh mục"
+                pageable = PageRequest.of(validPage, validSize);
+            }
+
+            Page<Product> productsPage;
 
             if (isCatalogFilter || isSearchFilter) {
                 // Use combined filter method for both catalog AND search
@@ -140,6 +150,11 @@ public class ProductController {
             model.addAttribute("pageSize", validSize);
             model.addAttribute("sortBy", sort);
             model.addAttribute("sortDirection", direction);
+            
+            // ✅ NEW: Flag để Frontend biết có phân trang không
+            // Chỉ phân trang khi KHÔNG filter theo category cụ thể
+            boolean isPaginationEnabled = !isCatalogFilter;
+            model.addAttribute("isPaginationEnabled", isPaginationEnabled);
             
             // 4. Load All Catalogs for Filter Dropdown
             model.addAttribute("catalogs", catalogRepository.findAll());

@@ -411,11 +411,27 @@
         }, 300);
       }
       
-      // Update pagination if exists
+      // ✅ Update pagination - Ẩn/hiện dựa trên isPaginationEnabled
       const newPagination = doc.querySelector('.pagination-nav');
       const currentPagination = document.querySelector('.pagination-nav');
-      if (newPagination && currentPagination) {
-        currentPagination.innerHTML = newPagination.innerHTML;
+      
+      if (newPagination) {
+        // Backend trả về pagination → Hiển thị
+        if (currentPagination) {
+          currentPagination.innerHTML = newPagination.innerHTML;
+          currentPagination.style.display = '';
+        } else {
+          // Chưa có pagination trong DOM → Thêm vào
+          const productsSection = document.querySelector('.products-section');
+          if (productsSection) {
+            productsSection.insertAdjacentHTML('afterend', newPagination.outerHTML);
+          }
+        }
+      } else {
+        // Backend KHÔNG trả về pagination → Ẩn đi
+        if (currentPagination) {
+          currentPagination.style.display = 'none';
+        }
       }
       
       // Update results info
