@@ -475,7 +475,9 @@
                         }
                     } catch (error) {
                         console.error('Error fetching employees:', error);
-                        alert('Lỗi khi tải danh sách nhân viên');
+                        if (typeof showError === 'function') {
+                            showError('Lỗi khi tải danh sách nhân viên');
+                        }
                     } finally {
                         this.loading = false;
                     }
@@ -525,7 +527,13 @@
                 },
                 
                 async toggleStatus(employee) {
-                    if (!confirm(`Bạn có chắc muốn ${employee.isActive ? 'khóa' : 'kích hoạt'} nhân viên này?`)) {
+                    let confirmed = false;
+                    if (typeof confirmAction === 'function') {
+                        confirmed = await confirmAction(`${employee.isActive ? 'Khóa' : 'Kích hoạt'} nhân viên?`, `Bạn có chắc muốn ${employee.isActive ? 'khóa' : 'kích hoạt'} nhân viên này?`);
+                    } else {
+                        confirmed = confirm(`Bạn có chắc muốn ${employee.isActive ? 'khóa' : 'kích hoạt'} nhân viên này?`);
+                    }
+                    if (!confirmed) {
                         return;
                     }
                     
@@ -549,18 +557,30 @@
                         if (data.success) {
                             await this.fetchEmployees();
                             await this.fetchStats();
-                            alert(data.message);
+                            if (typeof showSuccess === 'function') {
+                                showSuccess(data.message);
+                            }
                         } else {
-                            alert(data.message);
+                            if (typeof showError === 'function') {
+                                showError(data.message);
+                            }
                         }
                     } catch (error) {
                         console.error('Error toggling employee status:', error);
-                        alert('Lỗi khi cập nhật trạng thái nhân viên');
+                        if (typeof showError === 'function') {
+                            showError('Lỗi khi cập nhật trạng thái nhân viên');
+                        }
                     }
                 },
                 
                 async deleteEmployee(employee) {
-                    if (!confirm(`Bạn có chắc muốn xóa nhân viên ${employee.firstname} ${employee.lastname}? Hành động này không thể hoàn tác.`)) {
+                    let confirmed = false;
+                    if (typeof confirmDelete === 'function') {
+                        confirmed = await confirmDelete(`Xóa nhân viên ${employee.firstname} ${employee.lastname}?`, 'Hành động này không thể hoàn tác.');
+                    } else {
+                        confirmed = confirm(`Bạn có chắc muốn xóa nhân viên ${employee.firstname} ${employee.lastname}? Hành động này không thể hoàn tác.`);
+                    }
+                    if (!confirmed) {
                         return;
                     }
                     
@@ -584,18 +604,26 @@
                         if (data.success) {
                             await this.fetchEmployees();
                             await this.fetchStats();
-                            alert(data.message);
+                            if (typeof showSuccess === 'function') {
+                                showSuccess(data.message);
+                            }
                         } else {
-                            alert(data.message);
+                            if (typeof showError === 'function') {
+                                showError(data.message);
+                            }
                         }
                     } catch (error) {
                         console.error('Error deleting employee:', error);
-                        alert('Lỗi khi xóa nhân viên');
+                        if (typeof showError === 'function') {
+                            showError('Lỗi khi xóa nhân viên');
+                        }
                     }
                 },
                 
                 exportData() {
-                    alert('Chức năng xuất dữ liệu đang được phát triển');
+                    if (typeof showInfo === 'function') {
+                        showInfo('Chức năng xuất dữ liệu đang được phát triển');
+                    }
                 },
                 
                 prevPage() {
@@ -787,15 +815,21 @@
                         const data = await response.json();
                         
                         if (data.success) {
-                            alert(data.message);
+                            if (typeof showSuccess === 'function') {
+                                showSuccess(data.message);
+                            }
                             this.closeModal();
                             window.location.reload(); // Reload to refresh the list
                         } else {
-                            alert(data.message);
+                            if (typeof showError === 'function') {
+                                showError(data.message);
+                            }
                         }
                     } catch (error) {
                         console.error('Error submitting form:', error);
-                        alert('Lỗi khi lưu nhân viên');
+                        if (typeof showError === 'function') {
+                            showError('Lỗi khi lưu nhân viên');
+                        }
                     }
                 }
             };

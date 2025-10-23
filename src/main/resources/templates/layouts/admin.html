@@ -19,8 +19,11 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- SweetAlert2 -->
+    <!-- SweetAlert2 - MUST load before notifications.js -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Notifications Utility - Centralized notification system -->
+    <script th:src="@{/js/notifications.js}"></script>
     
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -401,7 +404,7 @@
                                     <i class="fas fa-user mr-2"></i>Thông tin cá nhân
                                 </a>
                                 <div class="border-t border-gray-100"></div>
-                                <a href="/logout" class="block px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors duration-200" onclick="return confirm('Bạn có chắc muốn đăng xuất?')">
+                                <a href="#" class="block px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors duration-200" onclick="handleLogout(event)">
                                     <i class="fas fa-sign-out-alt mr-2"></i>Đăng xuất
                                 </a>
                             </div>
@@ -426,5 +429,21 @@
             </main>
         </div>
     </div>
+    
+    <!-- Logout Handler -->
+    <script>
+        async function handleLogout(event) {
+            event.preventDefault();
+            
+            const confirmed = await confirmAction(
+                'Xác nhận đăng xuất?',
+                'Bạn có chắc muốn đăng xuất khỏi hệ thống?'
+            );
+            
+            if (confirmed) {
+                window.location.href = '/logout';
+            }
+        }
+    </script>
 </body>
 </html>
