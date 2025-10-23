@@ -351,4 +351,206 @@ if (result.isConfirmed) {
 
 ---
 
-**READY TO START!** 🚀
+---
+
+## 🔍 COMPREHENSIVE AUDIT PLAN
+
+### BƯỚC 1: QUÉT TOÀN BỘ TEMPLATES
+```bash
+# Tìm tất cả alert() trong templates
+grep -r "alert(" src/main/resources/templates/ --include="*.html"
+
+# Tìm tất cả confirm() trong templates  
+grep -r "confirm(" src/main/resources/templates/ --include="*.html"
+
+# Tìm tất cả console.log() debug
+grep -r "console\.log(" src/main/resources/templates/ --include="*.html"
+```
+
+### BƯỚC 2: QUÉT TOÀN BỘ JAVASCRIPT FILES
+```bash
+# Tìm tất cả alert() trong JS
+grep -r "alert(" src/main/resources/static/js/ --include="*.js"
+
+# Tìm tất cả confirm() trong JS
+grep -r "confirm(" src/main/resources/static/js/ --include="*.js"
+
+# Tìm tất cả console.log() debug
+grep -r "console\.log(" src/main/resources/static/js/ --include="*.js"
+```
+
+### BƯỚC 3: KIỂM TRA LOGIC HIỆN TẠI
+**⚠️ QUAN TRỌNG: KHÔNG ĐƯỢC THAY ĐỔI LOGIC!**
+
+1. **Chỉ thay đổi cách hiển thị thông báo**
+2. **Giữ nguyên tất cả conditions, loops, error handling**
+3. **Đảm bảo async/await đúng cho confirmations**
+4. **Test kỹ mỗi function sau khi sửa**
+
+### BƯỚC 4: SỬ DỤNG NOTIFICATIONS.JS
+**File notifications.js đã có sẵn các helper functions:**
+
+```javascript
+// Thay vì: alert('Success message')
+showSuccess('Success message');
+
+// Thay vì: alert('Error message') 
+showError('Error message');
+
+// Thay vì: alert('Warning message')
+showWarning('Warning message');
+
+// Thay vì: alert('Info message')
+showInfo('Info message');
+
+// Thay vì: confirm('Delete this?')
+const confirmed = await confirmDelete('Xóa item này?', 'Không thể hoàn tác!');
+if (confirmed) { /* proceed */ }
+
+// Thay vì: confirm('Continue?')
+const confirmed = await confirmAction('Tiếp tục?', 'Bạn có chắc chắn?');
+if (confirmed) { /* proceed */ }
+```
+
+### BƯỚC 5: PATTERN MAPPING
+
+| Tình huống | Old Code | New Code |
+|------------|----------|----------|
+| **Success** | `alert('Thành công!')` | `showSuccess('Thành công!')` |
+| **Error** | `alert('Lỗi!')` | `showError('Lỗi!')` |
+| **Warning** | `alert('Cảnh báo!')` | `showWarning('Cảnh báo!')` |
+| **Info** | `alert('Thông tin')` | `showInfo('Thông tin')` |
+| **Delete Confirm** | `if (!confirm('Xóa?')) return;` | `if (!(await confirmDelete('Xóa?'))) return;` |
+| **Action Confirm** | `if (!confirm('OK?')) return;` | `if (!(await confirmAction('OK?'))) return;` |
+
+---
+
+## 📋 DETAILED EXECUTION CHECKLIST
+
+### Phase 2-3: Priority Cao 🔴 (TIẾP TỤC)
+
+#### ✅ COMPLETED (5/8 files):
+- [x] staff/timesheet/index.html 
+- [x] staff/profile/index.html
+- [x] staff/orders/index.html
+- [x] staff/orders/detail.html
+- [x] staff/dashboard/index.html
+
+#### 🔄 IN PROGRESS (3/8 files):
+
+**1. staff/chat/index.html** (9 alerts + 2 confirms)
+- [ ] Line 699: `alert('Không thể gửi tin nhắn')` → `showError('Không thể gửi tin nhắn')`
+- [ ] Line 875: `alert('Đã đóng cuộc hội thoại')` → `showSuccess('Đã đóng cuộc hội thoại')`
+- [ ] Line 878: `alert('Không thể đóng cuộc hội thoại: ...')` → `showError('Không thể đóng cuộc hội thoại: ...')`
+- [ ] Line 924: `alert('Chưa chọn cuộc hội thoại')` → `showWarning('Chưa chọn cuộc hội thoại')`
+- [ ] Line 970: `alert('Không thể trao lại cho AI: ...')` → `showError('Không thể trao lại cho AI: ...')`
+- [ ] Line 974: `alert('Lỗi khi trao lại cho AI: ...')` → `showError('Lỗi khi trao lại cho AI: ...')`
+- [ ] Line 1030: `alert('Đã nhận cuộc hội thoại')` → `showSuccess('Đã nhận cuộc hội thoại')`
+- [ ] Line 1033: `alert('Không thể nhận cuộc hội thoại: ...')` → `showError('Không thể nhận cuộc hội thoại: ...')`
+- [ ] Line 1037: `alert('Không thể nhận cuộc hội thoại')` → `showError('Không thể nhận cuộc hội thoại')`
+- [ ] Line 1421: `alert('Không tìm thấy cuộc hội thoại này')` → `showError('Không tìm thấy cuộc hội thoại này')`
+- [ ] Line 855: `confirm('Bạn có chắc muốn đóng cuộc hội thoại này?')` → `await confirmAction(...)`
+- [ ] Line 931: `confirm('Trao lại cuộc hội thoại này cho Hoa AI?...')` → `await confirmAction(...)`
+
+**2. layouts/staff.html** (1 confirm)
+- [ ] Line 328: `onclick="return confirm('Bạn có chắc muốn đăng xuất?')"` → Convert to async function
+
+**3. layouts/admin.html** (1 confirm)  
+- [ ] Line 404: `onclick="return confirm('Bạn có chắc muốn đăng xuất?')"` → Convert to async function
+
+### Phase 4-5: Priority TB 🟡 (10 files)
+
+**Authentication Pages:**
+- [ ] reset-password.html (1 alert)
+- [ ] register.html (1 alert)  
+- [ ] forgot-password.html (1 alert)
+
+**User Pages:**
+- [ ] account/wishlist.html (2 alerts + 2 confirms)
+- [ ] cart/index.html (2 confirms)
+
+**Admin Pages:**
+- [ ] admin/users/index.html (3 confirms + 1 alert)
+- [ ] admin/reviews/index.html (1 confirm)
+- [ ] admin/products/index.html (1 confirm)
+- [ ] admin/employees/index.html (2 confirms)
+
+### Phase 6: Priority Thấp 🟢 (3 files)
+
+**JavaScript Files:**
+- [ ] static/js/staff-notifications.js (1 confirm)
+- [ ] static/js/profile-modals.js (1 confirm)
+- [ ] static/js/products.js (1 confirm)
+
+### Phase 7: Cleanup Debug Logs 🗑️ (2 files)
+
+**Debug Log Removal:**
+- [ ] staff/chat/index.html (~80+ console.log) - XÓA HẾT
+- [ ] vouchers.html (2 console.log) - XÓA HẾT
+
+**⚠️ GIỮ LẠI:**
+- ✅ console.error() - Cần thiết cho debugging production
+- ✅ console.warn() - Cần thiết cho debugging production
+
+---
+
+## 🧪 TESTING PROTOCOL
+
+### Sau mỗi file được sửa:
+
+1. **Functional Test:**
+   - Test tất cả buttons/actions trong file
+   - Verify notifications hiển thị đúng
+   - Verify logic vẫn hoạt động như cũ
+
+2. **UI/UX Test:**
+   - Notifications đẹp mắt (SweetAlert2)
+   - Không còn browser alerts xấu
+   - Toast position và timing phù hợp
+
+3. **Console Check:**
+   - Không còn console.log() debug
+   - Vẫn có console.error() khi cần
+   - Không có JavaScript errors
+
+### Final Integration Test:
+
+1. **Test toàn bộ user flows:**
+   - Staff workflows (timesheet, orders, chat)
+   - Admin workflows (users, products, reviews)
+   - User workflows (register, login, cart, wishlist)
+
+2. **Cross-browser test:**
+   - Chrome, Firefox, Safari, Edge
+   - Mobile responsive
+
+3. **Performance check:**
+   - No console spam
+   - SweetAlert2 loads properly
+   - No memory leaks
+
+---
+
+## 📊 SUCCESS METRICS
+
+### Code Quality:
+- ✅ 0 alert() remaining
+- ✅ 0 confirm() remaining  
+- ✅ 0 console.log() debug remaining
+- ✅ All notifications use SweetAlert2
+- ✅ Consistent notification patterns
+
+### User Experience:
+- ✅ Beautiful, modern notifications
+- ✅ Consistent UI across all pages
+- ✅ Non-blocking toast notifications
+- ✅ Proper confirmation dialogs
+- ✅ Better accessibility
+
+### Maintainability:
+- ✅ Centralized notification system (notifications.js)
+- ✅ Reusable helper functions
+- ✅ Clean, production-ready code
+- ✅ Easy to extend/modify
+
+**READY TO START COMPREHENSIVE MIGRATION!** 🚀

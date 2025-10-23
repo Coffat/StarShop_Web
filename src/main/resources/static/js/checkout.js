@@ -382,19 +382,25 @@
 
 	function placeOrder() {
 		if (!selectedPaymentMethod) {
-			alert('Vui lòng chọn phương thức thanh toán');
+			if (typeof showToast === 'function') {
+				showToast('Vui lòng chọn phương thức thanh toán', 'warning');
+			}
 			return;
 		}
 		
 		const addressSelect = document.getElementById('addressSelect');
 		if (!addressSelect) {
-			alert('Vui lòng thêm địa chỉ giao hàng trước khi đặt hàng');
+			if (typeof showToast === 'function') {
+				showToast('Vui lòng thêm địa chỉ giao hàng trước khi đặt hàng', 'warning');
+			}
 			window.location.href = '/account/profile';
 			return;
 		}
 		
 		if (!addressSelect.value) {
-			alert('Vui lòng chọn địa chỉ giao hàng');
+			if (typeof showToast === 'function') {
+				showToast('Vui lòng chọn địa chỉ giao hàng', 'warning');
+			}
 			return;
 		}
 		
@@ -429,7 +435,9 @@
 					return;
 				}
 				if (payment.success) {
-					alert('Đơn hàng đã được tạo thành công!');
+					if (typeof showToast === 'function') {
+						showToast('🎉 Đơn hàng đã được tạo thành công!', 'success');
+					}
 					// Update cart count to 0 since cart is cleared after order
 					if (typeof updateCartCount === 'function') {
 						updateCartCount(0);
@@ -438,9 +446,15 @@
 					return;
 				}
 			}
-			alert((response.data && response.data.payment && response.data.payment.message) || 'Có lỗi xảy ra');
+			if (typeof showToast === 'function') {
+				showToast((response.data && response.data.payment && response.data.payment.message) || 'Có lỗi xảy ra', 'error');
+			}
 		})
-		.catch(() => alert('Có lỗi xảy ra khi đặt hàng'))
+		.catch(() => {
+			if (typeof showToast === 'function') {
+				showToast('Có lỗi xảy ra khi đặt hàng', 'error');
+			}
+		})
 		.finally(() => {
 			btn.disabled = false;
 			btn.innerHTML = 'Đặt hàng';

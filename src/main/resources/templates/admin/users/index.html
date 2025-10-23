@@ -559,7 +559,9 @@
                         }
                     } catch (error) {
                         console.error('Error fetching customers:', error);
-                        alert('Lỗi khi tải danh sách khách hàng');
+                        if (typeof showError === 'function') {
+                            showError('Lỗi khi tải danh sách khách hàng');
+                        }
                     } finally {
                         this.loading = false;
                     }
@@ -620,18 +622,34 @@
                 },
                 
                 sendEmail(customer) {
-                    alert('Gửi email đến: ' + customer.email);
+                    if (typeof showInfo === 'function') {
+                        showInfo('Gửi email đến: ' + customer.email);
+                    }
                 },
                 
-                sendEmailToAll() {
-                    if (!confirm('Bạn có chắc muốn gửi email hàng loạt đến tất cả khách hàng?')) {
+                async sendEmailToAll() {
+                    let confirmed = false;
+                    if (typeof confirmAction === 'function') {
+                        confirmed = await confirmAction('Gửi email hàng loạt?', 'Bạn có chắc muốn gửi email hàng loạt đến tất cả khách hàng?');
+                    } else {
+                        confirmed = confirm('Bạn có chắc muốn gửi email hàng loạt đến tất cả khách hàng?');
+                    }
+                    if (!confirmed) {
                         return;
                     }
-                    alert('Chức năng gửi email hàng loạt đang được phát triển');
+                    if (typeof showInfo === 'function') {
+                        showInfo('Chức năng gửi email hàng loạt đang được phát triển');
+                    }
                 },
                 
                 async toggleStatus(customer) {
-                    if (!confirm(`Bạn có chắc muốn ${customer.isActive ? 'khóa' : 'kích hoạt'} tài khoản khách hàng này?`)) {
+                    let confirmed = false;
+                    if (typeof confirmAction === 'function') {
+                        confirmed = await confirmAction(`${customer.isActive ? 'Khóa' : 'Kích hoạt'} tài khoản?`, `Bạn có chắc muốn ${customer.isActive ? 'khóa' : 'kích hoạt'} tài khoản khách hàng này?`);
+                    } else {
+                        confirmed = confirm(`Bạn có chắc muốn ${customer.isActive ? 'khóa' : 'kích hoạt'} tài khoản khách hàng này?`);
+                    }
+                    if (!confirmed) {
                         return;
                     }
                     
@@ -644,18 +662,30 @@
                         if (data.success) {
                             await this.fetchCustomers();
                             await this.fetchStats();
-                            alert(data.message);
+                            if (typeof showSuccess === 'function') {
+                                showSuccess(data.message);
+                            }
                         } else {
-                            alert(data.message);
+                            if (typeof showError === 'function') {
+                                showError(data.message);
+                            }
                         }
                     } catch (error) {
                         console.error('Error toggling customer status:', error);
-                        alert('Lỗi khi cập nhật trạng thái khách hàng');
+                        if (typeof showError === 'function') {
+                            showError('Lỗi khi cập nhật trạng thái khách hàng');
+                        }
                     }
                 },
                 
                 async deleteCustomer(customer) {
-                    if (!confirm(`Bạn có chắc muốn xóa khách hàng ${customer.firstname} ${customer.lastname}? Hành động này không thể hoàn tác.`)) {
+                    let confirmed = false;
+                    if (typeof confirmDelete === 'function') {
+                        confirmed = await confirmDelete(`Xóa khách hàng ${customer.firstname} ${customer.lastname}?`, 'Hành động này không thể hoàn tác.');
+                    } else {
+                        confirmed = confirm(`Bạn có chắc muốn xóa khách hàng ${customer.firstname} ${customer.lastname}? Hành động này không thể hoàn tác.`);
+                    }
+                    if (!confirmed) {
                         return;
                     }
                     
@@ -668,18 +698,26 @@
                         if (data.success) {
                             await this.fetchCustomers();
                             await this.fetchStats();
-                            alert(data.message);
+                            if (typeof showSuccess === 'function') {
+                                showSuccess(data.message);
+                            }
                         } else {
-                            alert(data.message);
+                            if (typeof showError === 'function') {
+                                showError(data.message);
+                            }
                         }
                     } catch (error) {
                         console.error('Error deleting customer:', error);
-                        alert('Lỗi khi xóa khách hàng');
+                        if (typeof showError === 'function') {
+                            showError('Lỗi khi xóa khách hàng');
+                        }
                     }
                 },
                 
                 exportData() {
-                    alert('Chức năng xuất dữ liệu đang được phát triển');
+                    if (typeof showInfo === 'function') {
+                        showInfo('Chức năng xuất dữ liệu đang được phát triển');
+                    }
                 },
                 
                 prevPage() {
@@ -756,13 +794,17 @@
                 
                 openCampaignModal() {
                     if (!this.selectedSegment) {
-                        alert('Vui lòng chọn một phân khúc khách hàng');
+                        if (typeof showWarning === 'function') {
+                            showWarning('Vui lòng chọn một phân khúc khách hàng');
+                        }
                         return;
                     }
                     
                     const count = this.getSegmentCount();
                     if (count === 0) {
-                        alert('Không có khách hàng nào trong phân khúc này');
+                        if (typeof showWarning === 'function') {
+                            showWarning('Không có khách hàng nào trong phân khúc này');
+                        }
                         return;
                     }
                     
@@ -883,15 +925,21 @@
                         const data = await response.json();
                         
                         if (data.success) {
-                            alert(data.message);
+                            if (typeof showSuccess === 'function') {
+                                showSuccess(data.message);
+                            }
                             this.closeModal();
                             window.location.reload(); // Reload to refresh the list
                         } else {
-                            alert(data.message);
+                            if (typeof showError === 'function') {
+                                showError(data.message);
+                            }
                         }
                     } catch (error) {
                         console.error('Error submitting form:', error);
-                        alert('Lỗi khi lưu khách hàng');
+                        if (typeof showError === 'function') {
+                            showError('Lỗi khi lưu khách hàng');
+                        }
                     }
                 },
                 
@@ -987,11 +1035,15 @@
                             this.pagination.totalItems = data.data.totalElements;
                             this.pagination.currentPage = data.data.number;
                         } else {
-                            alert('Lỗi: ' + data.message);
+                            if (typeof showError === 'function') {
+                                showError('Lỗi: ' + data.message);
+                            }
                         }
                     } catch (error) {
                         console.error('Error fetching orders:', error);
-                        alert('Lỗi khi tải danh sách đơn hàng');
+                        if (typeof showError === 'function') {
+                            showError('Lỗi khi tải danh sách đơn hàng');
+                        }
                     } finally {
                         this.loading = false;
                     }
@@ -1136,18 +1188,24 @@
                         const data = await response.json();
                         
                         if (data.success) {
-                            alert(`✅ ${data.message}\nVoucher: ${data.voucherCode}\nGửi thành công: ${data.emailsSent} email`);
+                            if (typeof showSuccess === 'function') {
+                                showSuccess(`✅ ${data.message}\nVoucher: ${data.voucherCode}\nGửi thành công: ${data.emailsSent} email`);
+                            }
                             this.closeModal();
                             // Refresh segment stats
                             if (window.customerManager) {
                                 window.customerManager().refreshSegmentStats();
                             }
                         } else {
-                            alert(`❌ ${data.message}`);
+                            if (typeof showError === 'function') {
+                                showError(`❌ ${data.message}`);
+                            }
                         }
                     } catch (error) {
                         console.error('Error sending campaign:', error);
-                        alert('❌ Lỗi khi gửi chiến dịch');
+                        if (typeof showError === 'function') {
+                            showError('❌ Lỗi khi gửi chiến dịch');
+                        }
                     } finally {
                         this.isLoading = false;
                     }

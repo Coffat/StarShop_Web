@@ -445,10 +445,10 @@
       const newUrl = `/products?${params.toString()}`;
       history.pushState(null, '', newUrl);
       
-      // Show success message
-      if (typeof showToast === 'function') {
-        showToast('Đã cập nhật kết quả', 'success');
-      }
+      // ❌ Tắt thông báo khi lọc (theo yêu cầu user)
+      // if (typeof showToast === 'function') {
+      //   showToast('Đã cập nhật kết quả', 'success');
+      // }
 
     } catch (error) {
       console.error('Error filtering products:', error);
@@ -655,8 +655,6 @@
     // For now, show a message that editing is not implemented
     if (typeof showToast === 'function') {
       showToast('Tính năng chỉnh sửa đánh giá sẽ được cập nhật sớm', 'info');
-    } else {
-      alert('Tính năng chỉnh sửa đánh giá sẽ được cập nhật sớm');
     }
   };
 
@@ -683,8 +681,6 @@
       } else {
         if (typeof showToast === 'function') {
           showToast(data.message || 'Có lỗi xảy ra khi xóa đánh giá', 'error');
-        } else {
-          alert(data.message || 'Có lỗi xảy ra khi xóa đánh giá');
         }
       }
     })
@@ -692,8 +688,6 @@
       // Error deleting review
       if (typeof showToast === 'function') {
         showToast('Có lỗi xảy ra khi xóa đánh giá', 'error');
-      } else {
-        alert('Có lỗi xảy ra khi xóa đánh giá');
       }
     });
   };
@@ -703,8 +697,6 @@
     // For now, show a message that helpful feature is not implemented
     if (typeof showToast === 'function') {
       showToast('Tính năng "Hữu ích" sẽ được cập nhật sớm', 'info');
-    } else {
-      alert('Tính năng "Hữu ích" sẽ được cập nhật sớm');
     }
   };
 

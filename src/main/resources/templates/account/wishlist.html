@@ -158,8 +158,14 @@
         }
 
         // Remove specific item from wishlist
-        function removeFromWishlist(productId) {
-            if (!confirm('Bạn có chắc muốn xóa sản phẩm này khỏi danh sách yêu thích?')) {
+        async function removeFromWishlist(productId) {
+            let confirmed = false;
+            if (typeof confirmDelete === 'function') {
+                confirmed = await confirmDelete('Xóa sản phẩm yêu thích?', 'Bạn có chắc muốn xóa sản phẩm này khỏi danh sách yêu thích?');
+            } else {
+                confirmed = confirm('Bạn có chắc muốn xóa sản phẩm này khỏi danh sách yêu thích?');
+            }
+            if (!confirmed) {
                 return;
             }
             
@@ -183,20 +189,32 @@
                         location.reload(); // Reload to show empty state
                     }
                     
-                    alert('Đã xóa sản phẩm khỏi danh sách yêu thích!');
+                    if (typeof showToast === 'function') {
+                        showToast('Đã xóa sản phẩm khỏi danh sách yêu thích!', 'success');
+                    }
                 } else {
-                    alert('Có lỗi xảy ra khi xóa sản phẩm!');
+                    if (typeof showToast === 'function') {
+                        showToast('Có lỗi xảy ra khi xóa sản phẩm!', 'error');
+                    }
                 }
             })
             .catch(error => {
                 console.error('Error removing from wishlist:', error);
-                alert('Có lỗi xảy ra khi xóa sản phẩm!');
+                if (typeof showToast === 'function') {
+                    showToast('Có lỗi xảy ra khi xóa sản phẩm!', 'error');
+                }
             });
         }
 
         // Clear all wishlist items
-        function clearAllWishlist() {
-            if (!confirm('Bạn có chắc muốn xóa tất cả sản phẩm yêu thích?')) {
+        async function clearAllWishlist() {
+            let confirmed = false;
+            if (typeof confirmDelete === 'function') {
+                confirmed = await confirmDelete('Xóa toàn bộ danh sách yêu thích?', 'Bạn có chắc muốn xóa tất cả sản phẩm yêu thích?');
+            } else {
+                confirmed = confirm('Bạn có chắc muốn xóa tất cả sản phẩm yêu thích?');
+            }
+            if (!confirmed) {
                 return;
             }
             
@@ -206,12 +224,16 @@
                 if (data.data && data.data.success) {
                     location.reload(); // Reload to show empty state
                 } else {
-                    alert('Có lỗi xảy ra khi xóa danh sách yêu thích!');
+                    if (typeof showToast === 'function') {
+                        showToast('Có lỗi xảy ra khi xóa danh sách yêu thích!', 'error');
+                    }
                 }
             })
             .catch(error => {
                 console.error('Error clearing wishlist:', error);
-                alert('Có lỗi xảy ra khi xóa danh sách yêu thích!');
+                if (typeof showToast === 'function') {
+                    showToast('Có lỗi xảy ra khi xóa danh sách yêu thích!', 'error');
+                }
             });
         }
     </script>

@@ -385,7 +385,6 @@ function staffChat() {
         currentSubscription: null,
         
         async init() {
-            console.log('🚀 Initializing chat system...');
             await this.loadConversations();
             this.connectWebSocket();
             
@@ -393,13 +392,10 @@ function staffChat() {
             const urlParams = new URLSearchParams(window.location.search);
             const convId = urlParams.get('conversation');
             if (convId) {
-                console.log('🔗 Found conversation ID in URL:', convId);
                 const conv = this.conversations.find(c => c.id == convId);
                 if (conv) {
-                    console.log('✅ Found conversation in list:', conv);
                     await this.selectConversation(conv);
                 } else {
-                    console.log('❌ Conversation not found in list');
                 }
             }
             
@@ -409,7 +405,6 @@ function staffChat() {
             // Cleanup processed messages periodically to prevent memory leak
             this.setupProcessedMessagesCleanup();
             
-            console.log('✅ Chat system initialized');
         },
         
         async loadConversations() {
@@ -427,15 +422,8 @@ function staffChat() {
                 const data = await response.json();
                 if (data.data && !data.error) {
                     this.conversations = data.data || [];
-                    console.log('✅ Loaded conversations:', this.conversations.length, 'conversations');
-                    console.log('✅ Conversations data:', this.conversations);
-                    
                     // Debug each conversation
                     this.conversations.forEach((conv, index) => {
-                        console.log(`📋 Conversation ${index}:`, {
-                            id: conv.id,
-                            idType: typeof conv.id,
-                            customerName: conv.customerName,
                             status: conv.status
                         });
                     });
@@ -454,12 +442,10 @@ function staffChat() {
          */
         async reloadCurrentConversation() {
             if (!this.selectedConversation) {
-                console.log('⚠️ No conversation selected, skipping reload');
                 return;
             }
             
             const conversationId = this.selectedConversation.id;
-            console.log('🔄 Reloading conversation data for:', conversationId);
             
             try {
                 // Reload conversation list to get updated data
@@ -471,11 +457,7 @@ function staffChat() {
                 if (updatedConv) {
                     // Update selectedConversation with new data
                     this.selectedConversation = updatedConv;
-                    console.log('✅ Conversation data reloaded:', updatedConv);
-                    console.log('✅ New status:', updatedConv.status);
-                    console.log('✅ New assignedStaffId:', updatedConv.assignedStaffId);
                 } else {
-                    console.log('⚠️ Conversation not found in list after reload');
                 }
             } catch (error) {
                 console.error('Error reloading conversation:', error);
@@ -483,9 +465,6 @@ function staffChat() {
         },
         
         async selectConversation(conv) {
-            console.log('🎯 selectConversation called:', conv);
-            console.log('🎯 Conversation ID:', conv?.id);
-            console.log('🎯 Conversation type:', typeof conv?.id);
             
             // Validate conversation object
             if (!conv || !conv.id) {
@@ -500,13 +479,11 @@ function staffChat() {
                 return;
             }
             
-            console.log('✅ Valid conversation ID:', conversationId);
             
             // Unsubscribe from previous conversation if exists
             if (this.currentSubscription && this.stompClient && this.stompClient.connected) {
                 try {
                     this.currentSubscription.unsubscribe();
-                    console.log('✅ Unsubscribed from previous conversation');
                 } catch (error) {
                     console.error('Error unsubscribing from previous conversation:', error);
                 }
@@ -531,8 +508,6 @@ function staffChat() {
                 assignedStaffName: conv.assignedStaffName
             };
             
-            console.log('✅ Set selectedConversation:', this.selectedConversation);
-            console.log('✅ Customer ID:', this.selectedConversation.customerId);
             
             // Clear current messages before loading new ones
             this.messages = [];
@@ -550,10 +525,8 @@ function staffChat() {
                 try {
                     this.currentSubscription = this.stompClient.subscribe('/topic/chat/' + conversationId, (message) => {
                         const msg = JSON.parse(message.body);
-                        console.log('📨 Received message for specific conversation:', msg);
                         this.handleIncomingMessage(msg);
                     });
-                    console.log('✅ Subscribed to conversation:', conversationId);
                 } catch (error) {
                     console.error('Error subscribing to conversation:', error);
                 }
@@ -696,7 +669,9 @@ function staffChat() {
                 console.error('Error sending message:', error);
                 // Remove optimistic message on error
                 this.removeOptimisticMessage(optimisticMessage.id);
-                alert('Không thể gửi tin nhắn');
+                if (typeof showError === 'function') {
+                    showError('Không thể gửi tin nhắn');
+                }
             } finally {
                 this.sendingMessage = false;
             }
@@ -852,7 +827,12 @@ function staffChat() {
         },
         
         async closeConversation() {
-            if (!confirm('Bạn có chắc muốn đóng cuộc hội thoại này?')) return;
+            if (typeof confirmAction === 'function') {
+                const confirmed = await confirmAction('Đóng cuộc hội thoại?', 'Bạn có chắc muốn đóng cuộc hội thoại này?');
+                if (!confirmed) return;
+            } else if (!confirm('Bạn có chắc muốn đóng cuộc hội thoại này?')) {
+                return;
+            }
             
             try {
                 const csrf = this.getCsrfToken();
@@ -872,10 +852,14 @@ function staffChat() {
                     this.selectedConversation.status = 'CLOSED';
                     // Update conversation in list without reload
                     this.updateConversationStatus(this.selectedConversation.id, 'CLOSED');
-                    alert('Đã đóng cuộc hội thoại');
+                    if (typeof showSuccess === 'function') {
+                        showSuccess('Đã đóng cuộc hội thoại');
+                    }
                 } else {
                     console.error('Error closing conversation:', data.error);
-                    alert('Không thể đóng cuộc hội thoại: ' + data.error);
+                    if (typeof showError === 'function') {
+                        showError('Không thể đóng cuộc hội thoại: ' + data.error);
+                    }
                 }
             } catch (error) {
                 console.error('Error closing conversation:', error);
@@ -921,14 +905,23 @@ function staffChat() {
             
             if (!this.selectedConversation) {
                 console.error('❌ No conversation selected');
-                alert('Chưa chọn cuộc hội thoại');
+                if (typeof showWarning === 'function') {
+                    showWarning('Chưa chọn cuộc hội thoại');
+                }
                 return;
             }
             
             // Set flag to prevent duplicate calls
             this.returningToAi = true;
             
-            if (!confirm('Trao lại cuộc hội thoại này cho Hoa AI?\n\nSau 30 giây, nếu khách không nhắn tin thì AI sẽ tiếp tục hỗ trợ. Nếu khách nhắn tin trong 30 giây, bạn sẽ tiếp tục xử lý.')) {
+            let confirmed = false;
+            if (typeof confirmAction === 'function') {
+                confirmed = await confirmAction('Trao lại cho AI?', 'Trao lại cuộc hội thoại này cho Hoa AI?\n\nSau 30 giây, nếu khách không nhắn tin thì AI sẽ tiếp tục hỗ trợ. Nếu khách nhắn tin trong 30 giây, bạn sẽ tiếp tục xử lý.');
+            } else {
+                confirmed = confirm('Trao lại cuộc hội thoại này cho Hoa AI?\n\nSau 30 giây, nếu khách không nhắn tin thì AI sẽ tiếp tục hỗ trợ. Nếu khách nhắn tin trong 30 giây, bạn sẽ tiếp tục xử lý.');
+            }
+            
+            if (!confirmed) {
                 console.log('🤖 User cancelled AI return');
                 this.returningToAi = false; // Reset flag
                 return;
@@ -967,11 +960,15 @@ function staffChat() {
                     console.log('✅ Queued conversation for AI return');
                 } else {
                     console.error('❌ Error returning to AI:', data.error || data.message);
-                    alert('Không thể trao lại cho AI: ' + (data.error || data.message || 'Unknown error'));
+                    if (typeof showError === 'function') {
+                        showError('Không thể trao lại cho AI: ' + (data.error || data.message || 'Unknown error'));
+                    }
                 }
             } catch (error) {
                 console.error('❌ Exception in returnToAi:', error);
-                alert('Lỗi khi trao lại cho AI: ' + error.message);
+                if (typeof showError === 'function') {
+                    showError('Lỗi khi trao lại cho AI: ' + error.message);
+                }
             } finally {
                 // ALWAYS reset flag to allow future calls
                 this.returningToAi = false;
@@ -1027,14 +1024,20 @@ function staffChat() {
                 if (data.data && !data.error) {
                     // Update conversation status without reload
                     this.updateConversationStatus(conversationId, 'ASSIGNED');
-                    alert('Đã nhận cuộc hội thoại');
+                    if (typeof showSuccess === 'function') {
+                        showSuccess('Đã nhận cuộc hội thoại');
+                    }
                 } else {
                     console.error('Error assigning conversation:', data.error);
-                    alert('Không thể nhận cuộc hội thoại: ' + data.error);
+                    if (typeof showError === 'function') {
+                        showError('Không thể nhận cuộc hội thoại: ' + data.error);
+                    }
                 }
             } catch (error) {
                 console.error('Error assigning conversation:', error);
-                alert('Không thể nhận cuộc hội thoại');
+                if (typeof showError === 'function') {
+                    showError('Không thể nhận cuộc hội thoại');
+                }
             }
         },
         
@@ -1418,7 +1421,9 @@ function staffChat() {
                     } else {
                         console.error('❌ Conversation still not found after reload:', conversationId);
                         // Show error to user
-                        alert('Không tìm thấy cuộc hội thoại này');
+                        if (typeof showError === 'function') {
+                            showError('Không tìm thấy cuộc hội thoại này');
+                        }
                     }
                 });
             }

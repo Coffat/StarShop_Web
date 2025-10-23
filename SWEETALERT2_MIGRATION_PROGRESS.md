@@ -5,17 +5,23 @@
 
 ---
 
-## 📊 PROGRESS OVERVIEW
+## 📊 PROGRESS OVERVIEW (UPDATED AFTER AUDIT)
 
 | Phase | Status | Files | Completed | Remaining |
 |-------|--------|-------|-----------|-----------|
 | **Phase 1: Setup** | ✅ Done | 1 | 1 | 0 |
-| **Phase 2-3: Priority Cao** | 🔄 In Progress | 8 | 5 | 3 |
-| **Phase 4-5: Priority TB** | ⏳ Pending | 10 | 0 | 10 |
-| **Phase 6: Priority Thấp** | ⏳ Pending | 4 | 0 | 4 |
+| **Phase 2-3: Priority Cao** | 🔄 In Progress | 3 | 0 | 3 |
+| **Phase 4-5: Priority TB** | ⏳ Pending | 7 | 3 | 4 |
+| **Phase 6: Priority Thấp** | ⏳ Pending | 3 | 0 | 3 |
 | **Phase 7: Cleanup** | ⏳ Pending | 2 | 0 | 2 |
 
-**Overall Progress: 21% (5/24 files)**
+**Overall Progress: 25% (4/16 files) - AUDIT COMPLETE**
+
+### 🔍 AUDIT RESULTS:
+- ✅ **Found 27 alert()** across 2 template files
+- ✅ **Found 8 confirm()** across 6 template files  
+- ✅ **Already fixed 3 JS files** (products.js, checkout.js, wishlist.html)
+- ⚠️ **Need to audit static/js/** folder separately
 
 ---
 
@@ -52,32 +58,53 @@
 
 ---
 
-## ⏳ REMAINING WORK
+## ⏳ REMAINING WORK (UPDATED AFTER AUDIT)
 
-### Phase 2-3: Priority Cao (3 files remaining)
+### Phase 2-3: Priority Cao 🔴 (3 files remaining)
 
-#### 1. staff/chat/index.html (9 alerts + 2 confirms)
+#### 1. staff/chat/index.html (9 alerts + 2 confirms) - LARGEST FILE
 **Alerts to replace:**
-- Line 699: `alert('Không thể gửi tin nhắn')` → error toast
-- Line 875: `alert('Đã đóng cuộc hội thoại')` → success toast
-- Line 878: `alert('Không thể đóng cuộc hội thoại: ...')` → error toast
-- Line 924: `alert('Chưa chọn cuộc hội thoại')` → warning toast
-- Line 970: `alert('Không thể trao lại cho AI: ...')` → error toast
-- Line 974: `alert('Lỗi khi trao lại cho AI: ...')` → error toast
-- Line 1030: `alert('Đã nhận cuộc hội thoại')` → success toast
-- Line 1033: `alert('Không thể nhận cuộc hội thoại: ...')` → error toast
-- Line 1037: `alert('Không thể nhận cuộc hội thoại')` → error toast
-- Line 1421: `alert('Không tìm thấy cuộc hội thoại này')` → error toast
+- Line 699: `alert('Không thể gửi tin nhắn')` → `showError('Không thể gửi tin nhắn')`
+- Line 875: `alert('Đã đóng cuộc hội thoại')` → `showSuccess('Đã đóng cuộc hội thoại')`
+- Line 878: `alert('Không thể đóng cuộc hội thoại: ' + data.error)` → `showError('Không thể đóng cuộc hội thoại: ' + data.error)`
+- Line 924: `alert('Chưa chọn cuộc hội thoại')` → `showWarning('Chưa chọn cuộc hội thoại')`
+- Line 970: `alert('Không thể trao lại cho AI: ' + ...)` → `showError('Không thể trao lại cho AI: ' + ...)`
+- Line 974: `alert('Lỗi khi trao lại cho AI: ' + error.message)` → `showError('Lỗi khi trao lại cho AI: ' + error.message)`
+- Line 1030: `alert('Đã nhận cuộc hội thoại')` → `showSuccess('Đã nhận cuộc hội thoại')`
+- Line 1033: `alert('Không thể nhận cuộc hội thoại: ' + data.error)` → `showError('Không thể nhận cuộc hội thoại: ' + data.error)`
+- Line 1037: `alert('Không thể nhận cuộc hội thoại')` → `showError('Không thể nhận cuộc hội thoại')`
+- Line 1421: `alert('Không tìm thấy cuộc hội thoại này')` → `showError('Không tìm thấy cuộc hội thoại này')`
 
 **Confirms to replace:**
-- Line 855: `confirm('Bạn có chắc muốn đóng cuộc hội thoại này?')` → Swal.fire()
-- Line 931: `confirm('Trao lại cuộc hội thoại này cho Hoa AI?...')` → Swal.fire()
+- Line 855: `if (!confirm('Bạn có chắc muốn đóng cuộc hội thoại này?')) return;` → `if (!(await confirmAction('Đóng cuộc hội thoại?', 'Bạn có chắc muốn đóng cuộc hội thoại này?'))) return;`
+- Line 931: `if (!confirm('Trao lại cuộc hội thoại này cho Hoa AI?...')) { ... }` → `if (!(await confirmAction('Trao lại cho AI?', 'Trao lại cuộc hội thoại này cho Hoa AI?...'))) { ... }`
 
-#### 2. layouts/staff.html (1 confirm)
-- Line 328: `onclick="return confirm('Bạn có chắc muốn đăng xuất?')"` → Swal.fire()
+#### 2. admin/users/index.html (15 alerts + 3 confirms) - LARGEST ADMIN FILE
+**Alerts to replace:**
+- Line 562: `alert('Lỗi khi tải danh sách khách hàng')` → `showError('Lỗi khi tải danh sách khách hàng')`
+- Line 623: `alert('Gửi email đến: ' + customer.email)` → `showInfo('Gửi email đến: ' + customer.email)`
+- Line 630: `alert('Chức năng gửi email hàng loạt đang được phát triển')` → `showInfo('Chức năng gửi email hàng loạt đang được phát triển')`
+- Line 647: `alert(data.message)` → `showSuccess(data.message)` hoặc `showError(data.message)`
+- Line 649: `alert(data.message)` → `showError(data.message)`
+- Line 653: `alert('Lỗi khi cập nhật trạng thái khách hàng')` → `showError('Lỗi khi cập nhật trạng thái khách hàng')`
+- Line 671: `alert(data.message)` → `showSuccess(data.message)` hoặc `showError(data.message)`
+- Line 673: `alert(data.message)` → `showError(data.message)`
+- Line 677: `alert('Lỗi khi xóa khách hàng')` → `showError('Lỗi khi xóa khách hàng')`
+- Line 682: `alert('Chức năng xuất dữ liệu đang được phát triển')` → `showInfo('Chức năng xuất dữ liệu đang được phát triển')`
+- Line 759: `alert('Vui lòng chọn một phân khúc khách hàng')` → `showWarning('Vui lòng chọn một phân khúc khách hàng')`
+- Line 765: `alert('Không có khách hàng nào trong phân khúc này')` → `showWarning('Không có khách hàng nào trong phân khúc này')`
+- Line 886: `alert(data.message)` → `showSuccess(data.message)` hoặc `showError(data.message)`
+- Line 890: `alert(data.message)` → `showError(data.message)`
+- Line 894: `alert('Lỗi khi lưu khách hàng')` → `showError('Lỗi khi lưu khách hàng')`
+- + More alerts in this file...
 
-#### 3. layouts/admin.html (1 confirm)
-- Line 404: `onclick="return confirm('Bạn có chắc muốn đăng xuất?')"` → Swal.fire()
+**Confirms to replace:**
+- Line 627: `if (!confirm('Bạn có chắc muốn gửi email hàng loạt...')) return;` → `if (!(await confirmAction(...))) return;`
+- Line 634: `if (!confirm(\`Bạn có chắc muốn \${customer.isActive ? 'khóa' : 'kích hoạt'} tài khoản...\`)) return;` → `if (!(await confirmAction(...))) return;`
+- Line 658: `if (!confirm(\`Bạn có chắc muốn xóa khách hàng \${customer.firstname}...\`)) return;` → `if (!(await confirmDelete(...))) return;`
+
+#### 3. layouts/staff.html & layouts/admin.html (2 confirms)
+- **Need to find and fix logout confirmations**
 
 ### Phase 4-5: Priority TB (10 files)
 - [ ] reset-password.html (1 alert)

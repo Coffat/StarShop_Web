@@ -778,7 +778,13 @@ async function saveAdminResponse() {
 }
 
 async function removeAdminResponse(reviewId) {
-    if (!confirm('Bạn có chắc chắn muốn xóa phản hồi này?')) {
+    let confirmed = false;
+    if (typeof confirmDelete === 'function') {
+        confirmed = await confirmDelete('Xóa phản hồi?', 'Bạn có chắc chắn muốn xóa phản hồi này?');
+    } else {
+        confirmed = confirm('Bạn có chắc chắn muốn xóa phản hồi này?');
+    }
+    if (!confirmed) {
         return;
     }
     

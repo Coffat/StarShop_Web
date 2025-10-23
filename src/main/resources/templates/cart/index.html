@@ -363,8 +363,14 @@
             }
         }
                 // Remove from cart
-        function removeFromCart(button) {
-            if (!confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+        async function removeFromCart(button) {
+            let confirmed = false;
+            if (typeof confirmDelete === 'function') {
+                confirmed = await confirmDelete('Xóa sản phẩm?', 'Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?');
+            } else {
+                confirmed = confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?');
+            }
+            if (!confirmed) {
                 return;
             }
             
@@ -403,8 +409,14 @@
         }
         
         // Clear cart
-        function clearCart() {
-            if (!confirm('Bạn có chắc muốn xóa tất cả sản phẩm khỏi giỏ hàng?')) {
+        async function clearCart() {
+            let confirmed = false;
+            if (typeof confirmDelete === 'function') {
+                confirmed = await confirmDelete('Xóa toàn bộ giỏ hàng?', 'Bạn có chắc muốn xóa tất cả sản phẩm khỏi giỏ hàng?');
+            } else {
+                confirmed = confirm('Bạn có chắc muốn xóa tất cả sản phẩm khỏi giỏ hàng?');
+            }
+            if (!confirmed) {
                 return;
             }
             
