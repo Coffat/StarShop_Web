@@ -210,6 +210,21 @@ public class ReviewService {
     }
 
     /**
+     * Get review by ID with eager loading
+     */
+    public Review getReviewById(Long reviewId) {
+        if (reviewId == null) {
+            throw new IllegalArgumentException("Review ID cannot be null");
+        }
+
+        log.debug("Getting review by ID: {}", reviewId);
+        
+        // Use custom query with eager loading to avoid LazyInitializationException
+        return reviewRepository.findByIdWithEagerLoading(reviewId)
+            .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId));
+    }
+
+    /**
      * Get reviews for a product with pagination
      */
     public Page<Review> getReviewsByProduct(Long productId, Pageable pageable) {
@@ -357,8 +372,8 @@ public class ReviewService {
 
         log.info("Adding admin response to review {} by admin {}", reviewId, adminUserId);
 
-        // Get review
-        Review review = reviewRepository.findById(reviewId)
+        // Get review with eager loading
+        Review review = reviewRepository.findByIdWithEagerLoading(reviewId)
             .orElseThrow(() -> new IllegalArgumentException("Review not found"));
 
         // Get admin user
@@ -387,8 +402,8 @@ public class ReviewService {
 
         log.info("Updating admin response for review {} by admin {}", reviewId, adminUserId);
 
-        // Get review
-        Review review = reviewRepository.findById(reviewId)
+        // Get review with eager loading
+        Review review = reviewRepository.findByIdWithEagerLoading(reviewId)
             .orElseThrow(() -> new IllegalArgumentException("Review not found"));
 
         // Check if review has admin response
@@ -422,8 +437,8 @@ public class ReviewService {
 
         log.info("Removing admin response from review {} by admin {}", reviewId, adminUserId);
 
-        // Get review
-        Review review = reviewRepository.findById(reviewId)
+        // Get review with eager loading
+        Review review = reviewRepository.findByIdWithEagerLoading(reviewId)
             .orElseThrow(() -> new IllegalArgumentException("Review not found"));
 
         // Check if review has admin response

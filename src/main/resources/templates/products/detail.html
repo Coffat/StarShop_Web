@@ -197,13 +197,6 @@
                                     </a>
                                 </div>
 
-                                <button class="btn btn-wishlist"
-                                    th:data-product-id="${product.id}"
-                                    th:classappend="${isInWishlist} ? 'active'" sec:authorize="isAuthenticated()"
-                                    >
-                                    <i th:if="${isInWishlist}" class="fa-solid fa-heart"></i>
-                                    <i th:unless="${isInWishlist}" class="fa-regular fa-heart"></i>
-                                </button>
                             </div> -->
 
                             <!-- Phần hành động chính -->
@@ -236,18 +229,18 @@
                                     </button>
 
                                     <button class="btn-wishlist"
-        th:data-product-id="${product.id}"
-        th:classappend="${#sets.contains(wishlistProductIds, product.id)} ? 'active'"
-        sec:authorize="isAuthenticated()">
-    <i th:if="${#sets.contains(wishlistProductIds, product.id)}" class="fa-solid fa-heart"></i>
-    <i th:unless="${#sets.contains(wishlistProductIds, product.id)}" class="fa-regular fa-heart"></i>
-</button>
-                                    <!-- <button class="btn-wishlist"
                                             th:data-product-id="${product.id}"
-                                            th:classappend="${isInWishlist} ? 'active'">
-                                        <i th:if="${isInWishlist}" class="fa-solid fa-heart"></i>
-                                        <i th:unless="${isInWishlist}" class="fa-regular fa-heart"></i>
-                                    </button> -->
+                                            th:classappend="${#sets.contains(wishlistProductIds, product.id)} ? 'active'"
+                                            sec:authorize="isAuthenticated()">
+                                        <!-- Heroicons: Solid heart when active -->
+                                        <svg th:if="${#sets.contains(wishlistProductIds, product.id)}" class="hero-icon hero-icon-lg" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z"/>
+                                        </svg>
+                                        <!-- Heroicons: Outline heart when inactive -->
+                                        <svg th:unless="${#sets.contains(wishlistProductIds, product.id)}" class="hero-icon hero-icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                        </svg>
+                                    </button>
                                 </div>
                             
                                 <!-- Nút mua ngay -->
@@ -312,60 +305,128 @@
                 </div>
             </section>
 
-        <section class="product-tabs-section">
-            <div class="container">
-                <div class="tabs-container">
-                    <ul class="nav nav-tabs product-tabs" id="productTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="description-tab" data-bs-toggle="tab" 
-                                    data-bs-target="#description" type="button" role="tab" 
-                                    aria-controls="description" aria-selected="true">
-                                Mô tả chi tiết
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" 
-                                    data-bs-target="#reviews" type="button" role="tab" 
-                                    aria-controls="reviews" aria-selected="false">
-                                Đánh giá (<span th:text="${reviewCount ne null ? reviewCount : 0}">0</span>)
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="care-tab" data-bs-toggle="tab" 
-                                    data-bs-target="#care" type="button" role="tab" 
-                                    aria-controls="care" aria-selected="false">
-                                Hướng dẫn chăm sóc
-                            </button>
-                        </li>
-                    </ul>
+        <!-- Product Tabs Section - Redesigned with Tailwind -->
+        <section class="py-16 lg:py-20 bg-gradient-to-br from-gray-50 to-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Tabs Navigation -->
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
+                    <div class="mb-6 lg:mb-0">
+                        <h2 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Thông tin chi tiết</h2>
+                        <p class="text-gray-600">Tìm hiểu thêm về sản phẩm và cách chăm sóc</p>
+                    </div>
+                    
+                    <!-- Modern Tab Navigation -->
+                    <div class="bg-white rounded-2xl p-2 shadow-lg border border-gray-100">
+                        <ul class="flex space-x-1" id="productTabs" role="tablist">
+                            <li role="presentation">
+                                <button class="relative px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md" 
+                                        id="description-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#description" type="button" role="tab" 
+                                        aria-controls="description" aria-selected="true">
+                                    <svg class="w-4 h-4 inline-block mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M4.25 2A2.25 2.25 0 0 0 2 4.25v11.5A2.25 2.25 0 0 0 4.25 18h11.5A2.25 2.25 0 0 0 18 15.75V4.25A2.25 2.25 0 0 0 15.75 2H4.25Zm4.03 6.28a.75.75 0 0 0-1.06-1.06L4.97 9.47a.75.75 0 0 0 0 1.06l2.25 2.25a.75.75 0 0 0 1.06-1.06L6.56 10l1.72-1.72Zm4.5-1.06a.75.75 0 1 0-1.06 1.06L13.44 10l-1.72 1.72a.75.75 0 1 0 1.06 1.06l2.25-2.25a.75.75 0 0 0 0-1.06l-2.25-2.25Z" clip-rule="evenodd" />
+                                    </svg>
+                                    Mô tả chi tiết
+                                </button>
+                            </li>
+                            <li role="presentation">
+                                <button class="px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 text-gray-600 hover:text-gray-900 hover:bg-gray-50" 
+                                        id="reviews-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#reviews" type="button" role="tab" 
+                                        aria-controls="reviews" aria-selected="false">
+                                    <svg class="w-4 h-4 inline-block mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" />
+                                    </svg>
+                                    Đánh giá (<span th:text="${reviewCount ne null ? reviewCount : 0}">0</span>)
+                                </button>
+                            </li>
+                            <li role="presentation">
+                                <button class="px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 text-gray-600 hover:text-gray-900 hover:bg-gray-50" 
+                                        id="care-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#care" type="button" role="tab" 
+                                        aria-controls="care" aria-selected="false">
+                                    <svg class="w-4 h-4 inline-block mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M15.98 1.804a1 1 0 0 0-1.96 0l-.24 1.192a1 1 0 0 1-.784.785l-1.192.238a1 1 0 0 0 0 1.962l1.192.238a1 1 0 0 1 .785.785l.238 1.192a1 1 0 0 0 1.962 0l.238-1.192a1 1 0 0 1 .785-.785l1.192-.238a1 1 0 0 0 0-1.962l-1.192-.238a1 1 0 0 1-.785-.785l-.238-1.192ZM6.949 5.684a1 1 0 0 0-1.898 0l-.683 2.051a1 1 0 0 1-.633.633l-2.051.683a1 1 0 0 0 0 1.898l2.051.684a1 1 0 0 1 .633.632l.683 2.051a1 1 0 0 0 1.898 0l.683-2.051a1 1 0 0 1 .633-.633l2.051-.683a1 1 0 0 0 0-1.898l-2.051-.683a1 1 0 0 1-.633-.633L6.95 5.684ZM13.949 13.684a1 1 0 0 0-1.898 0l-.184.551a1 1 0 0 1-.632.633l-.551.183a1 1 0 0 0 0 1.898l.551.183a1 1 0 0 1 .633.633l.183.551a1 1 0 0 0 1.898 0l.184-.551a1 1 0 0 1 .632-.633l.551-.183a1 1 0 0 0 0-1.898l-.551-.184a1 1 0 0 1-.633-.632l-.183-.551Z" />
+                                    </svg>
+                                    Hướng dẫn chăm sóc
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
     
-                    <div class="tab-content product-tab-content" id="productTabContent">
-                        <div class="tab-pane fade show active" id="description" role="tabpanel" 
-                             aria-labelledby="description-tab">
-                            <div class="tab-content-wrapper">
-                                <div class="description-detail" th:utext="${product.description}">
+                <!-- Tab Content -->
+                <div class="tab-content" id="productTabContent">
+                    <!-- Description Tab -->
+                    <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
+                        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 lg:p-12">
+                            <div class="max-w-4xl mx-auto">
+                                <div class="flex items-center gap-3 mb-6">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M4.25 2A2.25 2.25 0 0 0 2 4.25v11.5A2.25 2.25 0 0 0 4.25 18h11.5A2.25 2.25 0 0 0 18 15.75V4.25A2.25 2.25 0 0 0 15.75 2H4.25Zm4.03 6.28a.75.75 0 0 0-1.06-1.06L4.97 9.47a.75.75 0 0 0 0 1.06l2.25 2.25a.75.75 0 0 0 1.06-1.06L6.56 10l1.72-1.72Zm4.5-1.06a.75.75 0 1 0-1.06 1.06L13.44 10l-1.72 1.72a.75.75 0 1 0 1.06 1.06l2.25-2.25a.75.75 0 0 0 0-1.06l-2.25-2.25Z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-900">Mô tả chi tiết sản phẩm</h3>
+                                        <p class="text-gray-600">Thông tin đầy đủ về sản phẩm</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed" th:utext="${product.description}">
                                     <p>Mô tả chi tiết sản phẩm sẽ hiển thị ở đây...</p>
                                 </div>
                             </div>
                         </div>
+                    </div>
     
-                        <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
-                            <div class="tab-content-wrapper">
-                                <div class="reviews-section">
-                                    <div class="reviews-summary">
-                                        <div class="rating-overview">
-                                            <div class="rating-score-large">
-                                                <span class="score" th:text="${averageRating ne null ? #numbers.formatDecimal(averageRating, 1, 1) : '0.0'}">0.0</span>
-                                                <div class="stars-large">
+                    <!-- Reviews Tab -->
+                    <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 lg:p-12">
+                            <div class="max-w-4xl mx-auto">
+                                <!-- Reviews Header -->
+                                <div class="flex items-center gap-3 mb-8">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-900">Đánh giá từ khách hàng</h3>
+                                        <p class="text-gray-600">Chia sẻ trải nghiệm của khách hàng về sản phẩm</p>
+                                    </div>
+                                </div>
+
+                                <!-- Rating Summary -->
+                                <div class="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-6 mb-8 border border-yellow-100">
+                                    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                                        <div class="text-center md:text-left">
+                                            <div class="flex items-center justify-center md:justify-start gap-2 mb-2">
+                                                <span class="text-4xl font-bold text-gray-900" th:text="${averageRating ne null ? #numbers.formatDecimal(averageRating, 1, 1) : '0.0'}">0.0</span>
+                                                <div class="flex items-center gap-1">
                                                     <th:block th:each="star : ${#numbers.sequence(1, 5)}">
-                                                        <i class="bi bi-star-fill" 
-                                                           th:classappend="${averageRating ne null and star le averageRating ? 'filled' : 'empty'}"></i>
+                                                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                                                             th:classappend="${averageRating ne null and star le averageRating ? 'text-yellow-400' : 'text-gray-300'}">
+                                                            <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" />
+                                                        </svg>
                                                     </th:block>
                                                 </div>
-                                                <p class="reviews-count" th:text="${reviewCount ne null ? (reviewCount + ' đánh giá') : '0 đánh giá'}">0 đánh giá</p>
+                                            </div>
+                                            <p class="text-gray-600 font-medium" th:text="${reviewCount ne null ? (reviewCount + ' đánh giá') : '0 đánh giá'}">0 đánh giá</p>
+                                        </div>
+                                        
+                                        <div class="flex items-center gap-4">
+                                            <div class="text-center">
+                                                <div class="text-2xl font-bold text-green-600">98%</div>
+                                                <div class="text-sm text-gray-600">Hài lòng</div>
+                                            </div>
+                                            <div class="text-center">
+                                                <div class="text-2xl font-bold text-blue-600">4.8</div>
+                                                <div class="text-sm text-gray-600">Chất lượng</div>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
     
                                     <div class="reviews-list">
                                         <div th:if="${reviews eq null or #lists.isEmpty(reviews)}" class="no-reviews">
@@ -383,12 +444,11 @@
                                                     <div class="reviewer-details">
                                                         <div class="flex items-center gap-2">
                                                             <h5 class="reviewer-name" th:text="${review.user.firstname + ' ' + review.user.lastname}">Tên khách hàng</h5>
-                                                            <span th:if="${review.orderItem != null}" class="verified-badge inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
-                                                                <i class="bi bi-patch-check-fill"></i> Đã mua hàng
-                                                            </span>
-                                                            <span th:if="${review.sentiment != null}" 
-                                                                  th:class="'sentiment-badge ' + ${review.sentiment.toLowerCase()}"
-                                                                  th:text="${review.sentiment == 'POSITIVE' ? '😊 Tích cực' : (review.sentiment == 'NEGATIVE' ? '😞 Tiêu cực' : '😐 Trung lập')}">
+                                                            <span class="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">
+                                                                <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                                    <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" />
+                                                                </svg>
+                                                                <span th:text="${review.rating} + ' sao'">5 sao</span>
                                                             </span>
                                                         </div>
                                                         <div class="review-rating">
@@ -455,36 +515,85 @@
                             </div>
                         </div>
     
-                        <div class="tab-pane fade" id="care" role="tabpanel" aria-labelledby="care-tab">
-                            <div class="tab-content-wrapper">
-                                <div class="care-guide">
-                                    <h4>Hướng dẫn chăm sóc hoa tươi</h4>
-                                    <div class="care-tips">
-                                        <div class="care-tip">
-                                            <i class="bi bi-droplet care-tip-icon"></i>
-                                            <div class="care-tip-content">
-                                                <h5>Tưới nước đều đặn</h5>
-                                                <p>Thay nước sạch mỗi 2-3 ngày, cắt chéo gốc hoa khoảng 1cm.</p>
-                                            </div>
-                                        </div>
-                                        <div class="care-tip">
-                                            <i class="bi bi-sun care-tip-icon"></i>
-                                            <div class="care-tip-content">
-                                                <h5>Tránh ánh nắng trực tiếp</h5>
-                                                <p>Đặt hoa ở nơi thoáng mát, tránh ánh nắng trực tiếp và gió mạnh.</p>
-                                            </div>
-                                        </div>
-                                        <div class="care-tip">
-                                            <i class="bi bi-thermometer care-tip-icon"></i>
-                                            <div class="care-tip-content">
-                                                <h5>Nhiệt độ phù hợp</h5>
-                                                <p>Giữ nhiệt độ phòng từ 18-22°C để hoa tươi lâu hơn.</p>
-                                            </div>
-                                        </div>
+                    <!-- Care Guide Tab -->
+                    <div class="tab-pane fade" id="care" role="tabpanel" aria-labelledby="care-tab">
+                        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 lg:p-12">
+                            <div class="max-w-4xl mx-auto">
+                                <!-- Care Guide Header -->
+                                <div class="flex items-center gap-3 mb-8">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M15.98 1.804a1 1 0 0 0-1.96 0l-.24 1.192a1 1 0 0 1-.784.785l-1.192.238a1 1 0 0 0 0 1.962l1.192.238a1 1 0 0 1 .785.785l.238 1.192a1 1 0 0 0 1.962 0l.238-1.192a1 1 0 0 1 .785-.785l1.192-.238a1 1 0 0 0 0-1.962l-1.192-.238a1 1 0 0 1-.785-.785l-.238-1.192ZM6.949 5.684a1 1 0 0 0-1.898 0l-.683 2.051a1 1 0 0 1-.633.633l-2.051.683a1 1 0 0 0 0 1.898l2.051.684a1 1 0 0 1 .633.632l.683 2.051a1 1 0 0 0 1.898 0l.683-2.051a1 1 0 0 1 .633-.633l2.051-.683a1 1 0 0 0 0-1.898l-2.051-.683a1 1 0 0 1-.633-.633L6.95 5.684ZM13.949 13.684a1 1 0 0 0-1.898 0l-.184.551a1 1 0 0 1-.632.633l-.551.183a1 1 0 0 0 0 1.898l.551.183a1 1 0 0 1 .633.633l.183.551a1 1 0 0 0 1.898 0l.184-.551a1 1 0 0 1 .632-.633l.551-.183a1 1 0 0 0 0-1.898l-.551-.184a1 1 0 0 1-.633-.632l-.183-.551Z" />
+                                        </svg>
                                     </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-900">Hướng dẫn chăm sóc hoa tươi</h3>
+                                        <p class="text-gray-600">Bí quyết giữ hoa tươi lâu và đẹp nhất</p>
+                                    </div>
+                                </div>
+
+                                <!-- Care Tips Grid -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <!-- Water Care -->
+                                    <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-100 hover:shadow-lg transition-all duration-300">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center mb-4">
+                                            <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M10 2a.75.75 0 0 1 .75.75v1.5h3.75a.75.75 0 0 1 0 1.5H10.75v1.5a.75.75 0 0 1-1.5 0v-1.5H5.5a.75.75 0 0 1 0-1.5h3.75v-1.5A.75.75 0 0 1 10 2ZM5.5 6A.5.5 0 0 0 5 6.5v2.25a.75.75 0 0 0 1.5 0V7.25h7V8.75a.75.75 0 0 0 1.5 0V6.5a.5.5 0 0 0-.5-.5h-9Z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <h4 class="text-lg font-bold text-gray-900 mb-2">Tưới nước đều đặn</h4>
+                                        <p class="text-gray-600 text-sm leading-relaxed">Thay nước sạch mỗi 2-3 ngày, cắt chéo gốc hoa khoảng 1cm để hoa hút nước tốt hơn.</p>
+                                    </div>
+
+                                    <!-- Light Care -->
+                                    <div class="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-6 border border-yellow-100 hover:shadow-lg transition-all duration-300">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center mb-4">
+                                            <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M10 2a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 10 2ZM10 15a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 10 15ZM10 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM15.657 5.404a.75.75 0 1 0-1.06-1.06l-1.061 1.06a.75.75 0 0 0 1.06 1.061l1.06-1.06ZM6.464 14.596a.75.75 0 1 0-1.06-1.06l-1.06 1.06a.75.75 0 0 0 1.06 1.061l1.06-1.06ZM18 10a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 18 10ZM5 10a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 5 10ZM14.596 15.657a.75.75 0 0 0 1.06-1.06l-1.06-1.061a.75.75 0 1 0-1.061 1.06l1.06 1.061ZM5.404 6.464a.75.75 0 0 0 1.06-1.06l-1.06-1.06a.75.75 0 1 0-1.061 1.06l1.06 1.06Z" />
+                                            </svg>
+                                        </div>
+                                        <h4 class="text-lg font-bold text-gray-900 mb-2">Tránh ánh nắng trực tiếp</h4>
+                                        <p class="text-gray-600 text-sm leading-relaxed">Đặt hoa ở nơi thoáng mát, có ánh sáng nhẹ nhưng tránh ánh nắng trực tiếp và gió mạnh.</p>
+                                    </div>
+
+                                    <!-- Temperature Care -->
+                                    <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100 hover:shadow-lg transition-all duration-300">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-4">
+                                            <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M10 2a.75.75 0 0 1 .75.75v8.5a2.25 2.25 0 1 1-1.5 0v-8.5A.75.75 0 0 1 10 2ZM8.5 13a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0Z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <h4 class="text-lg font-bold text-gray-900 mb-2">Nhiệt độ phù hợp</h4>
+                                        <p class="text-gray-600 text-sm leading-relaxed">Giữ nhiệt độ phòng từ 18-22°C, tránh để hoa gần điều hòa hoặc quạt gió.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Additional Tips -->
+                                <div class="mt-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100">
+                                    <h4 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-green-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clip-rule="evenodd" />
+                                        </svg>
+                                        Mẹo hay
+                                    </h4>
+                                    <ul class="space-y-2 text-gray-600">
+                                        <li class="flex items-start gap-2">
+                                            <span class="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></span>
+                                            <span>Thêm một ít đường vào nước để hoa tươi lâu hơn</span>
+                                        </li>
+                                        <li class="flex items-start gap-2">
+                                            <span class="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></span>
+                                            <span>Loại bỏ lá héo và hoa tàn để tránh nhiễm khuẩn</span>
+                                        </li>
+                                        <li class="flex items-start gap-2">
+                                            <span class="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></span>
+                                            <span>Xịt nhẹ nước lên cánh hoa vào buổi sáng</span>
+                                        </li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -576,6 +685,47 @@
             background: rgba(255, 255, 255, 0.3);
         }
     </style>
+
+    <!-- Tab Switching JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all tab buttons and content panes
+            const tabButtons = document.querySelectorAll('#productTabs button[data-bs-toggle="tab"]');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            
+            // Add click event listeners to tab buttons
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all buttons
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('bg-gradient-to-r', 'from-pink-500', 'to-purple-600', 'text-white', 'shadow-md');
+                        btn.classList.add('text-gray-600', 'hover:text-gray-900', 'hover:bg-gray-50');
+                        btn.setAttribute('aria-selected', 'false');
+                    });
+                    
+                    // Add active class to clicked button
+                    this.classList.add('bg-gradient-to-r', 'from-pink-500', 'to-purple-600', 'text-white', 'shadow-md');
+                    this.classList.remove('text-gray-600', 'hover:text-gray-900', 'hover:bg-gray-50');
+                    this.setAttribute('aria-selected', 'true');
+                    
+                    // Hide all tab panes
+                    tabPanes.forEach(pane => {
+                        pane.classList.remove('show', 'active');
+                        pane.classList.add('fade');
+                    });
+                    
+                    // Show target tab pane
+                    const targetId = this.getAttribute('data-bs-target');
+                    const targetPane = document.querySelector(targetId);
+                    if (targetPane) {
+                        targetPane.classList.add('show', 'active');
+                    }
+                });
+            });
+        });
+    </script>
 
 </body>
 
