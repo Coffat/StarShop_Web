@@ -121,6 +121,7 @@ public class CustomerService {
             Pageable pageable, 
             String status, 
             String type, 
+            String segment,
             String fromDate, 
             String toDate) {
         
@@ -143,7 +144,88 @@ public class CustomerService {
             }
         }
         
-        // Apply type filter
+        // Apply segment filter (VIP, NEW, AT_RISK) - uses CustomerSegmentationService logic
+        if (segment != null && !segment.isEmpty()) {
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            java.time.LocalDateTime thirtyDaysAgo = now.minusDays(30);
+            java.time.LocalDateTime ninetyDaysAgo = now.minusDays(90);
+            java.math.BigDecimal vipThreshold = new java.math.BigDecimal("5000000"); // 5 million VND
+            
+            if ("VIP".equals(segment)) {
+                // VIP: total_spent > 5M VND AND orders_count >= 3
+                customers = customers.stream()
+                    .filter(user -> {
+                        try {
+                            if (user.getOrders() == null) return false;
+                            
+                            long ordersCount = user.getOrders().stream()
+                                .filter(order -> order.getStatus() == com.example.demo.entity.enums.OrderStatus.COMPLETED)
+                                .count();
+                            
+                            java.math.BigDecimal totalSpent = user.getOrders().stream()
+                                .filter(order -> order.getStatus() == com.example.demo.entity.enums.OrderStatus.COMPLETED)
+                                .map(order -> order.getTotalAmount())
+                                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+                            
+                            return totalSpent.compareTo(vipThreshold) > 0 && ordersCount >= 3;
+                        } catch (Exception e) {
+                            log.warn("Error filtering VIP customer {}: {}", user.getId(), e.getMessage());
+                            return false;
+                        }
+                    })
+                    .collect(Collectors.toList());
+            } else if ("NEW".equals(segment)) {
+                // NEW: Registered within 30 days OR first order within 30 days
+                customers = customers.stream()
+                    .filter(user -> {
+                        try {
+                            // Check registration date
+                            if (user.getCreatedAt() != null && user.getCreatedAt().isAfter(thirtyDaysAgo)) {
+                                return true;
+                            }
+                            
+                            // Check first order date
+                            if (user.getOrders() != null && !user.getOrders().isEmpty()) {
+                                java.time.LocalDateTime firstOrderDate = user.getOrders().stream()
+                                    .map(order -> order.getOrderDate())
+                                    .min(java.time.LocalDateTime::compareTo)
+                                    .orElse(null);
+                                
+                                return firstOrderDate != null && firstOrderDate.isAfter(thirtyDaysAgo);
+                            }
+                            
+                            return false;
+                        } catch (Exception e) {
+                            log.warn("Error filtering NEW customer {}: {}", user.getId(), e.getMessage());
+                            return false;
+                        }
+                    })
+                    .collect(Collectors.toList());
+            } else if ("AT_RISK".equals(segment)) {
+                // AT_RISK: Has orders but no orders in last 90 days
+                customers = customers.stream()
+                    .filter(user -> {
+                        try {
+                            if (user.getOrders() == null || user.getOrders().isEmpty()) {
+                                return false; // Never ordered, not at risk
+                            }
+                            
+                            java.time.LocalDateTime lastOrderDate = user.getOrders().stream()
+                                .map(order -> order.getOrderDate())
+                                .max(java.time.LocalDateTime::compareTo)
+                                .orElse(null);
+                            
+                            return lastOrderDate != null && lastOrderDate.isBefore(ninetyDaysAgo);
+                        } catch (Exception e) {
+                            log.warn("Error filtering AT_RISK customer {}: {}", user.getId(), e.getMessage());
+                            return false;
+                        }
+                    })
+                    .collect(Collectors.toList());
+            }
+        }
+        
+        // Apply type filter (legacy support)
         if (type != null && !type.isEmpty()) {
             if ("loyal".equals(type)) {
                 customers = customers.stream()
@@ -398,8 +480,8 @@ public class CustomerService {
     
     /**
      * Get AI customer segment statistics
-     * VIP: Customers with >10 orders OR total spent > 10,000,000 VND
-     * NEW: Customers registered within last 30 days
+     * VIP: total_spent > 5M VND AND orders_count >= 3 (matches CustomerSegmentationService)
+     * NEW: Customers registered within last 30 days OR first order within 30 days
      * AT_RISK: Customers with no orders in last 90 days (but have at least 1 order)
      */
     @Transactional(readOnly = true)
@@ -408,37 +490,59 @@ public class CustomerService {
         
         java.time.LocalDateTime thirtyDaysAgo = java.time.LocalDateTime.now().minusDays(30);
         java.time.LocalDateTime ninetyDaysAgo = java.time.LocalDateTime.now().minusDays(90);
-        java.math.BigDecimal vipThreshold = new java.math.BigDecimal("10000000"); // 10 million VND
+        java.math.BigDecimal vipThreshold = new java.math.BigDecimal("5000000"); // 5 million VND (matches CustomerSegmentationService)
         
         long vipCount = 0;
         long newCount = 0;
         long atRiskCount = 0;
         
         try {
-            // VIP: High-value customers
+            // VIP: total_spent > 5M VND AND orders_count >= 3 (matches CustomerSegmentationService)
             vipCount = allCustomers.stream()
                 .filter(c -> {
                     try {
                         if (c.getOrders() == null) return false;
                         
-                        // Check if has >10 orders
-                        if (c.getOrders().size() > 10) return true;
+                        long ordersCount = c.getOrders().stream()
+                            .filter(order -> order.getStatus() == com.example.demo.entity.enums.OrderStatus.COMPLETED)
+                            .count();
                         
-                        // Check if total spent > threshold
                         java.math.BigDecimal totalSpent = c.getOrders().stream()
+                            .filter(order -> order.getStatus() == com.example.demo.entity.enums.OrderStatus.COMPLETED)
                             .map(order -> order.getTotalAmount())
                             .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
                         
-                        return totalSpent.compareTo(vipThreshold) > 0;
+                        return totalSpent.compareTo(vipThreshold) > 0 && ordersCount >= 3;
                     } catch (Exception e) {
                         return false;
                     }
                 })
                 .count();
             
-            // NEW: Recently registered customers
+            // NEW: Registered within 30 days OR first order within 30 days
             newCount = allCustomers.stream()
-                .filter(c -> c.getCreatedAt() != null && c.getCreatedAt().isAfter(thirtyDaysAgo))
+                .filter(c -> {
+                    try {
+                        // Check registration date
+                        if (c.getCreatedAt() != null && c.getCreatedAt().isAfter(thirtyDaysAgo)) {
+                            return true;
+                        }
+                        
+                        // Check first order date
+                        if (c.getOrders() != null && !c.getOrders().isEmpty()) {
+                            java.time.LocalDateTime firstOrderDate = c.getOrders().stream()
+                                .map(order -> order.getOrderDate())
+                                .min(java.time.LocalDateTime::compareTo)
+                                .orElse(null);
+                            
+                            return firstOrderDate != null && firstOrderDate.isAfter(thirtyDaysAgo);
+                        }
+                        
+                        return false;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
                 .count();
             
             // AT_RISK: Customers with no recent orders

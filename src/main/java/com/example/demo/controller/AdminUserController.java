@@ -46,6 +46,7 @@ public class AdminUserController {
             @RequestParam(defaultValue = "desc") String sortDir,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String type,
+            @RequestParam(required = false) String segment,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
             @RequestParam(required = false) String search
@@ -65,7 +66,7 @@ public class AdminUserController {
             } else {
                 // Get all customers with optional filters
                 customerPage = customerService.getCustomersWithFilters(
-                    pageable, status, type, fromDate, toDate
+                    pageable, status, type, segment, fromDate, toDate
                 );
             }
             
@@ -281,6 +282,7 @@ public class AdminUserController {
     public ResponseEntity<byte[]> exportUsers(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String type,
+            @RequestParam(required = false) String segment,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
             @RequestParam(required = false) String search
@@ -291,7 +293,7 @@ public class AdminUserController {
                 list = customerService.searchCustomers(search.trim());
             } else {
                 // get with filters then aggregate content
-                var page = customerService.getCustomersWithFilters(org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE), status, type, fromDate, toDate);
+                var page = customerService.getCustomersWithFilters(org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE), status, type, segment, fromDate, toDate);
                 list = page.getContent();
             }
             byte[] bytes = excelExportService.exportUsers(list);
