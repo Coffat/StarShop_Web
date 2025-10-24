@@ -406,8 +406,10 @@
 }
 
 .btn-wishlist.active {
-    background: var(--primary);
-    color: var(--white);
+    background: var(--white);
+    color: #f43f5e;
+    border-color: #f43f5e;
+    box-shadow: 0 4px 15px rgba(244, 63, 94, 0.2);
 }
 
 /* Icon changes handled by JavaScript - no need for CSS override */
@@ -1058,9 +1060,10 @@
 }
 
 .btn-wishlist.active {
-    background: var(--primary);
-    color: var(--white);
-    border-color: var(--primary);
+    background: var(--white);
+    color: #f43f5e;
+    border-color: #f43f5e;
+    box-shadow: 0 4px 15px rgba(244, 63, 94, 0.2);
 }
 
 .btn-wishlist i {

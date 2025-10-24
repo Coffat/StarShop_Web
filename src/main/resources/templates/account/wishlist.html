@@ -183,6 +183,20 @@
                         productCard.remove();
                     }
                     
+                    // Update wishlist count in header (same logic as products page)
+                    const wishlistCount = data.data.userWishlistCount;
+                    if (wishlistCount !== undefined && wishlistCount !== null) {
+                        if (typeof window.updateWishlistCount === 'function') {
+                            window.updateWishlistCount(wishlistCount);
+                        }
+                    } else {
+                        // Fallback: count remaining cards
+                        const remainingCards = document.querySelectorAll('#wishlistItems [data-product-id]');
+                        if (typeof window.updateWishlistCount === 'function') {
+                            window.updateWishlistCount(remainingCards.length);
+                        }
+                    }
+                    
                     // Check if no wishlist items left
                     const remainingCards = document.querySelectorAll('#wishlistItems [data-product-id]');
                     if (remainingCards.length === 0) {
@@ -222,6 +236,14 @@
             .then(response => response.json())
             .then(data => {
                 if (data.data && data.data.success) {
+                    // Update wishlist count in header (same logic as products page)
+                    const wishlistCount = data.data.userWishlistCount;
+                    if (wishlistCount !== undefined && wishlistCount !== null) {
+                        if (typeof window.updateWishlistCount === 'function') {
+                            window.updateWishlistCount(wishlistCount);
+                        }
+                    }
+                    
                     location.reload(); // Reload to show empty state
                 } else {
                     if (typeof showToast === 'function') {

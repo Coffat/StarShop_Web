@@ -95,6 +95,17 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Long countByRating(@Param("rating") Integer rating);
     
     /**
+     * Find review by ID with eager loading of all relationships
+     */
+    @Query("SELECT DISTINCT r FROM Review r " +
+           "LEFT JOIN FETCH r.user " +
+           "LEFT JOIN FETCH r.product " +
+           "LEFT JOIN FETCH r.orderItem " +
+           "LEFT JOIN FETCH r.adminResponseBy " +
+           "WHERE r.id = :id")
+    Optional<Review> findByIdWithEagerLoading(@Param("id") Long id);
+
+    /**
      * Find all reviews with filters (Admin)
      */
     @Query(value = "SELECT DISTINCT r FROM Review r " +

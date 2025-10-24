@@ -50,6 +50,9 @@ public interface OrderRepository extends JpaRepository<Order, String> {
     @Query("SELECT COUNT(o) FROM Order o WHERE o.user.id = :userId")
     Long countOrdersByUser(@Param("userId") Long userId);
     
+    // Count orders by user ID (for deletion check)
+    long countByUserId(Long userId);
+    
     @Query("SELECT SUM(o.totalAmount) FROM Order o WHERE o.user.id = :userId AND o.status = 'COMPLETED'")
     BigDecimal getTotalSpentByUser(@Param("userId") Long userId);
     

@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,9 @@ public class EmployeeService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final SessionManagementService sessionManagementService;
+    private final com.example.demo.repository.OrderRepository orderRepository;
+    private final com.example.demo.repository.TimeSheetRepository timeSheetRepository;
+    private final com.example.demo.repository.SalaryRepository salaryRepository;
     
     /**
      * Get all employees (STAFF and ADMIN roles only)
@@ -214,10 +218,10 @@ public class EmployeeService {
     }
     
     /**
-     * Delete employee (soft delete by setting isActive to false)
+     * Delete employee - checks for related data first
      */
     public void deleteEmployee(Long id) {
-        log.info("Deleting employee with ID: {}", id);
+        log.info("Attempting to delete employee with ID: {}", id);
         
         User employee = userRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy nhân viên với ID: " + id));
@@ -226,6 +230,14 @@ public class EmployeeService {
             throw new IllegalArgumentException("Người dùng không phải là nhân viên");
         }
         
+        // Check for related data before deletion
+        String relatedDataError = checkRelatedData(employee);
+        if (relatedDataError != null) {
+            log.warn("Cannot delete employee ID {} due to related data", id);
+            throw new IllegalStateException(relatedDataError);
+        }
+        
+        // Safe to delete - no related data exists
         userRepository.delete(employee);
         log.info("Employee deleted successfully with ID: {}", id);
     }
@@ -364,6 +376,41 @@ public class EmployeeService {
             .collect(Collectors.toList());
         
         return new PageImpl<>(employeeDTOs, pageable, employees.size());
+    }
+    
+    /**
+     * Check if user has related data that prevents deletion
+     * @return error message if has related data, null if safe to delete
+     */
+    private String checkRelatedData(User user) {
+        List<String> relatedData = new ArrayList<>();
+        
+        // Check orders
+        long orderCount = orderRepository.countByUserId(user.getId());
+        if (orderCount > 0) {
+            relatedData.add(orderCount + " đơn hàng");
+        }
+        
+        // Check timesheets (for employees)
+        if (user.getRole() == UserRole.STAFF || user.getRole() == UserRole.ADMIN) {
+            long timesheetCount = timeSheetRepository.countByStaffId(user.getId());
+            if (timesheetCount > 0) {
+                relatedData.add(timesheetCount + " bản ghi chấm công");
+            }
+            
+            // Check salaries
+            long salaryCount = salaryRepository.countByUserId(user.getId());
+            if (salaryCount > 0) {
+                relatedData.add(salaryCount + " bản ghi lương");
+            }
+        }
+        
+        if (!relatedData.isEmpty()) {
+            return "Không thể xóa vì có dữ liệu liên quan: " + String.join(", ", relatedData) + 
+                   ". Vui lòng sử dụng chức năng 'Vô hiệu hóa' thay vì xóa.";
+        }
+        
+        return null;
     }
     
     /**
