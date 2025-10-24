@@ -247,7 +247,9 @@ public class WishlistService {
             followRepository.deleteAll(userFollows);
 
             logger.info("Successfully cleared all wishlist items for user {}", userId);
-            return WishlistResponse.success("Đã xóa tất cả sản phẩm khỏi danh sách yêu thích", false, 0L);
+            WishlistResponse response = WishlistResponse.success("Đã xóa tất cả sản phẩm khỏi danh sách yêu thích", false, 0L);
+            response.setUserWishlistCount(0L);
+            return response;
 
         } catch (Exception e) {
             logger.error("Error clearing wishlist for user {}: {}", userId, e.getMessage());

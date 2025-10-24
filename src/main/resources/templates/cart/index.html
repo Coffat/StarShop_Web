@@ -100,12 +100,13 @@
                                                     </svg>
                                                 </button>
                                                 <input type="number" 
-                                                       class="w-16 h-9 text-center border-2 border-gray-300 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" 
+                                                       class="w-16 h-9 text-center border-2 border-gray-300 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all no-spinner" 
                                                        th:value="${item.quantity}"
                                                        min="1" 
                                                        th:max="${item.productStockQuantity}"
                                                        th:data-product-id="${item.productId}"
-                                                       onchange="updateQuantityDirect(this)">
+                                                       onchange="updateQuantityDirect(this)"
+                                                       readonly>
                                                 <button onclick="updateQuantity(this, 1)"
                                                         th:data-product-id="${item.productId}"
                                                         class="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-gray-300 hover:border-primary hover:bg-primary-light/20 transition-all">
