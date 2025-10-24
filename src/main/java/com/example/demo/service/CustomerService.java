@@ -31,6 +31,7 @@ public class CustomerService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final FollowRepository followRepository;
+    private final SessionManagementService sessionManagementService;
     
     /**
      * Get all customers (CUSTOMER role only)
@@ -414,8 +415,16 @@ public class CustomerService {
             throw new IllegalArgumentException("Người dùng không phải là khách hàng");
         }
         
+        boolean wasActive = customer.getIsActive();
         customer.setIsActive(!customer.getIsActive());
         User updatedCustomer = userRepository.save(customer);
+        
+        // If user was disabled (active -> inactive), invalidate all their sessions
+        if (wasActive && !updatedCustomer.getIsActive()) {
+            log.info("Customer was disabled, invalidating all sessions for: {}", updatedCustomer.getEmail());
+            sessionManagementService.invalidateUserSessions(updatedCustomer.getEmail());
+        }
+        
         log.info("Customer status toggled successfully with ID: {}", id);
         
         return convertToDTO(updatedCustomer);

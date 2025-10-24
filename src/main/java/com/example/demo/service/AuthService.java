@@ -63,6 +63,12 @@ public class AuthService {
             
             User user = userOptional.get();
             
+            // Check if user account is active
+            if (user.getIsActive() == null || !user.getIsActive()) {
+                log.warn("Authentication failed: user account is disabled for email: {}", email);
+                return null;
+            }
+            
             // Debug: Log password check
             log.info("DEBUG: Checking password for user {}", email);
             log.info("DEBUG: Stored password hash: {}", user.getPassword().substring(0, 10) + "...");

@@ -106,13 +106,23 @@ public interface OrderRepository extends JpaRepository<Order, String> {
     Page<Order> searchOrders(@Param("searchTerm") String searchTerm, Pageable pageable);
     
     // AI Insights queries
+    // Lấy doanh thu 24h gần nhất (thay vì chỉ hôm qua để tránh = 0)
     @Query(value = "SELECT COALESCE(SUM(total_amount), 0) FROM orders " +
-           "WHERE status = 'COMPLETED' AND DATE(order_date) = CURRENT_DATE - INTERVAL '1 day'", 
+           "WHERE status = 'COMPLETED' AND order_date >= NOW() - INTERVAL '24 hours'", 
            nativeQuery = true)
     BigDecimal getYesterdayRevenue();
     
+    // Lấy doanh thu 24h trước đó (từ 48h đến 24h trước) để so sánh growth
     @Query(value = "SELECT COALESCE(SUM(total_amount), 0) FROM orders " +
-           "WHERE status = 'COMPLETED' AND DATE(order_date) = CURRENT_DATE - INTERVAL '7 days'", 
+           "WHERE status = 'COMPLETED' " +
+           "AND order_date >= NOW() - INTERVAL '48 hours' " +
+           "AND order_date < NOW() - INTERVAL '24 hours'", 
+           nativeQuery = true)
+    BigDecimal getPreviousDayRevenue();
+    
+    // Lấy doanh thu 7 ngày gần nhất (thay vì chỉ tuần trước để có dữ liệu thực tế)
+    @Query(value = "SELECT COALESCE(SUM(total_amount), 0) FROM orders " +
+           "WHERE status = 'COMPLETED' AND order_date >= NOW() - INTERVAL '7 days'", 
            nativeQuery = true)
     BigDecimal getLastWeekRevenue();
     

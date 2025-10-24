@@ -117,14 +117,26 @@ public class AdminAiInsightsService {
      * Thu thập raw data từ database
      */
     private DashboardInsightsData collectRawData() {
-        // Revenue data
-        BigDecimal revenueYesterday = orderRepository.getYesterdayRevenue();
-        BigDecimal revenueLastWeek = orderRepository.getLastWeekRevenue();
+        // Revenue data - 24h gần nhất vs 24h trước đó
+        BigDecimal revenueYesterday = orderRepository.getYesterdayRevenue(); // 24h gần nhất
+        BigDecimal revenuePreviousDay = orderRepository.getPreviousDayRevenue(); // 24h trước đó
+        BigDecimal revenueLastWeek = orderRepository.getLastWeekRevenue(); // 7 ngày gần nhất
+        
+        // DEBUG: Log raw revenue values
+        log.info("=== AI INSIGHTS DEBUG ===");
+        log.info("Revenue Last 24h (raw from DB): {}", revenueYesterday);
+        log.info("Revenue Previous 24h (raw from DB): {}", revenuePreviousDay);
+        log.info("Revenue Last 7 days (raw from DB): {}", revenueLastWeek);
+        
+        // Tính growth: so sánh 24h gần nhất với 24h trước đó
         BigDecimal revenueGrowth = BigDecimal.ZERO;
-        if (revenueLastWeek.compareTo(BigDecimal.ZERO) > 0) {
-            revenueGrowth = revenueYesterday.subtract(revenueLastWeek)
-                    .divide(revenueLastWeek, 4, RoundingMode.HALF_UP)
+        if (revenuePreviousDay.compareTo(BigDecimal.ZERO) > 0) {
+            revenueGrowth = revenueYesterday.subtract(revenuePreviousDay)
+                    .divide(revenuePreviousDay, 4, RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100));
+        } else if (revenueYesterday.compareTo(BigDecimal.ZERO) > 0) {
+            // Nếu 24h trước = 0 nhưng 24h gần nhất > 0 => tăng trưởng 100%
+            revenueGrowth = BigDecimal.valueOf(100);
         }
         
         // Top products
@@ -195,8 +207,14 @@ public class AdminAiInsightsService {
     private String buildPrompt(DashboardInsightsData data) {
         StringBuilder prompt = new StringBuilder();
         
-        prompt.append("Bạn là chuyên gia phân tích kinh doanh cho cửa hàng hoa trực tuyến.\n");
-        prompt.append("Nhiệm vụ: Phân tích dữ liệu và tạo 3-4 insights quan trọng nhất.\n\n");
+        prompt.append("Bạn là AI Business Analyst chuyên sâu về e-commerce hoa tươi.\n");
+        prompt.append("Nhiệm vụ: Phân tích dữ liệu và đưa ra 3-4 insights HÀNH ĐỘNG được, không chỉ mô tả số liệu.\n\n");
+        prompt.append("NGUYÊN TẮC PHÂN TÍCH:\n");
+        prompt.append("1. KHÔNG chỉ nói \"Doanh thu tăng X%\" - Hãy giải thích TẠI SAO và NÊN LÀM GÌ\n");
+        prompt.append("2. Tìm PATTERN ẩn: xu hướng, bất thường, cơ hội, rủi ro\n");
+        prompt.append("3. So sánh với BENCHMARK ngành hoa (tỷ lệ hủy <5%, review ≥4.5 sao, tồn kho 2-4 tuần)\n");
+        prompt.append("4. Đưa ra HÀNH ĐỘNG cụ thể: giảm giá, nhập thêm, liên hệ khách, tối ưu quy trình\n");
+        prompt.append("5. Ưu tiên vấn đề ẢNH HƯỞNG LỚN đến doanh thu/lợi nhuận/trải nghiệm khách\n\n");
         
         prompt.append("YÊU CẦU QUAN TRỌNG: Trả về ĐÚNG format JSON sau:\n");
         prompt.append("{\n");
@@ -213,20 +231,39 @@ public class AdminAiInsightsService {
         prompt.append("  ]\n");
         prompt.append("}\n\n");
         
-        prompt.append("QUY TẮC:\n");
-        prompt.append("1. Tối đa 4 insights, ưu tiên vấn đề QUAN TRỌNG nhất\n");
-        prompt.append("2. message PHẢI có SỐ LIỆU cụ thể: %, số tiền, tên sản phẩm\n");
-        prompt.append("3. severity: success (tin tốt), warning (cảnh báo), danger (khẩn cấp), info (trung lập)\n");
-        prompt.append("4. Chỉ thêm actionLink/actionText nếu có hành động cụ thể admin cần làm\n");
-        prompt.append("5. Ngôn ngữ: Tiếng Việt tự nhiên, dễ hiểu, chuyên nghiệp\n\n");
+        prompt.append("QUY TẮC FORMAT:\n");
+        prompt.append("1. Tối đa 4 insights, ưu tiên theo tác động: Doanh thu > Tồn kho > Đơn hàng > Review\n");
+        prompt.append("2. Title: Ngắn gọn, hành động (VD: \"Cơ hội tăng 30% doanh thu\", \"Nguy cơ mất khách\")\n");
+        prompt.append("3. Message: Cấu trúc 3 phần:\n");
+        prompt.append("   - PHÁT HIỆN: Số liệu + so sánh (VD: \"Tỷ lệ hủy 8.5% cao hơn ngành 70%\")\n");
+        prompt.append("   - NGUYÊN NHÂN: Giải thích tại sao (VD: \"Do giao hàng chậm, sản phẩm không đúng\")\n");
+        prompt.append("   - HÀNH ĐỘNG: Gợi ý cụ thể (VD: \"Nên đổi đơn vị vận chuyển, cải thiện QC\")\n");
+        prompt.append("4. severity: danger (mất tiền/khách), warning (cần chú ý), success (cơ hội), info (trung tính)\n");
+        prompt.append("5. actionLink/actionText: Luôn có nếu đề cập sản phẩm/đơn hàng cụ thể\n\n");
+        
+        prompt.append("VÍ DỤ INSIGHT TỐT:\n");
+        prompt.append("{\n");
+        prompt.append("  \"type\": \"inventory\",\n");
+        prompt.append("  \"icon\": \"🚨\",\n");
+        prompt.append("  \"title\": \"Nguy cơ hết hàng sản phẩm bán chạy\",\n");
+        prompt.append("  \"message\": \"Hoa Hồng Đỏ (top 1 doanh thu) chỉ còn 8 bông, dự kiến hết trong 2 ngày. Tuần trước bán 45 bông/ngày. Nên nhập gấp 200 bông để đáp ứng nhu cầu cuối tuần.\",\n");
+        prompt.append("  \"severity\": \"danger\",\n");
+        prompt.append("  \"actionLink\": \"/admin/products\",\n");
+        prompt.append("  \"actionText\": \"Nhập hàng ngay\"\n");
+        prompt.append("}\n\n");
+        
+        prompt.append("VÍ DỤ INSIGHT TỆ (TRÁNH):\n");
+        prompt.append("- \"Doanh thu tăng 15%\" ❌ (Chỉ mô tả, không giải thích/hành động)\n");
+        prompt.append("- \"Có 3 sản phẩm sắp hết\" ❌ (Không nói tên, không đánh giá tác động)\n");
+        prompt.append("- \"Tỷ lệ hủy cao\" ❌ (Không có số liệu, nguyên nhân, giải pháp)\n\n");
         
         prompt.append("DỮ LIỆU CỬA HÀNG:\n\n");
         
         prompt.append("DOANH THU:\n");
-        prompt.append("- Hôm qua: ").append(data.getRevenueYesterday()).append(" VND\n");
-        prompt.append("- Tuần trước (cùng thứ): ").append(data.getRevenueLastWeek()).append(" VND\n");
-        prompt.append("- Thay đổi: ").append(data.getRevenueGrowth()).append("%\n");
-        prompt.append("- Top sản phẩm: ").append(String.join(", ", data.getTopProducts())).append("\n\n");
+        prompt.append("- 24h gần nhất: ").append(data.getRevenueYesterday()).append(" VND\n");
+        prompt.append("- 7 ngày gần nhất: ").append(data.getRevenueLastWeek()).append(" VND\n");
+        prompt.append("- Thay đổi so với 24h trước: ").append(data.getRevenueGrowth()).append("%\n");
+        prompt.append("- Top sản phẩm (7 ngày): ").append(String.join(", ", data.getTopProducts())).append("\n\n");
         
         prompt.append("ĐỚN HÀNG (7 ngày gần đây):\n");
         prompt.append("- Tỷ lệ hủy: ").append(String.format("%.1f", data.getCancelRate())).append("%\n");
@@ -242,7 +279,21 @@ public class AdminAiInsightsService {
         prompt.append("- Tỷ lệ tích cực (≥4 sao): ").append(String.format("%.1f", data.getPositiveReviewRate())).append("%\n");
         prompt.append("- Nội dung phàn nàn: ").append(String.join(", ", data.getComplaints())).append("\n\n");
         
-        prompt.append("Hãy phân tích và trả về JSON insights.");
+        prompt.append("BENCHMARK NGÀNH HOA TƯƠI E-COMMERCE:\n");
+        prompt.append("- Tỷ lệ hủy đơn: <5% (tốt), 5-8% (trung bình), >8% (kém)\n");
+        prompt.append("- Tỷ lệ review tích cực: >90% (xuất sắc), 80-90% (tốt), <80% (cần cải thiện)\n");
+        prompt.append("- Tồn kho: 2-4 tuần (tối ưu), <1 tuần (thiếu hàng), >6 tuần (ứ đọng)\n");
+        prompt.append("- Tốc độ xử lý đơn: <2h (nhanh), 2-6h (bình thường), >6h (chậm)\n");
+        prompt.append("- AOV (giá trị đơn trung bình): 300-500k (thấp), 500-800k (tốt), >800k (cao)\n\n");
+        
+        prompt.append("CÂU HỎI PHÂN TÍCH (trả lời trong insights):\n");
+        prompt.append("1. Doanh thu tăng/giảm do ĐÂU? (sản phẩm hot, mùa vụ, marketing, giá cả?)\n");
+        prompt.append("2. Sản phẩm nào đang BỊ BỎ QUA nhưng có tiềm năng? (tồn cao + review tốt)\n");
+        prompt.append("3. Nguy cơ MẤT KHÁCH nào? (tỷ lệ hủy cao, review kém, giao chậm?)\n");
+        prompt.append("4. Cơ hội TĂNG DOANH THU nào? (sản phẩm bán chạy thiếu hàng, combo, upsell?)\n");
+        prompt.append("5. Vấn đề VẬN HÀNH nào cần xử lý GẤP? (đơn chờ lâu, tồn kho mất cân đối?)\n\n");
+        
+        prompt.append("Hãy phân tích THÔNG MINH dựa trên dữ liệu và benchmark, trả về JSON insights.");
         
         return prompt.toString();
     }
@@ -511,27 +562,41 @@ public class AdminAiInsightsService {
         prompt.append("Bạn là chuyên gia marketing cho cửa hàng hoa trực tuyến.\n");
         prompt.append("Nhiệm vụ: Tạo cấu hình voucher tối ưu dựa trên dữ liệu kinh doanh thực tế.\n\n");
         
+        // Calculate example future date
+        String exampleFutureDate = LocalDate.now().plusDays(14).toString();
+        
         prompt.append("YÊU CẦU QUAN TRỌNG: Trả về ĐÚNG format JSON sau:\n");
         prompt.append("{\n");
         prompt.append("  \"code\": \"OBJ-CAT-MMDD-XXXX\",\n");
+        prompt.append("  \"name\": \"Tên voucher ngắn gọn\",\n");
+        prompt.append("  \"description\": \"Mô tả chi tiết về voucher\",\n");
         prompt.append("  \"discountType\": \"PERCENTAGE|FIXED\",\n");
         prompt.append("  \"discountValue\": 20.0,\n");
+        prompt.append("  \"maxDiscountAmount\": 100000.0,\n");
         prompt.append("  \"minOrderValue\": 450000.0,\n");
+        prompt.append("  \"expiryDate\": \"").append(exampleFutureDate).append("\",\n");
+        prompt.append("  \"maxUses\": 100,\n");
         prompt.append("  \"explanation\": \"Giải thích lý do đề xuất cấu hình này\",\n");
         prompt.append("  \"warnings\": [\"Cảnh báo nếu có xung đột\"],\n");
         prompt.append("  \"dataUsed\": \"Tóm tắt dữ liệu đã sử dụng\"\n");
         prompt.append("}\n\n");
         
         prompt.append("QUY TẮC:\n");
-        prompt.append("1. Code format: OBJ-CAT-MMDD-XXXX (VD: AOV-FLOWER-1019-A3B2)\n");
-        prompt.append("2. minOrderValue ≈ AOV * 1.25 (để tăng AOV nhưng vẫn đạt tỷ lệ chuyển đổi tốt)\n");
-        prompt.append("3. discountType: PERCENTAGE cho tăng AOV, FIXED cho thu hút KH mới, PERCENTAGE cao cho đẩy tồn\n");
-        prompt.append("4. discountValue: không vượt quá 50% cho PERCENTAGE, không vượt biên lợi nhuận (~30%)\n");
-        prompt.append("5. explanation: ngắn gọn, có số liệu cụ thể, lý do rõ ràng\n");
-        prompt.append("6. warnings: chỉ thêm nếu có xung đột với voucher đang chạy\n");
-        prompt.append("7. Ngôn ngữ: Tiếng Việt tự nhiên, chuyên nghiệp\n\n");
+        prompt.append("1. code: Format OBJ-CAT-MMDD-XXXX (VD: AOV-FLOWER-1019-A3B2), chỉ chữ IN HOA, số và dấu gạch ngang\n");
+        prompt.append("2. name: Tên ngắn gọn, hấp dẫn (VD: 'Giảm 20% cho đơn hàng lớn')\n");
+        prompt.append("3. description: Mô tả chi tiết điều kiện áp dụng và lợi ích\n");
+        prompt.append("4. discountType: PERCENTAGE cho tăng AOV, FIXED cho thu hút KH mới, PERCENTAGE cao cho đẩy tồn\n");
+        prompt.append("5. discountValue: không vượt quá 50% cho PERCENTAGE, không vượt biên lợi nhuận (~30%)\n");
+        prompt.append("6. maxDiscountAmount: Giới hạn giảm tối đa cho PERCENTAGE (VD: 100000 VND), null cho FIXED\n");
+        prompt.append("7. minOrderValue: ≈ AOV * 1.25 (để tăng AOV nhưng vẫn đạt tỷ lệ chuyển đổi tốt)\n");
+        prompt.append("8. expiryDate: Ngày hết hạn format YYYY-MM-DD, PHẢI là ngày trong TƯƠNG LAI (ít nhất 7-30 ngày từ hôm nay)\n");
+        prompt.append("9. maxUses: Số lượt sử dụng tối đa (VD: 50-200), null nếu không giới hạn\n");
+        prompt.append("10. explanation: ngắn gọn, có số liệu cụ thể, lý do rõ ràng\n");
+        prompt.append("11. warnings: chỉ thêm nếu có xung đột với voucher đang chạy\n");
+        prompt.append("12. Ngôn ngữ: Tiếng Việt tự nhiên, chuyên nghiệp\n\n");
         
         prompt.append("DỮ LIỆU KINH DOANH:\n\n");
+        prompt.append("NGÀY HÔM NAY: ").append(LocalDate.now()).append("\n");
         prompt.append("MỤC TIÊU: ").append(objective).append("\n");
         if (targetProduct != null && !targetProduct.trim().isEmpty()) {
             prompt.append("SẢN PHẨM MỤC TIÊU: ").append(targetProduct).append("\n");
@@ -577,6 +642,27 @@ public class AdminAiInsightsService {
             suggestion.setDiscountValue(BigDecimal.valueOf(30)); // Cap at 30%
         }
         
+        // Validate expiry date - must be in the future
+        if (suggestion.getExpiryDate() != null) {
+            try {
+                LocalDate expiryDate = LocalDate.parse(suggestion.getExpiryDate());
+                LocalDate today = LocalDate.now();
+                
+                // If expiry date is today or in the past, set it to 14 days from now
+                if (!expiryDate.isAfter(today)) {
+                    suggestion.setExpiryDate(today.plusDays(14).toString());
+                    log.warn("AI suggested past expiry date {}, corrected to {}", expiryDate, suggestion.getExpiryDate());
+                }
+            } catch (Exception e) {
+                // If date parsing fails, set default to 14 days from now
+                suggestion.setExpiryDate(LocalDate.now().plusDays(14).toString());
+                log.error("Invalid expiry date format from AI: {}, using default", suggestion.getExpiryDate(), e);
+            }
+        } else {
+            // If no expiry date provided, set default to 14 days from now
+            suggestion.setExpiryDate(LocalDate.now().plusDays(14).toString());
+        }
+        
         // Check for code conflicts
         if (voucherRepository.existsByCode(suggestion.getCode())) {
             // Generate new code
@@ -617,11 +703,33 @@ public class AdminAiInsightsService {
         DiscountType discountType = "INCREASE_AOV".equals(objective) ? DiscountType.PERCENTAGE : DiscountType.FIXED;
         BigDecimal discountValue = "INCREASE_AOV".equals(objective) ? BigDecimal.valueOf(20) : BigDecimal.valueOf(50000);
         
+        // Generate name and description based on objective
+        String name;
+        String description;
+        if ("NEW_CUSTOMER".equals(objective)) {
+            name = "Ưu đãi khách hàng mới";
+            description = "Giảm giá đặc biệt dành cho khách hàng mới đặt hàng lần đầu. Áp dụng cho đơn hàng từ " + minOrderValue.intValue() + " VND.";
+        } else if ("INCREASE_AOV".equals(objective)) {
+            name = "Giảm " + discountValue.intValue() + "% cho đơn hàng lớn";
+            description = "Tăng giá trị đơn hàng với ưu đãi giảm giá hấp dẫn. Áp dụng cho đơn hàng từ " + minOrderValue.intValue() + " VND.";
+        } else {
+            name = "Thanh lý hàng tồn kho";
+            description = "Giảm giá đặc biệt để thanh lý hàng tồn kho. Số lượng có hạn, nhanh tay đặt hàng!";
+        }
+        
+        // Calculate expiry date (14 days from now)
+        String expiryDate = java.time.LocalDate.now().plusDays(14).toString();
+        
         return VoucherSuggestionResponse.builder()
                 .code(code)
+                .name(name)
+                .description(description)
                 .discountType(discountType)
                 .discountValue(discountValue)
+                .maxDiscountAmount(discountType == DiscountType.PERCENTAGE ? BigDecimal.valueOf(100000) : null)
                 .minOrderValue(minOrderValue)
+                .expiryDate(expiryDate)
+                .maxUses(100)
                 .explanation("Gợi ý mặc định: AOV hiện tại " + aov + " VND. Đề xuất voucher " + 
                     discountType + " " + discountValue + 
                     (discountType == DiscountType.PERCENTAGE ? "%" : " VND") + 

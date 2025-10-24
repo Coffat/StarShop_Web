@@ -27,6 +27,7 @@ public class EmployeeService {
     
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SessionManagementService sessionManagementService;
     
     /**
      * Get all employees (STAFF and ADMIN roles only)
@@ -242,8 +243,16 @@ public class EmployeeService {
             throw new IllegalArgumentException("Người dùng không phải là nhân viên");
         }
         
+        boolean wasActive = employee.getIsActive();
         employee.setIsActive(!employee.getIsActive());
         User updatedEmployee = userRepository.save(employee);
+        
+        // If user was disabled (active -> inactive), invalidate all their sessions
+        if (wasActive && !updatedEmployee.getIsActive()) {
+            log.info("Employee was disabled, invalidating all sessions for: {}", updatedEmployee.getEmail());
+            sessionManagementService.invalidateUserSessions(updatedEmployee.getEmail());
+        }
+        
         log.info("Employee status toggled successfully with ID: {}", id);
         
         return convertToDTO(updatedEmployee);

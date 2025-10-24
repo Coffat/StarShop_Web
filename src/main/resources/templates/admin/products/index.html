@@ -213,8 +213,11 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-gray-900" th:text="${product.stockQuantity ?: 0}">0</div>
-                                <div class="text-xs text-gray-500" th:if="${product.stockQuantity != null and product.stockQuantity < 10}">
+                                <div class="text-xs text-gray-500" th:if="${product.stockQuantity != null and product.stockQuantity > 0 and product.stockQuantity < 10}">
                                     <i class="fas fa-exclamation-triangle text-yellow-500 mr-1"></i>Sắp hết
+                                </div>
+                                <div class="text-xs text-red-600" th:if="${product.stockQuantity != null and product.stockQuantity == 0}">
+                                    <i class="fas fa-times-circle mr-1"></i>Hết hàng
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">

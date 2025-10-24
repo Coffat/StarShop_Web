@@ -18,7 +18,7 @@ public class CreateVoucherRequest {
     
     @NotBlank(message = "Mã voucher không được để trống")
     @Size(max = 50, message = "Mã voucher không được vượt quá 50 ký tự")
-    @Pattern(regexp = "^[A-Z0-9]+$", message = "Mã voucher chỉ được chứa chữ in hoa và số")
+    @Pattern(regexp = "^[A-Z0-9-]+$", message = "Mã voucher chỉ được chứa chữ in hoa, số và dấu gạch ngang")
     private String code;
     
     @NotBlank(message = "Tên voucher không được để trống")
@@ -47,6 +47,7 @@ public class CreateVoucherRequest {
     @Min(value = 1, message = "Số lượt sử dụng tối đa phải lớn hơn 0")
     private Integer maxUses;
     
+    @lombok.Builder.Default
     private Boolean isActive = true;
 }
 
