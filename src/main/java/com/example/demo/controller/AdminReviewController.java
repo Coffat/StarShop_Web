@@ -95,6 +95,39 @@ public class AdminReviewController {
     }
 
     /**
+     * Get review by ID (Admin only)
+     */
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+        summary = "Lấy chi tiết đánh giá",
+        description = "Lấy chi tiết đánh giá theo ID (Admin only)"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lấy chi tiết thành công"),
+        @ApiResponse(responseCode = "403", description = "Không có quyền truy cập"),
+        @ApiResponse(responseCode = "404", description = "Đánh giá không tồn tại")
+    })
+    public ResponseEntity<ResponseWrapper<ReviewResponse>> getReviewById(
+            @PathVariable Long id,
+            Authentication authentication) {
+        
+        try {
+            log.info("Admin {} getting review details for ID: {}", authentication.getName(), id);
+            
+            Review review = reviewService.getReviewById(id);
+            ReviewResponse response = new ReviewResponse(review, false);
+            
+            return ResponseEntity.ok(ResponseWrapper.success(response));
+            
+        } catch (Exception e) {
+            log.error("Error getting review {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.badRequest()
+                .body(ResponseWrapper.error("Không thể lấy chi tiết đánh giá: " + e.getMessage()));
+        }
+    }
+
+    /**
      * Delete a review (Admin only)
      */
     @DeleteMapping("/{id}")

@@ -73,6 +73,30 @@
     100% { transform: rotate(360deg); }
 }
 
+/* Hide number input spinner arrows */
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.no-spinner[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+/* Readonly input styling */
+.no-spinner[readonly] {
+    background-color: #f9fafb;
+    cursor: default;
+}
+
+.no-spinner[readonly]:focus {
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+    box-shadow: none;
+}
+
 /* Responsive adjustments */
 @media (max-width: 640px) {
     .line-clamp-2 {
