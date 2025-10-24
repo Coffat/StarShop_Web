@@ -64,7 +64,54 @@ jobs:
             --services ${{ env.ECS_SERVICE }} \
             --region ${{ env.AWS_REGION }}
 
+      - name: Get ECS Task Public IP
+        id: get-ip
+        run: |
+          # Get the running task ARN
+          TASK_ARN=$(aws ecs list-tasks \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service-name ${{ env.ECS_SERVICE }} \
+            --region ${{ env.AWS_REGION }} \
+            --query 'taskArns[0]' \
+            --output text)
+          
+          echo "Task ARN: $TASK_ARN"
+          
+          # Get the ENI ID from the task
+          ENI_ID=$(aws ecs describe-tasks \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --tasks $TASK_ARN \
+            --region ${{ env.AWS_REGION }} \
+            --query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' \
+            --output text)
+          
+          echo "ENI ID: $ENI_ID"
+          
+          # Get the public IP from the ENI
+          PUBLIC_IP=$(aws ec2 describe-network-interfaces \
+            --network-interface-ids $ENI_ID \
+            --region ${{ env.AWS_REGION }} \
+            --query 'NetworkInterfaces[0].Association.PublicIp' \
+            --output text)
+          
+          echo "Public IP: $PUBLIC_IP"
+          echo "public_ip=$PUBLIC_IP" >> $GITHUB_OUTPUT
+
+      - name: Update DuckDNS
+        run: |
+          RESPONSE=$(curl -s "https://www.duckdns.org/update?domains=starshop-hcmute&token=${{ secrets.DUCKDNS_TOKEN }}&ip=${{ steps.get-ip.outputs.public_ip }}")
+          
+          if [ "$RESPONSE" = "OK" ]; then
+            echo "✅ DuckDNS updated successfully!"
+            echo "🌐 Domain: starshop-hcmute.duckdns.org"
+            echo "📍 New IP: ${{ steps.get-ip.outputs.public_ip }}"
+          else
+            echo "❌ Failed to update DuckDNS"
+            exit 1
+          fi
+
       - name: Deployment successful
         run: |
           echo "✅ Deployment completed successfully!"
           echo "🌐 Application URL: http://starshop-hcmute.duckdns.org"
+          echo "📍 Public IP: ${{ steps.get-ip.outputs.public_ip }}"
