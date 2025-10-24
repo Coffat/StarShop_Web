@@ -86,9 +86,6 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "receiver", fetch = FetchType.LAZY)
     private List<Message> receivedMessages = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<Transaction> transactions = new ArrayList<>();
-
     @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
     private List<TimeSheet> timeSheets = new ArrayList<>();
 
@@ -224,14 +221,6 @@ public class User extends BaseEntity {
 
     public void setReceivedMessages(List<Message> receivedMessages) {
         this.receivedMessages = receivedMessages;
-    }
-
-    public List<Transaction> getTransactions() {
-        return transactions;
-    }
-
-    public void setTransactions(List<Transaction> transactions) {
-        this.transactions = transactions;
     }
 
     public List<TimeSheet> getTimeSheets() {

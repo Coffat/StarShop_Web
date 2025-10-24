@@ -32,4 +32,13 @@ public interface TimeSheetRepository extends JpaRepository<TimeSheet, Long> {
     
     @Query("SELECT t FROM TimeSheet t WHERE t.checkOut IS NULL AND t.date = :date")
     List<TimeSheet> findActiveTimeSheets(@Param("date") LocalDate date);
+    
+    @Query("SELECT t FROM TimeSheet t WHERE t.staff.id = :staffId " +
+           "AND YEAR(t.date) = YEAR(CURRENT_DATE) " +
+           "AND MONTH(t.date) = MONTH(CURRENT_DATE) " +
+           "ORDER BY t.date DESC")
+    List<TimeSheet> findCurrentMonthTimeSheetsByStaffId(@Param("staffId") Long staffId);
+    
+    // Count timesheets by staff ID (for deletion check)
+    long countByStaffId(Long staffId);
 }

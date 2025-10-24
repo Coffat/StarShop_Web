@@ -31,6 +31,8 @@ public class AdminEmployeeController {
     
     private final EmployeeService employeeService;
     private final com.example.demo.service.ExcelExportService excelExportService;
+    private final com.example.demo.repository.TimeSheetRepository timeSheetRepository;
+    private final com.example.demo.repository.SalaryRepository salaryRepository;
     
     /**
      * Get all employees with filters
@@ -272,6 +274,62 @@ public class AdminEmployeeController {
         } catch (Exception e) {
             log.error("Export employees failed", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new byte[0]);
+        }
+    }
+    
+    /**
+     * Get employee's current month timesheets
+     */
+    @Operation(summary = "Get employee timesheets", description = "Get employee's timesheets for current month")
+    @GetMapping("/{id}/timesheets")
+    public ResponseEntity<Map<String, Object>> getEmployeeTimesheets(@PathVariable Long id) {
+        try {
+            List<com.example.demo.entity.TimeSheet> timesheets = timeSheetRepository.findCurrentMonthTimeSheetsByStaffId(id);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("timesheets", timesheets);
+            response.put("totalHours", timesheets.stream()
+                .map(com.example.demo.entity.TimeSheet::getHoursWorked)
+                .filter(java.util.Objects::nonNull)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add));
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error getting timesheets for employee ID: {}", id, e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Lỗi khi lấy bảng chấm công: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+    
+    /**
+     * Get employee's current month salary
+     */
+    @Operation(summary = "Get employee salary", description = "Get employee's salary for current month")
+    @GetMapping("/{id}/salary")
+    public ResponseEntity<Map<String, Object>> getEmployeeSalary(@PathVariable Long id) {
+        try {
+            java.util.Optional<com.example.demo.entity.Salary> salaryOpt = salaryRepository.findCurrentMonthSalaryByUserId(id);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            
+            if (salaryOpt.isPresent()) {
+                response.put("salary", salaryOpt.get());
+            } else {
+                response.put("salary", null);
+                response.put("message", "Chưa có bản ghi lương tháng này");
+            }
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error getting salary for employee ID: {}", id, e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Lỗi khi lấy thông tin lương: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 }
