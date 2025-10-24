@@ -82,10 +82,10 @@ function getStatusBadge(status) {
 function getActionButtons(order) {
     const buttons = [];
     
-    // Cancel button - only for PENDING status
-    if (order.status === 'PENDING') {
+    // Cancel button - for PENDING or PROCESSING status
+    if (order.status === 'PENDING' || order.status === 'PROCESSING') {
         buttons.push(`
-            <button onclick="cancelOrder(${order.id})" 
+            <button onclick="cancelOrder('${order.id}')" 
                     class="group relative px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-2xl font-semibold hover:border-red-300 hover:bg-red-50 hover:text-red-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-red-100">
                 <div class="flex items-center justify-center gap-2">
                     <div class="relative">
