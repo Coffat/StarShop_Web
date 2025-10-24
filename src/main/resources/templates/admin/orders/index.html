@@ -505,6 +505,139 @@
         </div>
     </div>
 
+    <!-- Add Address Modal -->
+    <div id="addAddressModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-medium text-gray-900">Thêm địa chỉ cho khách hàng</h3>
+                    <button onclick="closeAddAddressModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <form id="addAddressForm" class="space-y-4">
+                    <input type="hidden" id="addressCustomerId">
+                    
+                    <!-- Customer Info Display -->
+                    <div id="addressCustomerInfo" class="p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="h-8 w-8 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                                <span class="text-sm font-medium text-primary-600" id="addressCustomerInitials"></span>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900" id="addressCustomerName"></div>
+                                <div class="text-sm text-gray-500" id="addressCustomerEmail"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Full Name -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Họ và tên người nhận <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="addressFullName" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                               placeholder="Nhập họ và tên người nhận">
+                    </div>
+
+                    <!-- Phone -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Số điện thoại <span class="text-red-500">*</span>
+                        </label>
+                        <input type="tel" id="addressPhone" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                               placeholder="Nhập số điện thoại">
+                    </div>
+
+                    <!-- Address Mode Selection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Chế độ địa chỉ</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center">
+                                <input type="radio" name="addressMode" value="OLD" checked onchange="toggleAddressMode()" 
+                                       class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300">
+                                <span class="ml-2 text-sm text-gray-900">Cũ (Tỉnh/Huyện/Xã)</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="addressMode" value="NEW" onchange="toggleAddressMode()" 
+                                       class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300">
+                                <span class="ml-2 text-sm text-gray-900">Mới (Tỉnh/Xã)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Province/City -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Tỉnh/Thành phố <span class="text-red-500">*</span>
+                        </label>
+                        <select id="addressProvince" required onchange="loadAddressDistricts()"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                        </select>
+                    </div>
+
+                    <!-- District -->
+                    <div id="addressDistrictGroup">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Quận/Huyện <span class="text-red-500">*</span>
+                        </label>
+                        <select id="addressDistrict" required onchange="loadAddressWards()" disabled
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <option value="">-- Chọn Quận/Huyện --</option>
+                        </select>
+                    </div>
+
+                    <!-- Ward -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Phường/Xã <span class="text-red-500">*</span>
+                        </label>
+                        <select id="addressWard" required disabled
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <option value="">-- Chọn Phường/Xã --</option>
+                        </select>
+                    </div>
+
+                    <!-- Street Address -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Địa chỉ cụ thể <span class="text-red-500">*</span>
+                        </label>
+                        <textarea id="addressStreet" rows="2" required 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                  placeholder="Số nhà, tên đường..."></textarea>
+                    </div>
+
+                    <!-- Default Address -->
+                    <div class="flex items-center">
+                        <input type="checkbox" id="addressIsDefault" 
+                               class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        <label for="addressIsDefault" class="ml-2 block text-sm text-gray-900">
+                            Đặt làm địa chỉ mặc định
+                        </label>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex justify-end space-x-3 pt-4 border-t">
+                        <button type="button" onclick="closeAddAddressModal()" 
+                                class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors duration-200">
+                            Hủy
+                        </button>
+                        <button type="submit" 
+                                class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                            <i class="fas fa-plus mr-2"></i>
+                            Thêm địa chỉ
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         function buildQuery(params) {
             const usp = new URLSearchParams();
@@ -610,12 +743,196 @@
 
         function openAddAddressModal() {
             if (selectedCustomer) {
-                // Redirect to customer profile page to add address
-                const customerProfileUrl = `/admin/customers/${selectedCustomer.id}/addresses`;
-                showToast('Chuyển hướng đến trang quản lý địa chỉ khách hàng...', 'info');
+                // Populate customer info in the modal
+                document.getElementById('addressCustomerId').value = selectedCustomer.id;
                 
-                // Open in new tab so admin can add address and come back
-                window.open(customerProfileUrl, '_blank');
+                // Safe access to fullName
+                const fullName = selectedCustomer.fullName || selectedCustomer.name || 'N/A';
+                const initials = fullName.charAt(0).toUpperCase();
+                
+                document.getElementById('addressCustomerInitials').textContent = initials;
+                document.getElementById('addressCustomerName').textContent = fullName;
+                document.getElementById('addressCustomerEmail').textContent = selectedCustomer.email || '';
+                
+                // Pre-fill name and phone from customer data
+                document.getElementById('addressFullName').value = fullName;
+                document.getElementById('addressPhone').value = selectedCustomer.phoneNumber || selectedCustomer.phone || '';
+                
+                // Load provinces from API
+                loadAddressProvinces();
+                
+                // Show the modal
+                document.getElementById('addAddressModal').classList.remove('hidden');
+            } else {
+                showToast('Vui lòng chọn khách hàng trước', 'warning');
+            }
+        }
+
+        function closeAddAddressModal() {
+            document.getElementById('addAddressModal').classList.add('hidden');
+            resetAddAddressForm();
+        }
+
+        function resetAddAddressForm() {
+            document.getElementById('addAddressForm').reset();
+            document.getElementById('addressCustomerId').value = '';
+            
+            // Reset dropdowns
+            document.getElementById('addressProvince').innerHTML = '<option value="">-- Chọn Tỉnh/Thành phố --</option>';
+            document.getElementById('addressDistrict').innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+            document.getElementById('addressWard').innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            document.getElementById('addressDistrict').disabled = true;
+            document.getElementById('addressWard').disabled = true;
+        }
+
+        // Address Mode Toggle
+        function toggleAddressMode() {
+            const mode = document.querySelector('input[name="addressMode"]:checked').value;
+            const districtGroup = document.getElementById('addressDistrictGroup');
+            const districtSelect = document.getElementById('addressDistrict');
+            
+            if (mode === 'NEW') {
+                districtGroup.classList.add('hidden');
+                districtSelect.required = false;
+                districtSelect.disabled = true;
+                loadAddressWards();
+            } else {
+                districtGroup.classList.remove('hidden');
+                districtSelect.required = true;
+                districtSelect.disabled = false;
+            }
+        }
+
+        // Load Provinces
+        async function loadAddressProvinces() {
+            try {
+                const response = await fetch('/api/locations/provinces');
+                const data = await response.json();
+                
+                const provinceSelect = document.getElementById('addressProvince');
+                provinceSelect.innerHTML = '<option value="">-- Chọn Tỉnh/Thành phố --</option>';
+                
+                if (data.data && !data.error) {
+                    data.data.forEach(province => {
+                        const option = document.createElement('option');
+                        option.value = province.id;
+                        option.textContent = province.name;
+                        provinceSelect.appendChild(option);
+                    });
+                } else {
+                    showToast(data.error || 'Không thể tải danh sách tỉnh/thành phố', 'error');
+                }
+            } catch (error) {
+                showToast('Không thể tải danh sách tỉnh/thành phố', 'error');
+            }
+        }
+
+        // Load Districts
+        async function loadAddressDistricts() {
+            const provinceId = document.getElementById('addressProvince').value;
+            const districtSelect = document.getElementById('addressDistrict');
+            const wardSelect = document.getElementById('addressWard');
+            
+            districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            districtSelect.disabled = true;
+            wardSelect.disabled = true;
+            
+            if (!provinceId) return;
+            
+            const mode = document.querySelector('input[name="addressMode"]:checked').value;
+            
+            if (mode === 'NEW') {
+                loadAddressWards();
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/locations/districts?province_id=${provinceId}`);
+                const data = await response.json();
+                
+                if (data.data && !data.error) {
+                    data.data.forEach(district => {
+                        const option = document.createElement('option');
+                        option.value = district.id;
+                        option.textContent = district.name;
+                        districtSelect.appendChild(option);
+                    });
+                    districtSelect.disabled = false;
+                } else {
+                    showToast(data.error || 'Không thể tải danh sách quận/huyện', 'error');
+                }
+            } catch (error) {
+                showToast('Không thể tải danh sách quận/huyện', 'error');
+            }
+        }
+
+        // Load Wards
+        async function loadAddressWards() {
+            const mode = document.querySelector('input[name="addressMode"]:checked').value;
+            const wardSelect = document.getElementById('addressWard');
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            wardSelect.disabled = true;
+            
+            let url;
+            if (mode === 'NEW') {
+                const provinceId = document.getElementById('addressProvince').value;
+                if (!provinceId) return;
+                url = `/api/locations/wards-by-province?province_id=${provinceId}`;
+            } else {
+                const districtId = document.getElementById('addressDistrict').value;
+                if (!districtId) return;
+                url = `/api/locations/wards?district_id=${districtId}`;
+            }
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.data && !data.error) {
+                    data.data.forEach(ward => {
+                        const option = document.createElement('option');
+                        option.value = ward.code;
+                        option.textContent = ward.name;
+                        wardSelect.appendChild(option);
+                    });
+                    wardSelect.disabled = false;
+                } else {
+                    showToast(data.error || 'Không thể tải danh sách phường/xã', 'error');
+                }
+            } catch (error) {
+                showToast('Không thể tải danh sách phường/xã', 'error');
+            }
+        }
+
+        // Load customer addresses for order form (after adding new address)
+        async function loadCustomerAddressesForOrder(customerId) {
+            try {
+                const response = await fetch(`/admin/api/users/${customerId}/addresses`);
+                const data = await response.json();
+                
+                console.log('Address API response:', data); // Debug log
+                
+                if (data.success && data.addresses && data.addresses.length > 0) {
+                    // Customer now has addresses, ensure UI reflects this
+                    if (selectedCustomer && selectedCustomer.id == customerId) {
+                        selectedCustomer.addresses = data.addresses;
+                        selectedCustomer.defaultAddress = true; // Set to true since customer has addresses
+                        selectedCustomer.hasDefaultAddress = true;
+                        
+                        console.log('Customer addresses reloaded:', data.addresses.length, 'addresses found');
+                        console.log('Updated selectedCustomer:', selectedCustomer);
+                    }
+                } else {
+                    console.warn('No addresses found for customer', customerId);
+                    // Even if no default, customer still has addresses
+                    if (selectedCustomer && selectedCustomer.id == customerId) {
+                        selectedCustomer.defaultAddress = true; // Allow order creation
+                        selectedCustomer.hasDefaultAddress = true;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading customer addresses:', error);
             }
         }
 
@@ -801,8 +1118,10 @@
             selectedCustomer = { 
                 id, 
                 name, 
+                fullName: name, // Add fullName for consistency
                 email, 
-                defaultAddress: hasDefaultAddress 
+                defaultAddress: hasDefaultAddress,
+                hasDefaultAddress: hasDefaultAddress // Add for consistency
             };
             document.getElementById('selectedCustomerId').value = id;
             document.getElementById('customerName').textContent = name;
@@ -1013,10 +1332,13 @@
                     return;
                 }
                 
-                if (!selectedCustomer.defaultAddress) {
+                // Check if customer has addresses (more flexible check)
+                if (!selectedCustomer.defaultAddress && !selectedCustomer.hasDefaultAddress && !selectedCustomer.addresses) {
                     showToast('Khách hàng chưa có địa chỉ giao hàng. Vui lòng thêm địa chỉ cho khách hàng trước khi tạo đơn hàng.', 'error');
                     return;
                 }
+                
+                console.log('Order validation - selectedCustomer:', selectedCustomer); // Debug log
                 
                 if (selectedProducts.length === 0) {
                     showToast('Vui lòng chọn ít nhất một sản phẩm', 'error');
@@ -1096,6 +1418,104 @@
                 if (e.target === this) {
                     closeCancelOrderModal();
                 }
+            });
+
+            // Add Address Modal click outside to close
+            document.getElementById('addAddressModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeAddAddressModal();
+                }
+            });
+
+            // Add Address Form Submit
+            document.getElementById('addAddressForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const customerId = document.getElementById('addressCustomerId').value;
+                const mode = document.querySelector('input[name="addressMode"]:checked').value;
+                
+                // Get selected option texts for names
+                const provinceSelect = document.getElementById('addressProvince');
+                const districtSelect = document.getElementById('addressDistrict');
+                const wardSelect = document.getElementById('addressWard');
+                
+                const provinceName = provinceSelect.options[provinceSelect.selectedIndex]?.text || '';
+                const districtName = mode === 'OLD' ? (districtSelect.options[districtSelect.selectedIndex]?.text || '') : '';
+                const wardName = wardSelect.options[wardSelect.selectedIndex]?.text || '';
+                
+                const formData = {
+                    addressMode: mode,
+                    provinceId: parseInt(document.getElementById('addressProvince').value),
+                    districtId: mode === 'OLD' ? parseInt(document.getElementById('addressDistrict').value) : null,
+                    wardCode: document.getElementById('addressWard').value,
+                    addressDetail: document.getElementById('addressStreet').value.trim(),
+                    provinceName: provinceName,
+                    districtName: districtName,
+                    wardName: wardName,
+                    isDefault: document.getElementById('addressIsDefault').checked
+                };
+
+                // Validate required fields
+                if (!formData.provinceId || !formData.wardCode || !formData.addressDetail) {
+                    showToast('Vui lòng điền đầy đủ thông tin bắt buộc', 'warning');
+                    return;
+                }
+                
+                // Validate district for OLD mode
+                if (mode === 'OLD' && !formData.districtId) {
+                    showToast('Vui lòng chọn quận/huyện', 'warning');
+                    return;
+                }
+
+                // Submit the form
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang thêm...';
+
+                fetch(`/admin/api/users/${customerId}/addresses`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Thêm địa chỉ thành công!', 'success');
+                        closeAddAddressModal();
+                        
+                        // Update customer address status
+                        if (selectedCustomer && selectedCustomer.id == customerId) {
+                            // Update selectedCustomer object
+                            selectedCustomer.defaultAddress = true;
+                            selectedCustomer.hasDefaultAddress = true;
+                            
+                            // Update UI elements
+                            const addressStatus = document.getElementById('customerAddressStatus');
+                            const noAddressWarning = document.getElementById('noAddressWarning');
+                            
+                            addressStatus.innerHTML = '<i class="fas fa-check text-green-600 mr-1"></i>Có địa chỉ giao hàng';
+                            addressStatus.className = 'text-xs mt-1 text-green-600';
+                            noAddressWarning.classList.add('hidden');
+                            
+                            // Reload customer addresses to get the latest data
+                            loadCustomerAddressesForOrder(customerId);
+                        }
+                    } else {
+                        showToast(data.message || 'Có lỗi xảy ra khi thêm địa chỉ', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Có lỗi xảy ra khi thêm địa chỉ', 'error');
+                })
+                .finally(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                });
             });
         });
 
