@@ -905,6 +905,37 @@
             }
         }
 
+        // Load customer addresses for order form (after adding new address)
+        async function loadCustomerAddressesForOrder(customerId) {
+            try {
+                const response = await fetch(`/admin/api/users/${customerId}/addresses`);
+                const data = await response.json();
+                
+                console.log('Address API response:', data); // Debug log
+                
+                if (data.success && data.addresses && data.addresses.length > 0) {
+                    // Customer now has addresses, ensure UI reflects this
+                    if (selectedCustomer && selectedCustomer.id == customerId) {
+                        selectedCustomer.addresses = data.addresses;
+                        selectedCustomer.defaultAddress = true; // Set to true since customer has addresses
+                        selectedCustomer.hasDefaultAddress = true;
+                        
+                        console.log('Customer addresses reloaded:', data.addresses.length, 'addresses found');
+                        console.log('Updated selectedCustomer:', selectedCustomer);
+                    }
+                } else {
+                    console.warn('No addresses found for customer', customerId);
+                    // Even if no default, customer still has addresses
+                    if (selectedCustomer && selectedCustomer.id == customerId) {
+                        selectedCustomer.defaultAddress = true; // Allow order creation
+                        selectedCustomer.hasDefaultAddress = true;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading customer addresses:', error);
+            }
+        }
+
         function updateProductList() {
             const productList = document.getElementById('productList');
             const productCount = document.getElementById('productCount');
@@ -1087,8 +1118,10 @@
             selectedCustomer = { 
                 id, 
                 name, 
+                fullName: name, // Add fullName for consistency
                 email, 
-                defaultAddress: hasDefaultAddress 
+                defaultAddress: hasDefaultAddress,
+                hasDefaultAddress: hasDefaultAddress // Add for consistency
             };
             document.getElementById('selectedCustomerId').value = id;
             document.getElementById('customerName').textContent = name;
@@ -1299,10 +1332,13 @@
                     return;
                 }
                 
-                if (!selectedCustomer.defaultAddress) {
+                // Check if customer has addresses (more flexible check)
+                if (!selectedCustomer.defaultAddress && !selectedCustomer.hasDefaultAddress && !selectedCustomer.addresses) {
                     showToast('Khách hàng chưa có địa chỉ giao hàng. Vui lòng thêm địa chỉ cho khách hàng trước khi tạo đơn hàng.', 'error');
                     return;
                 }
+                
+                console.log('Order validation - selectedCustomer:', selectedCustomer); // Debug log
                 
                 if (selectedProducts.length === 0) {
                     showToast('Vui lòng chọn ít nhất một sản phẩm', 'error');
@@ -1453,10 +1489,20 @@
                         
                         // Update customer address status
                         if (selectedCustomer && selectedCustomer.id == customerId) {
-                            selectedCustomer.hasAddress = true;
-                            document.getElementById('noAddressWarning').classList.add('hidden');
-                            document.getElementById('customerAddressStatus').innerHTML = 
-                                '<span class="text-green-600 text-xs"><i class="fas fa-check-circle mr-1"></i>Đã có địa chỉ</span>';
+                            // Update selectedCustomer object
+                            selectedCustomer.defaultAddress = true;
+                            selectedCustomer.hasDefaultAddress = true;
+                            
+                            // Update UI elements
+                            const addressStatus = document.getElementById('customerAddressStatus');
+                            const noAddressWarning = document.getElementById('noAddressWarning');
+                            
+                            addressStatus.innerHTML = '<i class="fas fa-check text-green-600 mr-1"></i>Có địa chỉ giao hàng';
+                            addressStatus.className = 'text-xs mt-1 text-green-600';
+                            noAddressWarning.classList.add('hidden');
+                            
+                            // Reload customer addresses to get the latest data
+                            loadCustomerAddressesForOrder(customerId);
                         }
                     } else {
                         showToast(data.message || 'Có lỗi xảy ra khi thêm địa chỉ', 'error');
