@@ -133,3 +133,5 @@ backup-db.sh
 deploy.sh
 ecr-policy.json
 ecs-task-execution-role-trust-policy.json
+setup-github-secrets.sh
+AWS_SECRETS_INFO.md
