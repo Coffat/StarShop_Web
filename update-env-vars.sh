@@ -54,28 +54,50 @@ UPDATED_CONTAINER=$(echo $CONTAINER_DEF | jq '
   )
 ')
 
-# Create new task definition JSON
-NEW_TASK_DEF=$(jq -n \
-  --arg family "$FAMILY" \
-  --arg taskRoleArn "$TASK_ROLE_ARN" \
-  --arg executionRoleArn "$EXECUTION_ROLE_ARN" \
-  --arg networkMode "$NETWORK_MODE" \
-  --arg cpu "$CPU" \
-  --arg memory "$MEMORY" \
-  --argjson requiresCompatibilities "$REQUIRES_COMPATIBILITIES" \
-  --argjson runtimePlatform "$RUNTIME_PLATFORM" \
-  --argjson containerDefinitions "[$UPDATED_CONTAINER]" \
-  '{
-    family: $family,
-    taskRoleArn: $taskRoleArn,
-    executionRoleArn: $executionRoleArn,
-    networkMode: $networkMode,
-    cpu: $cpu,
-    memory: $memory,
-    requiresCompatibilities: $requiresCompatibilities,
-    runtimePlatform: $runtimePlatform,
-    containerDefinitions: $containerDefinitions
-  }')
+# Create new task definition JSON (exclude taskRoleArn if null)
+if [ "$TASK_ROLE_ARN" = "null" ]; then
+    NEW_TASK_DEF=$(jq -n \
+      --arg family "$FAMILY" \
+      --arg executionRoleArn "$EXECUTION_ROLE_ARN" \
+      --arg networkMode "$NETWORK_MODE" \
+      --arg cpu "$CPU" \
+      --arg memory "$MEMORY" \
+      --argjson requiresCompatibilities "$REQUIRES_COMPATIBILITIES" \
+      --argjson runtimePlatform "$RUNTIME_PLATFORM" \
+      --argjson containerDefinitions "[$UPDATED_CONTAINER]" \
+      '{
+        family: $family,
+        executionRoleArn: $executionRoleArn,
+        networkMode: $networkMode,
+        cpu: $cpu,
+        memory: $memory,
+        requiresCompatibilities: $requiresCompatibilities,
+        runtimePlatform: $runtimePlatform,
+        containerDefinitions: $containerDefinitions
+      }')
+else
+    NEW_TASK_DEF=$(jq -n \
+      --arg family "$FAMILY" \
+      --arg taskRoleArn "$TASK_ROLE_ARN" \
+      --arg executionRoleArn "$EXECUTION_ROLE_ARN" \
+      --arg networkMode "$NETWORK_MODE" \
+      --arg cpu "$CPU" \
+      --arg memory "$MEMORY" \
+      --argjson requiresCompatibilities "$REQUIRES_COMPATIBILITIES" \
+      --argjson runtimePlatform "$RUNTIME_PLATFORM" \
+      --argjson containerDefinitions "[$UPDATED_CONTAINER]" \
+      '{
+        family: $family,
+        taskRoleArn: $taskRoleArn,
+        executionRoleArn: $executionRoleArn,
+        networkMode: $networkMode,
+        cpu: $cpu,
+        memory: $memory,
+        requiresCompatibilities: $requiresCompatibilities,
+        runtimePlatform: $runtimePlatform,
+        containerDefinitions: $containerDefinitions
+      }')
+fi
 
 # Register new task definition
 echo -e "${YELLOW}📤 Registering new task definition...${NC}"
