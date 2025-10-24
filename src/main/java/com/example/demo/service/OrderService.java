@@ -563,9 +563,9 @@ public class OrderService {
                 return OrderResponse.error("Bạn không có quyền hủy đơn hàng này");
             }
             
-            // Check if order can be cancelled
+            // Check if order can be cancelled (only PENDING or PROCESSING orders can be cancelled)
             if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.PROCESSING) {
-                return OrderResponse.error("Không thể hủy đơn hàng ở trạng thái hiện tại");
+                return OrderResponse.error("Chỉ có thể hủy đơn hàng ở trạng thái Chờ xử lý hoặc Đang xử lý");
             }
             
             // Update order status
