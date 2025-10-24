@@ -119,21 +119,29 @@ function getActionButtons(order) {
     }
     
     // Review button - for COMPLETED status
-    if (order.status === 'COMPLETED') {
-        buttons.push(`
-            <button onclick="openReviewModal(${order.orderItems[0].productId}, ${order.orderItems[0].id}, '${order.orderItems[0].productName}', '${order.orderItems[0].productImage}')" 
-                    class="group relative px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-2xl font-semibold hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-amber-100">
-                <div class="flex items-center justify-center gap-2">
-                    <div class="relative">
-                        <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"/>
-                        </svg>
-                        <div class="absolute inset-0 bg-amber-400 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
+    if (order.status === 'COMPLETED' && order.orderItems && order.orderItems.length > 0) {
+        const firstItem = order.orderItems[0];
+        const productId = firstItem.productId || (firstItem.product && firstItem.product.id) || 0;
+        const orderItemId = firstItem.id || firstItem.orderItemId || 0;
+        const productName = (firstItem.productName || (firstItem.product && firstItem.product.name) || 'Sản phẩm').replace(/'/g, "\\'");
+        const productImage = (firstItem.productImage || (firstItem.product && firstItem.product.image) || '/images/placeholder.jpg').replace(/'/g, "\\'");
+        
+        if (productId && orderItemId) {
+            buttons.push(`
+                <button onclick="openReviewModal(${productId}, ${orderItemId}, '${productName}', '${productImage}')" 
+                        class="group relative px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-2xl font-semibold hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-amber-100">
+                    <div class="flex items-center justify-center gap-2">
+                        <div class="relative">
+                            <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"/>
+                            </svg>
+                            <div class="absolute inset-0 bg-amber-400 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
+                        </div>
+                        <span class="relative z-10">Đánh giá</span>
                     </div>
-                    <span class="relative z-10">Đánh giá</span>
-                </div>
-            </button>
-        `);
+                </button>
+            `);
+        }
     }
     
     // Reorder button - for COMPLETED or CANCELLED
@@ -168,19 +176,27 @@ function renderOrderCard(order) {
         const displayItems = order.items.slice(0, 3);
         const remainingCount = order.items.length - 3;
         
-        itemsHTML = displayItems.map(item => `
+        itemsHTML = displayItems.map(item => {
+            const productId = item.productId || (item.product && item.product.id) || 0;
+            const orderItemId = item.id || item.orderItemId || 0;
+            const productName = (item.productName || (item.product && item.product.name) || 'Sản phẩm').replace(/'/g, "\\'");
+            const productImage = (item.productImage || (item.product && item.product.image) || '/images/placeholder.jpg').replace(/'/g, "\\'");
+            const quantity = item.quantity || 1;
+            const price = item.price || 0;
+            
+            return `
             <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
                 <div class="w-20 h-20 flex-shrink-0">
-                    <img src="${item.productImage || '/images/placeholder.jpg'}" 
-                         alt="${item.productName}"
+                    <img src="${productImage}" 
+                         alt="${productName}"
                          class="w-full h-full object-cover rounded-lg"
                          onerror="this.src='/images/placeholder.jpg'">
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h4 class="font-semibold text-gray-900 truncate">${item.productName}</h4>
-                    <p class="text-sm text-gray-600 mt-1">Số lượng: ${item.quantity} × ${formatCurrency(item.price)}</p>
-                    ${order.status === 'COMPLETED' ? `
-                        <button onclick="openReviewModal(${item.productId}, ${item.id}, '${item.productName}', '${item.productImage || '/images/placeholder.jpg'}')" 
+                    <h4 class="font-semibold text-gray-900 truncate">${productName}</h4>
+                    <p class="text-sm text-gray-600 mt-1">Số lượng: ${quantity} × ${formatCurrency(price)}</p>
+                    ${order.status === 'COMPLETED' && productId && orderItemId ? `
+                        <button onclick="openReviewModal(${productId}, ${orderItemId}, '${productName}', '${productImage}')" 
                                 class="mt-2 px-3 py-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-medium rounded-lg hover:shadow-md transition-all">
                             <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"/>
@@ -189,10 +205,11 @@ function renderOrderCard(order) {
                     ` : ''}
                 </div>
                 <div class="text-right">
-                    <p class="font-bold text-gray-900">${formatCurrency(item.price * item.quantity)}</p>
+                    <p class="font-bold text-gray-900">${formatCurrency(price * quantity)}</p>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
         
         if (remainingCount > 0) {
             itemsHTML += `
