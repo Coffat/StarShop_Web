@@ -79,11 +79,6 @@ logs/
 
 # Spring Boot
 application-local.properties
-application-*.yml
-!application.properties
-!application.yml
-application-dev.properties
-application-prod.properties
 
 # Database files
 *.db
@@ -109,29 +104,9 @@ backups/
 .aws/
 credentials
 
-# Environment files với sensitive data
-.env.production
-.env.local
-
 # Logs
 *.log
 
 # Temporary files
 *.tmp
 *.temp
-
-# DuckDNS token (đã có trong script, cẩn thận khi share)
-# update-duckdns.sh chứa token, cân nhắc kỹ trước khi push lên git public
-
-# Task definition có thể chứa passwords
-# Cân nhắc sử dụng AWS Secrets Manager thay vì hardcode trong task-definition.json
-
-# Deployment sensitive files
-task-definition.json
-update-duckdns.sh
-backup-db.sh
-deploy.sh
-ecr-policy.json
-ecs-task-execution-role-trust-policy.json
-setup-github-secrets.sh
-AWS_SECRETS_INFO.md

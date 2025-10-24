@@ -1,0 +1,279 @@
+{
+  "family": "flower-shop-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::YOUR_AWS_ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::YOUR_AWS_ACCOUNT_ID:role/ecsTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "flower-shop-container",
+      "image": "YOUR_AWS_ACCOUNT_ID.dkr.ecr.ap-southeast-2.amazonaws.com/flower_shop_app:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "SPRING_PROFILES_ACTIVE",
+          "value": "prod"
+        },
+        {
+          "name": "SPRING_DATASOURCE_URL",
+          "value": "jdbc:postgresql://flower-shop-db-instance.c5gc6e8m62lz.ap-southeast-2.rds.amazonaws.com:5432/flower_shop_system"
+        },
+        {
+          "name": "SPRING_DATASOURCE_USERNAME",
+          "value": "flower_admin"
+        },
+        {
+          "name": "SPRING_DATASOURCE_PASSWORD",
+          "value": "flower_password_2024"
+        },
+        {
+          "name": "SPRING_DATASOURCE_DRIVER_CLASS_NAME",
+          "value": "org.postgresql.Driver"
+        },
+        {
+          "name": "SPRING_JPA_HIBERNATE_DDL_AUTO",
+          "value": "none"
+        },
+        {
+          "name": "SPRING_JPA_SHOW_SQL",
+          "value": "false"
+        },
+        {
+          "name": "SPRING_JPA_OPEN_IN_VIEW",
+          "value": "false"
+        },
+        {
+          "name": "SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT",
+          "value": "org.hibernate.dialect.PostgreSQLDialect"
+        },
+        {
+          "name": "SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL",
+          "value": "false"
+        },
+        {
+          "name": "SPRING_MAIL_HOST",
+          "value": "smtp.gmail.com"
+        },
+        {
+          "name": "SPRING_MAIL_PORT",
+          "value": "587"
+        },
+        {
+          "name": "SPRING_MAIL_USERNAME",
+          "value": "starshop.a.6868@gmail.com"
+        },
+        {
+          "name": "SPRING_MAIL_PASSWORD",
+          "value": "mqai nigf sweg imek"
+        },
+        {
+          "name": "SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH",
+          "value": "true"
+        },
+        {
+          "name": "SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE",
+          "value": "true"
+        },
+        {
+          "name": "SPRING_MAIL_FROM",
+          "value": "starshop.a.6868@gmail.com"
+        },
+        {
+          "name": "JWT_SECRET",
+          "value": "starshop_jwt_secret_key_2024_very_secure_key_for_production_use"
+        },
+        {
+          "name": "JWT_EXPIRATION",
+          "value": "86400000"
+        },
+        {
+          "name": "APP_BASE_URL",
+          "value": "http://starshop-hcmute.duckdns.org"
+        },
+        {
+          "name": "APP_UPLOAD_DIR",
+          "value": "uploads"
+        },
+        {
+          "name": "MOMO_BASE_URL",
+          "value": "https://test-payment.momo.vn"
+        },
+        {
+          "name": "MOMO_PARTNER_CODE",
+          "value": "MOMO"
+        },
+        {
+          "name": "MOMO_ACCESS_KEY",
+          "value": "F8BBA842ECF85"
+        },
+        {
+          "name": "MOMO_SECRET_KEY",
+          "value": "K951B6PE1waDMi640xX08PD3vg6EkVlz"
+        },
+        {
+          "name": "MOMO_RETURN_URL",
+          "value": "http://starshop-hcmute.duckdns.org/payment/momo/return"
+        },
+        {
+          "name": "MOMO_NOTIFY_URL",
+          "value": "http://starshop-hcmute.duckdns.org/payment/momo/notify"
+        },
+        {
+          "name": "MOMO_REQUEST_TYPE",
+          "value": "captureWallet"
+        },
+        {
+          "name": "MOMO_ENDPOINT_CREATE",
+          "value": "/v2/gateway/api/create"
+        },
+        {
+          "name": "MOMO_ENDPOINT_QUERY",
+          "value": "/v2/gateway/api/query"
+        },
+        {
+          "name": "GHN_BASE_URL",
+          "value": "https://online-gateway.ghn.vn/shiip/public-api"
+        },
+        {
+          "name": "GHN_TOKEN",
+          "value": "cd8acb1f-9e9c-11f0-b0e8-f2157cd9069b"
+        },
+        {
+          "name": "GHN_SHOP_ID",
+          "value": "6040148"
+        },
+        {
+          "name": "GHN_SERVICE_TYPE_ID_DEFAULT",
+          "value": "2"
+        },
+        {
+          "name": "GHN_FROM_PROVINCE_ID",
+          "value": "202"
+        },
+        {
+          "name": "GHN_FROM_DISTRICT_ID",
+          "value": "1442"
+        },
+        {
+          "name": "GHN_FROM_WARD_CODE",
+          "value": "21211"
+        },
+        {
+          "name": "GHN_ENDPOINTS_PROVINCES",
+          "value": "/master-data/province"
+        },
+        {
+          "name": "GHN_ENDPOINTS_DISTRICTS",
+          "value": "/master-data/district"
+        },
+        {
+          "name": "GHN_ENDPOINTS_WARDS",
+          "value": "/master-data/ward"
+        },
+        {
+          "name": "GHN_ENDPOINTS_CALCULATE_FEE",
+          "value": "/v2/shipping-order/fee"
+        },
+        {
+          "name": "GEMINI_API_KEY",
+          "value": "AIzaSyB4tCAr_Y5VqAGzpVF01_lc6fEOCbyd9Oo"
+        },
+        {
+          "name": "GEMINI_BASE_URL",
+          "value": "https://generativelanguage.googleapis.com/v1beta"
+        },
+        {
+          "name": "GEMINI_MODEL",
+          "value": "gemini-2.0-flash-exp"
+        },
+        {
+          "name": "GEMINI_TEMPERATURE",
+          "value": "0.5"
+        },
+        {
+          "name": "GEMINI_TOP_P",
+          "value": "0.85"
+        },
+        {
+          "name": "GEMINI_MAX_TOKENS",
+          "value": "8192"
+        },
+        {
+          "name": "GEMINI_TIMEOUT_SECONDS",
+          "value": "30"
+        },
+        {
+          "name": "SWAGGER_SERVER_PROD_URL",
+          "value": "http://starshop-hcmute.duckdns.org"
+        },
+        {
+          "name": "SPRINGDOC_API_DOCS_PATH",
+          "value": "/v3/api-docs"
+        },
+        {
+          "name": "SPRINGDOC_API_DOCS_ENABLED",
+          "value": "true"
+        },
+        {
+          "name": "SPRINGDOC_SWAGGER_UI_PATH",
+          "value": "/swagger-ui.html"
+        },
+        {
+          "name": "SPRINGDOC_SWAGGER_UI_ENABLED",
+          "value": "true"
+        },
+        {
+          "name": "SOCKJS_CLIENT_LIBRARY_URL",
+          "value": "https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"
+        },
+        {
+          "name": "FACEBOOK_AVATAR_URL_TEMPLATE",
+          "value": "https://graph.facebook.com/{id}/picture?type=large"
+        },
+        {
+          "name": "CORS_ALLOWED_ORIGINS",
+          "value": "http://starshop-hcmute.duckdns.org"
+        },
+        {
+          "name": "SERVER_PORT",
+          "value": "8080"
+        },
+        {
+          "name": "SERVER_SERVLET_CONTEXT_PATH",
+          "value": "/"
+        },
+        {
+          "name": "SERVER_COMPRESSION_ENABLED",
+          "value": "true"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/flower-shop-task",
+          "awslogs-region": "ap-southeast-2",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:8080/actuator/health || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ]
+}

@@ -30,4 +30,9 @@ COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 
 # Câu lệnh để khởi động ứng dụng khi container chạy
-ENTRYPOINT ["java","-jar","app.jar"]
+# Environment variables sẽ được inject từ ECS Task Definition
+ENTRYPOINT ["java", \
+    "-Djava.security.egd=file:/dev/./urandom", \
+    "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE:prod}", \
+    "-jar", \
+    "app.jar"]

@@ -49,20 +49,57 @@ jobs:
           
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Force new deployment
+      - name: Get AWS Account ID
+        id: get-account-id
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "account_id=$ACCOUNT_ID" >> $GITHUB_OUTPUT
+          echo "AWS Account ID: $ACCOUNT_ID"
+
+      - name: Update task definition with new image
+        id: update-task-def
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+          ACCOUNT_ID: ${{ steps.get-account-id.outputs.account_id }}
+        run: |
+          # Read task definition template
+          TASK_DEF=$(cat task-definition.json)
+          
+          # Replace placeholder values
+          TASK_DEF=$(echo "$TASK_DEF" | sed "s|YOUR_AWS_ACCOUNT_ID|$ACCOUNT_ID|g")
+          TASK_DEF=$(echo "$TASK_DEF" | sed "s|:latest|:$IMAGE_TAG|g")
+          
+          # Save updated task definition
+          echo "$TASK_DEF" > task-definition-updated.json
+          
+          # Register new task definition
+          TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file://task-definition-updated.json \
+            --region ${{ env.AWS_REGION }} \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+          
+          echo "task_def_arn=$TASK_DEF_ARN" >> $GITHUB_OUTPUT
+          echo "Registered task definition: $TASK_DEF_ARN"
+
+      - name: Update ECS service with new task definition
         run: |
           aws ecs update-service \
             --cluster ${{ env.ECS_CLUSTER }} \
             --service ${{ env.ECS_SERVICE }} \
+            --task-definition ${{ steps.update-task-def.outputs.task_def_arn }} \
             --force-new-deployment \
             --region ${{ env.AWS_REGION }}
 
       - name: Wait for service stability
         run: |
+          echo "Waiting for service to stabilize..."
           aws ecs wait services-stable \
             --cluster ${{ env.ECS_CLUSTER }} \
             --services ${{ env.ECS_SERVICE }} \
             --region ${{ env.AWS_REGION }}
+          echo "Service is now stable!"
 
       - name: Get ECS Task Public IP
         id: get-ip
