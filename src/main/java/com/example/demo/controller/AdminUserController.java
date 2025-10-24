@@ -3,7 +3,10 @@ package com.example.demo.controller;
 import com.example.demo.dto.CreateCustomerRequest;
 import com.example.demo.dto.CustomerDTO;
 import com.example.demo.dto.UpdateCustomerRequest;
+import com.example.demo.dto.address.AddressDto;
+import com.example.demo.dto.address.AddressUpsertDto;
 import com.example.demo.service.CustomerService;
+import com.example.demo.service.AddressService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,6 +36,7 @@ public class AdminUserController {
     
     private final CustomerService customerService;
     private final com.example.demo.service.ExcelExportService excelExportService;
+    private final AddressService addressService;
     
     /**
      * Get all customers (excludes employees) with filters
@@ -274,6 +278,73 @@ public class AdminUserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
+    /**
+     * Add address for a customer (Admin only)
+     */
+    @Operation(summary = "Add address for customer", description = "Admin adds a new address for a specific customer")
+    @PostMapping("/{userId}/addresses")
+    public ResponseEntity<Map<String, Object>> addAddressForCustomer(
+            @Parameter(description = "Customer ID") @PathVariable Long userId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Address data") 
+            @Valid @RequestBody AddressUpsertDto addressDto) {
+        try {
+            // Verify customer exists
+            CustomerDTO customer = customerService.getCustomerById(userId);
+            
+            // Create address for the customer
+            AddressDto createdAddress = addressService.createOrUpdateAddress(userId, addressDto);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Thêm địa chỉ cho khách hàng thành công");
+            response.put("address", createdAddress);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            
+        } catch (IllegalArgumentException e) {
+            log.error("Validation error adding address for customer {}", userId, e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+            
+        } catch (Exception e) {
+            log.error("Error adding address for customer {}", userId, e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Lỗi khi thêm địa chỉ cho khách hàng: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+    
+    /**
+     * Get addresses for a customer (Admin only)
+     */
+    @Operation(summary = "Get customer addresses", description = "Admin retrieves all addresses for a specific customer")
+    @GetMapping("/{userId}/addresses")
+    public ResponseEntity<Map<String, Object>> getCustomerAddresses(
+            @Parameter(description = "Customer ID") @PathVariable Long userId) {
+        try {
+            // Verify customer exists
+            CustomerDTO customer = customerService.getCustomerById(userId);
+            
+            // Get customer addresses
+            List<AddressDto> addresses = addressService.getUserAddresses(userId);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("addresses", addresses);
+            response.put("customer", customer);
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("Error getting addresses for customer {}", userId, e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Lỗi khi lấy danh sách địa chỉ: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
     /**
      * Export users (customers) to Excel
      */
