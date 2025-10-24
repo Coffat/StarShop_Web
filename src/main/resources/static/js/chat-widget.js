@@ -84,6 +84,7 @@ function connectChatWidget() {
         // Subscribe to personal queue
         chatWidgetStompClient.subscribe('/user/queue/chat', function(message) {
             const chatMessage = JSON.parse(message.body);
+            console.log('📨 Customer received message via personal queue:', chatMessage);
             displayChatWidgetMessage(chatMessage);
         });
         
@@ -116,18 +117,15 @@ function subscribeToChatWidgetConversation(conversationId) {
 
         chatWidgetConversationSubscription = chatWidgetStompClient.subscribe('/topic/chat/' + conversationId, function(message) {
             const chatMessage = JSON.parse(message.body);
+            console.log('📨 Customer received message via WebSocket:', chatMessage);
             displayChatWidgetMessage(chatMessage);
         });
         chatWidgetSubscribedConversationId = conversationId;
         // Sau khi subscribe, đảm bảo đang ở cuối danh sách (trường hợp conversation vừa tạo)
         setTimeout(scrollChatWidgetToBottom, 50);
-        // Safety resync right after subscribe to avoid missing early messages
-        // Only if we haven't loaded messages recently
-        setTimeout(() => {
-            if (!chatWidgetLoadingMessages) {
-                try { loadChatWidgetMessages(conversationId); } catch (e) { /* noop */ }
-            }
-        }, 200);
+        // REMOVED: Auto-reload after subscribe causes race condition
+        // Staff messages arrive via WebSocket but get cleared when reload happens
+        // Messages will be loaded when chat widget opens or when explicitly needed
     }
 }
 
@@ -597,11 +595,20 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
     const messagesContainer = document.getElementById('chatWidgetMessages');
     const isOwn = message.senderId === chatWidgetUserId;
     
+    console.log('🎨 displayChatWidgetMessage called:', {
+        id: message.id,
+        senderId: message.senderId,
+        isOwn: isOwn,
+        content: message.content?.substring(0, 50),
+        skipDuplicateCheck: skipDuplicateCheck
+    });
+    
     // Enhanced duplicate check to prevent duplicate messages
     if (!skipDuplicateCheck) {
         // Check by message ID first (most reliable)
         const existingMessage = messagesContainer.querySelector(`[data-message-id="${message.id}"]`);
         if (existingMessage) {
+            console.log('⚠️ Message already exists, skipping:', message.id);
             return;
         }
         
@@ -615,6 +622,7 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
                     return div && div.innerHTML.trim() === parseMarkdown(message.content).trim();
                 });
             if (tempDup) {
+                console.log('🔄 Replacing temp message with persisted message');
                 try { tempDup.remove(); } catch (e) { /* noop */ }
             }
         }
@@ -624,18 +632,12 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
             // This is a temp user message, ensure it stays visible
         }
         
-        // For AI messages, only check very recent duplicates (last 1 message) to avoid blocking legitimate responses
-        if (!isOwn) {
-            const recentMessages = messagesContainer.querySelectorAll('.flex.mb-4');
-            const lastMessage = recentMessages[recentMessages.length - 1];
-            if (lastMessage) {
-                const contentDiv = lastMessage.querySelector('.message-content-holder, .text-sm.leading-relaxed');
-                if (contentDiv && contentDiv.innerHTML.trim() === parseMarkdown(message.content).trim()) {
-                    return;
-                }
-            }
-        }
+        // REMOVED: Content-based duplicate check was too strict and blocked legitimate staff messages
+        // Staff can send multiple messages with similar content, and they should all be displayed
+        // We only check duplicate by message ID (above), which is the correct approach
     }
+    
+    console.log('✅ Displaying message:', message.id);
     
     // If AI/system message arrives, ensure typing indicator is hidden
     if (!isOwn) {

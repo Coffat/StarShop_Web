@@ -706,10 +706,12 @@ public class ChatService {
         log.info("Getting conversations for staff {}", staffId);
         
         Pageable pageable = PageRequest.of(page, size);
+        // Only get ASSIGNED conversations for this staff
+        // OPEN conversations have no assignedStaffId, so they won't match this query
         Page<Conversation> conversations = conversationRepository
             .findByAssignedStaffIdAndStatusInOrderByLastMessageAtDesc(
                 staffId, 
-                Arrays.asList(ConversationStatus.ASSIGNED, ConversationStatus.OPEN),
+                Arrays.asList(ConversationStatus.ASSIGNED),
                 pageable);
         
         return conversations.stream()

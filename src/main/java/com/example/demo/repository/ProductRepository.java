@@ -73,7 +73,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // Admin methods
     Page<Product> findByStatus(ProductStatus status, Pageable pageable);
     
-    @Query("SELECT COUNT(p) FROM Product p WHERE CAST(p.status AS string) = CAST(:status AS string)")
+    @Query("SELECT COUNT(p) FROM Product p WHERE p.status = :status")
     long countByStatus(@Param("status") ProductStatus status);
     
     @Query("SELECT COUNT(p) FROM Product p WHERE p.stockQuantity < :threshold")

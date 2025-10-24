@@ -152,16 +152,21 @@ public class StaffApiController extends BaseController {
         try {
             Long staffId = getUserIdFromAuthentication(authentication);
             if (staffId == null) {
+                log.warn("Unauthorized access to conversations - no staff ID found");
                 return ResponseEntity.status(401).body(new ResponseWrapper<>(null, "Unauthorized"));
             }
             
+            log.info("Loading conversations for staff ID: {}, page: {}, size: {}", staffId, page, size);
+            
             // Get assigned conversations
             List<ConversationDTO> assignedConversations = chatService.getStaffConversations(staffId, page, size);
+            log.info("Found {} assigned conversations for staff {}", assignedConversations.size(), staffId);
             
             // Get unassigned conversations (queue) - only for first page
             List<ConversationDTO> unassignedConversations = new ArrayList<>();
             if (page == 0) {
                 unassignedConversations = chatService.getUnassignedConversations(0, 10);
+                log.info("Found {} unassigned conversations", unassignedConversations.size());
             }
             
             // Combine and return
@@ -169,6 +174,7 @@ public class StaffApiController extends BaseController {
             allConversations.addAll(assignedConversations);
             allConversations.addAll(unassignedConversations);
             
+            log.info("Returning total {} conversations to staff {}", allConversations.size(), staffId);
             return ResponseEntity.ok(new ResponseWrapper<>(allConversations, null));
             
         } catch (Exception e) {

@@ -422,8 +422,12 @@ function staffChat() {
                 const data = await response.json();
                 if (data.data && !data.error) {
                     this.conversations = data.data || [];
+                    console.log('✅ Loaded conversations:', this.conversations.length);
                     // Debug each conversation
                     this.conversations.forEach((conv, index) => {
+                        console.log(`Conversation ${index}:`, {
+                            id: conv.id,
+                            customerName: conv.customerName,
                             status: conv.status
                         });
                     });

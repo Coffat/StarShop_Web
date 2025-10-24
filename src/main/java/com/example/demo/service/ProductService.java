@@ -367,15 +367,23 @@ public class ProductService {
         product.setName(name);
         product.setDescription(description);
         product.setPrice(price);
-        product.setStockQuantity(stockQuantity);
         
-        // Auto-update status based on stock quantity if not manually set to specific status
-        if (stockQuantity != null && stockQuantity == 0 && status != ProductStatus.DISCONTINUED && status != ProductStatus.INACTIVE) {
-            product.setStatus(ProductStatus.OUT_OF_STOCK);
-            log.info("Admin: Auto-set product status to OUT_OF_STOCK for new product due to zero stock");
-        } else {
-            product.setStatus(status);
+        // IMPORTANT: Set status BEFORE stockQuantity to avoid auto-update conflict
+        // Admin explicitly chooses status, so respect their choice
+        product.setStatus(status);
+        
+        // Set stock quantity directly without triggering auto-update
+        // Use reflection or direct field access to bypass setter
+        try {
+            java.lang.reflect.Field stockField = Product.class.getDeclaredField("stockQuantity");
+            stockField.setAccessible(true);
+            stockField.set(product, stockQuantity);
+        } catch (Exception e) {
+            // Fallback to setter if reflection fails
+            product.setStockQuantity(stockQuantity);
         }
+        
+        log.info("Admin: Created product with status: {} and stock: {}", status, stockQuantity);
         
         product.setWeightG(weightG);
         product.setLengthCm(lengthCm);
@@ -430,15 +438,23 @@ public class ProductService {
         product.setName(name);
         product.setDescription(description);
         product.setPrice(price);
-        product.setStockQuantity(stockQuantity);
         
-        // Auto-update status based on stock quantity if not manually set to specific status
-        if (stockQuantity != null && stockQuantity == 0 && status != ProductStatus.DISCONTINUED && status != ProductStatus.INACTIVE) {
-            product.setStatus(ProductStatus.OUT_OF_STOCK);
-            log.info("Admin: Auto-updated product status to OUT_OF_STOCK for ID: {} due to zero stock", productId);
-        } else {
-            product.setStatus(status);
+        // IMPORTANT: Set status BEFORE stockQuantity to avoid auto-update conflict
+        // Admin explicitly chooses status, so respect their choice
+        product.setStatus(status);
+        
+        // Set stock quantity directly without triggering auto-update
+        // Use reflection or direct field access to bypass setter
+        try {
+            java.lang.reflect.Field stockField = Product.class.getDeclaredField("stockQuantity");
+            stockField.setAccessible(true);
+            stockField.set(product, stockQuantity);
+        } catch (Exception e) {
+            // Fallback to setter if reflection fails
+            product.setStockQuantity(stockQuantity);
         }
+        
+        log.info("Admin: Updated product ID: {} with status: {} and stock: {}", productId, status, stockQuantity);
         
         product.setWeightG(weightG);
         product.setLengthCm(lengthCm);
