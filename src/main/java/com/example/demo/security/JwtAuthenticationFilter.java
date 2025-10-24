@@ -65,11 +65,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         var tokenRole = jwtService.extractRole(sessionToken);
                         var userId = jwtService.extractUserId(sessionToken);
                         
-                        // Check current role in database
+                        // Check current role and active status in database
                         Optional<User> userOptional = userRepository.findByEmail(sessionEmail);
                         if (userOptional.isPresent()) {
                             User user = userOptional.get();
                             UserRole dbRole = user.getRole();
+                            
+                            // Check if user account is still active
+                            if (user.getIsActive() == null || !user.getIsActive()) {
+                                log.warn("User account is disabled for session email: {}", sessionEmail);
+                                SecurityContextHolder.clearContext();
+                                
+                                // Clear session and cookies
+                                if (request.getSession(false) != null) {
+                                    request.getSession().invalidate();
+                                }
+                                
+                                // Clear auth cookie
+                                Cookie clearCookie = new Cookie("authToken", "");
+                                clearCookie.setHttpOnly(true);
+                                clearCookie.setSecure(false);
+                                clearCookie.setPath("/");
+                                clearCookie.setMaxAge(0);
+                                response.addCookie(clearCookie);
+                                
+                                filterChain.doFilter(request, response);
+                                return;
+                            }
                             
                             // If role in DB is different from token, refresh the token
                             if (!dbRole.equals(tokenRole)) {
@@ -143,11 +165,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     var tokenRole = jwtService.extractRole(jwt);
                     var userId = jwtService.extractUserId(jwt);
                     
-                    // Check current role in database
+                    // Check current role and active status in database
                     Optional<User> userOptional = userRepository.findByEmail(userEmail);
                     if (userOptional.isPresent()) {
                         User user = userOptional.get();
                         UserRole dbRole = user.getRole();
+                        
+                        // Check if user account is still active
+                        if (user.getIsActive() == null || !user.getIsActive()) {
+                            log.warn("User account is disabled for email: {}", userEmail);
+                            SecurityContextHolder.clearContext();
+                            
+                            // Clear session and cookies
+                            if (request.getSession(false) != null) {
+                                request.getSession().invalidate();
+                            }
+                            
+                            // Clear auth cookie
+                            Cookie clearCookie = new Cookie("authToken", "");
+                            clearCookie.setHttpOnly(true);
+                            clearCookie.setSecure(false);
+                            clearCookie.setPath("/");
+                            clearCookie.setMaxAge(0);
+                            response.addCookie(clearCookie);
+                            
+                            filterChain.doFilter(request, response);
+                            return;
+                        }
                         
                         // If role in DB is different from token, refresh the token
                         if (!dbRole.equals(tokenRole)) {

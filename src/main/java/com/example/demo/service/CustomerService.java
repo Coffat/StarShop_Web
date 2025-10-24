@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,8 @@ public class CustomerService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final FollowRepository followRepository;
+    private final SessionManagementService sessionManagementService;
+    private final com.example.demo.repository.OrderRepository orderRepository;
     
     /**
      * Get all customers (CUSTOMER role only)
@@ -378,10 +381,31 @@ public class CustomerService {
     }
     
     /**
-     * Delete customer
+     * Check if customer has related data that prevents deletion
+     * @return error message if has related data, null if safe to delete
+     */
+    private String checkRelatedData(User customer) {
+        List<String> relatedData = new ArrayList<>();
+        
+        // Check orders
+        long orderCount = orderRepository.countByUserId(customer.getId());
+        if (orderCount > 0) {
+            relatedData.add(orderCount + " đơn hàng");
+        }
+        
+        if (!relatedData.isEmpty()) {
+            return "Không thể xóa vì có dữ liệu liên quan: " + String.join(", ", relatedData) + 
+                   ". Vui lòng sử dụng chức năng 'Vô hiệu hóa' thay vì xóa.";
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Delete customer - checks for related data first
      */
     public void deleteCustomer(Long id) {
-        log.info("Deleting customer with ID: {}", id);
+        log.info("Attempting to delete customer with ID: {}", id);
         
         User customer = userRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy khách hàng với ID: " + id));
@@ -390,13 +414,21 @@ public class CustomerService {
             throw new IllegalArgumentException("Người dùng không phải là khách hàng");
         }
         
-        // Delete all wishlist items (follows) first to avoid foreign key constraint violation
+        // Check for related data before deletion
+        String relatedDataError = checkRelatedData(customer);
+        if (relatedDataError != null) {
+            log.warn("Cannot delete customer ID {} due to related data", id);
+            throw new IllegalStateException(relatedDataError);
+        }
+        
+        // Delete all wishlist items (follows) first - these are safe to delete
         List<com.example.demo.entity.Follow> follows = followRepository.findByUserId(id);
         if (!follows.isEmpty()) {
             log.info("Deleting {} wishlist items for customer ID: {}", follows.size(), id);
             followRepository.deleteAll(follows);
         }
         
+        // Safe to delete - no critical related data exists
         userRepository.delete(customer);
         log.info("Customer deleted successfully with ID: {}", id);
     }
@@ -414,8 +446,16 @@ public class CustomerService {
             throw new IllegalArgumentException("Người dùng không phải là khách hàng");
         }
         
+        boolean wasActive = customer.getIsActive();
         customer.setIsActive(!customer.getIsActive());
         User updatedCustomer = userRepository.save(customer);
+        
+        // If user was disabled (active -> inactive), invalidate all their sessions
+        if (wasActive && !updatedCustomer.getIsActive()) {
+            log.info("Customer was disabled, invalidating all sessions for: {}", updatedCustomer.getEmail());
+            sessionManagementService.invalidateUserSessions(updatedCustomer.getEmail());
+        }
+        
         log.info("Customer status toggled successfully with ID: {}", id);
         
         return convertToDTO(updatedCustomer);

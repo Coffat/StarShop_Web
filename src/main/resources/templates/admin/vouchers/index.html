@@ -376,8 +376,8 @@
                         <!-- Mã voucher -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Mã voucher <span class="text-red-500">*</span></label>
-                            <input type="text" x-model="formData.code" :readonly="modalMode !== 'create'" :class="modalMode !== 'create' ? 'bg-gray-100' : ''" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 uppercase" placeholder="VD: SUMMER2024" required>
-                            <p class="text-xs text-gray-500 mt-1">Chỉ chữ in hoa và số</p>
+                            <input type="text" x-model="formData.code" :readonly="modalMode !== 'create'" :class="modalMode !== 'create' ? 'bg-gray-100' : ''" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 uppercase" placeholder="VD: AOV-FLOWER-1026-BC34" required>
+                            <p class="text-xs text-gray-500 mt-1">Chỉ chữ in hoa, số và dấu gạch ngang</p>
                         </div>
                         
                         <!-- Tên voucher -->
@@ -936,17 +936,22 @@
                         
                         // Use ResponseWrapper format: data.data instead of data.suggestion
                         if (data.data) {
-                            // Auto-fill form fields
-                            this.formData.code = data.data.code;
-                            this.formData.discountType = data.data.discountType;
-                            this.formData.discountValue = data.data.discountValue;
-                            this.formData.minOrderValue = data.data.minOrderValue;
+                            // Auto-fill ALL form fields from AI response
+                            this.formData.code = data.data.code || '';
+                            this.formData.name = data.data.name || '';
+                            this.formData.description = data.data.description || '';
+                            this.formData.discountType = data.data.discountType || '';
+                            this.formData.discountValue = data.data.discountValue || null;
+                            this.formData.maxDiscountAmount = data.data.maxDiscountAmount || null;
+                            this.formData.minOrderValue = data.data.minOrderValue || 0;
+                            this.formData.expiryDate = data.data.expiryDate || '';
+                            this.formData.maxUses = data.data.maxUses || null;
                             
                             // Show explanation
                             this.aiExplanation = data.data.explanation;
                             this.aiWarnings = data.data.warnings || [];
                             
-                            showToast('✅ AI đã tự động điền các trường chính!', 'success');
+                            showToast('✅ AI đã tự động điền đầy đủ thông tin voucher!', 'success');
                         } else {
                             showToast('Lỗi: ' + (data.error || 'Không thể tạo gợi ý'), 'error');
                         }

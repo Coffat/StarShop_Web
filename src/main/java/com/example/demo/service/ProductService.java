@@ -335,12 +335,12 @@ public class ProductService {
         long activeProducts = productRepository.countByStatus(ProductStatus.ACTIVE);
         stats.put("activeProducts", activeProducts);
         
-        // Out of stock products
-        long outOfStockProducts = productRepository.countByStatus(ProductStatus.OUT_OF_STOCK);
+        // Out of stock products (count by stockQuantity = 0 for accuracy)
+        long outOfStockProducts = productRepository.countByStockQuantityEquals0();
         stats.put("outOfStockProducts", outOfStockProducts);
         
-        // Low stock products (less than 10)
-        long lowStockProducts = productRepository.countByStockQuantityLessThan(10);
+        // Low stock products (0 < stock < 10, excluding out of stock)
+        long lowStockProducts = productRepository.countByStockQuantityBetweenZeroAnd(10);
         stats.put("lowStockProducts", lowStockProducts);
         
         return stats;
@@ -368,7 +368,15 @@ public class ProductService {
         product.setDescription(description);
         product.setPrice(price);
         product.setStockQuantity(stockQuantity);
-        product.setStatus(status);
+        
+        // Auto-update status based on stock quantity if not manually set to specific status
+        if (stockQuantity != null && stockQuantity == 0 && status != ProductStatus.DISCONTINUED && status != ProductStatus.INACTIVE) {
+            product.setStatus(ProductStatus.OUT_OF_STOCK);
+            log.info("Admin: Auto-set product status to OUT_OF_STOCK for new product due to zero stock");
+        } else {
+            product.setStatus(status);
+        }
+        
         product.setWeightG(weightG);
         product.setLengthCm(lengthCm);
         product.setWidthCm(widthCm);
@@ -423,7 +431,15 @@ public class ProductService {
         product.setDescription(description);
         product.setPrice(price);
         product.setStockQuantity(stockQuantity);
-        product.setStatus(status);
+        
+        // Auto-update status based on stock quantity if not manually set to specific status
+        if (stockQuantity != null && stockQuantity == 0 && status != ProductStatus.DISCONTINUED && status != ProductStatus.INACTIVE) {
+            product.setStatus(ProductStatus.OUT_OF_STOCK);
+            log.info("Admin: Auto-updated product status to OUT_OF_STOCK for ID: {} due to zero stock", productId);
+        } else {
+            product.setStatus(status);
+        }
+        
         product.setWeightG(weightG);
         product.setLengthCm(lengthCm);
         product.setWidthCm(widthCm);
@@ -485,6 +501,17 @@ public class ProductService {
             .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + productId));
         
         product.setStockQuantity(stockQuantity);
+        
+        // Auto-update status based on stock quantity
+        if (stockQuantity != null && stockQuantity == 0) {
+            product.setStatus(ProductStatus.OUT_OF_STOCK);
+            log.info("Admin: Auto-updated product status to OUT_OF_STOCK for ID: {}", productId);
+        } else if (stockQuantity != null && stockQuantity > 0 && product.getStatus() == ProductStatus.OUT_OF_STOCK) {
+            // If stock is replenished and status is OUT_OF_STOCK, change to ACTIVE
+            product.setStatus(ProductStatus.ACTIVE);
+            log.info("Admin: Auto-updated product status to ACTIVE for ID: {}", productId);
+        }
+        
         Product updatedProduct = productRepository.save(product);
         
         log.info("Admin: Successfully updated product stock for ID: {}", productId);

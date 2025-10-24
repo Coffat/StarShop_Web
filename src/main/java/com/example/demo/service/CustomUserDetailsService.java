@@ -27,6 +27,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(username)
             .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         
+        // Check if user account is active
+        boolean isDisabled = user.getIsActive() == null || !user.getIsActive();
+        if (isDisabled) {
+            log.warn("User account is disabled for email: {}", username);
+        }
         
         String authority = "ROLE_" + user.getRole().name();
         
@@ -37,7 +42,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             .accountExpired(false)
             .accountLocked(false)
             .credentialsExpired(false)
-            .disabled(false)
+            .disabled(isDisabled)
             .build();
     }
 }

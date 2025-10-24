@@ -4,11 +4,13 @@ import com.example.demo.dto.AiInsightResponse;
 import com.example.demo.service.DashboardService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -26,6 +28,9 @@ public class AdminController extends BaseController {
 
     @Autowired
     private DashboardService dashboardService;
+    
+    @Autowired
+    private CacheManager cacheManager;
 
 
     /**
@@ -257,6 +262,76 @@ public class AdminController extends BaseController {
             response.put("timestamp", LocalDateTime.now());
             
             return ResponseEntity.ok(response); // Return 200 with error flag
+        }
+    }
+    
+    /**
+     * API: Debug revenue queries
+     * Kiểm tra trực tiếp dữ liệu từ database để debug
+     */
+    @GetMapping("/api/debug/revenue")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> debugRevenue() {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            Map<String, Object> stats = dashboardService.getDashboardStats();
+            
+            response.put("success", true);
+            response.put("staticData", Map.of(
+                "totalRevenue", stats.get("totalRevenue"),
+                "monthlyRevenue", stats.get("monthlyRevenue"),
+                "totalOrders", stats.get("totalOrders"),
+                "completedOrders", stats.get("completedOrders"),
+                "pendingOrders", stats.get("pendingOrders"),
+                "processingOrders", stats.get("processingOrders"),
+                "shippedOrders", stats.get("shippedOrders"),
+                "cancelledOrders", stats.get("cancelledOrders")
+            ));
+            
+            response.put("timestamp", LocalDateTime.now());
+            response.put("note", "Nếu totalRevenue > 0 nhưng AI = 0, có thể đơn COMPLETED quá cũ (> 7 ngày)");
+            response.put("solution", "Kiểm tra file CHECK_ORDERS_STATUS.sql hoặc tạo đơn hàng test mới");
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("Error debugging revenue", e);
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            return ResponseEntity.ok(response);
+        }
+    }
+    
+    /**
+     * API: Clear AI insights cache
+     * Dùng để refresh dữ liệu AI sau khi sửa lỗi hoặc có đơn hàng mới
+     */
+    @PostMapping("/api/ai-insights/clear-cache")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> clearAiInsightsCache() {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            if (cacheManager.getCache("adminAiInsights") != null) {
+                cacheManager.getCache("adminAiInsights").clear();
+                log.info("Cleared adminAiInsights cache");
+                
+                response.put("success", true);
+                response.put("message", "Cache AI insights đã được xóa thành công");
+                response.put("timestamp", LocalDateTime.now());
+            } else {
+                response.put("success", false);
+                response.put("message", "Cache không tồn tại");
+            }
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("Error clearing AI insights cache", e);
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            return ResponseEntity.ok(response);
         }
     }
     

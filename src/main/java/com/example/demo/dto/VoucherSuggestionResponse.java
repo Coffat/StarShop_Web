@@ -21,6 +21,16 @@ public class VoucherSuggestionResponse {
     private String code;
     
     /**
+     * Tên voucher
+     */
+    private String name;
+    
+    /**
+     * Mô tả voucher
+     */
+    private String description;
+    
+    /**
      * Loại giảm giá (PERCENTAGE hoặc FIXED)
      */
     private DiscountType discountType;
@@ -31,9 +41,24 @@ public class VoucherSuggestionResponse {
     private BigDecimal discountValue;
     
     /**
+     * Giảm giá tối đa (cho PERCENTAGE)
+     */
+    private BigDecimal maxDiscountAmount;
+    
+    /**
      * Đơn hàng tối thiểu
      */
     private BigDecimal minOrderValue;
+    
+    /**
+     * Ngày hết hạn
+     */
+    private String expiryDate;
+    
+    /**
+     * Số lượt sử dụng tối đa
+     */
+    private Integer maxUses;
     
     /**
      * Lời giải thích của AI về lý do đề xuất cấu hình này
