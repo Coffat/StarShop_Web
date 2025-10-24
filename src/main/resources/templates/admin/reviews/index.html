@@ -771,9 +771,58 @@ function refreshReviews() {
     showToast('Đã làm mới danh sách đánh giá');
 }
 
-function exportReviews() {
-    showToast('Đang xuất file Excel...');
-    // Implementation for Excel export
+async function exportReviews() {
+    try {
+        showToast('Đang xuất file Excel...', 'info');
+        
+        // Get current filter values
+        const rating = document.getElementById('filterRating').value;
+        const search = document.getElementById('searchInput').value;
+        const sentiment = document.getElementById('filterSentiment').value;
+        const status = document.getElementById('filterStatus').value;
+        const sort = document.getElementById('sortBy').value;
+        
+        // Build query parameters
+        const params = new URLSearchParams();
+        if (rating) params.append('rating', rating);
+        if (search) params.append('search', search);
+        if (sentiment) params.append('sentiment', sentiment);
+        if (status) params.append('status', status);
+        if (sort) params.append('sort', sort);
+        
+        // Call export API
+        const response = await fetch(`/admin/api/reviews/export?${params.toString()}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Không thể xuất file Excel');
+        }
+        
+        // Get the blob from response
+        const blob = await response.blob();
+        
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `danh-gia-${new Date().getTime()}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        
+        // Cleanup
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        showToast('Xuất file Excel thành công!', 'success');
+        
+    } catch (error) {
+        console.error('Error exporting reviews:', error);
+        showToast('Lỗi khi xuất file Excel: ' + error.message, 'error');
+    }
 }
 
 // Utility functions
@@ -788,6 +837,9 @@ function showToast(message, type = 'success') {
     if (type === 'error') {
         toastContainer.className = 'bg-white border-l-4 border-red-400 p-4 shadow-lg rounded-lg';
         toastContainer.querySelector('i').className = 'fas fa-exclamation-circle text-red-400';
+    } else if (type === 'info') {
+        toastContainer.className = 'bg-white border-l-4 border-blue-400 p-4 shadow-lg rounded-lg';
+        toastContainer.querySelector('i').className = 'fas fa-info-circle text-blue-400';
     } else {
         toastContainer.className = 'bg-white border-l-4 border-green-400 p-4 shadow-lg rounded-lg';
         toastContainer.querySelector('i').className = 'fas fa-check-circle text-green-400';
