@@ -177,7 +177,7 @@
                      data-aos="fade-up"
                      data-aos-duration="600"
                      th:data-aos-delay="${(iterStat.index % 8) * 100}">
-                    <div class="product-image-container">
+                    <div class="product-image-container" th:classappend="${product.stockQuantity != null and product.stockQuantity == 0 ? 'out-of-stock' : ''}">
                         <a th:href="@{/products/{id}(id=${product.id})}" class="product-image-link">
                             <img th:src="${product.image != null ? product.image : '/images/products/default-flower.jpg'}" 
                                  th:alt="${product.name}" 
@@ -186,6 +186,14 @@
                                  width="400"
                                  height="400">
                         </a>
+                        
+                        <!-- Out of Stock Overlay -->
+                        <div th:if="${product.stockQuantity != null and product.stockQuantity == 0}" 
+                             class="absolute inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-10">
+                            <div class="text-center">
+                                <p class="text-white text-2xl font-bold">HẾT HÀNG</p>
+                            </div>
+                        </div>
                         
                         <!-- Wishlist Button -->
                         <div class="product-actions">
@@ -205,8 +213,20 @@
                             </button>
                         </div>
 
-                        <!-- Sale Badge -->
-                        <div class="product-badge sale-badge" th:if="${product.price != null}">
+                        <!-- Badges -->
+                        <div th:if="${product.stockQuantity != null and product.stockQuantity == 0}" 
+                             class="product-badge" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                            Hết hàng
+                        </div>
+                        <div th:if="${product.stockQuantity != null and product.stockQuantity > 0 and product.stockQuantity < 10}" 
+                             class="product-badge" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                            <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            Sắp hết
+                        </div>
+                        <div th:if="${product.stockQuantity == null or product.stockQuantity >= 10}" 
+                             class="product-badge sale-badge">
                             Mới
                         </div>
                     </div>
@@ -242,9 +262,23 @@
                         <div class="product-footer">
                             <div class="product-price">
                                 <span class="current-price" th:text="${#numbers.formatCurrency(product.price)}">0₫</span>
+                                <span th:if="${product.stockQuantity != null and product.stockQuantity > 0 and product.stockQuantity < 10}" 
+                                      class="text-xs text-orange-600 ml-2">
+                                    Còn <span th:text="${product.stockQuantity}">0</span>
+                                </span>
                             </div>
                             
-                            <button class="btn-add-to-cart" 
+                            <!-- Out of Stock Button -->
+                            <button th:if="${product.stockQuantity != null and product.stockQuantity == 0}"
+                                    class="btn-add-to-cart opacity-50 cursor-not-allowed"
+                                    disabled
+                                    style="background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);">
+                                Hết hàng
+                            </button>
+                            
+                            <!-- Add to Cart Button (In Stock) -->
+                            <button th:if="${product.stockQuantity == null or product.stockQuantity > 0}"
+                                    class="btn-add-to-cart" 
                                     th:data-product-id="${product.id}"
                                     sec:authorize="isAuthenticated()">
                                 <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -253,7 +287,9 @@
                                 Thêm vào giỏ
                             </button>
                             
-                            <a th:href="@{/login}" 
+                            <!-- Login Required Button -->
+                            <a th:if="${product.stockQuantity == null or product.stockQuantity > 0}"
+                               th:href="@{/login}" 
                                class="btn-add-to-cart btn-login-required"
                                sec:authorize="!isAuthenticated()">
                                 <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
