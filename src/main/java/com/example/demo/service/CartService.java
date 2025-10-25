@@ -264,4 +264,45 @@ public class CartService {
             return 0L;
         }
     }
+    
+    /**
+     * Remove specific products from cart by product IDs
+     */
+    public CartResponse removeProductsFromCart(Long userId, java.util.List<Long> productIds) {
+        try {
+            logger.info("Removing {} products from cart for user {}", productIds.size(), userId);
+            
+            Optional<Cart> cartOpt = cartRepository.findByUserId(userId);
+            if (cartOpt.isEmpty()) {
+                return CartResponse.error("Giỏ hàng không tồn tại");
+            }
+            
+            Cart cart = cartOpt.get();
+            
+            // Remove each product from cart
+            for (Long productId : productIds) {
+                Optional<CartItem> cartItemOpt = cartItemRepository.findByCartIdAndProductId(cart.getId(), productId);
+                if (cartItemOpt.isPresent()) {
+                    CartItem cartItem = cartItemOpt.get();
+                    cart.removeItem(cartItem);
+                    cartItemRepository.delete(cartItem);
+                    logger.info("Removed product {} from cart for user {}", productId, userId);
+                }
+            }
+            
+            // Recalculate cart totals
+            cart.calculateTotalAmount();
+            cartRepository.save(cart);
+            
+            // Get updated cart count
+            Long totalItems = cartRepository.countItemsByUserId(userId);
+            
+            logger.info("Successfully removed {} products from cart for user {}", productIds.size(), userId);
+            return CartResponse.success("Đã xóa sản phẩm đã đặt hàng khỏi giỏ hàng", CartDTO.fromCart(cart), totalItems);
+            
+        } catch (Exception e) {
+            logger.error("Error removing products from cart for user {}: {}", userId, e.getMessage());
+            return CartResponse.error("Có lỗi xảy ra khi xóa sản phẩm khỏi giỏ hàng");
+        }
+    }
 }

@@ -2088,6 +2088,62 @@ h6 { font-size: 1rem; }
     }
 }
 
+/* ================================
+   CUSTOM CHECKBOX STYLES - FORCE ROUND SHAPE
+   ================================ */
+
+/* Override all checkbox styles with maximum specificity */
+input[type="checkbox"],
+input[type="checkbox"].rounded-full,
+input[type="checkbox"].item-checkbox,
+input[type="checkbox"]#selectAll {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    border-radius: 50% !important;
+    border: 2px solid #d1d5db !important;
+    width: 20px !important;
+    height: 20px !important;
+    background-color: white !important;
+    cursor: pointer !important;
+    position: relative !important;
+    transition: all 0.2s ease !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    vertical-align: middle !important;
+}
+
+input[type="checkbox"]:checked,
+input[type="checkbox"].rounded-full:checked,
+input[type="checkbox"].item-checkbox:checked,
+input[type="checkbox"]#selectAll:checked {
+    background-color: #ec4899 !important;
+    border-color: #ec4899 !important;
+}
+
+input[type="checkbox"]:checked::after,
+input[type="checkbox"].rounded-full:checked::after,
+input[type="checkbox"].item-checkbox:checked::after,
+input[type="checkbox"]#selectAll:checked::after {
+    content: '✓' !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    color: white !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+    line-height: 1 !important;
+}
+
+input[type="checkbox"]:focus,
+input[type="checkbox"].rounded-full:focus,
+input[type="checkbox"].item-checkbox:focus,
+input[type="checkbox"]#selectAll:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.2) !important;
+}
+
 /* Print Styles */
 @media print {
     .bg-decoration,

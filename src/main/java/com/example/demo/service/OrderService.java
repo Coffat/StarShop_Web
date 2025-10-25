@@ -124,7 +124,24 @@ public class OrderService {
             }
             
             // Create order items from cart items
-            for (CartItem cartItem : cart.getCartItems()) {
+            // Filter cart items based on selected product IDs if provided
+            List<CartItem> itemsToOrder = cart.getCartItems();
+            if (request.getSelectedProductIds() != null && !request.getSelectedProductIds().isEmpty()) {
+                itemsToOrder = cart.getCartItems().stream()
+                    .filter(item -> request.getSelectedProductIds().contains(item.getProduct().getId()))
+                    .collect(java.util.stream.Collectors.toList());
+                logger.info("Processing {} selected items out of {} total cart items", 
+                    itemsToOrder.size(), cart.getCartItems().size());
+            }
+            
+            if (itemsToOrder.isEmpty()) {
+                return OrderResponse.error("Không có sản phẩm nào được chọn để đặt hàng");
+            }
+            
+            // Track ordered product IDs for cart cleanup
+            List<Long> orderedProductIds = new java.util.ArrayList<>();
+            
+            for (CartItem cartItem : itemsToOrder) {
                 Product product = cartItem.getProduct();
                 
                 if (product.getStockQuantity() < cartItem.getQuantity()) {
@@ -141,6 +158,9 @@ public class OrderService {
                 // Update product stock
                 product.setStockQuantity(product.getStockQuantity() - cartItem.getQuantity());
                 productRepository.save(product);
+                
+                // Track this product for removal from cart
+                orderedProductIds.add(product.getId());
             }
             
             // Calculate shipping fee if address is GHN-compatible
@@ -186,8 +206,11 @@ public class OrderService {
                 logger.info("Updated voucher usage count for voucher {}: {} uses", voucher.getCode(), voucher.getUses());
             }
             
-            // Clear user's cart
-            cartService.clearCart(userId);
+            // Remove only ordered items from cart (not the entire cart)
+            if (!orderedProductIds.isEmpty()) {
+                cartService.removeProductsFromCart(userId, orderedProductIds);
+                logger.info("Removed {} ordered products from cart", orderedProductIds.size());
+            }
             
             // Generate order number
             String orderNumber = generateOrderNumber(order.getId());
@@ -448,7 +471,24 @@ public class OrderService {
             }
             
             // Create order items from cart items
-            for (CartItem cartItem : cart.getCartItems()) {
+            // Filter cart items based on selected product IDs if provided
+            List<CartItem> itemsToOrder = cart.getCartItems();
+            if (request.getSelectedProductIds() != null && !request.getSelectedProductIds().isEmpty()) {
+                itemsToOrder = cart.getCartItems().stream()
+                    .filter(item -> request.getSelectedProductIds().contains(item.getProduct().getId()))
+                    .collect(java.util.stream.Collectors.toList());
+                logger.info("Processing {} selected items out of {} total cart items", 
+                    itemsToOrder.size(), cart.getCartItems().size());
+            }
+            
+            if (itemsToOrder.isEmpty()) {
+                throw new RuntimeException("Không có sản phẩm nào được chọn để đặt hàng");
+            }
+            
+            // Track ordered product IDs for cart cleanup
+            List<Long> orderedProductIds = new java.util.ArrayList<>();
+            
+            for (CartItem cartItem : itemsToOrder) {
                 Product product = cartItem.getProduct();
                 
                 // Check stock availability
@@ -466,6 +506,9 @@ public class OrderService {
                 // Update product stock
                 product.setStockQuantity(product.getStockQuantity() - cartItem.getQuantity());
                 productRepository.save(product);
+                
+                // Track this product for removal from cart
+                orderedProductIds.add(product.getId());
             }
             
             // Calculate shipping fee if address is GHN-compatible
@@ -508,8 +551,11 @@ public class OrderService {
                 logger.info("Updated voucher usage count for voucher {}: {} uses", voucher.getCode(), voucher.getUses());
             }
             
-            // Clear user's cart
-            cartService.clearCart(userId);
+            // Remove only ordered items from cart (not the entire cart)
+            if (!orderedProductIds.isEmpty()) {
+                cartService.removeProductsFromCart(userId, orderedProductIds);
+                logger.info("Removed {} ordered products from cart", orderedProductIds.size());
+            }
             
             logger.info("Order created successfully with ID: {}", savedOrder.getId());
             return savedOrder;

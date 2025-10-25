@@ -33,6 +33,9 @@ public class OrderRequest {
     // For direct order creation (bypass cart)
     private List<OrderItemRequest> items;
     
+    // Selected product IDs from cart (for partial checkout)
+    private List<Long> selectedProductIds;
+    
     // Constructors
     public OrderRequest() {
     }
@@ -118,6 +121,14 @@ public class OrderRequest {
     
     public void setItems(List<OrderItemRequest> items) {
         this.items = items;
+    }
+    
+    public List<Long> getSelectedProductIds() {
+        return selectedProductIds;
+    }
+    
+    public void setSelectedProductIds(List<Long> selectedProductIds) {
+        this.selectedProductIds = selectedProductIds;
     }
     
     /**
