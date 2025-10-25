@@ -71,6 +71,26 @@ class LanguageSwitcher {
                 'added': 'Đã thêm',
                 'add-to-cart-success': 'Đã thêm sản phẩm vào giỏ hàng!',
                 
+                // Cart page
+                'cart-title': 'Giỏ hàng của bạn',
+                'cart-subtitle': 'sản phẩm trong giỏ hàng',
+                'select-all': 'Chọn tất cả sản phẩm',
+                'cart-summary': 'Tổng cộng giỏ hàng',
+                'unit-price': 'Đơn giá',
+                'quantity': 'Số lượng',
+                'subtotal': 'Thành tiền',
+                'total-quantity': 'Tổng số lượng',
+                'temporary-total': 'Tạm tính',
+                'final-total': 'Tổng tiền',
+                'selected-items': 'sản phẩm được chọn',
+                'proceed-checkout': 'Tiến hành thanh toán',
+                'continue-shopping': 'Tiếp tục mua sắm',
+                'clear-cart': 'Xóa tất cả',
+                'shipping-note': 'Phí vận chuyển sẽ được tính ở bước thanh toán',
+                'empty-cart-title': 'Giỏ hàng trống',
+                'empty-cart-desc': 'Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy khám phá các sản phẩm tuyệt vời của chúng tôi!',
+                'explore-products': 'Khám phá sản phẩm',
+                
                 // Footer
                 'language': 'Ngôn ngữ',
                 'vietnamese': 'Tiếng Việt',
@@ -129,6 +149,26 @@ class LanguageSwitcher {
                 'added': 'Added',
                 'add-to-cart-success': 'Product added to cart!',
                 
+                // Cart page
+                'cart-title': 'Your Cart',
+                'cart-subtitle': 'items in cart',
+                'select-all': 'Select all products',
+                'cart-summary': 'Cart Summary',
+                'unit-price': 'Unit Price',
+                'quantity': 'Quantity',
+                'subtotal': 'Subtotal',
+                'total-quantity': 'Total Quantity',
+                'temporary-total': 'Subtotal',
+                'final-total': 'Total',
+                'selected-items': 'items selected',
+                'proceed-checkout': 'Proceed to Checkout',
+                'continue-shopping': 'Continue Shopping',
+                'clear-cart': 'Clear All',
+                'shipping-note': 'Shipping fee will be calculated at checkout',
+                'empty-cart-title': 'Empty Cart',
+                'empty-cart-desc': 'You have no items in your cart. Explore our amazing products!',
+                'explore-products': 'Explore Products',
+                
                 // Footer
                 'language': 'Language',
                 'vietnamese': 'Vietnamese',
@@ -140,9 +180,14 @@ class LanguageSwitcher {
     // Update language display in switcher
     updateLanguageDisplay() {
         const languageTexts = document.querySelectorAll('.language-text');
-        const currentFlag = this.currentLanguage === 'vi' ? 
-            'https://flagcdn.com/w20/vn.png' : 
-            'https://flagcdn.com/w20/us.png';
+        const languageButtons = document.querySelectorAll('button span.text-sm.font-medium.text-gray-700');
+        
+        // Update button text (VI/EN)
+        languageButtons.forEach(button => {
+            if (button.textContent === 'VI' || button.textContent === 'EN') {
+                button.textContent = this.currentLanguage.toUpperCase();
+            }
+        });
         
         languageTexts.forEach(text => {
             text.textContent = this.currentLanguage.toUpperCase();
