@@ -13,7 +13,7 @@ public class GeminiProperties {
 
     private String apiKey;
     private String baseUrl;
-    private String model = "gemini-2.0-flash-exp";
+    private String model = "gemini-2.0-flash";
     private Double temperature = 0.5; // Balanced creativity
     private Double topP = 0.85; // Default topP for nucleus sampling
     private Integer maxTokens = 8192; // Enough for 3-5 products with descriptions

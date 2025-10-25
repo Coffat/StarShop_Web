@@ -242,6 +242,7 @@ public class WebSocketService {
 
     /**
      * Send chat message to conversation participants
+     * SIMPLIFIED ROUTING: Only send to conversation topic to ensure all participants receive messages
      * @param chatMessage Chat message DTO
      */
     public void sendChatMessage(ChatMessageDTO chatMessage) {
@@ -251,32 +252,31 @@ public class WebSocketService {
         }
         
         try {
-            // PRIMARY: Send to conversation topic (both customer and staff subscribe to this)
-            String conversationTopic = "/topic/chat/" + chatMessage.getConversationId();
+            Long conversationId = chatMessage.getConversationId();
+            
+            // PRIMARY & ONLY: Send to conversation topic
+            // Both customer and staff subscribe to /topic/chat/{conversationId}
+            // This ensures ALL participants in the conversation receive the message
+            String conversationTopic = "/topic/chat/" + conversationId;
             messagingTemplate.convertAndSend(conversationTopic, chatMessage);
-            log.debug("Chat message sent to conversation topic {}: {}", conversationTopic, chatMessage.getContent());
             
-            // SECONDARY: Send to staff topic for staff interface updates 
-            // (staff interface subscribes to both for comprehensive coverage)
-            messagingTemplate.convertAndSend("/topic/chat/staff", chatMessage);
-            log.debug("Chat message sent to staff topic: {}", chatMessage.getContent());
-            
-            // TERTIARY: Send to receiver's personal queue if receiver exists
-            if (chatMessage.getReceiverId() != null) {
-                messagingTemplate.convertAndSendToUser(
-                    chatMessage.getReceiverId().toString(), 
-                    "/queue/chat", 
-                    chatMessage
-                );
-                log.info("Chat message sent to personal queue for user {}", chatMessage.getReceiverId());
-            }
-            
-            log.debug("Chat message sent to conversation {}: {} (AI: {}, Sender: {}, Receiver: {})", 
-                chatMessage.getConversationId(), 
+            log.info("📤 Chat message sent to conversation topic {}: {} (AI: {}, Sender: {}, Receiver: {})", 
+                conversationTopic,
                 chatMessage.getContent().substring(0, Math.min(50, chatMessage.getContent().length())), 
                 chatMessage.getIsAiGenerated(),
                 chatMessage.getSenderId(),
                 chatMessage.getReceiverId());
+            
+            // OPTIONAL: Broadcast to chat-updates for additional notification purposes
+            // This is NOT for displaying messages, only for triggering UI updates
+            try {
+                java.util.Map<String, Object> updateData = new java.util.HashMap<>();
+                updateData.put("conversationId", conversationId);
+                updateData.put("message", chatMessage);
+                sendChatUpdate("message_sent", updateData);
+            } catch (Exception e) {
+                log.warn("Failed to broadcast chat update for conversation {}", conversationId, e);
+            }
             
         } catch (Exception e) {
             log.error("Error sending chat message: {}", e.getMessage(), e);

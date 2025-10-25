@@ -15,9 +15,11 @@ import java.util.regex.Pattern;
 public class PiiDetectionService {
 
     // Regex patterns for PII detection
-    private static final Pattern PHONE_PATTERN = Pattern.compile("0[0-9]{9}");
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}");
-    private static final Pattern ADDRESS_PATTERN = Pattern.compile("(số\\s+\\d+|\\d+/\\d+|\\d+\\s+đường|\\d+\\s+phường|\\d+\\s+quận)", Pattern.CASE_INSENSITIVE);
+    // Phone pattern: 10 digits starting with 0, with word boundaries to avoid matching product codes
+    private static final Pattern PHONE_PATTERN = Pattern.compile("\\b0[0-9]{9}\\b");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("\\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\b");
+    // Address pattern: Only match when combined with customer address indicators
+    private static final Pattern ADDRESS_PATTERN = Pattern.compile("(số\\s+\\d+|\\d+/\\d+)", Pattern.CASE_INSENSITIVE);
     
     // Keywords indicating customer is providing their personal address (not asking about store)
     private static final String[] CUSTOMER_ADDRESS_INDICATORS = {
@@ -31,6 +33,13 @@ public class PiiDetectionService {
         "cửa hàng", "shop", "địa chỉ shop", "địa chỉ cửa hàng",
         "ở đâu", "chỗ nào", "bên nào", "hotline", "liên hệ",
         "thông tin", "giờ mở cửa", "giờ làm việc"
+    };
+    
+    // Common question patterns that should NOT trigger PII (even if they contain numbers)
+    private static final String[] SAFE_QUESTION_PATTERNS = {
+        "giá", "bao nhiêu", "có", "không", "được không", "có thể",
+        "tư vấn", "hỏi", "cho mình", "cho tôi", "xem", "mua",
+        "sản phẩm", "loại", "size", "màu", "số lượng"
     };
 
     /**
@@ -48,6 +57,26 @@ public class PiiDetectionService {
             if (lowerMessage.contains(keyword)) {
                 log.debug("Customer asking about store info, not PII");
                 return false; // This is asking about store, not providing personal info
+            }
+        }
+        
+        // Check if this is a safe question pattern (product inquiry, etc.)
+        for (String pattern : SAFE_QUESTION_PATTERNS) {
+            if (lowerMessage.contains(pattern)) {
+                log.debug("Message contains safe question pattern '{}', likely not PII", pattern);
+                // Don't immediately return false, but be more lenient with phone detection
+                // Only flag as PII if there's BOTH a phone number AND explicit sharing intent
+                if (containsPhoneNumber(message)) {
+                    // Check if there are explicit sharing keywords
+                    boolean hasExplicitSharing = lowerMessage.contains("số điện thoại") || 
+                                                 lowerMessage.contains("sdt") ||
+                                                 lowerMessage.contains("liên hệ") ||
+                                                 lowerMessage.contains("gọi cho");
+                    if (!hasExplicitSharing) {
+                        log.debug("Phone-like number found but no explicit sharing intent in question context");
+                        return false;
+                    }
+                }
             }
         }
 

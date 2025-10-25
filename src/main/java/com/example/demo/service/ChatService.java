@@ -287,8 +287,13 @@ public class ChatService {
         // CRITICAL FIX: Only allow AI routing if conversation is OPEN status (not ASSIGNED)
         // If message is from customer and conversation is OPEN (no staff assigned), try AI routing
         if (sender.getRole() == UserRole.CUSTOMER) {
-            if (conversation.getStatus() == ConversationStatus.OPEN && conversation.getAssignedStaff() == null) {
-                log.info("Customer message in OPEN conversation detected, attempting AI routing for conversation {}", conversation.getId());
+            // CRITICAL FIX: Re-fetch conversation to get latest status and prevent race condition
+            // This ensures we see the latest status even if staff just assigned the conversation
+            Conversation latestConversation = conversationRepository.findById(conversation.getId())
+                .orElseThrow(() -> new RuntimeException("Conversation not found"));
+            
+            if (latestConversation.getStatus() == ConversationStatus.OPEN && latestConversation.getAssignedStaff() == null) {
+                log.info("Customer message in OPEN conversation detected, attempting AI routing for conversation {}", latestConversation.getId());
                 
                 try {
                     // Route message through AI
@@ -431,38 +436,14 @@ public class ChatService {
                     log.error("Error in AI routing", e);
                     // Continue without AI - message already sent
                 }
-            } else if (conversation.getStatus() == ConversationStatus.ASSIGNED) {
-                log.info("Customer message in ASSIGNED conversation {} - staff is handling, skipping AI", conversation.getId());
-                // CRITICAL: Handle race where client opens SSE after we send completion
-                final Long convId = conversation.getId();
-                if (streamingEmitters.containsKey(convId)) {
-                    // Emitter exists -> close immediately
-                    sendStreamingComplete(convId, null);
-                    log.info("Closed streaming emitter immediately for conversation {}", convId);
-                } else {
-                    // Emitter not yet registered -> wait briefly then close if appeared
-                    new Thread(() -> {
-                        try {
-                            Thread.sleep(1000);
-                            if (streamingEmitters.containsKey(convId)) {
-                                sendStreamingComplete(convId, null);
-                                log.info("Closed streaming emitter after 1s delay for conversation {}", convId);
-                            }
-                        } catch (InterruptedException ie) {
-                            Thread.currentThread().interrupt();
-                        }
-                    }).start();
-                }
-                // Also broadcast hide typing to all clients for this conversation
-                try {
-                    java.util.Map<String, Object> payload = new java.util.HashMap<>();
-                    payload.put("conversationId", convId);
-                    payload.put("action", "hide_typing");
-                    webSocketService.sendChatUpdate("hide_typing", payload);
-                } catch (Exception ignore) {}
             } else {
-                log.info("Customer message in conversation {} with status {} - skipping AI (closed or other)", 
-                    conversation.getId(), conversation.getStatus());
+                // CRITICAL FIX: Conversation was just assigned by staff (race condition detected)
+                log.info("Race condition detected: Conversation {} status changed to {} or staff assigned during message processing. Skipping AI routing.", 
+                    latestConversation.getId(), latestConversation.getStatus());
+                // Close any pending streaming emitters
+                if (streamingEmitters.containsKey(latestConversation.getId())) {
+                    sendStreamingComplete(latestConversation.getId(), null);
+                }
             }
         }
         
@@ -529,6 +510,19 @@ public class ChatService {
         
         // ============ AI ROUTING LOGIC ============
         try {
+            // CRITICAL FIX: Add delay to allow frontend WebSocket subscription to complete
+            // This prevents race condition where AI response is broadcast before client subscribes
+            // Increased to 400ms to ensure subscription completes even on slow networks
+            if (isNewConversation) {
+                try {
+                    Thread.sleep(400); // 400ms delay for new conversations
+                    log.info("⏱️ Delayed AI routing for new conversation {} to allow WebSocket subscription", conversation.getId());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    log.warn("Delay interrupted for conversation {}", conversation.getId());
+                }
+            }
+            
             // Route message through AI
             RoutingService.RoutingDecision decision = routingService.routeMessage(
                 conversation.getId(), 

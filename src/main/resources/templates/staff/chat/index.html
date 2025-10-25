@@ -176,7 +176,7 @@
                         </div>
                     </template>
                     
-                    <template x-for="msg in messages" :key="msg.id.toString()">
+                    <template x-for="msg in messages" :key="msg.id ? msg.id.toString() : 'temp-' + Math.random()">
                         <div>
                             <!-- System Message (Center) -->
                             <template x-if="msg.messageType === 'SYSTEM'">
@@ -527,13 +527,25 @@ function staffChat() {
             // Subscribe to this specific conversation
             if (this.stompClient && this.stompClient.connected) {
                 try {
-                    this.currentSubscription = this.stompClient.subscribe('/topic/chat/' + conversationId, (message) => {
+                    const topicPath = '/topic/chat/' + conversationId;
+                    console.log('🔌 Subscribing to conversation topic:', topicPath);
+                    
+                    this.currentSubscription = this.stompClient.subscribe(topicPath, (message) => {
+                        console.log('📨 Staff received message via topic subscription:', message.body);
                         const msg = JSON.parse(message.body);
+                        console.log('📨 Parsed message:', msg);
                         this.handleIncomingMessage(msg);
                     });
+                    
+                    console.log('✅ Successfully subscribed to:', topicPath);
                 } catch (error) {
-                    console.error('Error subscribing to conversation:', error);
+                    console.error('❌ Error subscribing to conversation:', error);
                 }
+            } else {
+                console.error('❌ Cannot subscribe: WebSocket not connected', {
+                    hasClient: !!this.stompClient,
+                    isConnected: this.stompClient?.connected
+                });
             }
             
             // Force scroll to bottom after loading messages
@@ -682,22 +694,36 @@ function staffChat() {
         },
         
         handleIncomingMessage(msg) {
-            console.log('🔔 handleIncomingMessage called:', msg);
-            console.log('Current staffId:', this.staffId);
+            console.log('═══════════════════════════════════════════════════');
+            console.log('🔔 handleIncomingMessage CALLED');
+            console.log('Message ID:', msg.id);
+            console.log('Message content:', msg.content?.substring(0, 50));
             console.log('Message senderId:', msg.senderId);
+            console.log('Message conversationId:', msg.conversationId);
+            console.log('Current staffId:', this.staffId);
             console.log('Is from customer:', msg.senderId != this.staffId);
-            console.log('Selected conversation:', this.selectedConversation);
+            console.log('Selected conversation ID:', this.selectedConversation?.id);
+            console.log('═══════════════════════════════════════════════════');
             
-            // ⚠️ CRITICAL: Prevent duplicate processing from multiple WebSocket subscriptions
-            // Message can be received from both /topic/chat/{conversationId} and /topic/chat/staff
+            // ⚠️ CRITICAL: Prevent duplicate processing
+            // Although messages now only come from /topic/chat/{conversationId},
+            // keep duplicate check for safety (e.g., network retries, multiple tabs)
             const messageProcessedKey = `processed_${msg.id}`;
             if (this[messageProcessedKey]) {
                 console.log('⚠️ Message already processed, skipping duplicate processing');
                 return;
             }
             
+            console.log('✅ Message NOT yet processed, continuing...');
+            
             // Mark this message as processed to prevent duplicate
             this[messageProcessedKey] = true;
+            
+            // CRITICAL: Validate message has valid ID
+            if (!msg.id) {
+                console.error('❌ Message has null/undefined ID, skipping:', msg);
+                return;
+            }
             
             // Check if this message is already in the messages array to avoid duplicates
             const messageExists = this.messages.some(m => m.id === msg.id);
@@ -706,24 +732,48 @@ function staffChat() {
                 return;
             }
             
-            // If this is a message from staff (current user), check if we have an optimistic message to replace
+            // If this is a message from staff (current user), try to replace optimistic message
             if (msg.senderId === this.staffId) {
-                const optimisticIndex = this.messages.findIndex(m => m.isOptimistic && m.content === msg.content);
+                // Find optimistic message with same content (sent within last 5 seconds)
+                const recentTime = new Date(Date.now() - 5000).toISOString();
+                const optimisticIndex = this.messages.findIndex(m => 
+                    m.isOptimistic && 
+                    m.content === msg.content &&
+                    m.sentAt >= recentTime
+                );
+                
                 if (optimisticIndex !== -1) {
                     console.log('🔄 Replacing optimistic message with real message');
-                    this.messages[optimisticIndex] = msg;
+                    // Create new array for Alpine reactivity
+                    const newMessages = [...this.messages];
+                    newMessages[optimisticIndex] = msg;
+                    this.messages = newMessages;
                     this.$nextTick(() => this.scrollToBottom());
                     
                     // CRITICAL: Update selectedConversation status when staff sends message
-                    // This ensures AI button appears immediately without page reload
                     if (this.selectedConversation && this.selectedConversation.id == msg.conversationId) {
                         console.log('🔄 Updating selectedConversation status to ASSIGNED after staff message');
                         this.selectedConversation.status = 'ASSIGNED';
                         this.selectedConversation.assignedStaffId = this.staffId;
-                        console.log('✅ Updated selectedConversation:', this.selectedConversation);
                     }
+                    return; // Exit early - message already displayed
+                }
+                
+                // If no optimistic message found, check if we already have this exact message
+                // (could happen if message was already added via another path)
+                const exactMatch = this.messages.some(m => 
+                    m.senderId === msg.senderId && 
+                    m.content === msg.content &&
+                    m.conversationId === msg.conversationId &&
+                    Math.abs(new Date(m.sentAt) - new Date(msg.sentAt)) < 2000
+                );
+                
+                if (exactMatch) {
+                    console.log('⚠️ Exact message match found, skipping duplicate');
                     return;
                 }
+                
+                console.log('ℹ️ No optimistic message found, will add as new message');
             }
             
             // Determine if staff is viewing this conversation
@@ -736,9 +786,18 @@ function staffChat() {
             
             // If staff is currently viewing this conversation, add message to chat
             if (isViewingConversation) {
-                console.log('✅ Staff is viewing this conversation, adding message to chat');
-                this.messages.push(msg);
-                this.$nextTick(() => this.scrollToBottom());
+                console.log('✅ Staff IS viewing this conversation, adding message to chat');
+                console.log('Current messages count BEFORE push:', this.messages.length);
+                
+                // CRITICAL: Use spread operator to create new array for Alpine reactivity
+                this.messages = [...this.messages, msg];
+                
+                console.log('Current messages count AFTER push:', this.messages.length);
+                console.log('Last message in array:', this.messages[this.messages.length - 1]);
+                this.$nextTick(() => {
+                    console.log('Alpine nextTick: scrolling to bottom');
+                    this.scrollToBottom();
+                });
                 
                 // If this is a system message or AI message, reload conversation data to update UI
                 if (msg.isAiGenerated || msg.senderName === 'Hệ thống') {
@@ -1133,12 +1192,9 @@ function staffChat() {
                         this.handleChatUpdate(update);
                     });
                     
-                    // Subscribe to all chat messages for staff
-                    this.stompClient.subscribe('/topic/chat/staff', (message) => {
-                        const msg = JSON.parse(message.body);
-                        console.log('Received message for staff:', msg);
-                        this.handleIncomingMessage(msg);
-                    });
+                    // REMOVED: /topic/chat/staff subscription - no longer used
+                    // Backend now only sends to /topic/chat/{conversationId}
+                    // Staff subscribes to specific conversation topic when selecting a conversation (line 530)
                     
                 }, (error) => {
                     console.error('WebSocket error:', error);
@@ -1244,11 +1300,27 @@ function staffChat() {
             console.log('📢 handleChatUpdate called:', update);
             switch (update.type) {
                 case 'message_sent':
-                    // ⚠️ REMOVED: Don't call updateConversationInList here!
-                    // This causes duplicate processing because the same message is already processed
-                    // in handleIncomingMessage from /topic/chat/staff subscription
-                    console.log('📢 Message sent update received, but skipping to avoid duplicate processing');
-                    console.log('📢 Message is already processed in handleIncomingMessage');
+                    if (update.data && update.data.message) {
+                        const msg = update.data.message;
+                        
+                        // CRITICAL: If staff is viewing this conversation, message will come via /topic/chat/{id}
+                        // So we should SKIP it here to avoid duplicate processing
+                        if (this.selectedConversation && msg.conversationId === this.selectedConversation.id) {
+                            console.log('⏭️ Skipping message_sent for active conversation (will come via topic subscription)');
+                            return;
+                        }
+                        
+                        // Only process if not already processed
+                        const processedKey = `processed_${msg.id}`;
+                        if (!this[processedKey]) {
+                            console.log('📢 message_sent update -> forwarding to handleIncomingMessage');
+                            this.handleIncomingMessage(msg);
+                        } else {
+                            console.log('📢 message_sent update ignored, message already processed');
+                        }
+                    } else {
+                        console.warn('📢 message_sent update missing message payload', update);
+                    }
                     break;
                 case 'conversation_status_changed':
                     // Update conversation status

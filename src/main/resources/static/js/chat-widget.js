@@ -15,6 +15,8 @@ let chatWidgetSubscribedConversationId = null;
 let chatWidgetLastSendAt = 0;
 // Prevent multiple simultaneous message loads
 let chatWidgetLoadingMessages = false;
+// Track conversation status to determine if AI should respond
+let chatWidgetConversationStatus = 'OPEN'; // OPEN, ASSIGNED, or CLOSED
 
 /**
  * Get CSRF token from meta tag
@@ -81,14 +83,17 @@ function connectChatWidget() {
         chatWidgetIsConnected = true;
         updateChatWidgetStatus('online');
         
-        // Subscribe to personal queue
+        // OPTIONAL: Subscribe to personal queue for notifications (not for displaying messages)
+        // Primary message display happens via conversation topic subscription
         chatWidgetStompClient.subscribe('/user/queue/chat', function(message) {
             const chatMessage = JSON.parse(message.body);
-            console.log('📨 Customer received message via personal queue:', chatMessage);
+            console.log('📨 Customer received notification via personal queue:', chatMessage);
+            // Note: This is backup/notification channel, main messages come via topic
             displayChatWidgetMessage(chatMessage);
         });
         
-        // Subscribe to conversation topic (will be set when conversation is loaded)
+        // PRIMARY: Subscribe to conversation topic when conversation is loaded
+        // This is the main channel for receiving all messages in the conversation
         if (chatWidgetConversationId) {
             subscribeToChatWidgetConversation(chatWidgetConversationId);
         }
@@ -102,12 +107,14 @@ function connectChatWidget() {
 }
 
 /**
- * Subscribe to conversation topic
+ * Subscribe to conversation topic - PRIMARY message channel
+ * All messages (customer, staff, AI) are sent to /topic/chat/{conversationId}
  */
 function subscribeToChatWidgetConversation(conversationId) {
     if (chatWidgetStompClient && chatWidgetIsConnected) {
         // Prevent duplicate subscriptions
         if (chatWidgetSubscribedConversationId === conversationId && chatWidgetConversationSubscription) {
+            console.log('✅ Already subscribed to conversation:', conversationId);
             return;
         }
         if (chatWidgetConversationSubscription) {
@@ -115,12 +122,24 @@ function subscribeToChatWidgetConversation(conversationId) {
             chatWidgetConversationSubscription = null;
         }
 
+        // PRIMARY SUBSCRIPTION: This is where ALL messages arrive
         chatWidgetConversationSubscription = chatWidgetStompClient.subscribe('/topic/chat/' + conversationId, function(message) {
             const chatMessage = JSON.parse(message.body);
-            console.log('📨 Customer received message via WebSocket:', chatMessage);
+            console.log('📨 Customer received message via conversation topic:', chatMessage);
+            
+            // CRITICAL FIX: If message is from staff (not AI), update status to ASSIGNED
+            // This prevents AI typing indicator from showing after staff takes over
+            if (chatMessage.senderId !== chatWidgetUserId && !chatMessage.isAiGenerated) {
+                chatWidgetConversationStatus = 'ASSIGNED';
+                console.log('📋 Staff message detected, status updated to ASSIGNED');
+            }
+            
             displayChatWidgetMessage(chatMessage);
         });
+        
         chatWidgetSubscribedConversationId = conversationId;
+        console.log('✅ Subscribed to conversation topic:', '/topic/chat/' + conversationId);
+        
         // Sau khi subscribe, đảm bảo đang ở cuối danh sách (trường hợp conversation vừa tạo)
         setTimeout(scrollChatWidgetToBottom, 50);
         // REMOVED: Auto-reload after subscribe causes race condition
@@ -138,9 +157,45 @@ if (!window.chatWidgetSubscribedChatUpdates) {
                 chatWidgetStompClient.subscribe('/topic/chat-updates', function(message) {
                     try {
                         const update = JSON.parse(message.body);
+                        if (update && update.type === 'message_sent' && update.data && update.data.message) {
+                            const incomingMessage = update.data.message;
+                            const incomingConversationId = incomingMessage.conversationId;
+
+                            // CRITICAL: If widget has not yet tracked this conversation, subscribe now
+                            // This handles the race condition for first message
+                            if (!chatWidgetConversationId && incomingConversationId) {
+                                console.log('🆕 First message detected, setting up conversation:', incomingConversationId);
+                                chatWidgetConversationId = incomingConversationId;
+                                subscribeToChatWidgetConversation(chatWidgetConversationId);
+                                
+                                // Display the message immediately (don't wait for reload)
+                                console.log('📬 Displaying first message immediately:', incomingMessage);
+                                displayChatWidgetMessage(incomingMessage);
+                                
+                                // Then load full history to ensure nothing is missed
+                                setTimeout(() => {
+                                    if (!chatWidgetLoadingMessages) {
+                                        loadChatWidgetMessages(chatWidgetConversationId);
+                                    }
+                                }, 300);
+                                return; // Exit early to avoid duplicate display
+                            }
+
+                            // If we already have conversationId, the message will come via /topic/chat/{id}
+                            // So we DON'T need to display it here (avoid duplicate)
+                            // This channel is only for catching the FIRST message before subscription
+                            console.log('⏭️ Skipping message_sent display (will come via topic subscription)');
+                        }
                         if (update && update.type === 'hide_typing') {
                             if (!update.data || !chatWidgetConversationId || update.data.conversationId == chatWidgetConversationId) {
                                 hideTypingIndicator();
+                            }
+                        }
+                        // Track conversation status changes (e.g., when staff assigns)
+                        if (update && update.type === 'conversation_assigned' && update.data) {
+                            if (chatWidgetConversationId && update.data.conversationId == chatWidgetConversationId) {
+                                chatWidgetConversationStatus = 'ASSIGNED';
+                                console.log('📋 Conversation assigned to staff, status updated to ASSIGNED');
                             }
                         }
                     } catch (e) { /* noop */ }
@@ -165,6 +220,7 @@ function loadOrCreateConversation() {
                 const activeConversation = data.data.find(c => c.status === 'OPEN' || c.status === 'ASSIGNED');
                 if (activeConversation) {
                     chatWidgetConversationId = activeConversation.id;
+                    chatWidgetConversationStatus = activeConversation.status; // Track status
                     loadChatWidgetMessages(chatWidgetConversationId);
                     subscribeToChatWidgetConversation(chatWidgetConversationId);
                 } else {
@@ -243,6 +299,23 @@ function loadChatWidgetMessages(conversationId) {
                     
                     // Display messages in order
                     sortedMessages.forEach(message => {
+                        // CRITICAL FIX: Validate message has content before displaying
+                        if (!message.content) {
+                            console.error('❌ Message from API has no content:', message);
+                        } else {
+                            console.log('📩 Loading message:', {
+                                id: message.id,
+                                sender: message.senderName,
+                                contentLength: message.content?.length,
+                                contentPreview: message.content?.substring(0, 50)
+                            });
+                        }
+                        
+                        // CRITICAL FIX: Update status if we see staff message
+                        if (message.senderId !== chatWidgetUserId && !message.isAiGenerated) {
+                            chatWidgetConversationStatus = 'ASSIGNED';
+                        }
+                        
                         displayChatWidgetMessage(message, true); // true = skip duplicate check for initial load
                     });
                     
@@ -357,14 +430,11 @@ function sendWidgetMessage() {
     });
     
     // Show typing indicator for AI response if conversation not assigned to staff
-    try {
-        if (window.chatWidgetConversation && window.chatWidgetConversation.status === 'ASSIGNED') {
-            // Do not show AI typing when staff is handling
-        } else {
-            showTypingIndicator();
-        }
-    } catch (e) {
-        // Fallback to showing typing indicator if state unknown
+    if (chatWidgetConversationStatus === 'ASSIGNED') {
+        // Do not show AI typing when staff is handling
+        // Staff will respond via WebSocket
+    } else {
+        // Show AI typing indicator for OPEN conversations
         showTypingIndicator();
     }
     
@@ -593,6 +663,9 @@ function startStreamingResponse(conversationId) {
  */
 function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
     const messagesContainer = document.getElementById('chatWidgetMessages');
+    if (!messagesContainer) {
+        return false;
+    }
     const isOwn = message.senderId === chatWidgetUserId;
     
     console.log('🎨 displayChatWidgetMessage called:', {
@@ -609,7 +682,7 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
         const existingMessage = messagesContainer.querySelector(`[data-message-id="${message.id}"]`);
         if (existingMessage) {
             console.log('⚠️ Message already exists, skipping:', message.id);
-            return;
+            return false;
         }
         
         // Only check for temp message replacement (not general content duplicates)
@@ -697,7 +770,16 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
     if (!isOwn) {
         const contentHolder = messageDiv.querySelector('.message-content-holder');
         if (contentHolder) {
-            contentHolder.innerHTML = parseMarkdown(message.content);
+            // CRITICAL FIX: Check if content exists before parsing
+            if (!message.content) {
+                console.error('❌ Message content is null/undefined:', message);
+                contentHolder.innerHTML = '<span class="text-red-500 italic">Lỗi: Tin nhắn trống</span>';
+            } else {
+                console.log('✅ Setting AI message content:', message.content.substring(0, 100));
+                contentHolder.innerHTML = parseMarkdown(message.content);
+            }
+        } else {
+            console.error('❌ Content holder not found for message:', message.id);
         }
     }
     
@@ -709,6 +791,8 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
     if (!isOwn && chatWindow.style.display === 'none') {
         showChatWidgetNotification();
     }
+
+    return true;
 }
 
 /**
