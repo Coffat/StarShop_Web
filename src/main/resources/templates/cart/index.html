@@ -8,6 +8,47 @@
 
 <head>
     <link rel="stylesheet" href="@/css/cart.css">
+    <style>
+        /* Force checkbox to be round - Maximum priority */
+        input[type="checkbox"] {
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            appearance: none !important;
+            border-radius: 50% !important;
+            border: 2px solid #d1d5db !important;
+            width: 20px !important;
+            height: 20px !important;
+            background-color: white !important;
+            cursor: pointer !important;
+            position: relative !important;
+            transition: all 0.2s ease !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            vertical-align: middle !important;
+        }
+        
+        input[type="checkbox"]:checked {
+            background-color: #ec4899 !important;
+            border-color: #ec4899 !important;
+        }
+        
+        input[type="checkbox"]:checked::after {
+            content: '✓' !important;
+            position: absolute !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            color: white !important;
+            font-size: 12px !important;
+            font-weight: bold !important;
+            line-height: 1 !important;
+        }
+        
+        input[type="checkbox"]:focus {
+            outline: none !important;
+            box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.2) !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -37,10 +78,31 @@
                 <div class="lg:grid lg:grid-cols-12 lg:gap-8">
                     <!-- Cart Items List -->
                     <div class="lg:col-span-8 space-y-4" id="cartItems">
+                        <!-- Select All Checkbox -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" 
+                                       class="w-5 h-5 text-pink-600 border-gray-300 rounded-full focus:ring-2 focus:ring-pink-500/20 cursor-pointer" 
+                                       style="accent-color: #ec4899;" checked>
+                                <span class="text-sm font-semibold text-gray-700">Chọn tất cả sản phẩm</span>
+                            </label>
+                        </div>
                         <div th:each="item : ${cart.items}" 
                              th:data-product-id="${item.productId}"
                              class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
                             <div class="flex flex-col sm:flex-row gap-4">
+                                <!-- Checkbox -->
+                                <div class="flex-shrink-0 flex items-center">
+                                    <input type="checkbox" 
+                                           th:data-product-id="${item.productId}"
+                                           th:data-price="${item.productPrice}"
+                                           th:data-quantity="${item.quantity}"
+                                           th:data-subtotal="${item.subtotal}"
+                                           onchange="updateSelectedItems()"
+                                           class="item-checkbox w-5 h-5 text-pink-600 border-gray-300 rounded-full focus:ring-2 focus:ring-pink-500/20 cursor-pointer" 
+                                           style="accent-color: #ec4899;" 
+                                           checked>
+                                </div>
                                 <!-- Product Image -->
                                 <div class="flex-shrink-0">
                                     <img th:src="${item.productImage != null ? item.productImage : '/images/placeholder-product.jpg'}" 
@@ -159,6 +221,10 @@
                                               th:text="${cart != null and cart.totalAmount != null ? #numbers.formatInteger(cart.totalAmount, 0, 'COMMA') + '₫' : '0₫'}">
                                             0₫
                                         </span>
+                                    </div>
+                                    
+                                    <div class="mt-2 text-sm text-gray-500 text-right">
+                                        <span id="selectedCount" th:text="${cart.totalQuantity}">0</span> sản phẩm được chọn
                                     </div>
                                 </div>
                                 
@@ -333,6 +399,16 @@
                     if (subtotalElement) {
                         subtotalElement.textContent = subtotal.toLocaleString('vi-VN') + '₫';
                     }
+                    
+                    // Cập nhật checkbox data attributes
+                    const checkbox = itemContainer.querySelector('.item-checkbox');
+                    if (checkbox) {
+                        checkbox.dataset.quantity = quantity;
+                        checkbox.dataset.subtotal = subtotal;
+                    }
+                    
+                    // Cập nhật lại tổng tiền nếu item được chọn
+                    updateSelectedItems();
                 }
             }
         }
@@ -452,8 +528,74 @@
             });
         }
         
+        // Toggle select all checkboxes
+        function toggleSelectAll(checkbox) {
+            const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+            itemCheckboxes.forEach(cb => {
+                cb.checked = checkbox.checked;
+            });
+            updateSelectedItems();
+        }
+        
+        // Update selected items and recalculate totals
+        function updateSelectedItems() {
+            const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+            const selectAllCheckbox = document.getElementById('selectAll');
+            
+            let selectedCount = 0;
+            let selectedTotal = 0;
+            let allChecked = true;
+            
+            itemCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    selectedCount++;
+                    const subtotal = parseFloat(checkbox.dataset.subtotal || 0);
+                    selectedTotal += subtotal;
+                } else {
+                    allChecked = false;
+                }
+            });
+            
+            // Update select all checkbox state
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = allChecked && itemCheckboxes.length > 0;
+            }
+            
+            // Update UI
+            const selectedCountElement = document.getElementById('selectedCount');
+            const totalAmountElement = document.getElementById('totalAmount');
+            const finalAmountElement = document.getElementById('finalAmount');
+            
+            if (selectedCountElement) {
+                selectedCountElement.textContent = selectedCount;
+            }
+            
+            const formattedTotal = selectedTotal.toLocaleString('vi-VN') + '₫';
+            if (totalAmountElement) {
+                totalAmountElement.textContent = formattedTotal;
+            }
+            if (finalAmountElement) {
+                finalAmountElement.textContent = formattedTotal;
+            }
+        }
+        
+        // Get selected product IDs
+        function getSelectedProductIds() {
+            const itemCheckboxes = document.querySelectorAll('.item-checkbox:checked');
+            return Array.from(itemCheckboxes).map(cb => parseInt(cb.dataset.productId));
+        }
+        
         // Proceed to checkout
         function proceedToCheckout() {
+            const selectedIds = getSelectedProductIds();
+            
+            if (selectedIds.length === 0) {
+                showToast('Vui lòng chọn ít nhất một sản phẩm để thanh toán', 'error');
+                return;
+            }
+            
+            // Store selected product IDs in session storage for checkout page
+            sessionStorage.setItem('selectedCartItems', JSON.stringify(selectedIds));
             window.location.href = '/checkout';
         }
         
