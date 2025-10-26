@@ -110,16 +110,16 @@
                                         <div class="flex items-center">
                                             <div class="h-10 w-10 flex-shrink-0">
                                                 <div class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white font-semibold">
-                                                    <span x-text="salary.user.firstname.charAt(0)"></span>
+                                                    <span x-text="salary.userName ? salary.userName.charAt(0) : 'U'"></span>
                                                 </div>
                                             </div>
                                             <div class="ml-4">
-                                                <div class="text-sm font-medium text-gray-900" x-text="salary.user.firstname + ' ' + salary.user.lastname"></div>
-                                                <div class="text-sm text-gray-500" x-text="salary.user.email"></div>
+                                                <div class="text-sm font-medium text-gray-900" x-text="salary.userName || 'Unknown'"></div>
+                                                <div class="text-sm text-gray-500" x-text="salary.userEmail || ''"></div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="salary.user.employeeCode"></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="salary.employeeCode || '-'"></td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="formatCurrency(salary.baseSalary)"></td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-600" x-text="salary.workingTime + 'h'"></td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600" x-text="formatCurrency(salary.totalSalary)"></td>
@@ -135,9 +135,15 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <button @click="markAsPaid(salary.id)" 
                                                 x-show="salary.status === 'PENDING'"
-                                                class="text-green-600 hover:text-green-900">
-                                            <i class="fas fa-check-circle"></i> Đã trả
+                                                class="inline-flex items-center px-3 py-1 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg transition-colors">
+                                            <i class="fas fa-check-circle mr-1"></i> Đánh dấu đã trả
                                         </button>
+                                        <span x-show="salary.status === 'PAID'" class="text-gray-500 text-sm">
+                                            <i class="fas fa-check-circle text-green-600 mr-1"></i> Đã thanh toán
+                                        </span>
+                                        <span x-show="salary.status === 'OVERDUE'" class="text-red-600 text-sm">
+                                            <i class="fas fa-exclamation-circle mr-1"></i> Quá hạn
+                                        </span>
                                     </td>
                                 </tr>
                             </template>

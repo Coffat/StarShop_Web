@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.TimeSheet;
 import com.example.demo.entity.User;
+import com.example.demo.entity.enums.UserRole;
 import com.example.demo.repository.TimeSheetRepository;
 import com.example.demo.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -36,6 +38,7 @@ public class AdminTimesheetController {
      */
     @Operation(summary = "Get timesheet summary", description = "Get aggregated timesheet data for all staff")
     @GetMapping("/summary")
+    @Transactional(readOnly = true)
     public ResponseEntity<Map<String, Object>> getTimesheetSummary(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month) {
@@ -51,17 +54,24 @@ public class AdminTimesheetController {
                 month = LocalDate.now().getMonthValue();
             }
             
+            log.info("Getting timesheet summary for month: {}/{}", month, year);
+            
             // Get all active staff
             List<User> staffList = userRepository.findAll().stream()
-                .filter(u -> "STAFF".equals(u.getRole()) && u.getIsActive())
+                .filter(u -> UserRole.STAFF.equals(u.getRole()) && Boolean.TRUE.equals(u.getIsActive()))
                 .toList();
+            
+            log.info("Found {} active staff members", staffList.size());
             
             List<Map<String, Object>> summary = new ArrayList<>();
             BigDecimal totalHoursAll = BigDecimal.ZERO;
             
+            final int finalYear = year;
+            final int finalMonth = month;
+            
             for (User staff : staffList) {
                 List<TimeSheet> timesheets = timeSheetRepository.findByStaffIdAndMonthAndYear(
-                    staff.getId(), month, year
+                    staff.getId(), finalMonth, finalYear
                 );
                 
                 if (!timesheets.isEmpty()) {
@@ -78,7 +88,7 @@ public class AdminTimesheetController {
                     
                     Map<String, Object> staffData = new HashMap<>();
                     staffData.put("staffId", staff.getId());
-                    staffData.put("staffName", staff.getFirstname() + " " + staff.getLastname());
+                    staffData.put("staffName", staff.getFullName());
                     staffData.put("employeeCode", staff.getEmployeeCode());
                     staffData.put("totalDays", timesheets.size());
                     staffData.put("totalHours", totalHours);

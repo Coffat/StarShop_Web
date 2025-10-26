@@ -126,6 +126,14 @@
                         Chấm công
                     </a>
                     
+                    <!-- Quản lý Đánh giá -->
+                    <a href="/staff/reviews" 
+                       th:classappend="${#strings.contains(currentPath, '/staff/reviews') ? 'bg-primary-50 text-primary-700' : 'text-gray-700 hover:bg-gray-50'}"
+                       class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200">
+                        <i class="fas fa-star mr-3 text-lg"></i>
+                        Quản lý Đánh giá
+                    </a>
+                    
                     <!-- Thông tin cá nhân -->
                     <a href="/staff/profile" 
                        th:classappend="${#strings.contains(currentPath, '/staff/profile') ? 'bg-primary-50 text-primary-700' : 'text-gray-700 hover:bg-gray-50'}"
@@ -181,6 +189,9 @@
                             </a>
                             <a href="/staff/timesheet" class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
                                 <i class="fas fa-clock mr-3"></i> Chấm công
+                            </a>
+                            <a href="/staff/reviews" class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
+                                <i class="fas fa-star mr-3"></i> Quản lý Đánh giá
                             </a>
                             <a href="/staff/profile" class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
                                 <i class="fas fa-user mr-3"></i> Thông tin cá nhân

@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.SalaryResponse;
 import com.example.demo.entity.Salary;
 import com.example.demo.entity.enums.SalaryStatus;
 import com.example.demo.repository.SalaryRepository;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -17,6 +19,7 @@ import java.time.YearMonth;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -98,6 +101,7 @@ public class AdminSalaryController {
      */
     @Operation(summary = "Get all salaries", description = "Get salary records for all employees for a specific month")
     @GetMapping("")
+    @Transactional(readOnly = true)
     public ResponseEntity<Map<String, Object>> getAllSalaries(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month) {
@@ -109,12 +113,17 @@ public class AdminSalaryController {
             final int finalYear = (year == null) ? LocalDate.now().getYear() : year;
             final int finalMonth = (month == null) ? LocalDate.now().getMonthValue() : month;
             
+            log.info("Getting salaries for month: {}/{}", finalMonth, finalYear);
+            
             // Get all salaries and filter by month/year
-            List<Salary> salaries = salaryRepository.findAll().stream()
+            List<SalaryResponse> salaries = salaryRepository.findAll().stream()
                 .filter(s -> s.getMonthYear() != null 
                     && s.getMonthYear().getYear() == finalYear 
                     && s.getMonthYear().getMonthValue() == finalMonth)
-                .toList();
+                .map(SalaryResponse::fromEntity)
+                .collect(Collectors.toList());
+            
+            log.info("Found {} salaries for month {}/{}", salaries.size(), finalMonth, finalYear);
             
             response.put("success", true);
             response.put("salaries", salaries);
@@ -124,9 +133,11 @@ public class AdminSalaryController {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            log.error("Error getting salaries", e);
+            log.error("Error getting salaries for month {}/{}", month, year, e);
             response.put("success", false);
             response.put("message", "Lỗi khi lấy dữ liệu lương: " + e.getMessage());
+            response.put("error", e.getClass().getSimpleName());
+            response.put("stackTrace", e.getStackTrace()[0].toString());
             return ResponseEntity.status(500).body(response);
         }
     }
