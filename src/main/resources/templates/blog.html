@@ -19,9 +19,9 @@
         <div class="container mx-auto px-4">
             <div class="text-center max-w-3xl mx-auto" data-aos="fade-up">
                 <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-                    Blog StarShop 🌸
+                    <span data-translate="blog-title">Blog StarShop</span> 🌸
                 </h1>
-                <p class="text-lg text-gray-600 mb-8">
+                <p class="text-lg text-gray-600 mb-8" data-translate="blog-subtitle">
                     Khám phá nghệ thuật cắm hoa, chăm sóc hoa tươi và xu hướng trang trí mới nhất
                 </p>
                 
@@ -30,13 +30,14 @@
                     <form action="/blog/search" method="GET" class="relative">
                         <input type="text" 
                                name="q" 
+                               data-translate-placeholder="search-articles"
                                placeholder="Tìm kiếm bài viết..." 
                                class="w-full px-6 py-4 pl-14 rounded-full border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none">
                         <svg class="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
                         </svg>
                         <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2 bg-primary text-white rounded-full hover:bg-primary-hover transition-colors">
-                            Tìm
+                            <span data-translate="search">Tìm</span>
                         </button>
                     </form>
                 </div>
@@ -49,22 +50,22 @@
         <div class="container mx-auto px-4">
             <div class="flex flex-wrap justify-center gap-3" data-aos="fade-up">
                 <a href="/blog?category=all" class="px-6 py-2 rounded-full bg-primary text-white hover:bg-primary-hover transition-all">
-                    Tất cả
+                    <span data-translate="all">Tất cả</span>
                 </a>
                 <a href="/blog?category=care" class="px-6 py-2 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">
-                    Chăm sóc hoa
+                    <span data-translate="flower-care">Chăm sóc hoa</span>
                 </a>
                 <a href="/blog?category=arrangement" class="px-6 py-2 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">
-                    Nghệ thuật cắm hoa
+                    <span data-translate="flower-arrangement">Nghệ thuật cắm hoa</span>
                 </a>
                 <a href="/blog?category=trends" class="px-6 py-2 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">
-                    Xu hướng
+                    <span data-translate="trends">Xu hướng</span>
                 </a>
                 <a href="/blog?category=occasions" class="px-6 py-2 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">
-                    Dịp đặc biệt
+                    <span data-translate="special-occasions">Dịp đặc biệt</span>
                 </a>
                 <a href="/blog?category=tips" class="px-6 py-2 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">
-                    Mẹo hay
+                    <span data-translate="tips">Mẹo hay</span>
                 </a>
             </div>
         </div>
@@ -83,7 +84,7 @@
                                  onerror="this.src='https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800'">
                             <div class="absolute top-4 left-4">
                                 <span class="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-full">
-                                    Nổi bật
+                                    <span data-translate="featured">Nổi bật</span>
                                 </span>
                             </div>
                         </div>
@@ -111,7 +112,7 @@
                             </p>
                             <a href="/blog/post/cham-soc-hoa-hong" 
                                class="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all">
-                                Đọc thêm
+                                <span data-translate="read-more">Đọc thêm</span>
                                 <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z" clip-rule="evenodd" />
                                 </svg>
@@ -138,7 +139,7 @@
                                  onerror="this.src='https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=600'">
                             <div class="absolute top-3 right-3">
                                 <span class="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
-                                    Nghệ thuật
+                                    <span data-translate="art">Nghệ thuật</span>
                                 </span>
                             </div>
                         </div>
@@ -151,7 +152,7 @@
                                     10 Tháng 12
                                 </span>
                                 <span>•</span>
-                                <span>5 phút đọc</span>
+                                <span>5 <span data-translate="min-read">phút đọc</span></span>
                             </div>
                             <h3 class="text-xl font-bold text-gray-800 mb-3 group-hover:text-primary transition-colors">
                                 7 cách cắm hoa tulip đẹp cho mùa xuân
@@ -179,7 +180,7 @@
                                  onerror="this.src='https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600'">
                             <div class="absolute top-3 right-3">
                                 <span class="px-3 py-1 bg-pink-500 text-white text-xs font-semibold rounded-full">
-                                    Dịp đặc biệt
+                                    <span data-translate="special-occasions">Dịp đặc biệt</span>
                                 </span>
                             </div>
                         </div>
@@ -192,7 +193,7 @@
                                     8 Tháng 12
                                 </span>
                                 <span>•</span>
-                                <span>7 phút đọc</span>
+                                <span>7 <span data-translate="min-read">phút đọc</span></span>
                             </div>
                             <h3 class="text-xl font-bold text-gray-800 mb-3 group-hover:text-primary transition-colors">
                                 Chọn hoa cưới hoàn hảo cho ngày trọng đại
@@ -220,7 +221,7 @@
                                  onerror="this.src='https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=600'">
                             <div class="absolute top-3 right-3">
                                 <span class="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-full">
-                                    Chăm sóc
+                                    <span data-translate="care">Chăm sóc</span>
                                 </span>
                             </div>
                         </div>
@@ -233,7 +234,7 @@
                                     5 Tháng 12
                                 </span>
                                 <span>•</span>
-                                <span>6 phút đọc</span>
+                                <span>6 <span data-translate="min-read">phút đọc</span></span>
                             </div>
                             <h3 class="text-xl font-bold text-gray-800 mb-3 group-hover:text-primary transition-colors">
                                 Hướng dẫn chăm sóc hoa lan tại nhà
@@ -261,7 +262,7 @@
                                  onerror="this.src='https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=600'">
                             <div class="absolute top-3 right-3">
                                 <span class="px-3 py-1 bg-purple-500 text-white text-xs font-semibold rounded-full">
-                                    Xu hướng
+                                    <span data-translate="trends">Xu hướng</span>
                                 </span>
                             </div>
                         </div>
@@ -274,7 +275,7 @@
                                     1 Tháng 12
                                 </span>
                                 <span>•</span>
-                                <span>4 phút đọc</span>
+                                <span>4 <span data-translate="min-read">phút đọc</span></span>
                             </div>
                             <h3 class="text-xl font-bold text-gray-800 mb-3 group-hover:text-primary transition-colors">
                                 Top 10 loài hoa đẹp nhất mùa đông
@@ -302,7 +303,7 @@
                                  onerror="this.src='https://images.unsplash.com/photo-1487070183336-b863922373d4?w=600'">
                             <div class="absolute top-3 right-3">
                                 <span class="px-3 py-1 bg-yellow-500 text-white text-xs font-semibold rounded-full">
-                                    Mẹo hay
+                                    <span data-translate="tips">Mẹo hay</span>
                                 </span>
                             </div>
                         </div>
@@ -315,7 +316,7 @@
                                     28 Tháng 11
                                 </span>
                                 <span>•</span>
-                                <span>8 phút đọc</span>
+                                <span>8 <span data-translate="min-read">phút đọc</span></span>
                             </div>
                             <h3 class="text-xl font-bold text-gray-800 mb-3 group-hover:text-primary transition-colors">
                                 DIY: Tự tay làm bó hoa tặng người thân
@@ -343,7 +344,7 @@
                                  onerror="this.src='https://images.unsplash.com/photo-1496062031456-07b8f162a322?w=600'">
                             <div class="absolute top-3 right-3">
                                 <span class="px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded-full">
-                                    Kiến thức
+                                    <span data-translate="knowledge">Kiến thức</span>
                                 </span>
                             </div>
                         </div>
@@ -356,7 +357,7 @@
                                     20 Tháng 11
                                 </span>
                                 <span>•</span>
-                                <span>10 phút đọc</span>
+                                <span>10 <span data-translate="min-read">phút đọc</span></span>
                             </div>
                             <h3 class="text-xl font-bold text-gray-800 mb-3 group-hover:text-primary transition-colors">
                                 Ý nghĩa của 20 loài hoa phổ biến nhất
@@ -411,10 +412,10 @@
                         <path d="m19 8.839-7.77 3.885a2.75 2.75 0 0 1-2.46 0L1 8.839V14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.839Z" />
                     </svg>
                 </div>
-                <h2 class="text-3xl font-bold text-gray-800 mb-4">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4" data-translate="newsletter-title">
                     Đăng ký nhận bản tin
                 </h2>
-                <p class="text-gray-600 mb-8">
+                <p class="text-gray-600 mb-8" data-translate="newsletter-desc">
                     Nhận những bài viết mới nhất, mẹo chăm sóc hoa và ưu đãi đặc biệt qua email
                 </p>
                 <form class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
@@ -424,7 +425,7 @@
                            class="flex-1 px-6 py-3 rounded-full border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none">
                     <button type="submit" 
                             class="px-8 py-3 bg-primary text-white font-semibold rounded-full hover:bg-primary-hover hover:shadow-lg transition-all">
-                        Đăng ký
+                        <span data-translate="subscribe">Đăng ký</span>
                     </button>
                 </form>
             </div>
