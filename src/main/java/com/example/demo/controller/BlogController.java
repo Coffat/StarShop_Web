@@ -29,6 +29,6 @@ public class BlogController {
     @GetMapping
     public String blog() {
         log.info("Blog page accessed");
-        return "blog";
+        return "customer/blog";
     }
 }

@@ -278,17 +278,43 @@ public class AdminEmployeeController {
     }
     
     /**
-     * Get employee's current month timesheets
+     * Get employee's timesheets for specified month/year
      */
-    @Operation(summary = "Get employee timesheets", description = "Get employee's timesheets for current month")
+    @Operation(summary = "Get employee timesheets", description = "Get employee's timesheets for specified month and year")
     @GetMapping("/{id}/timesheets")
-    public ResponseEntity<Map<String, Object>> getEmployeeTimesheets(@PathVariable Long id) {
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public ResponseEntity<Map<String, Object>> getEmployeeTimesheets(
+            @PathVariable Long id,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year) {
         try {
-            List<com.example.demo.entity.TimeSheet> timesheets = timeSheetRepository.findCurrentMonthTimeSheetsByStaffId(id);
+            // Use current month/year if not specified
+            if (month == null) {
+                month = java.time.LocalDate.now().getMonthValue();
+            }
+            if (year == null) {
+                year = java.time.LocalDate.now().getYear();
+            }
+            
+            List<com.example.demo.entity.TimeSheet> timesheets = timeSheetRepository.findByStaffIdAndMonthAndYear(id, month, year);
+            
+            // Convert to simple map to avoid lazy loading issues
+            List<Map<String, Object>> timesheetData = timesheets.stream()
+                .map(t -> {
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("id", t.getId());
+                    data.put("date", t.getDate());
+                    data.put("checkIn", t.getCheckIn());
+                    data.put("checkOut", t.getCheckOut());
+                    data.put("hoursWorked", t.getHoursWorked());
+                    data.put("notes", t.getNotes());
+                    return data;
+                })
+                .collect(java.util.stream.Collectors.toList());
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("timesheets", timesheets);
+            response.put("timesheets", timesheetData);
             response.put("totalHours", timesheets.stream()
                 .map(com.example.demo.entity.TimeSheet::getHoursWorked)
                 .filter(java.util.Objects::nonNull)
@@ -305,13 +331,24 @@ public class AdminEmployeeController {
     }
     
     /**
-     * Get employee's current month salary
+     * Get employee's salary for specified month/year
      */
-    @Operation(summary = "Get employee salary", description = "Get employee's salary for current month")
+    @Operation(summary = "Get employee salary", description = "Get employee's salary for specified month and year")
     @GetMapping("/{id}/salary")
-    public ResponseEntity<Map<String, Object>> getEmployeeSalary(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> getEmployeeSalary(
+            @PathVariable Long id,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year) {
         try {
-            java.util.Optional<com.example.demo.entity.Salary> salaryOpt = salaryRepository.findCurrentMonthSalaryByUserId(id);
+            // Use current month/year if not specified
+            if (month == null) {
+                month = java.time.LocalDate.now().getMonthValue();
+            }
+            if (year == null) {
+                year = java.time.LocalDate.now().getYear();
+            }
+            
+            java.util.Optional<com.example.demo.entity.Salary> salaryOpt = salaryRepository.findByUserIdAndMonthAndYear(id, month, year);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);

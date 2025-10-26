@@ -1,6 +1,7 @@
 package com.example.demo.entity;
 
 import com.example.demo.entity.enums.SalaryStatus;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -14,6 +15,7 @@ public class Salary extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "password", "timesheets", "salaries"})
     private User user;
 
     @Column(name = "base_salary", nullable = false, precision = 10, scale = 2)

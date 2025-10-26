@@ -38,7 +38,7 @@ public class WebController {
             model.addAttribute("success", success);
         }
         
-        return "forgot-password";
+        return "auth/forgot-password";
     }
 
     /**
@@ -67,6 +67,6 @@ public class WebController {
             model.addAttribute("error", error);
         }
         
-        return "reset-password";
+        return "auth/reset-password";
     }
 }
