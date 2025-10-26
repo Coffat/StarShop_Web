@@ -38,6 +38,13 @@ class LanguageSwitcher {
                 'occasions': 'Dịp đặc biệt',
                 'blog': 'Blog',
                 'contact': 'Liên hệ',
+                'nav-home': 'Trang chủ',
+                'nav-categories': 'Danh mục hoa',
+                'nav-products': 'Sản phẩm',
+                'nav-voucher': 'Voucher',
+                'nav-blog': 'Blog',
+                'no-categories': 'Không có danh mục nào',
+                'view-all-categories': 'Xem tất cả danh mục',
                 
                 // Categories
                 'birthday-flowers': 'Hoa sinh nhật',
@@ -372,6 +379,56 @@ class LanguageSwitcher {
                 'address-deleted-success': 'Xóa địa chỉ thành công!',
                 'cannot-delete-address': 'Không thể xóa địa chỉ',
                 'cannot-delete-address-retry': 'Không thể xóa địa chỉ. Vui lòng thử lại.',
+                
+                // Orders page
+                'my-orders-title': 'Đơn hàng của bạn',
+                'my-orders-desc': 'Theo dõi trạng thái giao hàng, xem lịch sử mua hàng và quản lý đơn hàng của bạn một cách dễ dàng.',
+                'all': 'Tất cả',
+                'pending': 'Chờ xử lý',
+                'processing': 'Đang xử lý',
+                'shipping': 'Đang giao',
+                'shipped': 'Đang giao',
+                'completed': 'Hoàn thành',
+                'cancelled': 'Đã hủy',
+                'loading-orders': 'Đang tải đơn hàng...',
+                'review-product': 'Đánh giá sản phẩm',
+                'review-after-purchase': 'Đánh giá sản phẩm sau khi mua hàng',
+                'your-rating': 'Đánh giá của bạn *',
+                'choose-rating': 'Chọn số sao để đánh giá',
+                'comment-optional': 'Nhận xét (tùy chọn)',
+                'share-your-experience': 'Chia sẻ trải nghiệm của bạn về sản phẩm này...',
+                'max-1000-chars': 'Tối đa 1000 ký tự',
+                'submit-review': 'Gửi đánh giá',
+                'cancel-order': 'Hủy đơn',
+                'details': 'Chi tiết',
+                'total-payment': 'Tổng thanh toán',
+                'quantity': 'Số lượng',
+                'review': 'Đánh giá',
+                'reorder': 'Mua lại',
+                'very-poor': 'Rất tệ',
+                'poor': 'Tệ',
+                'average': 'Bình thường',
+                'good': 'Tốt',
+                'excellent': 'Rất tốt',
+                
+                // Order detail page
+                'order-detail-badge': 'Chi tiết đơn hàng',
+                'order-title': 'Đơn hàng',
+                'order-placed-at': 'Đặt hàng lúc',
+                'back': 'Quay lại',
+                'payment-success': 'Thanh toán thành công!',
+                'transaction-id': 'Mã giao dịch',
+                'payment-failed': 'Thanh toán thất bại',
+                'order-status': 'Trạng thái đơn hàng',
+                'current-status': 'Trạng thái hiện tại',
+                'products-ordered': 'Sản phẩm đã đặt',
+                'subtotal': 'Tạm tính',
+                'shipping-fee': 'Phí vận chuyển',
+                'shipping-info': 'Thông tin giao hàng',
+                'recipient': 'Người nhận',
+                'delivery-address': 'Địa chỉ giao hàng',
+                'notes': 'Ghi chú',
+                'payment-method': 'Phương thức thanh toán',
                 
                 // Footer
                 'language': 'Ngôn ngữ',
@@ -747,6 +804,56 @@ class LanguageSwitcher {
                 'cannot-delete-address': 'Unable to delete address',
                 'cannot-delete-address-retry': 'Unable to delete address. Please try again.',
                 
+                // Orders page
+                'my-orders-title': 'Your Orders',
+                'my-orders-desc': 'Track delivery status, view purchase history and manage your orders easily.',
+                'all': 'All',
+                'pending': 'Pending',
+                'processing': 'Processing',
+                'shipping': 'Shipping',
+                'shipped': 'Shipping',
+                'completed': 'Completed',
+                'cancelled': 'Cancelled',
+                'loading-orders': 'Loading orders...',
+                'review-product': 'Review Product',
+                'review-after-purchase': 'Review product after purchase',
+                'your-rating': 'Your Rating *',
+                'choose-rating': 'Choose stars to rate',
+                'comment-optional': 'Comment (optional)',
+                'share-your-experience': 'Share your experience with this product...',
+                'max-1000-chars': 'Maximum 1000 characters',
+                'submit-review': 'Submit Review',
+                'cancel-order': 'Cancel Order',
+                'details': 'Details',
+                'total-payment': 'Total Payment',
+                'quantity': 'Quantity',
+                'review': 'Review',
+                'reorder': 'Reorder',
+                'very-poor': 'Very Poor',
+                'poor': 'Poor',
+                'average': 'Average',
+                'good': 'Good',
+                'excellent': 'Excellent',
+                
+                // Order detail page
+                'order-detail-badge': 'Order Detail',
+                'order-title': 'Order',
+                'order-placed-at': 'Placed at',
+                'back': 'Back',
+                'payment-success': 'Payment Successful!',
+                'transaction-id': 'Transaction ID',
+                'payment-failed': 'Payment Failed',
+                'order-status': 'Order Status',
+                'current-status': 'Current Status',
+                'products-ordered': 'Products Ordered',
+                'subtotal': 'Subtotal',
+                'shipping-fee': 'Shipping Fee',
+                'shipping-info': 'Shipping Information',
+                'recipient': 'Recipient',
+                'delivery-address': 'Delivery Address',
+                'notes': 'Notes',
+                'payment-method': 'Payment Method',
+                
                 // Footer
                 'language': 'Language',
                 'vietnamese': 'Vietnamese',
@@ -845,6 +952,13 @@ class LanguageSwitcher {
                 setTimeout(() => this.applyLanguage(), 200);
             }, 100);
         }
+        
+        // Re-render orders if on orders page
+        if (typeof window.loadOrders === 'function' && window.location.pathname === '/account/orders') {
+            setTimeout(() => {
+                window.loadOrders(window.currentStatus || 'all', window.currentPage || 0);
+            }, 100);
+        }
     }
 
     // Apply language to page elements
@@ -878,6 +992,21 @@ class LanguageSwitcher {
                 element.title = translations[key];
             }
         });
+
+        // Update order status badge on detail page
+        const orderStatusBadge = document.getElementById('orderStatusBadge');
+        if (orderStatusBadge) {
+            const status = orderStatusBadge.getAttribute('data-status');
+            if (status) {
+                const statusKey = status.toLowerCase();
+                if (translations[statusKey]) {
+                    const span = orderStatusBadge.querySelector('span');
+                    if (span) {
+                        span.textContent = translations[statusKey];
+                    }
+                }
+            }
+        }
 
         // Update specific elements by ID or class
         this.updateSpecificElements(translations);
