@@ -305,6 +305,74 @@ class LanguageSwitcher {
                 'empty-cart-desc': 'Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy khám phá các sản phẩm tuyệt vời của chúng tôi!',
                 'explore-products': 'Khám phá sản phẩm',
                 
+                // Wishlist page
+                'wishlist-title': 'Sản phẩm yêu thích',
+                'wishlist-empty-title': 'Danh sách yêu thích trống',
+                'wishlist-empty-desc': 'Khám phá bộ sưu tập hoa tươi đẹp và lưu lại những sản phẩm yêu thích của bạn',
+                'wishlist-count': 'sản phẩm đang được lưu',
+                'clear-all': 'Xóa tất cả',
+                'in-stock': 'Còn hàng',
+                'out-of-stock': 'Hết hàng',
+                'view-details': 'Xem chi tiết',
+                'remove-from-wishlist': 'Xóa khỏi yêu thích',
+                'saved': 'Đã lưu',
+                'contact-us': 'Liên hệ',
+                
+                // Profile page
+                'verified': 'Đã xác thực',
+                'customer': 'Khách hàng',
+                'edit': 'Chỉnh sửa',
+                'profile-details': 'Thông tin chi tiết',
+                'phone': 'Số điện thoại',
+                'join-date': 'Ngày tham gia',
+                'not-updated': 'Chưa cập nhật',
+                'unknown': 'Không rõ',
+                'overview': 'Tổng quan',
+                'orders': 'Đơn hàng',
+                'favorites': 'Yêu thích',
+                'shipping-address': 'Địa chỉ giao hàng',
+                'add-address': 'Thêm địa chỉ',
+                'loading-addresses': 'Đang tải địa chỉ...',
+                'edit-profile': 'Chỉnh sửa thông tin cá nhân',
+                'firstname': 'Họ',
+                'lastname': 'Tên',
+                'enter-firstname': 'Nhập họ của bạn',
+                'enter-lastname': 'Nhập tên của bạn',
+                'enter-phone': 'Nhập số điện thoại (10 chữ số)',
+                'phone-format': 'Định dạng: 10 chữ số (VD: 0912345678)',
+                'email-cannot-change': 'Email không thể thay đổi',
+                'cancel': 'Hủy',
+                'save-changes': 'Lưu thay đổi',
+                'add-address-title': 'Thêm địa chỉ giao hàng',
+                'choose-address-mode': 'Chọn cách nhập địa chỉ',
+                'address-3-level': '3 cấp (Tỉnh/Quận/Phường)',
+                'address-2-level': '2 cấp (Tỉnh/Phường)',
+                'province': 'Tỉnh/Thành phố',
+                'district': 'Quận/Huyện',
+                'ward': 'Phường/Xã',
+                'select-province': '-- Chọn Tỉnh/Thành phố --',
+                'select-district': '-- Chọn Quận/Huyện --',
+                'select-ward': '-- Chọn Phường/Xã --',
+                'address-detail': 'Địa chỉ chi tiết',
+                'enter-address-detail': 'Số nhà, tên đường...',
+                'set-as-default': 'Đặt làm địa chỉ mặc định',
+                'default-address': 'Mặc định',
+                'supports-fast-delivery': 'Hỗ trợ giao hàng nhanh',
+                'no-address': 'Chưa có địa chỉ giao hàng',
+                'add-first-address': 'Thêm địa chỉ đầu tiên',
+                'error-loading-addresses': 'Không thể tải danh sách địa chỉ',
+                'error-loading-provinces': 'Không thể tải danh sách tỉnh/thành phố',
+                'error-loading-districts': 'Không thể tải danh sách quận/huyện',
+                'error-loading-wards': 'Không thể tải danh sách phường/xã',
+                'processing': 'Đang xử lý...',
+                'address-added-success': 'Thêm địa chỉ thành công!',
+                'error-occurred': 'Có lỗi xảy ra',
+                'cannot-add-address': 'Không thể thêm địa chỉ. Vui lòng thử lại.',
+                'confirm-delete-address': 'Bạn có chắc chắn muốn xóa địa chỉ này?',
+                'address-deleted-success': 'Xóa địa chỉ thành công!',
+                'cannot-delete-address': 'Không thể xóa địa chỉ',
+                'cannot-delete-address-retry': 'Không thể xóa địa chỉ. Vui lòng thử lại.',
+                
                 // Footer
                 'language': 'Ngôn ngữ',
                 'vietnamese': 'Tiếng Việt',
@@ -613,6 +681,72 @@ class LanguageSwitcher {
                 'empty-cart-desc': 'You have no items in your cart. Explore our amazing products!',
                 'explore-products': 'Explore Products',
                 
+                // Wishlist page
+                'wishlist-title': 'Favorite Products',
+                'wishlist-empty-title': 'Wishlist is Empty',
+                'wishlist-empty-desc': 'Discover beautiful fresh flowers and save your favorite products',
+                'wishlist-count': 'saved products',
+                'clear-all': 'Clear All',
+                'in-stock': 'In Stock',
+                'out-of-stock': 'Out of Stock',
+                'view-details': 'View Details',
+                'remove-from-wishlist': 'Remove from Wishlist',
+                'saved': 'Saved',
+                'contact-us': 'Contact Us',
+                
+                // Profile page
+                'verified': 'Verified',
+                'customer': 'Customer',
+                'edit': 'Edit',
+                'profile-details': 'Profile Details',
+                'phone': 'Phone',
+                'join-date': 'Join Date',
+                'not-updated': 'Not Updated',
+                'unknown': 'Unknown',
+                'overview': 'Overview',
+                'shipping-address': 'Shipping Address',
+                'loading-addresses': 'Loading addresses...',
+                'edit-profile': 'Edit Personal Information',
+                'firstname': 'First Name',
+                'lastname': 'Last Name',
+                'enter-firstname': 'Enter your first name',
+                'enter-lastname': 'Enter your last name',
+                'enter-phone': 'Enter phone number (10 digits)',
+                'phone-format': 'Format: 10 digits (e.g: 0912345678)',
+                'email-cannot-change': 'Email cannot be changed',
+                'cancel': 'Cancel',
+                'save-changes': 'Save Changes',
+                'add-address-title': 'Add Shipping Address',
+                'choose-address-mode': 'Choose address input method',
+                'address-3-level': '3 levels (Province/District/Ward)',
+                'address-2-level': '2 levels (Province/Ward)',
+                'province': 'Province/City',
+                'district': 'District',
+                'ward': 'Ward',
+                'select-province': '-- Select Province/City --',
+                'select-district': '-- Select District --',
+                'select-ward': '-- Select Ward --',
+                'address-detail': 'Detail Address',
+                'enter-address-detail': 'House number, street name...',
+                'set-as-default': 'Set as default address',
+                'default-address': 'Default',
+                'supports-fast-delivery': 'Supports fast delivery',
+                'no-address': 'No shipping address',
+                'add-first-address': 'Add first address',
+                'add-address': 'Add Address',
+                'error-loading-addresses': 'Unable to load address list',
+                'error-loading-provinces': 'Unable to load provinces list',
+                'error-loading-districts': 'Unable to load districts list',
+                'error-loading-wards': 'Unable to load wards list',
+                'processing': 'Processing...',
+                'address-added-success': 'Address added successfully!',
+                'error-occurred': 'An error occurred',
+                'cannot-add-address': 'Unable to add address. Please try again.',
+                'confirm-delete-address': 'Are you sure you want to delete this address?',
+                'address-deleted-success': 'Address deleted successfully!',
+                'cannot-delete-address': 'Unable to delete address',
+                'cannot-delete-address-retry': 'Unable to delete address. Please try again.',
+                
                 // Footer
                 'language': 'Language',
                 'vietnamese': 'Vietnamese',
@@ -696,6 +830,20 @@ class LanguageSwitcher {
         // Re-render cart items if on checkout page
         if (typeof window.displayCartItems === 'function' && window.cartData) {
             setTimeout(() => window.displayCartItems(window.cartData), 100);
+        }
+        
+        // Re-render wishlist items if on wishlist page
+        if (typeof loadWishlist === 'function' && window.location.pathname === '/wishlist') {
+            setTimeout(() => loadWishlist(), 100);
+        }
+        
+        // Re-render addresses if on profile page
+        if (typeof window.loadAddresses === 'function' && window.location.pathname === '/account/profile') {
+            setTimeout(() => {
+                window.loadAddresses();
+                // Apply language again after dynamic content is loaded
+                setTimeout(() => this.applyLanguage(), 200);
+            }, 100);
         }
     }
 

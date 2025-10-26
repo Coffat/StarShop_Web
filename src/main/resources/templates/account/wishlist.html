@@ -33,15 +33,15 @@
                                         </svg>
                                     </div>
                                 </div>
-                                <h3 class="text-3xl font-bold text-gray-900 mb-4">Danh sách yêu thích trống</h3>
-                                <p class="text-gray-600 text-lg mb-10 max-w-md mx-auto leading-relaxed">
+                                <h3 class="text-3xl font-bold text-gray-900 mb-4" data-translate="wishlist-empty-title">Danh sách yêu thích trống</h3>
+                                <p class="text-gray-600 text-lg mb-10 max-w-md mx-auto leading-relaxed" data-translate="wishlist-empty-desc">
                                     Khám phá bộ sưu tập hoa tươi đẹp và lưu lại những sản phẩm yêu thích của bạn
                                 </p>
                                 <a href="/products" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-pink-600 to-rose-600 text-white font-semibold rounded-xl hover:from-pink-700 hover:to-rose-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
                                     <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
                                     </svg>
-                                    Khám phá ngay
+                                    <span data-translate="explore-now">Khám phá ngay</span>
                                 </a>
                             </div>
                         </div>
@@ -52,8 +52,8 @@
                             <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
                                 <div class="flex items-center justify-between flex-wrap gap-4">
                                     <div>
-                                        <h2 class="text-2xl font-bold text-gray-900 mb-1">Sản phẩm yêu thích</h2>
-                                        <p class="text-gray-600">
+                                        <h2 class="text-2xl font-bold text-gray-900 mb-1" data-translate="wishlist-title">Sản phẩm yêu thích</h2>
+                                        <p class="text-gray-600" data-translate="wishlist-count">
                                             <span class="font-semibold text-pink-600" th:text="${wishlistCount}">0</span> sản phẩm đang được lưu
                                         </p>
                                     </div>
@@ -61,7 +61,7 @@
                                         <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
                                         </svg>
-                                        Xóa tất cả
+                                        <span data-translate="clear-all">Xóa tất cả</span>
                                     </button>
                                 </div>
                             </div>
@@ -101,10 +101,26 @@
             const container = document.getElementById('wishlistItems');
             let html = '';
             
+            // Get translations
+            const currentLang = typeof window.languageSwitcher !== 'undefined' && window.languageSwitcher ? 
+                window.languageSwitcher.currentLanguage : 'vi';
+            const translations = typeof window.languageSwitcher !== 'undefined' && window.languageSwitcher ? 
+                window.languageSwitcher.translations[currentLang] : {};
+            
+            const inStock = translations['in-stock'] || 'Còn hàng';
+            const outOfStock = translations['out-of-stock'] || 'Hết hàng';
+            const viewDetails = translations['view-details'] || 'Xem chi tiết';
+            const removeFromWishlistTitle = translations['remove-from-wishlist'] || 'Xóa khỏi yêu thích';
+            const saved = translations['saved'] || 'Đã lưu';
+            const contactUs = translations['contact-us'] || 'Liên hệ';
+            
             wishlist.forEach(item => {
                 const statusBadge = item.productStatus === 'ACTIVE' 
-                    ? '<span class="absolute top-4 left-4 inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-green-500 text-white shadow-lg"><span class="w-1.5 h-1.5 bg-white rounded-full mr-1.5 animate-pulse"></span>Còn hàng</span>'
-                    : '<span class="absolute top-4 left-4 inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-500 text-white shadow-lg">Hết hàng</span>';
+                    ? '<span class="absolute top-4 left-4 inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-green-500 text-white shadow-lg"><span class="w-1.5 h-1.5 bg-white rounded-full mr-1.5 animate-pulse"></span>' + inStock + '</span>'
+                    : '<span class="absolute top-4 left-4 inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-500 text-white shadow-lg">' + outOfStock + '</span>';
+                
+                // Format date based on current language
+                const savedDate = new Date(item.followedAt).toLocaleDateString(currentLang === 'vi' ? 'vi-VN' : 'en-US');
                 
                 html += `
                     <div class="group relative bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-2xl hover:border-pink-200 transition-all duration-300 transform hover:-translate-y-1" data-product-id="${item.productId}">
@@ -120,11 +136,11 @@
                                 <div class="absolute bottom-4 left-4 right-4 flex gap-2">
                                     <a href="/products/${item.productId}" 
                                        class="flex-1 text-center px-4 py-2.5 bg-white text-gray-900 font-semibold rounded-xl hover:bg-gray-100 transition-colors duration-200 shadow-lg">
-                                        Xem chi tiết
+                                        ${viewDetails}
                                     </a>
                                     <button onclick="removeFromWishlist(${item.productId})" 
                                             class="p-2.5 bg-white text-red-600 rounded-xl hover:bg-red-50 transition-colors duration-200 shadow-lg"
-                                            title="Xóa khỏi yêu thích">
+                                            title="${removeFromWishlistTitle}">
                                         <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
                                         </svg>
@@ -139,7 +155,7 @@
                             
                             <div class="flex items-baseline gap-2 mb-4">
                                 <span class="text-2xl font-bold bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">
-                                    ${item.productPrice ? item.productPrice.toLocaleString('vi-VN') + '₫' : 'Liên hệ'}
+                                    ${item.productPrice ? item.productPrice.toLocaleString(currentLang === 'vi' ? 'vi-VN' : 'en-US') + '₫' : contactUs}
                                 </span>
                             </div>
                             
@@ -147,7 +163,7 @@
                                 <svg class="w-4 h-4 mr-1.5 text-pink-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path d="m9.653 16.915-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001Z" />
                                 </svg>
-                                <span class="text-xs">Đã lưu ${new Date(item.followedAt).toLocaleDateString('vi-VN')}</span>
+                                <span class="text-xs">${saved} ${savedDate}</span>
                             </div>
                         </div>
                     </div>
