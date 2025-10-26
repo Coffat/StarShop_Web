@@ -105,6 +105,24 @@ class LanguageSwitcher {
                 'support-247': 'Hỗ trợ 24/7',
                 'support-desc': 'Tư vấn và hỗ trợ mọi lúc',
                 
+                // Footer
+                'footer-description': 'Nơi tình yêu nở hoa - Chúng tôi mang đến những bó hoa tươi tuyệt đẹp cho mọi dịp đặc biệt trong cuộc sống của bạn. Chất lượng cao, giao hàng nhanh chóng.',
+                'follow-us': 'Theo dõi chúng tôi:',
+                'footer-products': 'Sản phẩm',
+                'useful-links': 'Liên kết hữu ích',
+                'your-account': 'Tài khoản của bạn',
+                'shipping-policy': 'Chính sách giao hàng',
+                'returns-refunds': 'Đổi trả & hoàn tiền',
+                'flower-care': 'Hướng dẫn chăm sóc hoa',
+                'faq': 'Câu hỏi thường gặp',
+                'contact-connect': 'Liên hệ & Kết nối',
+                'business-hours': 'Giờ làm việc:',
+                'weekdays': 'Thứ 2 - Thứ 6',
+                'weekend': 'Thứ 7 - Chủ nhật',
+                'copyright': 'Bản quyền thuộc về',
+                'privacy-policy': 'Chính sách bảo mật',
+                'terms-of-use': 'Điều khoản sử dụng',
+                
                 // Products
                 'featured-products': 'Sản phẩm nổi bật',
                 'quick-add': 'Thêm nhanh',
@@ -112,6 +130,11 @@ class LanguageSwitcher {
                 'added': 'Đã thêm',
                 'add-to-cart': 'Thêm',
                 'add-to-cart-success': 'Đã thêm sản phẩm vào giỏ hàng!',
+                
+                // Categories page
+                'categories-title': 'Khám Phá Thế Giới Hoa',
+                'categories-description': 'Từ những đóa hồng lãng mạn đến cúc họa mi tinh khôi, hãy tìm nguồn cảm hứng cho mọi khoảnh khắc đặc biệt.',
+                'no-categories-found': 'Hiện tại chưa có danh mục sản phẩm nào được tìm thấy.',
                 
                 // Cart page
                 'cart-title': 'Giỏ hàng của bạn',
@@ -158,6 +181,22 @@ class LanguageSwitcher {
                 'occasions': 'Occasions',
                 'blog': 'Blog',
                 'contact': 'Contact',
+                'nav-home': 'Home',
+                'nav-categories': 'Flower Categories',
+                'nav-products': 'Products',
+                'nav-voucher': 'Voucher',
+                'nav-blog': 'Blog',
+                'no-categories': 'No categories available',
+                'search': 'Search',
+                'search-placeholder': 'Enter flower name, occasion, or keyword...',
+                'search-flowers': 'Search flowers...',
+                'close-search': 'Close search',
+                'login': 'Login',
+                'register': 'Register',
+                'profile': 'Profile',
+                'orders': 'My Orders',
+                'logout': 'Logout',
+                'cart': 'Cart',
                 
                 // Categories
                 'birthday-flowers': 'Birthday Flowers',
@@ -225,6 +264,24 @@ class LanguageSwitcher {
                 'support-247': '24/7 Support',
                 'support-desc': 'Consultation and support anytime',
                 
+                // Footer
+                'footer-description': 'Where love blooms - We bring you beautiful fresh flowers for every special occasion in your life. High quality, fast delivery.',
+                'follow-us': 'Follow us:',
+                'footer-products': 'Products',
+                'useful-links': 'Useful Links',
+                'your-account': 'Your Account',
+                'shipping-policy': 'Shipping Policy',
+                'returns-refunds': 'Returns & Refunds',
+                'flower-care': 'Flower Care Guide',
+                'faq': 'FAQ',
+                'contact-connect': 'Contact & Connect',
+                'business-hours': 'Business Hours:',
+                'weekdays': 'Mon - Fri',
+                'weekend': 'Sat - Sun',
+                'copyright': 'Copyright belongs to',
+                'privacy-policy': 'Privacy Policy',
+                'terms-of-use': 'Terms of Use',
+                
                 // Products
                 'featured-products': 'Featured Products',
                 'quick-add': 'Quick Add',
@@ -232,6 +289,11 @@ class LanguageSwitcher {
                 'added': 'Added',
                 'add-to-cart': 'Add',
                 'add-to-cart-success': 'Product added to cart!',
+                
+                // Categories page
+                'categories-title': 'Discover the World of Flowers',
+                'categories-description': 'From romantic roses to delicate daisies, find inspiration for every special moment.',
+                'no-categories-found': 'No product categories found at the moment.',
                 
                 // Cart page
                 'cart-title': 'Your Cart',
@@ -263,21 +325,13 @@ class LanguageSwitcher {
 
     // Update language display in switcher
     updateLanguageDisplay() {
-        const languageTexts = document.querySelectorAll('.language-text');
-        const languageButtons = document.querySelectorAll('button span.text-sm.font-medium.text-gray-700');
-        
-        // Update button text (VI/EN)
-        languageButtons.forEach(button => {
-            if (button.textContent === 'VI' || button.textContent === 'EN') {
-                button.textContent = this.currentLanguage.toUpperCase();
-            }
-        });
-        
-        languageTexts.forEach(text => {
-            text.textContent = this.currentLanguage.toUpperCase();
+        // Update language display button (VI/EN)
+        const languageDisplays = document.querySelectorAll('.language-display');
+        languageDisplays.forEach(display => {
+            display.textContent = this.currentLanguage.toUpperCase();
         });
 
-        // Update active state
+        // Update active state in dropdown
         document.querySelectorAll('.language-option').forEach(option => {
             option.classList.remove('active');
             if (option.dataset.lang === this.currentLanguage) {
@@ -339,6 +393,22 @@ class LanguageSwitcher {
                 } else {
                     element.textContent = translations[key];
                 }
+            }
+        });
+
+        // Update elements with data-translate-placeholder attribute
+        document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
+            const key = element.dataset.translatePlaceholder;
+            if (translations[key]) {
+                element.placeholder = translations[key];
+            }
+        });
+
+        // Update elements with data-translate-title attribute
+        document.querySelectorAll('[data-translate-title]').forEach(element => {
+            const key = element.dataset.translateTitle;
+            if (translations[key]) {
+                element.title = translations[key];
             }
         });
 
