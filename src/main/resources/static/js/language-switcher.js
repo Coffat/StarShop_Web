@@ -237,6 +237,54 @@ class LanguageSwitcher {
                 'newsletter-desc': 'Nhận những bài viết mới nhất, mẹo chăm sóc hoa và ưu đãi đặc biệt qua email',
                 'subscribe': 'Đăng ký',
                 
+                // Checkout page
+                'checkout-title': 'Thanh toán',
+                'checkout-subtitle': 'Hoàn tất đơn hàng của bạn',
+                'profile-update-required': 'Cần cập nhật thông tin tài khoản',
+                'update-info': 'Cập nhật thông tin',
+                'manage-addresses': 'Quản lý địa chỉ',
+                'order-payment-info': 'Thông tin đơn và thanh toán',
+                'check-cart-payment': 'Kiểm tra giỏ hàng và chọn phương thức thanh toán phù hợp.',
+                'cart': 'Giỏ hàng',
+                'shipping-address': 'Địa chỉ giao hàng',
+                'select-shipping-address': 'Chọn địa chỉ giao hàng',
+                'payment-method': 'Phương thức thanh toán',
+                'shipping-fee': 'Phí vận chuyển',
+                'calculating-fee': 'Đang tính phí...',
+                'please-select-address': 'Vui lòng chọn địa chỉ giao hàng',
+                'order-notes': 'Ghi chú đơn hàng',
+                'order-notes-placeholder': 'Ghi chú thêm cho đơn hàng (không bắt buộc)...',
+                'order-notes-example': 'Ví dụ: thời gian nhận hàng mong muốn, lưu ý cho nhân viên giao hàng...',
+                'voucher-code': 'Mã giảm giá',
+                'enter-code': 'NHẬP MÃ',
+                'apply': 'Áp dụng',
+                'place-order': 'Đặt hàng',
+                'security-notice': 'Thông tin của bạn được bảo mật và mã hóa',
+                'please-update-profile': 'Vui lòng cập nhật thông tin tài khoản',
+                'complete-profile-before-order': 'Bạn cần hoàn thiện thông tin cá nhân trước khi có thể đặt hàng.',
+                'calculating-shipping-fee': 'Đang tính phí vận chuyển...',
+                'fast-shipping-ghn': 'Giao hàng nhanh (GHN)',
+                'free': 'Miễn phí',
+                'cannot-calculate-ghn-fee': 'Không thể tính phí GHN',
+                'cannot-calculate-shipping-fee': 'Không thể tính phí vận chuyển',
+                'error-loading-payment-methods': 'Có lỗi xảy ra khi tải phương thức thanh toán',
+                'cart-empty': 'Giỏ hàng trống',
+                'no-products-in-cart': 'Không có sản phẩm nào trong giỏ hàng',
+                'error-loading-cart': 'Có lỗi khi tải giỏ hàng',
+                'error-loading-order-summary': 'Có lỗi khi tải tóm tắt đơn hàng',
+                'order-summary': 'Tóm tắt đơn hàng',
+                'discount': 'Giảm giá',
+                'total': 'Tổng cộng',
+                
+                // Payment methods
+                'payment-method-cod': 'Thanh toán khi nhận hàng',
+                'payment-method-momo': 'Ví điện tử MoMo',
+                'payment-method-bank': 'Chuyển khoản ngân hàng',
+                'payment-method-card': 'Thẻ tín dụng',
+                'status-available': 'Sẵn sàng',
+                'status-not-supported': 'Chưa hỗ trợ',
+                'status-unknown': 'Không xác định',
+                
                 // Cart page
                 'cart-title': 'Giỏ hàng của bạn',
                 'cart-subtitle': 'sản phẩm trong giỏ hàng',
@@ -497,6 +545,54 @@ class LanguageSwitcher {
                 'newsletter-desc': 'Get the latest articles, flower care tips and special offers via email',
                 'subscribe': 'Subscribe',
                 
+                // Checkout page
+                'checkout-title': 'Checkout',
+                'checkout-subtitle': 'Complete your order',
+                'profile-update-required': 'Profile Update Required',
+                'update-info': 'Update Information',
+                'manage-addresses': 'Manage Addresses',
+                'order-payment-info': 'Order & Payment Information',
+                'check-cart-payment': 'Review your cart and select a suitable payment method.',
+                'cart': 'Cart',
+                'shipping-address': 'Shipping Address',
+                'select-shipping-address': 'Select shipping address',
+                'payment-method': 'Payment Method',
+                'shipping-fee': 'Shipping Fee',
+                'calculating-fee': 'Calculating fee...',
+                'please-select-address': 'Please select a shipping address',
+                'order-notes': 'Order Notes',
+                'order-notes-placeholder': 'Additional notes for your order (optional)...',
+                'order-notes-example': 'E.g.: preferred delivery time, notes for delivery staff...',
+                'voucher-code': 'Voucher Code',
+                'enter-code': 'ENTER CODE',
+                'apply': 'Apply',
+                'place-order': 'Place Order',
+                'security-notice': 'Your information is secure and encrypted',
+                'please-update-profile': 'Please update your account information',
+                'complete-profile-before-order': 'You need to complete your personal information before placing an order.',
+                'calculating-shipping-fee': 'Calculating shipping fee...',
+                'fast-shipping-ghn': 'Fast Shipping (GHN)',
+                'free': 'Free',
+                'cannot-calculate-ghn-fee': 'Cannot calculate GHN fee',
+                'cannot-calculate-shipping-fee': 'Cannot calculate shipping fee',
+                'error-loading-payment-methods': 'Error loading payment methods',
+                'cart-empty': 'Cart is empty',
+                'no-products-in-cart': 'No products in cart',
+                'error-loading-cart': 'Error loading cart',
+                'error-loading-order-summary': 'Error loading order summary',
+                'order-summary': 'Order Summary',
+                'discount': 'Discount',
+                'total': 'Total',
+                
+                // Payment methods
+                'payment-method-cod': 'Cash on Delivery',
+                'payment-method-momo': 'MoMo Wallet',
+                'payment-method-bank': 'Bank Transfer',
+                'payment-method-card': 'Credit Card',
+                'status-available': 'Available',
+                'status-not-supported': 'Not Supported',
+                'status-unknown': 'Unknown',
+                
                 // Cart page
                 'cart-title': 'Your Cart',
                 'cart-subtitle': 'items in cart',
@@ -578,8 +674,29 @@ class LanguageSwitcher {
         this.updateLanguageDisplay();
         this.applyLanguage();
         
+        // Re-render dynamic content if pages exist
+        this.reRenderDynamicContent();
+        
         // Show notification
         this.showLanguageChangeNotification();
+    }
+    
+    // Re-render dynamic content that was loaded via AJAX
+    reRenderDynamicContent() {
+        // Re-render payment methods if on checkout page
+        if (typeof window.loadPaymentMethods === 'function') {
+            setTimeout(() => window.loadPaymentMethods(), 100);
+        }
+        
+        // Re-render order summary if on checkout page
+        if (typeof window.displayOrderSummary === 'function' && window.cartData) {
+            setTimeout(() => window.displayOrderSummary(window.cartData), 100);
+        }
+        
+        // Re-render cart items if on checkout page
+        if (typeof window.displayCartItems === 'function' && window.cartData) {
+            setTimeout(() => window.displayCartItems(window.cartData), 100);
+        }
     }
 
     // Apply language to page elements
