@@ -209,7 +209,19 @@
 	function displayCartItems(cart) {
 		let html = '';
 		if (cart.items && cart.items.length > 0) {
-			cart.items.forEach(function(item) {
+			// Filter items based on selected product IDs from session storage
+			const selectedCartItems = sessionStorage.getItem('selectedCartItems');
+			const selectedProductIds = selectedCartItems ? JSON.parse(selectedCartItems) : null;
+			
+			let itemsToDisplay = cart.items;
+			if (selectedProductIds && selectedProductIds.length > 0) {
+				itemsToDisplay = cart.items.filter(function(item) {
+					const productId = item.productId || (item.product && item.product.id);
+					return selectedProductIds.includes(productId);
+				});
+			}
+			
+			itemsToDisplay.forEach(function(item) {
 				const imageUrl = (item.productImageUrl || item.imageUrl || (item.product && (item.product.imageUrl || item.product.thumbnail)) || item.productImage || '/images/products/default.jpg');
 				const name = (item.productName || (item.product && item.product.name) || item.name || '');
 				const unitPrice = getFirstNumber(
@@ -249,13 +261,25 @@
 	function displayOrderSummary(cart) {
 		let html = '';
 		if (cart.items && cart.items.length > 0) {
+			// Filter items based on selected product IDs
+			const selectedCartItems = sessionStorage.getItem('selectedCartItems');
+			const selectedProductIds = selectedCartItems ? JSON.parse(selectedCartItems) : null;
+			
+			let itemsToCalculate = cart.items;
+			if (selectedProductIds && selectedProductIds.length > 0) {
+				itemsToCalculate = cart.items.filter(function(item) {
+					const productId = item.productId || (item.product && item.product.id);
+					return selectedProductIds.includes(productId);
+				});
+			}
+			
 			let subtotal = getFirstNumber(
 				cart.totalAmount,
 				cart.totalPrice,
 				cart.subtotal,
 				(function sumItems() {
 					try {
-						return (cart.items || []).reduce(function(acc, it){
+						return (itemsToCalculate || []).reduce(function(acc, it){
 							const unitPrice = getFirstNumber(it.unitPrice, it.price, it.productPrice, it.salePrice, it.finalPrice, it?.product?.price, it?.product?.salePrice);
 							const quantity = getFirstNumber(it.quantity, it.qty, it.count, 1);
 							const lineTotal = getFirstNumber(it.totalPrice, it.lineTotal, it.amount, it.totalAmount, unitPrice * quantity);
@@ -407,12 +431,18 @@
 		const btn = document.getElementById('place-order-btn');
 		btn.disabled = true;
 		btn.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>Đang xử lý...';
+
+		// Get selected product IDs from session storage (set by cart page)
+		const selectedCartItems = sessionStorage.getItem('selectedCartItems');
+		const selectedProductIds = selectedCartItems ? JSON.parse(selectedCartItems) : null;
+		
 		const data = {
 			orderRequest: {
 				addressId: parseInt(addressSelect.value),
 				notes: document.getElementById('orderNotes').value.trim(),
 				paymentMethod: selectedPaymentMethod,
-				serviceTypeId: 2 // GHN default service type
+				serviceTypeId: 2, // GHN default service type
+				selectedProductIds: selectedProductIds // Add selected product IDs
 			},
 			paymentMethod: selectedPaymentMethod
 		};
@@ -438,9 +468,11 @@
 					if (typeof showToast === 'function') {
 						showToast('🎉 Đơn hàng đã được tạo thành công!', 'success');
 					}
-					// Update cart count to 0 since cart is cleared after order
-					if (typeof updateCartCount === 'function') {
-						updateCartCount(0);
+					// Clear session storage after successful order
+					sessionStorage.removeItem('selectedCartItems');
+					// Reload cart count (ordered items removed from cart)
+					if (typeof loadCartCount === 'function') {
+						loadCartCount();
 					}
                     window.location.href = '/account/orders';
 					return;

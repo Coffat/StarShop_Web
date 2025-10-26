@@ -97,6 +97,47 @@
     box-shadow: none;
 }
 
+/* Custom Checkbox Styles - Force Round Shape */
+input[type="checkbox"] {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    border-radius: 50% !important;
+    border: 2px solid #d1d5db !important;
+    width: 20px !important;
+    height: 20px !important;
+    background-color: white !important;
+    cursor: pointer !important;
+    position: relative !important;
+    transition: all 0.2s ease !important;
+}
+
+input[type="checkbox"]:checked {
+    background-color: #ec4899 !important;
+    border-color: #ec4899 !important;
+}
+
+input[type="checkbox"]:checked::after {
+    content: '✓' !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    color: white !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+}
+
+input[type="checkbox"]:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.2) !important;
+}
+
+/* Override Tailwind rounded-full for checkboxes */
+input[type="checkbox"].rounded-full {
+    border-radius: 50% !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 640px) {
     .line-clamp-2 {
