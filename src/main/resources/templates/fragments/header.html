@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" 
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security" 
       lang="vi">
@@ -25,14 +25,14 @@
                 <a href="/home" th:classappend="${currentPath != null and (currentPath == '/home' or currentPath == '/') ? 'text-primary border-b-2 border-primary' : 'text-gray-700 hover:text-primary'}" 
                     class="flex items-center gap-2 pb-1 font-medium text-sm transition-colors duration-200">
                     <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z" clip-rule="evenodd" /></svg>
-                    <span>Trang chủ</span>
+                    <span data-translate="nav-home">Trang chủ</span>
                 </a>
                 
                 <div x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false" class="relative">
                     <a href="/categories" class="flex items-center gap-2 pb-1 font-medium text-sm text-gray-700 hover:text-primary transition-colors duration-200"
                         th:classappend="${currentPath != null and #strings.startsWith(currentPath, '/categories') ? 'text-primary border-b-2 border-primary' : 'text-gray-700 hover:text-primary'}">
                         <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" /></svg>
-                        <span>Danh mục hoa</span>
+                        <span data-translate="nav-categories">Danh mục hoa</span>
                         <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" /></svg>
                     </a>
                     <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
@@ -45,14 +45,14 @@
                             </a>
                         </div>
                         <div th:if="${headerCatalogs == null or headerCatalogs.isEmpty()}" class="px-4 py-2 text-sm text-gray-500 italic">
-                            Không có danh mục nào
+                            <span data-translate="no-categories">Không có danh mục nào</span>
                         </div>
                         <div class="border-t border-gray-100 mt-2 pt-2">
                             <a href="/categories" class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-primary hover:bg-primary-light/20 transition-colors">
                                 <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
                                 </svg>
-                                Xem tất cả danh mục
+                                <span data-translate="view-all-categories">Xem tất cả danh mục</span>
                             </a>
                         </div>
                     </div>
@@ -60,24 +60,24 @@
                 
                 <a href="/products" th:classappend="${currentPath != null and #strings.startsWith(currentPath, '/products') ? 'text-primary border-b-2 border-primary' : 'text-gray-700 hover:text-primary'}" 
                     class="flex items-center gap-2 pb-1 font-medium text-sm transition-colors duration-200">
-                    <span class="text-lg">🌺</span><span>Sản phẩm</span>
+                    <span class="text-lg">🌺</span><span data-translate="nav-products">Sản phẩm</span>
                 </a>
                 
                 <a href="/vouchers" th:classappend="${currentPath != null and #strings.startsWith(currentPath, '/vouchers') ? 'text-primary border-b-2 border-primary' : 'text-gray-700 hover:text-primary'}" 
                     class="flex items-center gap-2 pb-1 font-medium text-sm transition-colors duration-200">
-                    <span class="text-lg">🎫</span><span>Voucher</span>
+                    <span class="text-lg">🎫</span><span data-translate="nav-voucher">Voucher</span>
                 </a>
                 
                 <a href="/blog" th:classappend="${currentPath != null and #strings.startsWith(currentPath, '/blog') ? 'text-primary border-b-2 border-primary' : 'text-gray-700 hover:text-primary'}" 
                     class="flex items-center gap-2 pb-1 font-medium text-sm transition-colors duration-200">
-                    <span class="text-lg">📝</span><span>Blog</span>
+                    <span class="text-lg">📝</span><span data-translate="nav-blog">Blog</span>
                 </a>
             </nav>
 
             <div class="flex items-center gap-3">
                 
                 <button @click.prevent="isSearchOpen = true" x-show="!isSearchOpen" 
-                        class="hidden lg:block p-2 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors duration-200" title="Tìm kiếm">
+                        class="hidden lg:block p-2 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors duration-200" data-translate-title="search" title="Tìm kiếm">
                     <svg class="w-5 h-5 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
                     </svg>
@@ -88,20 +88,22 @@
                             type="button"
                             class="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200">
                         <svg class="w-4 h-4 text-gray-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0ZM8.798 7.45c.512-.67 1.135-.95 1.702-.95s1.19.28 1.702.95a.75.75 0 0 0 1.192-.596C12.968 5.84 11.769 5.25 10.5 5.25s-2.468.59-2.894 1.604a.75.75 0 0 0 1.192.596ZM8.5 10a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm6.5 1.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm-7.893 2.93a7.5 7.5 0 0 0 6.786 0 .75.75 0 1 0-.786-1.272 6 6 0 0 1-5.214 0 .75.75 0 0 0-.786 1.271Z" clip-rule="evenodd" /></svg>
-                        <span class="text-sm font-medium text-gray-700">VI</span>
+                        <span class="language-display text-sm font-medium text-gray-700">VI</span>
                     </button>
                     <div x-show="langOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
-                        <a href="#" data-lang="vi" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-primary-light/20 transition-colors">
-                            <img src="https://flagcdn.com/w20/vn.png" alt="Tiếng Việt" class="w-5 h-auto rounded">Tiếng Việt
+                        <a href="#" data-lang="vi" class="language-option flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-primary-light/20 transition-colors">
+                            <img src="https://flagcdn.com/w20/vn.png" alt="Tiếng Việt" class="w-5 h-auto rounded">
+                            <span>Tiếng Việt</span>
                         </a>
-                        <a href="#" data-lang="en" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-primary-light/20 transition-colors">
-                            <img src="https://flagcdn.com/w20/us.png" alt="English" class="w-5 h-auto rounded">English
+                        <a href="#" data-lang="en" class="language-option flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-primary-light/20 transition-colors">
+                            <img src="https://flagcdn.com/w20/us.png" alt="English" class="w-5 h-auto rounded">
+                            <span>English</span>
                         </a>
                     </div>
                 </div>
 
                 <a href="/wishlist" th:if="${isUserAuthenticated != null and isUserAuthenticated}" 
-                    class="relative p-2 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors duration-200 hidden sm:block" title="Danh sách yêu thích">
+                    class="relative p-2 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors duration-200 hidden sm:block" data-translate-title="wishlist" title="Danh sách yêu thích">
                     <svg class="w-5 h-5 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="m9.653 16.915-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001Z" /></svg>
                     <span class="wishlist-count absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full" 
                           th:classappend="${wishlistCount == null || wishlistCount == 0 ? 'hidden' : ''}" 
@@ -109,7 +111,7 @@
                 </a>
 
                 <a href="/cart" 
-                    class="relative p-2 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors duration-200" title="Giỏ hàng">
+                    class="relative p-2 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors duration-200" data-translate-title="cart" title="Giỏ hàng">
                     <svg class="w-5 h-5 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 5v1H4.667a1.75 1.75 0 0 0-1.743 1.598l-.826 9.5A1.75 1.75 0 0 0 3.84 19h12.32a1.75 1.75 0 0 0 1.742-1.902l-.826-9.5A1.75 1.75 0 0 0 15.333 6H14V5a4 4 0 0 0-8 0Zm4-2.5A2.5 2.5 0 0 0 7.5 5v1h5V5A2.5 2.5 0 0 0 10 2.5Z" clip-rule="evenodd" /></svg>
                     <span class="cart-count absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full" 
                           th:classappend="${cartCount == null || cartCount == 0 ? 'hidden' : ''}" 
@@ -117,8 +119,8 @@
                 </a>
 
                 <div th:if="${isUserAuthenticated == null or !isUserAuthenticated}" class="hidden sm:flex items-center gap-2">
-                    <a href="/login" class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200">Đăng nhập</a>
-                    <a href="/register" class="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-white bg-gradient-to-r from-primary to-primary-hover rounded-lg hover:shadow-soft transition-all duration-200">Đăng ký</a>
+                    <a href="/login" class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"><span data-translate="login">Đăng nhập</span></a>
+                    <a href="/register" class="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-white bg-gradient-to-r from-primary to-primary-hover rounded-lg hover:shadow-soft transition-all duration-200"><span data-translate="register">Đăng ký</span></a>
                 </div>
                 
                 <div x-data="{ userOpen: false }" th:if="${isUserAuthenticated != null and isUserAuthenticated}" class="relative hidden sm:block">
@@ -138,14 +140,14 @@
                             </div>
                         </div>
                         <div class="py-2">
-                            <a href="/account/profile" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.465 14.493a1.23 1.23 0 0 0 .41 1.412A9.957 9.957 0 0 0 10 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 0 0-13.074.003Z" /></svg>Thông tin cá nhân</a>
-                            <a href="/account/orders" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 5v1H4.667a1.75 1.75 0 0 0-1.743 1.598l-.826 9.5A1.75 1.75 0 0 0 3.84 19h12.32a1.75 1.75 0 0 0 1.742-1.902l-.826-9.5A1.75 1.75 0 0 0 15.333 6H14V5a4 4 0 0 0-8 0Zm4-2.5A2.5 2.5 0 0 0 7.5 5v1h5V5A2.5 2.5 0 0 0 10 2.5Z" clip-rule="evenodd" /></svg>Đơn hàng của tôi</a>
-                            <a href="/wishlist" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="m9.653 16.915-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001Z" /></svg>Danh sách yêu thích</a>
+                            <a href="/account/profile" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.465 14.493a1.23 1.23 0 0 0 .41 1.412A9.957 9.957 0 0 0 10 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 0 0-13.074.003Z" /></svg><span data-translate="profile">Thông tin cá nhân</span></a>
+                            <a href="/account/orders" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 5v1H4.667a1.75 1.75 0 0 0-1.743 1.598l-.826 9.5A1.75 1.75 0 0 0 3.84 19h12.32a1.75 1.75 0 0 0 1.742-1.902l-.826-9.5A1.75 1.75 0 0 0 15.333 6H14V5a4 4 0 0 0-8 0Zm4-2.5A2.5 2.5 0 0 0 7.5 5v1h5V5A2.5 2.5 0 0 0 10 2.5Z" clip-rule="evenodd" /></svg><span data-translate="orders">Đơn hàng của tôi</span></a>
+                            <a href="/wishlist" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="m9.653 16.915-.005-.003-.019-.01a20.759 20.759 0 0 1-1.162-.682 22.045 22.045 0 0 1-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 0 1 8-2.828A4.5 4.5 0 0 1 18 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 0 1-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 0 1-.69.001l-.002-.001Z" /></svg><span data-translate="wishlist">Danh sách yêu thích</span></a>
                             <a href="/admin/dashboard" th:if="${userRole != null and (userRole == 'ADMIN' or userRole == 'admin')}" class="flex items-center gap-3 px-4 py-2 text-sm text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1Zm3 8V5.5a3 3 0 1 0-6 0V9h6Z" clip-rule="evenodd" /></svg>Admin Panel</a>
                         </div>
                         <div class="border-t border-gray-200">
                             <a href="/logout" class="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors rounded-b-lg">
-                                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 4.25A2.25 2.25 0 0 1 5.25 2h5.5A2.25 2.25 0 0 1 13 4.25v2a.75.75 0 0 1-1.5 0v-2a.75.75 0 0 0-.75-.75h-5.5a.75.75 0 0 0-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 0 0 .75-.75v-2a.75.75 0 0 1 1.5 0v2A2.25 2.25 0 0 1 10.75 18h-5.5A2.25 2.25 0 0 1 3 15.75V4.25Z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M6 10a.75.75 0 0 1 .75-.75h9.546l-1.048-.943a.75.75 0 1 1 1.004-1.114l-2.5 2.25a.75.75 0 0 1 0 1.114l-2.5 2.25a.75.75 0 1 1-1.004-1.114l1.048-.943H6.75A.75.75 0 0 1 6 10Z" clip-rule="evenodd" /></svg>Đăng xuất
+                                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 4.25A2.25 2.25 0 0 1 5.25 2h5.5A2.25 2.25 0 0 1 13 4.25v2a.75.75 0 0 1-1.5 0v-2a.75.75 0 0 0-.75-.75h-5.5a.75.75 0 0 0-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 0 0 .75-.75v-2a.75.75 0 0 1 1.5 0v2A2.25 2.25 0 0 1 10.75 18h-5.5A2.25 2.25 0 0 1 3 15.75V4.25Z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M6 10a.75.75 0 0 1 .75-.75h9.546l-1.048-.943a.75.75 0 1 1 1.004-1.114l-2.5 2.25a.75.75 0 0 1 0 1.114l-2.5 2.25a.75.75 0 1 1-1.004-1.114l1.048-.943H6.75A.75.75 0 0 1 6 10Z" clip-rule="evenodd" /></svg><span data-translate="logout">Đăng xuất</span>
                             </a>
                         </div>
                     </div>
@@ -177,6 +179,7 @@
                     <span class="text-xl text-primary mr-3">🌸</span>
                     <input type="text"
                            name="search"
+                           data-translate-placeholder="search-placeholder"
                            placeholder="Nhập tên hoa, dịp tặng, hoặc từ khóa tìm kiếm..."
                            th:value="${searchQuery}"
                            autocomplete="off"
@@ -188,7 +191,7 @@
                         <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" /></svg>
                     </button>
                 </div>
-                <button type="button" @click.prevent="isSearchOpen = false" class="text-gray-500 hover:text-red-500 p-2 transition-colors duration-200 flex-shrink-0" title="Đóng tìm kiếm">
+                <button type="button" @click.prevent="isSearchOpen = false" class="text-gray-500 hover:text-red-500 p-2 transition-colors duration-200 flex-shrink-0" data-translate-title="close-search" title="Đóng tìm kiếm">
                     <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -203,6 +206,7 @@
                 <svg class="w-4 h-4 text-gray-500 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" /></svg>
                 <input type="text" 
                         name="search" 
+                        data-translate-placeholder="search-flowers"
                         placeholder="Tìm kiếm hoa..."
                         th:value="${searchQuery}"
                         class="flex-1 bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-500">
@@ -224,21 +228,21 @@
          class="lg:hidden fixed inset-0 top-[60px] bg-white border-t border-gray-100 z-30 overflow-y-auto p-4">
         <nav class="flex flex-col space-y-2">
             <!-- Mobile Nav Links -->
-            <a href="/home" class="py-2 px-3 text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200">Trang chủ</a>
-            <a href="/products" class="py-2 px-3 text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200">Sản phẩm</a>
-            <a href="/vouchers" class="py-2 px-3 text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200">Voucher</a>
-            <a href="/blog" class="py-2 px-3 text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200">Blog</a>
+            <a href="/home" class="py-2 px-3 text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"><span data-translate="nav-home">Trang chủ</span></a>
+            <a href="/products" class="py-2 px-3 text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"><span data-translate="nav-products">Sản phẩm</span></a>
+            <a href="/vouchers" class="py-2 px-3 text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"><span data-translate="nav-voucher">Voucher</span></a>
+            <a href="/blog" class="py-2 px-3 text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"><span data-translate="nav-blog">Blog</span></a>
         </nav>
         
         <div th:if="${isUserAuthenticated == null or !isUserAuthenticated}" class="mt-4 border-t pt-4 space-y-2">
-            <a href="/login" class="block w-full text-center py-2 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-all duration-200">Đăng nhập</a>
-            <a href="/register" class="block w-full text-center py-2 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary-dark transition-all duration-200">Đăng ký</a>
+            <a href="/login" class="block w-full text-center py-2 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-all duration-200"><span data-translate="login">Đăng nhập</span></a>
+            <a href="/register" class="block w-full text-center py-2 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary-dark transition-all duration-200"><span data-translate="register">Đăng ký</span></a>
         </div>
         
         <div th:if="${isUserAuthenticated != null and isUserAuthenticated}" class="mt-4 border-t pt-4 space-y-2">
-            <a href="/account/profile" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">Thông tin cá nhân</a>
+            <a href="/account/profile" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"><span data-translate="profile">Thông tin cá nhân</span></a>
             <a href="/admin/dashboard" th:if="${userRole != null and (userRole == 'ADMIN' or userRole == 'admin')}" class="flex items-center gap-3 px-4 py-2 text-sm text-orange-600 hover:bg-orange-50 transition-colors">Admin Panel</a>
-            <a href="/logout" class="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">Đăng xuất</a>
+            <a href="/logout" class="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"><span data-translate="logout">Đăng xuất</span></a>
         </div>
         
     </div>

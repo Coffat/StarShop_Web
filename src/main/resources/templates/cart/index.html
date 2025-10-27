@@ -65,9 +65,9 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-3xl font-bold text-gray-900">Giỏ hàng của bạn</h1>
+                        <h1 class="text-3xl font-bold text-gray-900" data-translate="cart-title">Giỏ hàng của bạn</h1>
                         <p class="mt-1 text-sm text-gray-500" th:if="${cart != null and cart.items != null}">
-                            <span th:text="${cart.totalQuantity}">0</span> sản phẩm trong giỏ hàng
+                            <span th:text="${cart.totalQuantity}">0</span> <span data-translate="cart-subtitle">sản phẩm trong giỏ hàng</span>
                         </p>
                     </div>
                 </div>
@@ -84,7 +84,7 @@
                                 <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" 
                                        class="w-5 h-5 text-pink-600 border-gray-300 rounded-full focus:ring-2 focus:ring-pink-500/20 cursor-pointer" 
                                        style="accent-color: #ec4899;" checked>
-                                <span class="text-sm font-semibold text-gray-700">Chọn tất cả sản phẩm</span>
+                                <span class="text-sm font-semibold text-gray-700" data-translate="select-all">Chọn tất cả sản phẩm</span>
                             </label>
                         </div>
                         <div th:each="item : ${cart.items}" 
@@ -143,7 +143,7 @@
                                     <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                         <!-- Price -->
                                         <div>
-                                            <p class="text-xs text-gray-500 mb-1">Đơn giá</p>
+                                            <p class="text-xs text-gray-500 mb-1" data-translate="unit-price">Đơn giá</p>
                                             <p class="text-xl font-bold text-primary" 
                                                th:text="${item.productPrice != null ? #numbers.formatInteger(item.productPrice, 0, 'COMMA') + '₫' : 'Liên hệ'}">
                                                 0₫
@@ -152,7 +152,7 @@
                                         
                                         <!-- Quantity Controls -->
                                         <div>
-                                            <p class="text-xs text-gray-500 mb-1">Số lượng</p>
+                                            <p class="text-xs text-gray-500 mb-1" data-translate="quantity">Số lượng</p>
                                             <div class="flex items-center space-x-2">
                                                 <button onclick="updateQuantity(this, -1)"
                                                         th:data-product-id="${item.productId}"
@@ -181,7 +181,7 @@
                                         
                                         <!-- Subtotal -->
                                         <div class="text-right">
-                                            <p class="text-xs text-gray-500 mb-1">Thành tiền</p>
+                                            <p class="text-xs text-gray-500 mb-1" data-translate="subtotal">Thành tiền</p>
                                             <p class="text-xl font-bold text-green-600 subtotal" 
                                                th:text="${item.subtotal != null ? #numbers.formatInteger(item.subtotal, 0, 'COMMA') + '₫' : '0₫'}">
                                                 0₫
@@ -197,18 +197,18 @@
                     <div class="lg:col-span-4 mt-6 lg:mt-0">
                         <div class="bg-white rounded-xl shadow-sm border border-gray-200 sticky top-4">
                             <div class="p-6">
-                                <h2 class="text-xl font-bold text-gray-900 mb-6">Tổng cộng giỏ hàng</h2>
+                                <h2 class="text-xl font-bold text-gray-900 mb-6" data-translate="cart-summary">Tổng cộng giỏ hàng</h2>
                                 
                                 <!-- Summary Items -->
                                 <div class="space-y-4 mb-6">
                                     <div class="flex items-center justify-between pb-4 border-b border-gray-200">
-                                        <span class="text-gray-600">Tổng số lượng</span>
+                                        <span class="text-gray-600" data-translate="total-quantity">Tổng số lượng</span>
                                         <span class="font-semibold text-gray-900" id="totalQuantity" 
                                               th:text="${cart != null and cart.totalQuantity != null ? cart.totalQuantity : 0}">0</span>
                                     </div>
                                     
                                     <div class="flex items-center justify-between py-4 border-b border-gray-200">
-                                        <span class="text-gray-600">Tạm tính</span>
+                                        <span class="text-gray-600" data-translate="temporary-total">Tạm tính</span>
                                         <span class="font-semibold text-gray-900" id="totalAmount" 
                                               th:text="${cart != null and cart.totalAmount != null ? #numbers.formatInteger(cart.totalAmount, 0, 'COMMA') + '₫' : '0₫'}">
                                             0₫
@@ -216,7 +216,7 @@
                                     </div>
                                     
                                     <div class="flex items-center justify-between pt-4">
-                                        <span class="text-lg font-bold text-gray-900">Tổng tiền</span>
+                                        <span class="text-lg font-bold text-gray-900" data-translate="final-total">Tổng tiền</span>
                                         <span class="text-2xl font-bold text-primary" id="finalAmount" 
                                               th:text="${cart != null and cart.totalAmount != null ? #numbers.formatInteger(cart.totalAmount, 0, 'COMMA') + '₫' : '0₫'}">
                                             0₫
@@ -224,7 +224,7 @@
                                     </div>
                                     
                                     <div class="mt-2 text-sm text-gray-500 text-right">
-                                        <span id="selectedCount" th:text="${cart.totalQuantity}">0</span> sản phẩm được chọn
+                                        <span id="selectedCount" th:text="${cart.totalQuantity}">0</span> <span data-translate="selected-items">sản phẩm được chọn</span>
                                     </div>
                                 </div>
                                 
@@ -235,7 +235,7 @@
                                         <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M2.5 4A1.5 1.5 0 001 5.5V6h18v-.5A1.5 1.5 0 0017.5 4h-15zM19 8.5H1v6A1.5 1.5 0 002.5 16h15a1.5 1.5 0 001.5-1.5v-6zM3 13.25a.75.75 0 01.75-.75h1.5a.75.75 0 010 1.5h-1.5a.75.75 0 01-.75-.75zm4.75-.75a.75.75 0 000 1.5h3.5a.75.75 0 000-1.5h-3.5z" clip-rule="evenodd"/>
                                         </svg>
-                                        <span>Tiến hành thanh toán</span>
+                                        <span data-translate="proceed-checkout">Tiến hành thanh toán</span>
                                     </button>
                                     
                                     <a href="/home" 
@@ -243,7 +243,7 @@
                                         <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clip-rule="evenodd"/>
                                         </svg>
-                                        <span>Tiếp tục mua sắm</span>
+                                        <span data-translate="continue-shopping">Tiếp tục mua sắm</span>
                                     </a>
                                     
                                     <button onclick="clearCart()" 
@@ -251,7 +251,7 @@
                                         <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clip-rule="evenodd"/>
                                         </svg>
-                                        <span>Xóa tất cả</span>
+                                        <span data-translate="clear-cart">Xóa tất cả</span>
                                     </button>
                                 </div>
                                 
@@ -261,7 +261,7 @@
                                         <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/>
                                         </svg>
-                                        <p class="text-sm text-blue-800">
+                                        <p class="text-sm text-blue-800" data-translate="shipping-note">
                                             Phí vận chuyển sẽ được tính ở bước thanh toán
                                         </p>
                                     </div>
@@ -281,14 +281,14 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
                             </svg>
                         </div>
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Giỏ hàng trống</h3>
-                        <p class="text-gray-600 mb-8">Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy khám phá các sản phẩm tuyệt vời của chúng tôi!</p>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2" data-translate="empty-cart-title">Giỏ hàng trống</h3>
+                        <p class="text-gray-600 mb-8" data-translate="empty-cart-desc">Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy khám phá các sản phẩm tuyệt vời của chúng tôi!</p>
                         <a href="/home" 
                            class="inline-flex items-center space-x-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md">
                             <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M1 2.75A.75.75 0 011.75 2h16.5a.75.75 0 010 1.5H18v8.75A2.75 2.75 0 0115.25 15h-1.072l.798 3.06a.75.75 0 01-1.452.38L13.41 18H6.59l-.114.44a.75.75 0 01-1.452-.38L5.823 15H4.75A2.75 2.75 0 012 12.25V3.5h-.25A.75.75 0 011 2.75zM7.373 15l-.391 1.5h6.037l-.392-1.5H7.373zm7.49-8.931a.75.75 0 01-.175 1.046 19.326 19.326 0 00-3.398 3.098.75.75 0 01-1.097.04L8.5 8.561l-2.22 2.22A.75.75 0 115.22 9.72l2.75-2.75a.75.75 0 011.06 0l1.664 1.663a20.786 20.786 0 013.122-2.74.75.75 0 011.046.176z" clip-rule="evenodd"/>
                             </svg>
-                            <span>Khám phá sản phẩm</span>
+                            <span data-translate="explore-products">Khám phá sản phẩm</span>
                         </a>
                     </div>
                 </div>

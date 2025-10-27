@@ -19,13 +19,13 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" data-aos="fade-up">
           <h1
             class="text-4xl md:text-5xl font-bold text-primary-dark mb-4"
-            th:text="${pageTitle}"
+            data-translate="categories-title"
           >
             Khám Phá Thế Giới Hoa
           </h1>
           <p
             class="text-lg text-gray-600 max-w-2xl mx-auto"
-            th:text="${pageDescription}"
+            data-translate="categories-description"
           >
             Từ những đóa hồng lãng mạn đến cúc họa mi tinh khôi, hãy tìm nguồn
             cảm hứng cho mọi khoảnh khắc đặc biệt.
@@ -72,6 +72,7 @@
                   </h3>
                   <span
                     class="inline-block bg-primary text-white text-xs font-semibold px-3 py-1 rounded-full group-hover:bg-primary-dark transition-colors"
+                    data-translate="explore"
                   >
                     Khám phá
                   </span>
@@ -100,10 +101,10 @@
                 d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2z"
               />
             </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">
+            <h3 class="mt-2 text-sm font-medium text-gray-900" data-translate="no-categories">
               Không có danh mục nào
             </h3>
-            <p class="mt-1 text-sm text-gray-500">
+            <p class="mt-1 text-sm text-gray-500" data-translate="no-categories-found">
               Hiện tại chưa có danh mục sản phẩm nào được tìm thấy.
             </p>
           </div>
