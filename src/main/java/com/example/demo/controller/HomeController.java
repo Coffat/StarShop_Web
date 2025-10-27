@@ -59,7 +59,7 @@ public class HomeController {
             log.error("Error loading wishlist: {}", ex.getMessage());
         }
 
-        return "home";
+        return "customer/home";
     }
 
     @GetMapping("/")

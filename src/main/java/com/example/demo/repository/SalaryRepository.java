@@ -39,6 +39,16 @@ public interface SalaryRepository extends JpaRepository<Salary, Long> {
     Optional<Salary> findCurrentMonthSalaryByUserId(@Param("userId") Long userId);
     
     /**
+     * Find salary by user ID and specific month/year
+     */
+    @Query("SELECT s FROM Salary s WHERE s.user.id = :userId " +
+           "AND YEAR(s.monthYear) = :year " +
+           "AND MONTH(s.monthYear) = :month")
+    Optional<Salary> findByUserIdAndMonthAndYear(@Param("userId") Long userId,
+                                                  @Param("month") Integer month,
+                                                  @Param("year") Integer year);
+    
+    /**
      * Find salaries by user ID and year/month range
      */
     @Query("SELECT s FROM Salary s WHERE s.user.id = :userId " +

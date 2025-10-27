@@ -109,6 +109,23 @@ public class AdminController extends BaseController {
     }
 
     /**
+     * Quản lý Lương & Chấm Công
+     */
+    @GetMapping("/payroll")
+    public String payroll(Model model) {
+        model.addAttribute("pageTitle", "Quản lý Lương & Chấm Công");
+        model.addAttribute("contentTemplate", "admin/payroll/index");
+        model.addAttribute("currentPath", "/admin/payroll");
+        
+        List<BreadcrumbItem> breadcrumbs = new ArrayList<>();
+        breadcrumbs.add(new BreadcrumbItem("Dashboard", "/admin/dashboard"));
+        breadcrumbs.add(new BreadcrumbItem("Lương & Chấm Công", "/admin/payroll"));
+        model.addAttribute("breadcrumbs", breadcrumbs);
+        
+        return "layouts/admin";
+    }
+
+    /**
      * Quản lý Người dùng (Khách hàng)
      */
     @GetMapping("/users")

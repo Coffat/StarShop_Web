@@ -34,7 +34,7 @@ public class VoucherPageController {
         model.addAttribute("currentPath", "/vouchers");
         model.addAttribute("pageTitle", "Mã giảm giá - StarShop");
         
-        return "vouchers";
+        return "customer/vouchers";
     }
 }
 

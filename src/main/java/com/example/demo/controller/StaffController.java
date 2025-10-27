@@ -139,5 +139,31 @@ public class StaffController extends BaseController {
             return "error/500";
         }
     }
+
+    /**
+     * Staff reviews management page
+     */
+    @GetMapping("/reviews")
+    public String reviews(Model model, Authentication authentication) {
+        try {
+            Long staffId = getUserIdFromAuthentication(authentication);
+            if (staffId == null) {
+                return "redirect:/login";
+            }
+            log.info("Loading reviews page for staff ID: {}", staffId);
+            
+            model.addAttribute("pageTitle", "Quản lý Đánh giá - Staff Portal");
+            model.addAttribute("currentPath", "/staff/reviews");
+            model.addAttribute("contentTemplate", "staff/reviews/index");
+            model.addAttribute("staffId", staffId);
+            
+            return "layouts/staff";
+            
+        } catch (Exception e) {
+            log.error("Error loading reviews page", e);
+            model.addAttribute("error", "Không thể tải trang đánh giá");
+            return "error/500";
+        }
+    }
 }
 

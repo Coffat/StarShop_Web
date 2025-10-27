@@ -49,7 +49,7 @@ public class AuthPageController {
             }
         }
         
-        return "login";
+        return "auth/login";
     }
 
     @GetMapping("/register")
@@ -67,7 +67,7 @@ public class AuthPageController {
             model.addAttribute("success", success);
         }
         
-        return "register";
+        return "auth/register";
     }
     
     @GetMapping("/logout")

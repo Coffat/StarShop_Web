@@ -52,7 +52,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf
                 .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**", "/api/cart/**", "/api/orders/**", "/api/payment/**", "/api/locations/**", "/api/addresses/**", "/api/shipping/**", "/api/catalogs/**", "/admin/orders/api/**", "/admin/products/api/**", "/admin/api/users/**", "/admin/api/employees/**", "/admin/api/**", "/api/staff/**", "/api/chat/**", "/sse/**", "/swagger-ui/**", "/v3/api-docs/**")
+                .ignoringRequestMatchers("/h2-console/**", "/ws/**", "/api/auth/**", "/logout", "/api/wishlist/**", "/api/favorite/**", "/api/cart/**", "/api/orders/**", "/api/payment/**", "/api/locations/**", "/api/addresses/**", "/api/shipping/**", "/api/catalogs/**", "/admin/orders/api/**", "/admin/products/api/**", "/admin/api/users/**", "/admin/api/employees/**", "/admin/api/**", "/api/staff/**", "/staff/api/**", "/api/chat/**", "/sse/**", "/swagger-ui/**", "/v3/api-docs/**")
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -138,6 +138,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/messages/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/chat/**").hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                 .requestMatchers("/api/staff/**").hasAnyRole("STAFF", "ADMIN")
+                
+                // Staff API endpoints - all under /staff/api/**
+                .requestMatchers("/staff/api/**").hasAnyRole("STAFF", "ADMIN")
                 
                 // Admin API endpoints - all under /admin/api/** or /admin/{module}/api/**
                 .requestMatchers("/admin/api/**").hasRole("ADMIN")

@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -16,6 +17,7 @@ public class TimeSheet {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "staff_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "password", "timesheets", "salaries"})
     private User staff;
 
     @Column(name = "check_in", nullable = false)
