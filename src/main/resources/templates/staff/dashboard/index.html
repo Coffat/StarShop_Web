@@ -222,6 +222,9 @@ function staffDashboard() {
         shiftStatus: /*[[${dashboard.shiftStatus}]]*/ 'Chưa check-in',
         
         init() {
+            // Initial refresh to ensure we have latest data
+            this.refreshStats();
+            
             // Refresh stats every 30 seconds
             setInterval(() => {
                 this.refreshStats();
@@ -242,6 +245,12 @@ function staffDashboard() {
                         weekHours: data.data.weekHoursWorked || 0
                     };
                     this.shiftStatus = data.data.shiftStatus || 'Chưa check-in';
+                    
+                    // Also update DOM elements directly for immediate visual feedback
+                    const shiftStatusElement = document.querySelector('[x-text="shiftStatus"]');
+                    if (shiftStatusElement) {
+                        shiftStatusElement.textContent = this.shiftStatus;
+                    }
                 }
             } catch (error) {
                 console.error('Error refreshing stats:', error);
