@@ -18,10 +18,11 @@ function t(key, fallback) {
 
 // Review modal variables
 let currentReviewData = {
-    productId: null,
-    orderItemId: null,
-    productName: '',
-    productImage: ''
+	orderId: null,
+	productId: null,
+	orderItemId: null,
+	productName: '',
+	productImage: ''
 };
 let selectedRating = 0;
 
@@ -131,7 +132,7 @@ function getActionButtons(order) {
     // Review button - for COMPLETED status
     if (order.status === 'COMPLETED') {
         buttons.push(`
-            <button onclick="openReviewModal(${order.orderItems[0].productId}, ${order.orderItems[0].id}, '${order.orderItems[0].productName}', '${order.orderItems[0].productImage}')" 
+            <button onclick="openReviewModal(${order.id}, ${order.orderItems[0].productId}, ${order.orderItems[0].id}, '${order.orderItems[0].productName}', '${order.orderItems[0].productImage}')" 
                     class="group relative px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-2xl font-semibold hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-amber-100">
                 <div class="flex items-center justify-center gap-2">
                     <div class="relative">
@@ -191,7 +192,7 @@ function renderOrderCard(order) {
                     <h4 class="font-semibold text-gray-900 truncate">${item.productName}</h4>
                     <p class="text-sm text-gray-600 mt-1">${t('quantity', 'Số lượng')}: ${item.quantity} × ${formatCurrency(item.price)}</p>
                     ${order.status === 'COMPLETED' ? `
-                        <button onclick="openReviewModal(${item.productId}, ${item.id}, '${item.productName}', '${item.productImage || '/images/placeholder.jpg'}')" 
+                        <button onclick="openReviewModal(${order.id}, ${item.productId}, ${item.id}, '${item.productName}', '${item.productImage || '/images/placeholder.jpg'}')" 
                                 class="mt-2 px-3 py-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-medium rounded-lg hover:shadow-md transition-all">
                             <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"/>
@@ -535,8 +536,9 @@ function showToast(message, type = 'info') {
 // ==================== REVIEW MODAL FUNCTIONS ====================
 
 // Open review modal
-function openReviewModal(productId, orderItemId, productName, productImage) {
+async function openReviewModal(orderId, productId, orderItemId, productName, productImage) {
     currentReviewData = {
+        orderId: orderId,
         productId: productId,
         orderItemId: orderItemId,
         productName: productName,
@@ -545,9 +547,39 @@ function openReviewModal(productId, orderItemId, productName, productImage) {
     
     // Reset form
     selectedRating = 0;
-    document.getElementById('reviewProductName').textContent = productName;
-    document.getElementById('reviewProductImage').src = productImage;
-    document.getElementById('reviewProductImage').alt = productName;
+    // Load up to 4 product thumbnails for this order
+    try {
+        const res = await fetch(`/api/orders/${orderId}`);
+        const payload = await res.json();
+        const wrapped = payload && payload.data ? payload.data : payload;
+        const orderData = wrapped && wrapped.data ? wrapped.data : wrapped;
+        const items = (orderData && (orderData.items || orderData.orderItems)) || [];
+
+        const preview = document.getElementById('reviewProductsPreview');
+        const grid = document.getElementById('reviewProductsGrid');
+        const count = document.getElementById('reviewProductsCount');
+
+        if (Array.isArray(items) && items.length > 0) {
+            const top4 = items.slice(0, 4);
+            grid.innerHTML = top4.map(it => {
+                const img = it.productImage || (it.product && it.product.image) || '/images/placeholder.jpg';
+                const name = it.productName || (it.product && it.product.name) || '';
+                return `
+                    <div class="flex flex-col items-center text-center">
+                        <img src="${img}" alt="${name}" class="w-20 h-20 object-cover rounded-lg mb-2" onerror="this.src='/images/placeholder.jpg'">
+                        <span class="text-xs text-gray-700 line-clamp-2">${name}</span>
+                    </div>
+                `;
+            }).join('');
+            count.textContent = items.length > 4 ? `+${items.length - 4} sản phẩm nữa` : '';
+            preview.classList.remove('hidden');
+        } else {
+            preview.classList.add('hidden');
+        }
+    } catch (e) {
+        const preview = document.getElementById('reviewProductsPreview');
+        if (preview) preview.classList.add('hidden');
+    }
     document.getElementById('reviewComment').value = '';
     document.getElementById('commentCount').textContent = '0/1000';
     
@@ -655,11 +687,11 @@ async function submitReview() {
             headers[csrfHeader] = csrfToken;
         }
         
-        const response = await fetch('/api/reviews', {
+        // Gọi endpoint mới: đánh giá tất cả sản phẩm trong đơn hàng
+        const response = await fetch(`/api/reviews/order/${currentReviewData.orderId}`, {
             method: 'POST',
             headers: headers,
             body: JSON.stringify({
-                orderItemId: currentReviewData.orderItemId,
                 rating: selectedRating,
                 comment: comment
             })
@@ -667,8 +699,10 @@ async function submitReview() {
         
         const data = await response.json();
         
-        if (response.ok) {
-            showToast('Đánh giá đã được gửi thành công!', 'success');
+        if (response.ok && data && data.success) {
+            const createdCount = data.data && data.data.created ? data.data.created.length : 0;
+            const msg = createdCount > 0 ? `Đã tạo đánh giá cho ${createdCount} sản phẩm` : (data.message || 'Không có sản phẩm nào được tạo đánh giá');
+            showToast(msg, 'success');
             
             // Close modal
             closeReviewModal();
