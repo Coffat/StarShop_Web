@@ -18,7 +18,7 @@
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.5-brightgreen)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791)
 ![Build](https://img.shields.io/badge/Build-Maven-red)
-![License](https://img.shields.io/badge/License-MIT-lightgrey)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
 
@@ -391,12 +391,25 @@ Endpoints tham khảo:
 ---
 
 ## Giấy phép
-MIT .
+[MIT License](LICENSE)
 
 ---
 
 ## English summary
 StarShop is a Spring Boot e-commerce app for a flower shop. It features OAuth2 login, JWT-secured APIs, catalog/cart/orders, GHN shipping fee calculation, MoMo (test) payment with SSE updates, real-time chat with staff and an AI assistant powered by Gemini. PostgreSQL via Docker, Thymeleaf UI, OpenAPI/Swagger for docs. Configure all secrets via environment variables in production.
+
+---
+
+## License Details
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+
+**Copyright © 2025 StarShop Team**
+- Vũ Toàn Thắng
+- Nguyễn Nhật Huy  
+- Đặng Ngọc Tài
+- Phan Quốc Viễn
 
 ---
 
