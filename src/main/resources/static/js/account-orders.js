@@ -8,6 +8,14 @@ let currentPage = 0;
 let currentStatus = 'all';
 const pageSize = 10;
 
+// Helper to get translation
+function t(key, fallback) {
+    if (typeof window.languageSwitcher !== 'undefined' && window.languageSwitcher && typeof window.languageSwitcher.translate === 'function') {
+        return window.languageSwitcher.translate(key);
+    }
+    return fallback || key;
+}
+
 // Review modal variables
 let currentReviewData = {
     productId: null,
@@ -43,37 +51,38 @@ function getStatusBadge(status) {
         'PENDING': { 
             class: 'bg-yellow-100 text-yellow-700 border-yellow-200', 
             icon: 'clock-history', 
-            text: 'Chờ xử lý' 
+            textKey: 'pending'
         },
         'PROCESSING': { 
             class: 'bg-blue-100 text-blue-700 border-blue-200', 
             icon: 'arrow-repeat', 
-            text: 'Đang xử lý' 
+            textKey: 'processing'
         },
         'SHIPPED': { 
             class: 'bg-purple-100 text-purple-700 border-purple-200', 
             icon: 'truck', 
-            text: 'Đang giao' 
+            textKey: 'shipping'
         },
         'COMPLETED': { 
             class: 'bg-green-100 text-green-700 border-green-200', 
             icon: 'check-circle-fill', 
-            text: 'Hoàn thành' 
+            textKey: 'completed'
         },
         'CANCELLED': { 
             class: 'bg-red-100 text-red-700 border-red-200', 
             icon: 'x-circle-fill', 
-            text: 'Đã hủy' 
+            textKey: 'cancelled'
         }
     };
     
     const statusInfo = statusMap[status] || statusMap['PENDING'];
+    const text = t(statusInfo.textKey, statusInfo.textKey);
     return `
         <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border ${statusInfo.class}">
             <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 14a6 6 0 1 1 0-12 6 6 0 0 1 0 12z"/>
             </svg>
-            ${statusInfo.text}
+            ${text}
         </span>
     `;
 }
@@ -84,6 +93,7 @@ function getActionButtons(order) {
     
     // Cancel button - for PENDING or PROCESSING status
     if (order.status === 'PENDING' || order.status === 'PROCESSING') {
+        const cancelText = t('cancel-order', 'Hủy đơn');
         buttons.push(`
             <button onclick="cancelOrder('${order.id}')" 
                     class="group relative px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-2xl font-semibold hover:border-red-300 hover:bg-red-50 hover:text-red-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-red-100">
@@ -94,7 +104,7 @@ function getActionButtons(order) {
                         </svg>
                         <div class="absolute inset-0 bg-red-400 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
                     </div>
-                    <span class="relative z-10">Hủy đơn</span>
+                    <span class="relative z-10">${cancelText}</span>
                 </div>
             </button>
         `);
@@ -130,7 +140,7 @@ function getActionButtons(order) {
                         </svg>
                         <div class="absolute inset-0 bg-amber-400 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
                     </div>
-                    <span class="relative z-10">Đánh giá</span>
+                    <span class="relative z-10">${t('review', 'Đánh giá')}</span>
                 </div>
             </button>
         `);
@@ -138,6 +148,7 @@ function getActionButtons(order) {
     
     // Reorder button - for COMPLETED or CANCELLED
     if (order.status === 'COMPLETED' || order.status === 'CANCELLED') {
+        const reorderText = t('reorder', 'Mua lại');
         buttons.push(`
             <button onclick="reorder(${order.id})" 
                     class="group relative px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-2xl font-semibold hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-emerald-100">
@@ -148,7 +159,7 @@ function getActionButtons(order) {
                         </svg>
                         <div class="absolute inset-0 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
                     </div>
-                    <span class="relative z-10">Mua lại</span>
+                    <span class="relative z-10">${reorderText}</span>
                 </div>
             </button>
         `);
@@ -178,13 +189,13 @@ function renderOrderCard(order) {
                 </div>
                 <div class="flex-1 min-w-0">
                     <h4 class="font-semibold text-gray-900 truncate">${item.productName}</h4>
-                    <p class="text-sm text-gray-600 mt-1">Số lượng: ${item.quantity} × ${formatCurrency(item.price)}</p>
+                    <p class="text-sm text-gray-600 mt-1">${t('quantity', 'Số lượng')}: ${item.quantity} × ${formatCurrency(item.price)}</p>
                     ${order.status === 'COMPLETED' ? `
                         <button onclick="openReviewModal(${item.productId}, ${item.id}, '${item.productName}', '${item.productImage || '/images/placeholder.jpg'}')" 
                                 class="mt-2 px-3 py-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-medium rounded-lg hover:shadow-md transition-all">
                             <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"/>
-                </svg> Đánh giá
+                </svg> ${t('review', 'Đánh giá')}
                         </button>
                     ` : ''}
                 </div>
@@ -222,7 +233,7 @@ function renderOrderCard(order) {
                     </p>
                 </div>
                 <button onclick="viewOrderDetail(${order.id})" class="text-pink-600 hover:text-pink-700 font-medium text-sm">
-                    Chi tiết <svg class="w-4 h-4 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    ${t('details', 'Chi tiết')} <svg class="w-4 h-4 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd"/>
                     </svg>
                 </button>
@@ -236,7 +247,7 @@ function renderOrderCard(order) {
             <!-- Footer -->
             <div class="flex items-center justify-between p-6 bg-gray-50 border-t border-gray-100">
                 <div>
-                    <p class="text-sm text-gray-600 mb-1">Tổng thanh toán</p>
+                    <p class="text-sm text-gray-600 mb-1">${t('total-payment', 'Tổng thanh toán')}</p>
                     <p class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
                         ${formatCurrency(order.totalAmount)}
                     </p>
@@ -548,7 +559,7 @@ function openReviewModal(productId, orderItemId, productName, productImage) {
         // Keep the SVG structure, just change color
     });
     
-    document.getElementById('ratingText').textContent = 'Chọn số sao để đánh giá';
+    document.getElementById('ratingText').textContent = t('choose-rating', 'Chọn số sao để đánh giá');
     document.getElementById('submitReviewBtn').disabled = true;
     
     // Show modal with Tailwind classes
@@ -600,7 +611,12 @@ function selectRating(rating) {
     
     const starButtons = document.querySelectorAll('.star-btn');
     const ratingTexts = [
-        '', 'Rất tệ', 'Tệ', 'Bình thường', 'Tốt', 'Rất tốt'
+        '', 
+        t('very-poor', 'Rất tệ'), 
+        t('poor', 'Tệ'), 
+        t('average', 'Bình thường'), 
+        t('good', 'Tốt'), 
+        t('excellent', 'Rất tốt')
     ];
     
     starButtons.forEach((btn, index) => {
@@ -688,4 +704,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load initial orders
     console.log('Loading initial orders...');
     loadOrders('all', 0);
+    
+    // Expose to global scope for language switcher
+    window.loadOrders = loadOrders;
+    window.currentStatus = 'all';
+    window.currentPage = 0;
 });

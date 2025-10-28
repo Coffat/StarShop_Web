@@ -4,6 +4,14 @@
 	let shippingFee = 0;
 	let shippingCalculated = false;
 	let appliedVoucher = null;
+	
+	// Helper to safely get translation
+	function t(key, fallback) {
+		if (typeof window.languageSwitcher !== 'undefined' && window.languageSwitcher && typeof window.languageSwitcher.translate === 'function') {
+			return window.languageSwitcher.translate(key);
+		}
+		return fallback || key;
+	}
 
 	document.addEventListener('DOMContentLoaded', function() {
 		loadCartData();
@@ -81,7 +89,7 @@
 			shippingContent.innerHTML = `
 				<div class="flex items-center text-sm text-gray-600">
 					<svg class="animate-spin h-4 w-4 text-primary" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
-					<span class="ml-2">Đang tính phí vận chuyển...</span>
+					<span class="ml-2">${t('calculating-shipping-fee', 'Đang tính phí vận chuyển...')}</span>
 				</div>
 			`;
 		}
@@ -120,7 +128,7 @@
 						<div class="flex items-center justify-between">
 							<div>
 								<strong class="text-green-600">${formatCurrency(shippingFee)}</strong>
-								<br><small class="text-gray-500">Giao hàng nhanh (GHN)</small>
+								<br><small class="text-gray-500">${t('fast-shipping-ghn', 'Giao hàng nhanh (GHN)')}</small>
 							</div>
 							<svg class="h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-7.25 9a.75.75 0 01-1.127.05l-3.25-3.5a.75.75 0 111.102-1.02l2.66 2.868 6.71-8.34a.75.75 0 011.012-.11z" clip-rule="evenodd"/></svg>
 						</div>
@@ -135,8 +143,8 @@
 					shippingContent.innerHTML = `
 						<div class="flex items-center justify-between">
 							<div>
-								<strong class="text-green-600">Miễn phí</strong>
-								<br><small class="text-gray-500">${response.error || 'Không thể tính phí GHN'}</small>
+								<strong class="text-green-600">${t('free', 'Miễn phí')}</strong>
+								<br><small class="text-gray-500">${response.error || t('cannot-calculate-ghn-fee', 'Không thể tính phí GHN')}</small>
 							</div>
 							<span class="text-green-600">🎁</span>
 						</div>
@@ -158,8 +166,8 @@
 				shippingContent.innerHTML = `
 					<div class="flex items-center justify-between">
 						<div>
-							<strong class="text-green-600">Miễn phí</strong>
-							<br><small class="text-gray-500">Lỗi: ${error.message || 'Không thể tính phí vận chuyển'}</small>
+							<strong class="text-green-600">${t('free', 'Miễn phí')}</strong>
+							<br><small class="text-gray-500">${error.message || t('cannot-calculate-shipping-fee', 'Không thể tính phí vận chuyển')}</small>
 						</div>
 						<span class="text-amber-600">⚠️</span>
 					</div>
@@ -185,13 +193,13 @@
 						document.getElementById('place-order-btn').disabled = false;
 					}
 				} else {
-					document.getElementById('cart-items').innerHTML = '<div class="rounded-lg bg-amber-50 text-amber-800 px-4 py-3">Giỏ hàng trống</div>';
-					document.getElementById('order-summary').innerHTML = '<div class="rounded-lg bg-amber-50 text-amber-800 px-4 py-3">Không có sản phẩm nào trong giỏ hàng</div>';
+					document.getElementById('cart-items').innerHTML = '<div class="rounded-lg bg-amber-50 text-amber-800 px-4 py-3">' + t('cart-empty', 'Giỏ hàng trống') + '</div>';
+					document.getElementById('order-summary').innerHTML = '<div class="rounded-lg bg-amber-50 text-amber-800 px-4 py-3">' + t('no-products-in-cart', 'Không có sản phẩm nào trong giỏ hàng') + '</div>';
 				}
 			})
 			.catch(() => {
-				document.getElementById('cart-items').innerHTML = '<div class="rounded-lg bg-red-50 text-red-700 px-4 py-3">Có lỗi xảy ra khi tải giỏ hàng</div>';
-				document.getElementById('order-summary').innerHTML = '<div class="rounded-lg bg-red-50 text-red-700 px-4 py-3">Có lỗi xảy ra khi tải thông tin</div>';
+				document.getElementById('cart-items').innerHTML = '<div class="rounded-lg bg-red-50 text-red-700 px-4 py-3">' + t('error-loading-cart', 'Có lỗi khi tải giỏ hàng') + '</div>';
+				document.getElementById('order-summary').innerHTML = '<div class="rounded-lg bg-red-50 text-red-700 px-4 py-3">' + t('error-loading-order-summary', 'Có lỗi khi tải tóm tắt đơn hàng') + '</div>';
 			});
 	}
 
@@ -202,7 +210,7 @@
 				if (response.data) displayPaymentMethods(response.data);
 			})
 			.catch(() => {
-				document.getElementById('payment-methods').innerHTML = '<div class="rounded-lg bg-red-50 text-red-700 px-4 py-3">Có lỗi xảy ra khi tải phương thức thanh toán</div>';
+				document.getElementById('payment-methods').innerHTML = '<div class="rounded-lg bg-red-50 text-red-700 px-4 py-3">' + t('error-loading-payment-methods', 'Có lỗi xảy ra khi tải phương thức thanh toán') + '</div>';
 			});
 	}
 
@@ -253,7 +261,7 @@
 					+ '</div>';
 			});
 		} else {
-			html = '<div class="rounded-lg bg-amber-50 text-amber-800 px-4 py-3">Giỏ hàng trống</div>';
+			html = '<div class="rounded-lg bg-amber-50 text-amber-800 px-4 py-3">' + t('cart-empty', 'Giỏ hàng trống') + '</div>';
 		}
 		document.getElementById('cart-items').innerHTML = html;
 	}
@@ -293,30 +301,30 @@
 			let total = Math.max(0, subtotal - discount) + shipping;
 			
 			html = '<div class="flex items-center justify-between mb-2">'
-				+ '<span class="text-gray-600">Tạm tính:</span>'
+				+ '<span class="text-gray-600">' + t('temporary-total', 'Tạm tính') + ':</span>'
 				+ '<span class="font-medium">' + formatCurrency(subtotal) + '</span>'
 				+ '</div>'
 				+ (discount > 0 ? ('<div class="flex items-center justify-between mb-2">'
-				+ '<span class="text-gray-600">Giảm giá:</span>'
+				+ '<span class="text-gray-600">' + t('discount', 'Giảm giá') + ':</span>'
 				+ '<span class="font-medium text-green-600">- ' + formatCurrency(discount) + '</span>'
 				+ '</div>') : '')
 				+ '<div class="flex items-center justify-between mb-2">'
-				+ '<span class="text-gray-600">Phí vận chuyển:</span>';
+				+ '<span class="text-gray-600">' + t('shipping-fee', 'Phí vận chuyển') + ':</span>';
 			
 			if (shipping > 0) {
 				html += '<span class="text-primary font-medium">' + formatCurrency(shipping) + '</span>';
 			} else {
-				html += '<span class="text-green-600 font-medium">Miễn phí</span>';
+				html += '<span class="text-green-600 font-medium">' + t('free', 'Miễn phí') + '</span>';
 			}
 			
 			html += '</div>'
 				+ '<div class="my-3 h-px bg-gray-100"></div>'
 				+ '<div class="flex items-center justify-between mb-1">'
-				+ '<span class="font-semibold text-gray-800">Tổng cộng:</span>'
+				+ '<span class="font-semibold text-gray-800">' + t('total', 'Tổng cộng') + ':</span>'
 				+ '<span class="font-semibold text-primary">' + formatCurrency(total) + '</span>'
 				+ '</div>';
 		} else {
-			html = '<div class="rounded-lg bg-amber-50 text-amber-800 px-4 py-3">Không có sản phẩm nào trong giỏ hàng</div>';
+			html = '<div class="rounded-lg bg-amber-50 text-amber-800 px-4 py-3">' + t('no-products-in-cart', 'Không có sản phẩm nào trong giỏ hàng') + '</div>';
 		}
 		document.getElementById('order-summary').innerHTML = html;
 	}
@@ -353,21 +361,43 @@
 	}
 
 	function displayPaymentMethods(methods) {
+		// Map payment method keys to translation keys
+		const paymentMethodKeyMap = {
+			'COD': 'payment-method-cod',
+			'MOMO': 'payment-method-momo',
+			'BANK_TRANSFER': 'payment-method-bank',
+			'CREDIT_CARD': 'payment-method-card'
+		};
+		
 		let html = '';
 		Object.keys(methods).forEach(function(key) {
 			const method = methods[key];
 			const isAvailable = method.available;
 			const disabledAttr = isAvailable ? '' : 'disabled';
 			const containerClasses = 'group relative rounded-2xl border-2 border-gray-400 p-4 transition-all duration-200 cursor-pointer bg-white shadow-sm ' + (isAvailable ? 'hover:border-primary' : 'opacity-60 cursor-not-allowed');
+			
+			// Get translated payment method name
+			const methodKey = paymentMethodKeyMap[key] || key.toLowerCase();
+			const translatedMethodName = t(methodKey, method.displayName);
+			
+			// Get translated status message
+			let statusKey = 'status-unknown';
+			if (method.statusMessage === 'Sẵn sàng' || method.statusMessage === 'Available') {
+				statusKey = 'status-available';
+			} else if (method.statusMessage === 'Chưa hỗ trợ' || method.statusMessage === 'Not Supported') {
+				statusKey = 'status-not-supported';
+			}
+			const translatedStatus = t(statusKey, method.statusMessage);
+			
 			html += '<label for="payment-' + key + '" class="' + containerClasses + '">'
 				+ '<input class="sr-only" type="radio" name="paymentMethod" id="payment-' + key + '" value="' + key + '" ' + disabledAttr + '>'
 				+ '<div class="flex items-start gap-3">'
 				+ '<div class="flex-1">'
-				+ '<div class="text-base font-semibold text-gray-900">' + method.displayName + '</div>'
+				+ '<div class="text-base font-semibold text-gray-900">' + translatedMethodName + '</div>'
 				+ '<div class="text-xs text-gray-500">' + method.englishName + '</div>'
 				+ '</div>'
 				+ '<div class="text-right">'
-				+ '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ' + (isAvailable ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700') + '">' + method.statusMessage + '</span>'
+				+ '<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ' + (isAvailable ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700') + '">' + translatedStatus + '</span>'
 				+ '</div>'
 				+ '</div>'
 				+ '<div class="mt-3 hidden group-hover:flex items-center justify-between text-xs text-gray-500">'
@@ -555,5 +585,16 @@
 			return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount || 0);
 		} catch (_) { return amount; }
 	}
+	
+	// Expose functions to global scope for language switcher
+	window.loadPaymentMethods = loadPaymentMethods;
+	window.displayOrderSummary = displayOrderSummary;
+	window.displayCartItems = displayCartItems;
+	
+	// Expose cartData to global scope
+	Object.defineProperty(window, 'cartData', {
+		get: function() { return cartData; },
+		set: function(value) { cartData = value; }
+	});
 })();
 
