@@ -401,5 +401,3 @@ StarShop is a Spring Boot e-commerce app for a flower shop. It features OAuth2 l
 ---
 
 
-```
-
