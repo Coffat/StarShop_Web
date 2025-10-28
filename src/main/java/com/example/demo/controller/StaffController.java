@@ -1,15 +1,21 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.StaffDashboardDTO;
+import com.example.demo.entity.User;
+import com.example.demo.repository.UserRepository;
 import com.example.demo.service.StaffService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * Staff Portal Controller
@@ -24,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class StaffController extends BaseController {
 
     private final StaffService staffService;
+    private final UserRepository userRepository;
 
     /**
      * Staff dashboard page
@@ -165,6 +172,60 @@ public class StaffController extends BaseController {
             model.addAttribute("error", "Không thể tải trang đánh giá");
             return "error/500";
         }
+    }
+
+    /**
+     * Update staff profile information
+     */
+    @PostMapping("/profile/update")
+    @PreAuthorize("hasRole('STAFF')")
+    @Transactional
+    public String updateStaffProfile(
+            @RequestParam String firstName,
+            @RequestParam String lastName,
+            @RequestParam(required = false) String phone,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+        
+        try {
+            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            if (user == null) {
+                redirectAttributes.addFlashAttribute("error", "Không tìm thấy thông tin người dùng");
+                return "redirect:/staff/profile";
+            }
+            
+            // Normalize and validate phone (digits only, 10 chars)
+            String normalizedPhone = phone == null ? null : phone.trim();
+            if (normalizedPhone != null && !normalizedPhone.matches("\\d{10}")) {
+                redirectAttributes.addFlashAttribute("error", "Số điện thoại không hợp lệ. Vui lòng nhập 10 chữ số.");
+                return "redirect:/staff/profile";
+            }
+
+            // Validate phone uniqueness if changed
+            if (normalizedPhone != null && !normalizedPhone.equals(user.getPhone())) {
+                boolean phoneInUse = userRepository.existsByPhone(normalizedPhone);
+                if (phoneInUse) {
+                    redirectAttributes.addFlashAttribute("error", "Số điện thoại đã được sử dụng bởi tài khoản khác");
+                    return "redirect:/staff/profile";
+                }
+            }
+
+            // Update user information
+            user.setFirstname(firstName.trim());
+            user.setLastname(lastName.trim());
+            user.setPhone(normalizedPhone);
+            
+            userRepository.save(user);
+            
+            log.info("Staff profile updated successfully for user: {}", authentication.getName());
+            redirectAttributes.addFlashAttribute("success", "Cập nhật thông tin thành công!");
+            
+        } catch (Exception e) {
+            log.error("Error updating staff profile for user {}: {}", authentication.getName(), e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra khi cập nhật thông tin. Vui lòng thử lại.");
+        }
+        
+        return "redirect:/staff/profile";
     }
 }
 
