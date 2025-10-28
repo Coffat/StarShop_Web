@@ -17,6 +17,8 @@ let chatWidgetLastSendAt = 0;
 let chatWidgetLoadingMessages = false;
 // Track conversation status to determine if AI should respond
 let chatWidgetConversationStatus = 'OPEN'; // OPEN, ASSIGNED, or CLOSED
+// Keep a global reference to SSE connection to avoid GC closing it prematurely
+let chatWidgetEventSource = null;
 
 /**
  * Get CSRF token from meta tag
@@ -263,8 +265,14 @@ function loadChatWidgetMessages(conversationId) {
                 const messagesContainer = document.getElementById('chatWidgetMessages');
                 
                 // Sort messages by sentAt ascending (oldest first)
+                // Tie-breaker by id ascending to keep stable order when sentAt has second-level precision
                 const sortedMessages = data.data.sort((a, b) => {
-                    return new Date(a.sentAt) - new Date(b.sentAt);
+                    const ta = a.sentAt ? new Date(a.sentAt).getTime() : 0;
+                    const tb = b.sentAt ? new Date(b.sentAt).getTime() : 0;
+                    if (ta !== tb) return ta - tb;
+                    const ia = Number(a.id) || 0;
+                    const ib = Number(b.id) || 0;
+                    return ia - ib;
                 });
                 
                 // Check if we need to reload or just add new messages
@@ -571,7 +579,10 @@ function sendMessageRegular(message, headers, apiEndpoint) {
  * Start streaming response using EventSource
  */
 function startStreamingResponse(conversationId) {
+    // Close previous stream if any
+    try { if (chatWidgetEventSource) { chatWidgetEventSource.close(); } } catch (e) { /* noop */ }
     const eventSource = new EventSource(`/api/chat/stream/${conversationId}`);
+    chatWidgetEventSource = eventSource;
     let streamingMessageId = 'streaming-' + Date.now();
     let accumulatedContent = '';
     
@@ -584,6 +595,10 @@ function startStreamingResponse(conversationId) {
         senderName: 'Hoa AI'
     };
     
+    eventSource.onopen = function() {
+        // connection established
+    };
+
     eventSource.onmessage = function(event) {
         try {
             const data = JSON.parse(event.data);
@@ -604,6 +619,7 @@ function startStreamingResponse(conversationId) {
             } else if (data.type === 'complete') {
                 // Streaming complete
                 eventSource.close();
+                chatWidgetEventSource = null;
                 hideTypingIndicator();
                 
                 // Replace with final message
@@ -614,6 +630,7 @@ function startStreamingResponse(conversationId) {
             } else if (data.type === 'error') {
                 // Streaming error
                 eventSource.close();
+                chatWidgetEventSource = null;
                 hideTypingIndicator();
                 // Streaming error
                 
@@ -635,6 +652,7 @@ function startStreamingResponse(conversationId) {
     
     eventSource.onerror = function(error) {
         eventSource.close();
+        chatWidgetEventSource = null;
         hideTypingIndicator();
         
         // Fallback: the response will come via WebSocket
@@ -653,6 +671,7 @@ function startStreamingResponse(conversationId) {
     setTimeout(() => {
         if (eventSource.readyState !== EventSource.CLOSED) {
             eventSource.close();
+            chatWidgetEventSource = null;
             hideTypingIndicator();
         }
     }, 30000);
@@ -667,6 +686,8 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
         return false;
     }
     const isOwn = message.senderId === chatWidgetUserId;
+    // When replacing a temp message, we want to keep its position
+    let insertBeforeEl = null;
     
     console.log('🎨 displayChatWidgetMessage called:', {
         id: message.id,
@@ -696,7 +717,8 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
                 });
             if (tempDup) {
                 console.log('🔄 Replacing temp message with persisted message');
-                try { tempDup.remove(); } catch (e) { /* noop */ }
+                // Preserve position: remember the next sibling, then remove temp
+                try { insertBeforeEl = tempDup.nextSibling; tempDup.remove(); } catch (e) { /* noop */ }
             }
         }
         
@@ -758,12 +780,18 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
         `;
     }
     
-    // Insert message BEFORE typing indicator if it exists
-    const typingIndicator = messagesContainer.querySelector('.typing-indicator');
-    if (typingIndicator) {
-        messagesContainer.insertBefore(messageDiv, typingIndicator);
+    // Insert message with correct position rules
+    if (insertBeforeEl) {
+        // Keep the exact position where the temp message was
+        messagesContainer.insertBefore(messageDiv, insertBeforeEl);
     } else {
-        messagesContainer.appendChild(messageDiv);
+        // Otherwise, insert before typing indicator if exists, else append
+        const typingIndicator = messagesContainer.querySelector('.typing-indicator');
+        if (typingIndicator) {
+            messagesContainer.insertBefore(messageDiv, typingIndicator);
+        } else {
+            messagesContainer.appendChild(messageDiv);
+        }
     }
     
     // Set innerHTML AFTER appending to DOM to ensure proper rendering

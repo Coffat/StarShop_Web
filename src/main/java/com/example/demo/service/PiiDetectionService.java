@@ -15,8 +15,11 @@ import java.util.regex.Pattern;
 public class PiiDetectionService {
 
     // Regex patterns for PII detection
-    // Phone pattern: 10 digits starting with 0, with word boundaries to avoid matching product codes
-    private static final Pattern PHONE_PATTERN = Pattern.compile("\\b0[0-9]{9}\\b");
+    // Phone pattern (enhanced): support 0xxxxxxxxx or +84/84 formats, allow separators (space, dot, dash)
+    // Examples matched: 0912345678, 09 123 456 78, 09.123.45678, +84 912345678, 84-912-345-678
+    private static final Pattern PHONE_PATTERN = Pattern.compile(
+            "(?:(?:\\+?84)|0)(?:[\\s.\\-]?\\d){9}\\b"
+    );
     private static final Pattern EMAIL_PATTERN = Pattern.compile("\\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\b");
     // Address pattern: Only match when combined with customer address indicators
     private static final Pattern ADDRESS_PATTERN = Pattern.compile("(số\\s+\\d+|\\d+/\\d+)", Pattern.CASE_INSENSITIVE);
@@ -105,8 +108,28 @@ public class PiiDetectionService {
      * Check if message contains phone number
      */
     public boolean containsPhoneNumber(String message) {
-        Matcher matcher = PHONE_PATTERN.matcher(message);
-        return matcher.find();
+        if (message == null) {
+            return false;
+        }
+        // Quick normalization: collapse multiple whitespaces
+        String normalized = message.replaceAll("\\s+", " ").trim();
+        // Fast path regex check (supports +84/84/0 and common separators)
+        Matcher matcher = PHONE_PATTERN.matcher(normalized);
+        if (matcher.find()) {
+            log.debug("Phone pattern matched: '{}'", matcher.group());
+            return true;
+        }
+        // Fallback: remove separators and check pure digit form starting with 0 and 10 digits
+        String digitsOnly = normalized.replaceAll("[^0-9]", "");
+        if (digitsOnly.startsWith("84") && digitsOnly.length() >= 11) {
+            // Convert leading 84 to 0 for VN local format
+            digitsOnly = "0" + digitsOnly.substring(2);
+        }
+        boolean looksLikePhone = digitsOnly.length() == 10 && digitsOnly.startsWith("0");
+        if (looksLikePhone) {
+            log.debug("Phone detected after normalization: '{}' -> '{}'", message, digitsOnly);
+        }
+        return looksLikePhone;
     }
 
     /**
