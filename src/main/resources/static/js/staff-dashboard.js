@@ -9,6 +9,15 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeCheckInOutButton();
     connectWebSocket();
     startAutoRefresh();
+    
+    // If on dashboard page, refresh status immediately
+    if (window.location.pathname.includes('/staff/dashboard')) {
+        setTimeout(() => {
+            if (window.updateDashboardStatus) {
+                window.updateDashboardStatus();
+            }
+        }, 500);
+    }
 });
 
 /**
@@ -92,9 +101,12 @@ async function performCheckIn() {
             const checkInTime = new Date(currentShift.checkIn).toLocaleTimeString('vi-VN');
             showToast(`Check-in thành công lúc ${checkInTime}!`, 'success');
             
-            // Refresh page stats
+            // Update dashboard status immediately without reload
             if (window.location.pathname.includes('/staff/dashboard')) {
-                setTimeout(() => location.reload(), 1000);
+                // Small delay to ensure DOM is ready
+                setTimeout(() => {
+                    updateDashboardStatus();
+                }, 100);
             }
         } else {
             // Handle error response
@@ -157,9 +169,12 @@ async function performCheckOut() {
                         'success'
                     );
                     
-                    // Refresh page stats
+                    // Update dashboard status immediately without reload
                     if (window.location.pathname.includes('/staff/dashboard')) {
-                        setTimeout(() => location.reload(), 1500);
+                        // Small delay to ensure DOM is ready
+                        setTimeout(() => {
+                            updateDashboardStatus();
+                        }, 100);
                     }
                 } else {
                     showToast(data.message || 'Check-out thất bại', 'error');
@@ -292,6 +307,53 @@ async function updateUnreadBadge() {
 }
 
 /**
+ * Update dashboard status after check-in/check-out
+ */
+async function updateDashboardStatus() {
+    try {
+        // Get fresh dashboard data
+        const response = await fetch('/api/staff/dashboard', {
+            credentials: 'same-origin'
+        });
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+            // Update shift status display directly
+            const shiftStatusElement = document.querySelector('[x-text="shiftStatus"]');
+            if (shiftStatusElement) {
+                shiftStatusElement.textContent = data.data.shiftStatus || 'Chưa check-in';
+            }
+            
+            // Update hours worked
+            const todayHoursElement = document.querySelector('[x-text="stats.todayHours"]');
+            if (todayHoursElement) {
+                todayHoursElement.textContent = data.data.todayHoursWorked || 0;
+            }
+            
+            const weekHoursElement = document.querySelector('[x-text="stats.weekHours"]');
+            if (weekHoursElement) {
+                weekHoursElement.textContent = data.data.weekHoursWorked || 0;
+            }
+            
+            // Update Alpine.js component data if available
+            const dashboardComponent = document.querySelector('[x-data*="staffDashboard"]');
+            if (dashboardComponent && dashboardComponent._x_dataStack && dashboardComponent._x_dataStack[0]) {
+                const alpineData = dashboardComponent._x_dataStack[0];
+                if (alpineData.shiftStatus !== undefined) {
+                    alpineData.shiftStatus = data.data.shiftStatus || 'Chưa check-in';
+                }
+                if (alpineData.stats) {
+                    alpineData.stats.todayHours = data.data.todayHoursWorked || 0;
+                    alpineData.stats.weekHours = data.data.weekHoursWorked || 0;
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error updating dashboard status:', error);
+    }
+}
+
+/**
  * Start auto-refresh for dashboard stats
  */
 function startAutoRefresh() {
@@ -342,4 +404,7 @@ function requestNotificationPermission() {
 
 // Request notification permission on load
 requestNotificationPermission();
+
+// Make updateDashboardStatus globally available for external calls
+window.updateDashboardStatus = updateDashboardStatus;
 

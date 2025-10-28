@@ -13,6 +13,7 @@ import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -105,7 +106,7 @@ public class StaffService {
     /**
      * Get current shift for a staff member
      */
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     public Optional<StaffCheckInDTO> getCurrentShift(Long staffId) {
         LocalDate today = LocalDate.now();
         return timeSheetRepository.findByStaffIdAndDate(staffId, today)
@@ -139,7 +140,7 @@ public class StaffService {
     /**
      * Get staff dashboard data
      */
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     public StaffDashboardDTO getStaffDashboard(Long staffId) {
         log.info("Getting dashboard data for staff {}", staffId);
         
