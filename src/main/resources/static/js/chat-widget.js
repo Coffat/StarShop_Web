@@ -875,6 +875,9 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
             } else {
                 console.log('✅ Setting AI message content:', message.content.substring(0, 100));
                 contentHolder.innerHTML = parseMarkdown(message.content);
+                
+                // Update wishlist icons after rendering product cards
+                setTimeout(() => updateAllWishlistIcons(), 100);
             }
         } else {
             console.error('❌ Content holder not found for message:', message.id);
@@ -931,7 +934,7 @@ function parseMarkdown(text) {
             '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>' +
             'Thêm vào giỏ' +
             '</button>' +
-            '<button onclick="addToWishlistFromChat(' + productId + ')" class="bg-gray-100 hover:bg-pink-50 text-pink-600 text-xs py-2 px-3 rounded-lg transition-all flex items-center justify-center">' +
+            '<button onclick="addToWishlistFromChat(' + productId + ')" data-product-id="' + productId + '" class="wishlist-btn bg-gray-100 hover:bg-pink-50 text-gray-400 text-xs py-2 px-3 rounded-lg transition-all flex items-center justify-center">' +
             '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>' +
             '</button>' +
             '</div>' +
@@ -1213,6 +1216,23 @@ function addToWishlistFromChat(productId) {
         if (typeof showToast === 'function') {
             showToast('Đã thêm vào danh sách yêu thích!', 'success');
         }
+        
+        // Update wishlist count if function exists
+        if (typeof window.updateWishlistCount === 'function') {
+            // Fetch current wishlist count
+            fetch('/api/wishlist/list', { credentials: 'same-origin' })
+                .then(response => response.json())
+                .then(countData => {
+                    if (countData && countData.success && countData.data) {
+                        const count = Array.isArray(countData.data) ? countData.data.length : 0;
+                        window.updateWishlistCount(count);
+                    }
+                })
+                .catch(error => console.error('Error updating wishlist count:', error));
+        }
+        
+        // Update heart icon color for this product
+        updateProductWishlistIcon(productId, true);
     })
     .catch(error => {
         console.error('Error adding to wishlist:', error);
@@ -1223,6 +1243,70 @@ function addToWishlistFromChat(productId) {
 }
 
 /**
+ * Update product wishlist icon color in chat
+ */
+function updateProductWishlistIcon(productId, isInWishlist) {
+    // Find all wishlist buttons for this product in chat messages
+    const wishlistButtons = document.querySelectorAll(`button.wishlist-btn[data-product-id="${productId}"]`);
+    
+    wishlistButtons.forEach(button => {
+        const svg = button.querySelector('svg');
+        if (svg) {
+            if (isInWishlist) {
+                // Fill with pink color
+                svg.setAttribute('fill', 'currentColor');
+                button.classList.add('text-pink-600');
+                button.classList.remove('text-gray-400');
+            } else {
+                // Outline only
+                svg.setAttribute('fill', 'none');
+                button.classList.add('text-gray-400');
+                button.classList.remove('text-pink-600');
+            }
+        }
+    });
+}
+
+/**
+ * Check and update all wishlist icons in chat
+ */
+function updateAllWishlistIcons() {
+    // Get all wishlist buttons in chat
+    const wishlistButtons = document.querySelectorAll('button.wishlist-btn[data-product-id]');
+    if (wishlistButtons.length === 0) return;
+    
+    // Fetch user's wishlist
+    fetch('/api/wishlist/list', { credentials: 'same-origin' })
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.success && data.data) {
+                // Extract product IDs - handle different response structures
+                const wishlistProductIds = data.data.map(item => {
+                    // Try different possible structures
+                    if (item.product && item.product.id) {
+                        return item.product.id;
+                    } else if (item.productId) {
+                        return item.productId;
+                    } else if (item.id) {
+                        return item.id;
+                    }
+                    return null;
+                }).filter(id => id !== null);
+                
+                console.log('Wishlist product IDs:', wishlistProductIds);
+                
+                // Update each button
+                wishlistButtons.forEach(button => {
+                    const productId = parseInt(button.getAttribute('data-product-id'));
+                    const isInWishlist = wishlistProductIds.includes(productId);
+                    updateProductWishlistIcon(productId, isInWishlist);
+                });
+            }
+        })
+        .catch(error => console.error('Error fetching wishlist:', error));
+}
+
+/**
  * Update cart badge count
  */
 function updateCartBadge() {
@@ -1230,13 +1314,21 @@ function updateCartBadge() {
     fetch('/api/cart/count')
         .then(response => response.json())
         .then(data => {
-            const cartBadge = document.querySelector('.cart-badge, #cartBadge');
-            if (cartBadge && data.data !== undefined) {
-                cartBadge.textContent = data.data;
-                cartBadge.style.display = data.data > 0 ? 'flex' : 'none';
+            const count = data.data !== undefined ? data.data : 0;
+            
+            // Update using global function if available
+            if (typeof window.updateCartCount === 'function') {
+                window.updateCartCount(count);
+            } else {
+                // Fallback: update badge directly
+                const cartBadge = document.querySelector('.cart-badge, #cartBadge');
+                if (cartBadge) {
+                    cartBadge.textContent = count;
+                    cartBadge.style.display = count > 0 ? 'flex' : 'none';
+                }
             }
         })
         .catch(error => {
-            // Silent fail
+            console.error('Error updating cart badge:', error);
         });
 }
