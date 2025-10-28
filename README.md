@@ -1,4 +1,4 @@
-# StarShop – Nền tảng cửa hàng hoa (Spring Boot)
+# StarShop – Nền tảng Cửa hàng Hoa (Spring Boot)
 
 > Dự án thương mại điện tử cho cửa hàng hoa với đầy đủ tính năng: danh mục – sản phẩm – giỏ hàng – đơn hàng – thanh toán MoMo (test), vận chuyển GHN, đăng nhập OAuth2, chat realtime (WebSocket) và trợ lý AI (Gemini). Triển khai nhanh bằng Docker + PostgreSQL, giao diện Thymeleaf.
 
@@ -72,14 +72,148 @@ Phiên bản/stack:
 ---
 
 ## Tính năng chính
-- Đăng nhập/Đăng ký: OAuth2 Google/Facebook, phiên đăng nhập, JWT cho API
-- Danh mục – Sản phẩm: duyệt, chi tiết, gợi ý, quản trị sản phẩm
-- Giỏ hàng – Đặt hàng – Voucher – Wishlist
-- Vận chuyển GHN: địa chỉ 2/3 cấp, tính phí vận chuyển
-- Thanh toán MoMo (test): callback qua ngrok, cập nhật realtime bằng SSE
-- Chat realtime: WebSocket khách hàng – nhân viên, handoff hàng đợi; Trợ lý AI (Gemini) hỗ trợ trả lời và chuyển giao
-- Dashboard Admin/Staff: theo vai trò
-- Tài liệu API: `/swagger-ui.html`, OpenAPI `/v3/api-docs`
+
+### Xác thực & Bảo mật
+- Đăng nhập/Đăng ký với email & password
+- OAuth2 (Google, Facebook)
+- JWT Authentication cho API
+- Quên mật khẩu với OTP qua email
+- Spring Security với role-based access (CUSTOMER, STAFF, ADMIN)
+
+### Quản lý Sản phẩm & Danh mục
+- Danh mục sản phẩm (Catalogs)
+- CRUD sản phẩm với hình ảnh
+- Tìm kiếm và lọc sản phẩm
+- Đánh giá & Review sản phẩm với AI analysis
+- Wishlist (Danh sách yêu thích)
+- Theo dõi sản phẩm (Follow)
+- AI-powered product description generation
+
+### Giỏ hàng & Đặt hàng
+- Quản lý giỏ hàng real-time
+- Checkout với nhiều địa chỉ giao hàng
+- Hệ thống voucher/mã giảm giá
+- Theo dõi đơn hàng
+- Lịch sử đơn hàng
+
+### Vận chuyển GHN
+- Tích hợp API Giao Hàng Nhanh
+- Quản lý địa chỉ 2 cấp và 3 cấp
+- Tính phí vận chuyển tự động
+- API lấy tỉnh/quận/phường
+
+### Thanh toán
+- COD (Thanh toán khi nhận hàng)
+- MoMo (test environment)
+- Cập nhật trạng thái real-time qua SSE
+- Webhook callback cho MoMo
+
+### Chat & AI Assistant
+- WebSocket real-time chat
+- AI Chatbot powered by Google Gemini 2.5-flash
+- Hỗ trợ khách hàng tự động
+- Chuyển tiếp đến nhân viên (handoff queue)
+- Lưu lịch sử hội thoại
+- PII detection (bảo vệ thông tin cá nhân)
+
+### Dashboard Admin
+- **Dashboard Analytics:**
+  - Thống kê tổng quan (doanh thu, đơn hàng, khách hàng, sản phẩm)
+  - Biểu đồ tương quan (correlation chart) - 7/30/90 ngày
+  - Xu hướng doanh thu (revenue trend)
+  - Biểu đồ trạng thái đơn hàng
+  - AI Insights & recommendations (lazy-loaded)
+  
+- **Quản lý Đơn hàng:**
+  - Xem, tìm kiếm, lọc đơn hàng
+  - Cập nhật trạng thái đơn hàng
+  - Xem chi tiết đơn hàng
+  - Export Excel
+  
+- **Quản lý Sản phẩm:**
+  - CRUD sản phẩm đầy đủ
+  - Upload hình ảnh
+  - Quản lý tồn kho
+  - Cập nhật trạng thái sản phẩm
+  - AI product description generator
+  - Export Excel
+  
+- **Quản lý Danh mục (Catalogs):**
+  - CRUD danh mục sản phẩm
+  - Upload hình ảnh danh mục
+  
+- **Quản lý Khách hàng (Users):**
+  - Xem danh sách khách hàng
+  - Phân khúc khách hàng tự động (VIP, NEW, AT_RISK)
+  - Lọc theo segment, ngày tham gia
+  - Xem địa chỉ giao hàng
+  - Export Excel
+  
+- **Quản lý Nhân viên (Employees):**
+  - CRUD nhân viên
+  - Quản lý mã nhân viên (employee_code)
+  - Thông tin chức vụ, phòng ban
+  - Lương theo giờ (salary_per_hour)
+  - Trạng thái hoạt động
+  
+- **Quản lý Lương & Chấm công (Payroll):**
+  - Xem tổng hợp chấm công theo tháng
+  - Tính lương tự động dựa trên timesheet
+  - Trạng thái lương (PENDING, PAID, OVERDUE)
+  - Scheduler tự động tính lương cuối tháng
+  - Export Excel
+  
+- **Quản lý Voucher:**
+  - CRUD voucher/mã giảm giá
+  - Loại giảm giá (PERCENTAGE, FIXED)
+  - Điều kiện áp dụng
+  - Thời hạn sử dụng
+  - AI-powered voucher suggestions
+  
+- **Quản lý Đánh giá (Reviews):**
+  - Xem tất cả đánh giá sản phẩm
+  - AI analysis cho sentiment analysis
+  - Phản hồi đánh giá
+  - Lọc theo rating, sản phẩm
+  
+- **Marketing Campaigns:**
+  - Tạo và quản lý chiến dịch marketing
+  - Gửi email hàng loạt
+  - Segmentation targeting (VIP, NEW, AT_RISK)
+  - Email templates
+  
+- **Quản lý Nội dung (Content):**
+  - Quản lý banner, hình ảnh
+  - Nội dung tĩnh
+  
+- **Tài chính (Finance):**
+  - Báo cáo doanh thu chi tiết
+  - Thống kê theo thời gian
+  
+- **Cài đặt Hệ thống (Settings):**
+  - Cấu hình chung
+  - Cache management
+  - System health check
+
+### Dashboard Staff
+- Xử lý đơn hàng được assigned
+- Chat với khách hàng (realtime)
+- Chấm công (Timesheet check-in/check-out)
+- Xem bảng lương cá nhân
+- Xử lý và phản hồi review
+- Theo dõi hiệu suất cá nhân
+
+### Tính năng khác
+- Email notifications (SMTP)
+- Export Excel (Apache POI) cho nhiều modules
+- Swagger/OpenAPI documentation
+- Rate limiting
+- Caching (location data, shipping fees, product recommendations)
+- Tự động tính lương theo giờ (Salary Scheduler)
+- Customer segmentation AI (VIP, NEW, AT_RISK)
+- AI monitoring service
+- Session management
+- Spring Boot Actuator (health checks)
 
 ---
 
@@ -99,7 +233,6 @@ Phiên bản/stack:
 
 ![Swagger UI](assets/swagger.png)
 
-> Swagger UI truy cập tại: `http://localhost:8080/swagger-ui.html`
 
 ---
 
@@ -116,10 +249,16 @@ src/main/java/com/example/demo/
   repository/                # Spring Data repositories
   security/                  # JWT filter, etc.
   service/                   # Business services
+  scheduler/                 # Salary scheduler
+  util/                      # Utilities
 
 src/main/resources/
   application.yml            # Cấu hình chính (ghi đè bằng ENV khi deploy)
   templates/                 # Thymeleaf views
+    admin/                  # Admin dashboard pages
+    staff/                  # Staff dashboard pages
+    customer/               # Customer pages
+    layouts/                # Layout templates
   static/                    # CSS, JS, images
 
 docker/
@@ -252,7 +391,7 @@ Endpoints tham khảo:
 ---
 
 ## Giấy phép
-MIT (hoặc cập nhật theo yêu cầu dự án của bạn).
+MIT .
 
 ---
 
@@ -261,18 +400,6 @@ StarShop is a Spring Boot e-commerce app for a flower shop. It features OAuth2 l
 
 ---
 
-## Gợi ý ảnh/chụp màn hình (tùy chọn)
-Bạn có thể thêm thư mục `assets/` chứa các ảnh chụp:
-- `assets/home.png` – Trang chủ
-- `assets/admin-dashboard.png` – Dashboard admin
-- `assets/staff.png` – Màn hình nhân viên
-- `assets/chat.png` – Widget chat
-- `assets/checkout.png` – Luồng checkout (MoMo)
 
-Sau đó chèn vào README như:
-
-```markdown
-![Home](assets/home.png)
 ```
 
-> Nếu cần, có thể dùng ngrok để truy cập từ trình duyệt và chụp ảnh màn hình UI, sau đó commit vào `assets/`. 
