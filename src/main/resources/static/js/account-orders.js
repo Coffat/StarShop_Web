@@ -551,9 +551,11 @@ async function openReviewModal(orderId, productId, orderItemId, productName, pro
     try {
         const res = await fetch(`/api/orders/${orderId}`);
         const payload = await res.json();
-        const wrapped = payload && payload.data ? payload.data : payload;
-        const orderData = wrapped && wrapped.data ? wrapped.data : wrapped;
-        const items = (orderData && (orderData.items || orderData.orderItems)) || [];
+        // API shape: ResponseWrapper<OrderResponse>
+        // payload.data -> OrderResponse; OrderResponse.order -> OrderDTO; OrderDTO.orderItems -> list
+        const orderResponse = payload && payload.data ? payload.data : null;
+        const orderDTO = orderResponse && orderResponse.order ? orderResponse.order : null;
+        const items = (orderDTO && (orderDTO.orderItems || orderDTO.items)) || [];
 
         const preview = document.getElementById('reviewProductsPreview');
         const grid = document.getElementById('reviewProductsGrid');
