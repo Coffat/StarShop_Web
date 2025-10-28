@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.ResponseWrapper;
+import com.example.demo.dto.BulkReviewRequest;
+import com.example.demo.dto.BulkReviewResponse;
 import com.example.demo.dto.ReviewRequest;
 import com.example.demo.dto.ReviewResponse;
 import com.example.demo.dto.ReviewableItemDTO;
@@ -319,6 +321,41 @@ public class ReviewController {
             log.error("Error checking review permission: {}", e.getMessage(), e);
             return ResponseEntity.badRequest()
                 .body(ResponseWrapper.error("Không thể kiểm tra quyền: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Tạo đánh giá cho tất cả sản phẩm trong một đơn hàng (bulk)
+     */
+    @PostMapping("/order/{orderId}")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @Operation(summary = "Tạo đánh giá cho toàn bộ sản phẩm trong đơn hàng")
+    public ResponseEntity<ResponseWrapper<BulkReviewResponse>> createOrderReviews(
+            @PathVariable String orderId,
+            @Valid @RequestBody BulkReviewRequest request,
+            Authentication authentication) {
+        try {
+            User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+            List<com.example.demo.entity.Review> created = reviewService.createReviewsForOrder(
+                user.getId(), orderId, request.getRating(), request.getComment());
+
+            BulkReviewResponse resp = new BulkReviewResponse();
+            // Map to ReviewResponse DTOs
+            List<ReviewResponse> createdDtos = created.stream()
+                .map(r -> new ReviewResponse(r, true))
+                .collect(java.util.stream.Collectors.toList());
+            resp.setCreated(createdDtos);
+
+            String message = createdDtos.isEmpty() ?
+                "Không có sản phẩm nào được tạo đánh giá (có thể đã đánh giá trước đó)" :
+                "Đã tạo đánh giá cho " + createdDtos.size() + " sản phẩm";
+
+            return ResponseEntity.ok(ResponseWrapper.success(resp, message));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ResponseWrapper.error("Không thể tạo đánh giá hàng loạt: " + e.getMessage()));
         }
     }
 }

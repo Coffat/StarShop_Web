@@ -281,21 +281,18 @@
 				});
 			}
 			
-			let subtotal = getFirstNumber(
-				cart.totalAmount,
-				cart.totalPrice,
-				cart.subtotal,
-				(function sumItems() {
-					try {
-						return (itemsToCalculate || []).reduce(function(acc, it){
-							const unitPrice = getFirstNumber(it.unitPrice, it.price, it.productPrice, it.salePrice, it.finalPrice, it?.product?.price, it?.product?.salePrice);
-							const quantity = getFirstNumber(it.quantity, it.qty, it.count, 1);
-							const lineTotal = getFirstNumber(it.totalPrice, it.lineTotal, it.amount, it.totalAmount, unitPrice * quantity);
-							return acc + lineTotal;
-						}, 0);
-					} catch(_) { return 0; }
-				})()
-			);
+			// Always calculate subtotal from itemsToCalculate (selected items only)
+			let subtotal = 0;
+			try {
+				subtotal = (itemsToCalculate || []).reduce(function(acc, it){
+					const unitPrice = getFirstNumber(it.unitPrice, it.price, it.productPrice, it.salePrice, it.finalPrice, it?.product?.price, it?.product?.salePrice);
+					const quantity = getFirstNumber(it.quantity, it.qty, it.count, 1);
+					const lineTotal = getFirstNumber(it.totalPrice, it.lineTotal, it.amount, it.totalAmount, unitPrice * quantity);
+					return acc + lineTotal;
+				}, 0);
+			} catch(_) { 
+				subtotal = 0;
+			}
 			let discount = appliedVoucher && appliedVoucher.discount ? appliedVoucher.discount : 0;
 			let shipping = shippingFee || 0;
 			let total = Math.max(0, subtotal - discount) + shipping;

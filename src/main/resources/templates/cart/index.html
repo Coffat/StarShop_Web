@@ -629,6 +629,29 @@
                 toast.remove();
             }, 3000);
         }
+        
+        // Initialize cart on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Restore checkbox states from sessionStorage if returning from checkout
+            const selectedCartItems = sessionStorage.getItem('selectedCartItems');
+            if (selectedCartItems) {
+                try {
+                    const selectedProductIds = JSON.parse(selectedCartItems);
+                    const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+                    
+                    itemCheckboxes.forEach(checkbox => {
+                        const productId = parseInt(checkbox.dataset.productId);
+                        // Only check if product is in selected list
+                        checkbox.checked = selectedProductIds.includes(productId);
+                    });
+                } catch(e) {
+                    console.error('Error restoring checkbox states:', e);
+                }
+            }
+            
+            // Update selected items count and total on page load
+            updateSelectedItems();
+        });
     </script>
 </th:block>
 </body>
