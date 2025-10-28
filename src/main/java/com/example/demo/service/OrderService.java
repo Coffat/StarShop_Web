@@ -371,18 +371,23 @@ public class OrderService {
     @Transactional(readOnly = true)
     public OrderResponse getOrder(String orderId, Long userId) {
         try {
+            logger.info("Getting order with ID: {} for user: {}", orderId, userId);
             Optional<Order> orderOpt = Optional.ofNullable(orderRepository.findOrderWithItems(orderId));
             if (orderOpt.isEmpty()) {
+                logger.warn("Order not found with ID: {}", orderId);
                 return OrderResponse.error("Đơn hàng không tồn tại");
             }
             
             Order order = orderOpt.get();
+            logger.info("Order found: ID={}, User ID={}, Status={}", order.getId(), order.getUser().getId(), order.getStatus());
             
             // Check if order belongs to user
             if (!order.getUser().getId().equals(userId)) {
+                logger.warn("Order {} does not belong to user {}", orderId, userId);
                 return OrderResponse.error("Bạn không có quyền xem đơn hàng này");
             }
             
+            logger.info("Successfully retrieved order {} for user {}", orderId, userId);
             return OrderResponse.success("Lấy thông tin đơn hàng thành công", OrderDTO.fromOrder(order));
             
         } catch (Exception e) {

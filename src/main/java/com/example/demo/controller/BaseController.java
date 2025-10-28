@@ -18,7 +18,7 @@ import java.util.List;
 
 /**
  * Base controller to add common model attributes to all views
- * Excludes PaymentController to avoid lazy loading conflicts
+ * Now includes PaymentController for proper authentication handling
  */
 @ControllerAdvice(assignableTypes = {
     WishlistController.class,
@@ -32,7 +32,8 @@ import java.util.List;
     BlogController.class,
     VoucherPageController.class,
     CartController.class,
-    StaffController.class
+    StaffController.class,
+    PaymentController.class
 })
 public class BaseController {
     

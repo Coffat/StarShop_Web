@@ -1,10 +1,12 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.Order;
+import com.example.demo.entity.User;
 import com.example.demo.entity.enums.OrderStatus;
 import com.example.demo.repository.OrderRepository;
 import com.example.demo.service.OrderService;
 import com.example.demo.service.SseService;
+import com.example.demo.service.JwtService;
 import com.example.demo.config.MoMoProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +18,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.core.Authentication;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -34,6 +37,8 @@ public class PaymentController {
 	private final OrderService orderService;
 	private final SseService sseService;
 	private final MoMoProperties momoProperties;
+	private final com.example.demo.repository.UserRepository userRepository;
+	private final JwtService jwtService;
 
 	@Operation(
 		summary = "MoMo callback endpoint",
@@ -46,9 +51,13 @@ public class PaymentController {
 
 	@GetMapping("/return")
 	@Transactional
-	public String momoReturn(HttpServletRequest request, org.springframework.ui.Model model) {
+	public String momoReturn(HttpServletRequest request, org.springframework.ui.Model model, Authentication authentication) {
 		log.info("=== MoMo Return Endpoint Called ===");
 		log.info("Query string: {}", request.getQueryString());
+		log.info("Authentication: {}", authentication != null ? authentication.getName() : "null");
+		log.info("Session ID: {}", request.getSession().getId());
+		log.info("Session authToken: {}", request.getSession().getAttribute("authToken"));
+		log.info("Session userEmail: {}", request.getSession().getAttribute("userEmail"));
 		
 		try {
 			// Extract all parameters for signature verification
@@ -96,6 +105,11 @@ public class PaymentController {
 						// Load order first
 						order = orderRepository.findOrderWithAllDetails(orderIdString);
 						if (order != null) {
+							// Restore authentication from order if not already authenticated
+							if (authentication == null || !authentication.isAuthenticated()) {
+								restoreAuthenticationFromOrder(request, order);
+							}
+							
 							orderService.updateOrderStatus(orderIdString, OrderStatus.PROCESSING);
 							log.info("Order {} status updated to PROCESSING via service", orderIdString);
 							// Reload order to get updated status
@@ -108,6 +122,11 @@ public class PaymentController {
 							order = orderRepository.findOrderWithAllDetails(orderIdString);
 						}
 						if (order != null) {
+							// Restore authentication from order if not already authenticated
+							if (authentication == null || !authentication.isAuthenticated()) {
+								restoreAuthenticationFromOrder(request, order);
+							}
+							
 							order.setStatus(OrderStatus.PROCESSING);
 							orderRepository.save(order);
 							log.info("Order {} status updated to PROCESSING via fallback", orderIdString);
@@ -122,9 +141,8 @@ public class PaymentController {
 				model.addAttribute("orderId", parseOrderId(orderId));
 				model.addAttribute("transId", transId);
 				
-				// Add required template variables to prevent errors
-				model.addAttribute("isUserAuthenticated", false);
-				model.addAttribute("cartItemCount", 0);
+				// Authentication will be handled by BaseController
+				// No need to manually set isUserAuthenticated as it will be set by @ModelAttribute
 				
 				return "orders/payment-result-simple";
 			} else {
@@ -153,9 +171,8 @@ public class PaymentController {
 				model.addAttribute("orderId", parseOrderId(orderId));
 				model.addAttribute("transId", transId);
 				
-				// Add required template variables to prevent errors
-				model.addAttribute("isUserAuthenticated", false);
-				model.addAttribute("cartItemCount", 0);
+				// Authentication will be handled by BaseController
+				// No need to manually set isUserAuthenticated as it will be set by @ModelAttribute
 				
 				return "orders/payment-result-simple";
 			}
@@ -166,13 +183,8 @@ public class PaymentController {
 			model.addAttribute("message", "Có lỗi xảy ra khi xử lý thanh toán. Vui lòng liên hệ hỗ trợ.");
 			model.addAttribute("pageTitle", "Lỗi thanh toán - StarShop");
 			
-			// Add required template variables to prevent errors
-			model.addAttribute("isUserAuthenticated", false);
-			model.addAttribute("cartItemCount", 0);
-			model.addAttribute("cartCount", 0);
-			model.addAttribute("wishlistCount", 0);
-			model.addAttribute("currentPath", "/payment/momo/return");
-			model.addAttribute("headerCatalogs", java.util.Collections.emptyList());
+			// Authentication will be handled by BaseController
+			// No need to manually set isUserAuthenticated as it will be set by @ModelAttribute
 			
 			return "orders/payment-result-simple";
 		}
@@ -316,14 +328,55 @@ public class PaymentController {
 
 	private String parseOrderId(String orderId) {
 		try {
+			log.info("Parsing orderId: {}", orderId);
 			// Expect pattern like ORDER-<id>-<timestamp>
 			if (orderId != null && orderId.startsWith("ORDER-")) {
 				String[] parts = orderId.split("-");
-				return parts[1]; // Return the order ID part directly
+				log.info("OrderId parts: {}", java.util.Arrays.toString(parts));
+				if (parts.length >= 2) {
+					String parsedId = parts[1]; // Return the order ID part directly
+					log.info("Parsed orderId: {}", parsedId);
+					return parsedId;
+				}
 			}
+			log.info("Returning orderId as-is: {}", orderId);
 			return orderId; // Return as-is if not ORDER- format
 		} catch (Exception e) {
+			log.error("Error parsing orderId {}: {}", orderId, e.getMessage());
 			return null;
+		}
+	}
+	
+	/**
+	 * Restore authentication from order information
+	 */
+	private void restoreAuthenticationFromOrder(HttpServletRequest request, Order order) {
+		try {
+			if (order != null && order.getUser() != null) {
+				User user = order.getUser();
+				log.info("Restoring authentication for user: {} from order: {}", user.getEmail(), order.getId());
+				
+				// Set session attributes for authentication
+				request.getSession().setAttribute("userEmail", user.getEmail());
+				request.getSession().setAttribute("userId", user.getId());
+				request.getSession().setAttribute("userRole", user.getRole().name());
+				
+				// Generate a new JWT token for the user
+				String token = jwtService.generateToken(user.getEmail(), user.getRole(), user.getId());
+				request.getSession().setAttribute("authToken", token);
+				
+				// Set cookie for JWT
+				jakarta.servlet.http.Cookie authCookie = new jakarta.servlet.http.Cookie("authToken", token);
+				authCookie.setHttpOnly(true);
+				authCookie.setSecure(false); // Set to false for localhost development
+				authCookie.setPath("/");
+				authCookie.setMaxAge(4 * 60 * 60); // 4 hours
+				
+				// Note: We can't add cookies in a GET request, but the session will be available
+				log.info("Authentication restored for user: {} with role: {}", user.getEmail(), user.getRole());
+			}
+		} catch (Exception e) {
+			log.error("Failed to restore authentication from order: {}", e.getMessage());
 		}
 	}
 }

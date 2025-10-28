@@ -65,8 +65,12 @@ public class OrderController extends BaseController {
                             @RequestParam(required = false) String payment,
                             @RequestParam(required = false) String message) {
         try {
+            logger.info("Orders page accessed - Authentication: {}", authentication != null ? authentication.getName() : "null");
+            logger.info("Authentication isAuthenticated: {}", authentication != null ? authentication.isAuthenticated() : "null");
+            
             // Check authentication
             if (authentication == null || !authentication.isAuthenticated()) {
+                logger.warn("User not authenticated, redirecting to login");
                 return "redirect:/auth/login";
             }
             
@@ -95,7 +99,7 @@ public class OrderController extends BaseController {
             model.addAttribute("totalPages", orders.getTotalPages());
             model.addAttribute("totalElements", orders.getTotalElements());
             
-            return "orders/index";
+            return "account/orders";
             
         } catch (Exception e) {
             logger.error("Error displaying orders page: {}", e.getMessage());
@@ -112,15 +116,23 @@ public class OrderController extends BaseController {
                             @RequestParam(required = false) String transId,
                             Authentication authentication, Model model) {
         try {
+            logger.info("Order detail page accessed - orderId: {}, Authentication: {}", 
+                orderId, authentication != null ? authentication.getName() : "null");
+            logger.info("Authentication isAuthenticated: {}", authentication != null ? authentication.isAuthenticated() : "null");
+            
             // Check authentication
             if (authentication == null || !authentication.isAuthenticated()) {
+                logger.warn("User not authenticated for order detail, redirecting to login");
                 return "redirect:/auth/login";
             }
             
             User user = userRepository.findByEmail(authentication.getName()).orElse(null);
             if (user == null) {
+                logger.warn("User not found for email: {}", authentication.getName());
                 return "redirect:/auth/login";
             }
+            
+            logger.info("Getting order details for orderId: {}, userId: {}", orderId, user.getId());
             
             // Get order details
             OrderResponse orderResponse = orderService.getOrder(orderId, user.getId());
@@ -128,7 +140,7 @@ public class OrderController extends BaseController {
             if (!orderResponse.isSuccess()) {
                 logger.warn("Order not found or access denied: orderId={}, userId={}, message={}", 
                     orderId, user.getId(), orderResponse.getMessage());
-                return "redirect:/account/orders?error=" + orderResponse.getMessage();
+                return "redirect:/orders?error=" + orderResponse.getMessage();
             }
             
             // Handle payment result messages
@@ -154,8 +166,8 @@ public class OrderController extends BaseController {
             return "orders/detail";
             
         } catch (Exception e) {
-            logger.error("Error displaying order detail page: {}", e.getMessage(), e);
-            return "redirect:/account/orders?error=Có lỗi xảy ra khi tải chi tiết đơn hàng";
+            logger.error("Error displaying order detail page for orderId {}: {}", orderId, e.getMessage(), e);
+            return "redirect:/orders?error=Có lỗi xảy ra khi tải chi tiết đơn hàng";
         }
     }
     
