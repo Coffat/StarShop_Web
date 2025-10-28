@@ -1,4 +1,4 @@
-# StarShop – Nền tảng Cửa hàng Hoa (Spring Boot)
+# StarShop – Cửa hàng Hoa trực tuyến
 
 > Dự án thương mại điện tử cho cửa hàng hoa với đầy đủ tính năng: danh mục – sản phẩm – giỏ hàng – đơn hàng – thanh toán MoMo (test), vận chuyển GHN, đăng nhập OAuth2, chat realtime (WebSocket) và trợ lý AI (Gemini). Triển khai nhanh bằng Docker + PostgreSQL, giao diện Thymeleaf.
 
