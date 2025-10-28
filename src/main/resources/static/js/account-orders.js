@@ -131,20 +131,43 @@ function getActionButtons(order) {
     
     // Review button - for COMPLETED status
     if (order.status === 'COMPLETED') {
-        buttons.push(`
-            <button onclick="openReviewModal(${order.id}, ${order.orderItems[0].productId}, ${order.orderItems[0].id}, '${order.orderItems[0].productName}', '${order.orderItems[0].productImage}')" 
-                    class="group relative px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-2xl font-semibold hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-amber-100">
-                <div class="flex items-center justify-center gap-2">
-                    <div class="relative">
-                        <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"/>
-                        </svg>
-                        <div class="absolute inset-0 bg-amber-400 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
+        // Check if order has been reviewed
+        const hasReview = order.hasReview || (order.orderItems && order.orderItems.some(item => item.hasReview));
+        
+        if (hasReview) {
+            // Show "View Review" button
+            buttons.push(`
+                <button onclick="viewOrderReview('${order.id}')" 
+                        class="group relative px-6 py-3 bg-white border-2 border-green-200 text-green-700 rounded-2xl font-semibold hover:border-green-300 hover:bg-green-50 hover:text-green-800 transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-green-100">
+                    <div class="flex items-center justify-center gap-2">
+                        <div class="relative">
+                            <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                            </svg>
+                            <div class="absolute inset-0 bg-green-400 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
+                        </div>
+                        <span class="relative z-10">Xem đánh giá</span>
                     </div>
-                    <span class="relative z-10">${t('review', 'Đánh giá')}</span>
-                </div>
-            </button>
-        `);
+                </button>
+            `);
+        } else {
+            // Show "Review" button
+            buttons.push(`
+                <button onclick="openReviewModal(${order.id}, ${order.orderItems[0].productId}, ${order.orderItems[0].id}, '${order.orderItems[0].productName}', '${order.orderItems[0].productImage}')" 
+                        class="group relative px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-2xl font-semibold hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-amber-100">
+                    <div class="flex items-center justify-center gap-2">
+                        <div class="relative">
+                            <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"/>
+                            </svg>
+                            <div class="absolute inset-0 bg-amber-400 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
+                        </div>
+                        <span class="relative z-10">${t('review', 'Đánh giá')}</span>
+                    </div>
+                </button>
+            `);
+        }
     }
     
     // Reorder button - for COMPLETED or CANCELLED
@@ -192,12 +215,22 @@ function renderOrderCard(order) {
                     <h4 class="font-semibold text-gray-900 truncate">${item.productName}</h4>
                     <p class="text-sm text-gray-600 mt-1">${t('quantity', 'Số lượng')}: ${item.quantity} × ${formatCurrency(item.price)}</p>
                     ${order.status === 'COMPLETED' ? `
-                        <button onclick="openReviewModal(${order.id}, ${item.productId}, ${item.id}, '${item.productName}', '${item.productImage || '/images/placeholder.jpg'}')" 
-                                class="mt-2 px-3 py-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-medium rounded-lg hover:shadow-md transition-all">
-                            <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"/>
-                </svg> ${t('review', 'Đánh giá')}
-                        </button>
+                        ${item.hasReview ? `
+                            <button onclick="viewOrderReview('${order.id}')" 
+                                    class="mt-2 px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-medium rounded-lg hover:shadow-md transition-all">
+                                <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                                </svg> Xem đánh giá
+                            </button>
+                        ` : `
+                            <button onclick="openReviewModal(${order.id}, ${item.productId}, ${item.id}, '${item.productName}', '${item.productImage || '/images/placeholder.jpg'}')" 
+                                    class="mt-2 px-3 py-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-medium rounded-lg hover:shadow-md transition-all">
+                                <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"/>
+                                </svg> ${t('review', 'Đánh giá')}
+                            </button>
+                        `}
                     ` : ''}
                 </div>
                 <div class="text-right">
@@ -715,8 +748,163 @@ async function submitReview() {
             showToast(data.message || 'Có lỗi xảy ra khi gửi đánh giá', 'error');
         }
     } catch (error) {
+        console.error('Error submitting review:', error);
         showToast('Có lỗi xảy ra khi gửi đánh giá', 'error');
     }
+}
+
+// View existing order review
+async function viewOrderReview(orderId) {
+    try {
+        // Fetch order reviews
+        const response = await fetch(`/api/orders/${orderId}/reviews`);
+        const data = await response.json();
+        
+        if (data.success && data.data && data.data.length > 0) {
+            // Show review modal
+            showOrderReviewModal(data.data, orderId);
+        } else {
+            showToast('Không tìm thấy đánh giá cho đơn hàng này', 'info');
+        }
+    } catch (error) {
+        console.error('Error loading order reviews:', error);
+        showToast('Có lỗi xảy ra khi tải đánh giá', 'error');
+    }
+}
+
+// Show order review modal
+function showOrderReviewModal(reviews, orderId) {
+    // Create modal HTML
+    const modalHTML = `
+        <div id="orderReviewModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <!-- Header -->
+                <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900">Đánh giá đơn hàng #${orderId}</h3>
+                                <p class="text-sm text-gray-600">Xem đánh giá và phản hồi từ shop</p>
+                            </div>
+                        </div>
+                        <button onclick="closeOrderReviewModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                            <svg class="w-6 h-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Content -->
+                <div class="p-6 space-y-6">
+                    ${reviews.map(review => `
+                        <div class="border border-gray-200 rounded-xl p-5 space-y-4">
+                            <!-- Product Info -->
+                            <div class="flex items-center gap-4">
+                                <img src="${review.productImage || '/images/placeholder.jpg'}" 
+                                     alt="${review.productName}"
+                                     class="w-16 h-16 object-cover rounded-lg"
+                                     onerror="this.src='/images/placeholder.jpg'">
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-gray-900">${review.productName}</h4>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <div class="flex items-center">
+                                            ${generateStars(review.rating)}
+                                        </div>
+                                        <span class="text-sm font-medium text-gray-700">${review.rating}/5</span>
+                                        <span class="text-xs text-gray-500">${formatDate(review.createdAt)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Review Comment -->
+                            ${review.comment ? `
+                                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                                    <div class="flex items-start gap-2">
+                                        <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"/>
+                                        </svg>
+                                        <div>
+                                            <p class="text-sm font-medium text-blue-900 mb-1">Đánh giá của bạn</p>
+                                            <p class="text-sm text-blue-800">${review.comment}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            <!-- Admin Response -->
+                            ${review.adminResponse ? `
+                                <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
+                                    <div class="flex items-start gap-2">
+                                        <svg class="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z"/>
+                                        </svg>
+                                        <div>
+                                            <p class="text-sm font-medium text-green-900 mb-1">Phản hồi từ StarShop</p>
+                                            <p class="text-sm text-green-800">${review.adminResponse}</p>
+                                            ${review.adminResponseAt ? `
+                                                <p class="text-xs text-green-600 mt-2">
+                                                    ${review.adminResponseByName || 'Admin'} • ${formatDate(review.adminResponseAt)}
+                                                </p>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="bg-gray-50 border-l-4 border-gray-300 p-4 rounded-r-lg">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <p class="text-sm text-gray-600">Shop chưa phản hồi đánh giá này</p>
+                                    </div>
+                                </div>
+                            `}
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <!-- Footer -->
+                <div class="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-2xl">
+                    <div class="flex justify-end">
+                        <button onclick="closeOrderReviewModal()" 
+                                class="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors">
+                            Đóng
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to DOM
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+// Close order review modal
+function closeOrderReviewModal() {
+    const modal = document.getElementById('orderReviewModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Generate stars HTML
+function generateStars(rating) {
+    let starsHTML = '';
+    for (let i = 1; i <= 5; i++) {
+        if (i <= rating) {
+            starsHTML += '<svg class="w-4 h-4 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"/></svg>';
+        } else {
+            starsHTML += '<svg class="w-4 h-4 text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"/></svg>';
+        }
+    }
+    return starsHTML;
 }
 
 // Initialize on page load

@@ -958,6 +958,141 @@ public class AdminAiInsightsService {
     /**
      * Data class for voucher suggestion business data
      */
+    /**
+     * Analyze all reviews in an order with AI
+     * 
+     * @param orderId ID of the order to analyze reviews for
+     * @return ReviewAiAnalysisResponse with sentiment and suggested replies for the entire order
+     */
+    @Transactional
+    public ReviewAiAnalysisResponse analyzeOrderReviews(String orderId) {
+        log.info("Analyzing all reviews for order {} with AI", orderId);
+        
+        try {
+            // 1. Get all reviews for the order
+            List<Review> reviews = reviewRepository.findByOrderId(orderId);
+            
+            if (reviews.isEmpty()) {
+                throw new IllegalArgumentException("Không tìm thấy đánh giá nào cho đơn hàng: " + orderId);
+            }
+            
+            // 2. Combine all reviews into a single analysis
+            StringBuilder combinedComments = new StringBuilder();
+            double totalRating = 0;
+            int reviewCount = 0;
+            
+            for (Review review : reviews) {
+                if (review.getComment() != null && !review.getComment().trim().isEmpty()) {
+                    combinedComments.append("- ").append(review.getComment()).append("\n");
+                }
+                totalRating += review.getRating() != null ? review.getRating() : 3; // Default to neutral
+                reviewCount++;
+            }
+            
+            double averageRating = totalRating / reviewCount;
+            int roundedRating = (int) Math.round(averageRating);
+            
+            // 3. Build prompt and call AI
+            String prompt = buildOrderReviewAnalysisPrompt(combinedComments.toString(), roundedRating, reviewCount);
+            log.debug("Built prompt for order review AI analysis (length: {} chars)", prompt.length());
+            
+            // 4. Call Gemini API
+            GeminiResponse response = geminiClient.generateContentWithRetry(prompt, 2);
+            if (response == null || !response.isSuccessful()) {
+                log.warn("Gemini API failed for order {}, using fallback", orderId);
+                return createFallbackAnalysis(roundedRating);
+            }
+            
+            // 5. Parse JSON response with robust error handling
+            String jsonResponse = response.getTextResponse();
+            log.debug("AI response: {}", jsonResponse);
+            
+            if (jsonResponse == null || jsonResponse.trim().isEmpty()) {
+                log.warn("AI returned empty response for order {}, using fallback", orderId);
+                return createFallbackAnalysis(roundedRating);
+            }
+            
+            String cleanedJsonResponse = cleanJsonResponse(jsonResponse);
+            if (cleanedJsonResponse == null) {
+                log.warn("Failed to clean JSON response for order {}, using fallback", orderId);
+                return createFallbackAnalysis(roundedRating);
+            }
+            
+            ReviewAiAnalysisResponse aiResponse;
+            try {
+                aiResponse = objectMapper.readValue(cleanedJsonResponse, ReviewAiAnalysisResponse.class);
+            } catch (Exception parseException) {
+                log.error("Failed to parse AI response JSON for order {}: {}", orderId, parseException.getMessage());
+                log.debug("Raw response that failed to parse: {}", jsonResponse);
+                log.debug("Cleaned response that failed to parse: {}", cleanedJsonResponse);
+                return createFallbackAnalysis(roundedRating);
+            }
+            
+            // 6. Set sentiment label based on sentiment
+            if (aiResponse.getSentiment() != null) {
+                aiResponse.setSentimentLabel(getSentimentLabel(aiResponse.getSentiment()));
+            } else {
+                // If no sentiment from AI, determine from average rating
+                String sentiment = roundedRating <= 2 ? "NEGATIVE" : roundedRating >= 4 ? "POSITIVE" : "NEUTRAL";
+                aiResponse.setSentiment(sentiment);
+                aiResponse.setSentimentLabel(getSentimentLabel(sentiment));
+            }
+            
+            log.info("Successfully analyzed {} reviews for order {} with sentiment: {}", 
+                    reviewCount, orderId, aiResponse.getSentiment());
+            return aiResponse;
+            
+        } catch (Exception e) {
+            log.error("Error analyzing order reviews for order {}: {}", orderId, e.getMessage(), e);
+            throw new RuntimeException("Có lỗi xảy ra khi phân tích đánh giá đơn hàng: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Build prompt for AI analysis of order reviews
+     */
+    private String buildOrderReviewAnalysisPrompt(String combinedComments, int averageRating, int reviewCount) {
+        StringBuilder prompt = new StringBuilder();
+        
+        prompt.append("Bạn là chuyên gia CSKH cửa hàng hoa trực tuyến.\n");
+        prompt.append("Phân tích các đánh giá sau đây từ cùng một đơn hàng và trả về JSON:\n\n");
+        
+        prompt.append("{\n");
+        prompt.append("  \"sentiment\": \"POSITIVE|NEUTRAL|NEGATIVE\",\n");
+        prompt.append("  \"mainIssue\": \"Tóm tắt vấn đề chính (nếu tiêu cực/trung tính)\",\n");
+        prompt.append("  \"suggestedReplies\": [\n");
+        prompt.append("    {\"label\": \"Lịch sự\", \"content\": \"...\"},\n");
+        prompt.append("    {\"label\": \"Kèm đền bù\", \"content\": \"...\"},\n");
+        prompt.append("    {\"label\": \"Chuyên nghiệp\", \"content\": \"...\"}\n");
+        prompt.append("  ]\n");
+        prompt.append("}\n\n");
+        
+        prompt.append("THÔNG TIN ĐƠN HÀNG:\n");
+        prompt.append("- Điểm đánh giá trung bình: ").append(averageRating).append("/5\n");
+        prompt.append("- Số lượng đánh giá: ").append(reviewCount).append("\n\n");
+        
+        prompt.append("NỘI DUNG ĐÁNH GIÁ:\n");
+        if (combinedComments.toString().trim().isEmpty()) {
+            prompt.append("(Không có bình luận cụ thể)\n\n");
+        } else {
+            prompt.append(combinedComments).append("\n\n");
+        }
+        
+        prompt.append("QUY TẮC PHÂN TÍCH:\n");
+        prompt.append("1. Xác định sentiment chung của tất cả đánh giá:\n");
+        prompt.append("   - POSITIVE: đa số đánh giá tốt (4-5 sao)\n");
+        prompt.append("   - NEGATIVE: có đánh giá 1-2 sao hoặc nhiều phàn nàn\n");
+        prompt.append("   - NEUTRAL: còn lại hoặc ý kiến trái chiều\n");
+        prompt.append("2. Tóm tắt vấn đề chính (nếu có) từ tất cả đánh giá\n");
+        prompt.append("3. Gợi ý 2-3 mẫu phản hồi phù hợp, mỗi mẫu 50-100 từ\n");
+        prompt.append("4. Giọng văn: Tiếng Việt, thân thiện, chuyên nghiệp\n");
+        prompt.append("5. Label phải ngắn gọn: \"Lịch sự\", \"Kèm đền bù\", \"Chuyên nghiệp\", \"Xin lỗi chân thành\"\n");
+        prompt.append("6. Phản hồi phải phù hợp với việc trả lời cho TẤT CẢ đánh giá trong đơn hàng\n");
+        prompt.append("7. Chỉ trả về JSON, không có text khác");
+        
+        return prompt.toString();
+    }
+
     @lombok.Data
     @lombok.Builder
     private static class VoucherSuggestionData {

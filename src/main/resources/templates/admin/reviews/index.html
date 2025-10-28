@@ -184,14 +184,12 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Người dùng</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sản phẩm</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Đánh giá</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Đơn hàng & Khách hàng</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sản phẩm & Đánh giá</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bình luận</th>
-                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái phản hồi</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Phản hồi Admin</th>
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày tạo</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày đánh giá</th>
                             </tr>
                         </thead>
                         <tbody id="reviewsTableBody" class="bg-white divide-y divide-gray-200">
@@ -486,7 +484,7 @@ async function loadStatistics() {
     }
 }
 
-// Load reviews from API
+// Load reviews grouped by order from API
 async function loadReviews() {
     const loadingState = document.getElementById('loadingState');
     const emptyState = document.getElementById('emptyState');
@@ -497,110 +495,106 @@ async function loadReviews() {
     reviewsTable.style.display = 'none';
     
     try {
-        let url = `/admin/api/reviews?page=${currentPage}&size=${pageSize}`;
-        if (currentRating) url += `&rating=${currentRating}`;
+        let url = `/admin/api/reviews/by-orders?page=${currentPage}&size=${pageSize}`;
         if (currentSearch) url += `&search=${encodeURIComponent(currentSearch)}`;
-        if (currentStatus) url += `&status=${currentStatus}`;
-        if (currentSentiment) url += `&sentiment=${currentSentiment}`;
         if (currentSort) url += `&sort=${currentSort}`;
         
-        console.log('Loading reviews with URL:', url);
+        console.log('Loading order-grouped reviews with URL:', url);
         console.log('Current sort value:', currentSort);
         
         const response = await fetch(url);
         const data = await response.json();
         
         if (data.success && data.data.content && data.data.content.length > 0) {
-            renderReviewsTable(data.data);
+            renderOrderReviewsTable(data.data);
             renderPagination(data.data);
             reviewsTable.style.display = 'block';
         } else {
             emptyState.style.display = 'block';
         }
     } catch (error) {
-        console.error('Error loading reviews:', error);
+        console.error('Error loading order-grouped reviews:', error);
         emptyState.style.display = 'block';
     } finally {
         loadingState.style.display = 'none';
     }
 }
 
-// Render reviews table
-function renderReviewsTable(reviewsPage) {
+// Render order-grouped reviews table
+function renderOrderReviewsTable(orderReviewsPage) {
     const tbody = document.getElementById('reviewsTableBody');
     tbody.innerHTML = '';
     
-    reviewsPage.content.forEach(review => {
+    orderReviewsPage.content.forEach(orderGroup => {
         const row = document.createElement('tr');
         row.className = 'hover:bg-gray-50 transition-colors duration-150';
         row.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap">
+            <td class="px-6 py-4">
                 <div class="flex items-center">
-                    <div class="flex-shrink-0 h-10 w-10">
-                        <div class="h-10 w-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center">
-                            <span class="text-sm font-medium text-white">${review.userName ? review.userName.charAt(0).toUpperCase() : 'U'}</span>
+                    <div class="flex-shrink-0 h-12 w-12">
+                        <div class="h-12 w-12 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                            <i class="fas fa-shopping-bag text-white text-lg"></i>
                         </div>
                     </div>
                     <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-900">${review.userName || 'Unknown'}</div>
+                        <div class="text-sm font-medium text-gray-900">Đơn hàng #${orderGroup.orderId}</div>
+                        <div class="text-sm text-gray-500">${orderGroup.customerName}</div>
+                        <div class="text-xs text-gray-400">${orderGroup.customerEmail}</div>
+                        <div class="text-xs text-gray-400">${formatDate(orderGroup.orderDate)}</div>
                     </div>
                 </div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">${review.productName || 'Unknown'}</div>
-                <div class="text-sm text-gray-500">ID: ${review.productId || 'N/A'}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center">
-                    ${generateStars(review.rating)}
-                    <span class="ml-2 text-sm font-medium text-gray-900">${review.rating}/5</span>
+            <td class="px-6 py-4">
+                <div class="space-y-2">
+                    <div class="flex items-center">
+                        ${generateStars(Math.round(orderGroup.averageRating))}
+                        <span class="ml-2 text-sm font-medium text-gray-900">${orderGroup.formattedAverageRating}/5</span>
+                        <span class="ml-2 text-xs text-gray-500">(${orderGroup.totalProducts} sản phẩm)</span>
+                    </div>
+                    <div class="text-xs text-gray-600">
+                        ${orderGroup.productNames}
+                    </div>
                 </div>
-                ${review.sentiment ? 
-                    `<div class="mt-1">
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getSentimentBadgeClass(review.sentiment)}">
-                            ${getSentimentLabel(review.sentiment)}
-                        </span>
-                    </div>` : 
-                    ''
-                }
             </td>
             <td class="px-6 py-4">
                 <div class="text-sm text-gray-900 max-w-xs">
-                    ${review.comment ? 
-                        `<div class="truncate" title="${review.comment}">${review.comment}</div>` : 
+                    ${orderGroup.commonComment ? 
+                        `<div class="truncate" title="${orderGroup.commonComment}">${orderGroup.commonComment}</div>` : 
                         '<span class="text-gray-400 italic">Không có bình luận</span>'
                     }
                 </div>
             </td>
             <td class="px-4 py-4 text-center">
-                ${review.adminResponse ? 
-                    `<button onclick="viewReviewDetail(${review.id})" class="inline-flex items-center justify-center w-8 h-8 bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition-all duration-200" title="Đã phản hồi - Click để xem chi tiết">
+                ${orderGroup.hasAdminResponse ? 
+                    `<div class="inline-flex items-center justify-center w-8 h-8 bg-green-100 text-green-600 rounded-full" title="Đã phản hồi">
                         <i class="fas fa-check text-sm"></i>
-                    </button>` : 
-                    `<button onclick="viewReviewDetail(${review.id})" class="inline-flex items-center justify-center w-8 h-8 bg-orange-100 hover:bg-orange-200 text-orange-600 rounded-full transition-all duration-200 animate-pulse" title="Chưa có phản hồi - Click để xem chi tiết">
-                        <i class="fas fa-reply text-sm"></i>
-                    </button>`
+                    </div>` : 
+                    `<div class="inline-flex items-center justify-center w-8 h-8 bg-orange-100 text-orange-600 rounded-full animate-pulse" title="Chưa có phản hồi">
+                        <i class="fas fa-clock text-sm"></i>
+                    </div>`
                 }
             </td>
             <td class="px-3 py-4 whitespace-nowrap text-center">
                 <div class="flex items-center justify-center space-x-1">
-                    <button onclick="viewReviewDetail(${review.id})" class="p-1.5 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded-md transition-all duration-150" title="Xem chi tiết">
+                    <button onclick="viewOrderReviewDetail('${orderGroup.orderId}')" class="p-1.5 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded-md transition-all duration-150" title="Xem chi tiết">
                         <i class="fas fa-eye text-xs"></i>
                     </button>
-                    <button onclick="deleteReview(${review.id})" class="p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md transition-all duration-150" title="Xóa đánh giá">
-                        <i class="fas fa-trash text-xs"></i>
-                    </button>
+                    ${!orderGroup.hasAdminResponse ? 
+                        `<button onclick="addOrderAdminResponse('${orderGroup.orderId}')" class="p-1.5 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-md transition-all duration-150" title="Thêm phản hồi">
+                            <i class="fas fa-reply text-xs"></i>
+                        </button>` :
+                        `<button onclick="editOrderAdminResponse('${orderGroup.orderId}')" class="p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md transition-all duration-150" title="Sửa phản hồi">
+                            <i class="fas fa-edit text-xs"></i>
+                        </button>
+                        <button onclick="removeOrderAdminResponse('${orderGroup.orderId}')" class="p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md transition-all duration-150" title="Xóa phản hồi">
+                            <i class="fas fa-trash text-xs"></i>
+                        </button>`
+                    }
                 </div>
             </td>
             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                <div>${formatDate(review.createdAt)}</div>
-                <div class="text-xs">${formatTime(review.createdAt)}</div>
-            </td>
-            <td class="px-4 py-4 whitespace-nowrap">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${review.verified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
-                    <i class="fas ${review.verified ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-1"></i>
-                    ${review.verified ? 'Đã xác minh' : 'Chưa xác minh'}
-                </span>
+                <div>${formatDate(orderGroup.createdAt)}</div>
+                <div class="text-xs">${formatTime(orderGroup.createdAt)}</div>
             </td>
         `;
         tbody.appendChild(row);
@@ -1140,13 +1134,55 @@ function renderAiSuggestions(analysis) {
         regenerateButton.className = 'mt-2 px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors duration-150';
         regenerateButton.innerHTML = '<i class="fas fa-sync-alt mr-1"></i>Tạo thêm gợi ý';
         regenerateButton.onclick = () => {
-            if (currentAdminResponseReviewId) {
+            if (currentOrderId) {
+                // Regenerate for order reviews
+                regenerateOrderAiAnalysis(currentOrderId);
+            } else if (currentAdminResponseReviewId) {
+                // Regenerate for individual review
                 fetchAiAnalysis(currentAdminResponseReviewId);
             }
         };
         suggestedRepliesDiv.appendChild(regenerateButton);
     } else {
         suggestedRepliesDiv.innerHTML = '<div class="text-sm text-blue-600 italic">Không có gợi ý nào</div>';
+    }
+}
+
+// Regenerate AI analysis for order reviews
+async function regenerateOrderAiAnalysis(orderId) {
+    const aiBox = document.getElementById('aiAssistBox');
+    const loadingIndicator = document.getElementById('aiLoadingIndicator');
+    
+    // Show loading state
+    loadingIndicator.style.display = 'block';
+    
+    // Clear previous suggestions
+    document.getElementById('aiMainIssue').innerHTML = '';
+    document.getElementById('aiSuggestedReplies').innerHTML = '';
+    
+    try {
+        // Fetch AI analysis for the order
+        const response = await fetch(`/admin/api/reviews/orders/${orderId}/analyze`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+            currentAiAnalysis = data.data;
+            renderAiSuggestions(data.data);
+        } else {
+            console.error('AI analysis failed:', data.message);
+            aiBox.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error fetching AI analysis:', error);
+        aiBox.style.display = 'none';
+    } finally {
+        loadingIndicator.style.display = 'none';
     }
 }
 
@@ -1336,4 +1372,219 @@ function addAdminResponseFromDetail() {
     closeReviewDetailModal();
     addAdminResponse(reviewId);
 }
+
+// New functions for order-grouped reviews
+let currentOrderId = null;
+
+// View order review detail
+async function viewOrderReviewDetail(orderId) {
+    try {
+        const response = await fetch(`/admin/api/reviews/orders/${orderId}`);
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+            const orderGroup = data.data;
+            
+            // Update modal title
+            document.getElementById('adminResponseModalTitle').textContent = `Đánh giá đơn hàng #${orderId}`;
+            
+            // Show order details in modal (reuse existing modal)
+            document.getElementById('reviewDetailUserName').textContent = orderGroup.customerName;
+            document.getElementById('reviewDetailUserInitial').textContent = orderGroup.customerName.charAt(0).toUpperCase();
+            document.getElementById('reviewDetailProductName').textContent = orderGroup.productNames;
+            document.getElementById('reviewDetailProductId').textContent = `Đơn hàng: ${orderId}`;
+            document.getElementById('reviewDetailRating').textContent = `${orderGroup.formattedAverageRating}/5`;
+            document.getElementById('reviewDetailStars').innerHTML = generateStars(Math.round(orderGroup.averageRating));
+            document.getElementById('reviewDetailDate').textContent = formatDate(orderGroup.orderDate);
+            document.getElementById('reviewDetailComment').textContent = orderGroup.commonComment || 'Không có bình luận';
+            
+            if (orderGroup.hasAdminResponse) {
+                document.getElementById('reviewDetailAdminResponse').textContent = orderGroup.adminResponse;
+                document.getElementById('reviewDetailAdminInfo').textContent = `- ${orderGroup.adminResponseBy} • ${formatDate(orderGroup.adminResponseAt)}`;
+                document.getElementById('reviewDetailAdminResponseSection').style.display = 'block';
+                document.getElementById('reviewDetailNoResponse').style.display = 'none';
+            } else {
+                document.getElementById('reviewDetailAdminResponseSection').style.display = 'none';
+                document.getElementById('reviewDetailNoResponse').style.display = 'block';
+            }
+            
+            document.getElementById('reviewDetailModal').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading order review detail:', error);
+        showToast('Không thể tải chi tiết đánh giá đơn hàng', 'error');
+    }
+}
+
+// Add admin response for entire order
+async function addOrderAdminResponse(orderId) {
+    currentOrderId = orderId;
+    document.getElementById('adminResponseModalTitle').textContent = `Phản hồi đơn hàng #${orderId}`;
+    document.getElementById('adminResponseText').value = '';
+    document.getElementById('adminResponseSaveText').textContent = 'Lưu phản hồi';
+    isEditingAdminResponse = false;
+    
+    // Show modal first
+    document.getElementById('adminResponseModal').style.display = 'block';
+    
+    // Show AI loading state
+    const aiBox = document.getElementById('aiAssistBox');
+    const loadingIndicator = document.getElementById('aiLoadingIndicator');
+    aiBox.style.display = 'block';
+    loadingIndicator.style.display = 'block';
+    
+    // Clear previous AI suggestions
+    document.getElementById('aiMainIssue').innerHTML = '';
+    document.getElementById('aiSuggestedReplies').innerHTML = '';
+    
+    try {
+        // Fetch AI analysis for the order
+        const response = await fetch(`/admin/api/reviews/orders/${orderId}/analyze`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+            currentAiAnalysis = data.data;
+            renderAiSuggestions(data.data);
+        } else {
+            console.error('AI analysis failed:', data.message);
+            aiBox.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error fetching AI analysis:', error);
+        aiBox.style.display = 'none';
+    } finally {
+        loadingIndicator.style.display = 'none';
+    }
+}
+
+// Edit admin response for entire order
+async function editOrderAdminResponse(orderId) {
+    try {
+        const response = await fetch(`/admin/api/reviews/orders/${orderId}`);
+        const data = await response.json();
+        
+        if (data.success && data.data && data.data.hasAdminResponse) {
+            currentOrderId = orderId;
+            document.getElementById('adminResponseModalTitle').textContent = `Sửa phản hồi đơn hàng #${orderId}`;
+            document.getElementById('adminResponseText').value = data.data.adminResponse;
+            document.getElementById('adminResponseSaveText').textContent = 'Cập nhật phản hồi';
+            isEditingAdminResponse = true;
+            document.getElementById('adminResponseModal').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading order admin response:', error);
+        showToast('Không thể tải phản hồi hiện tại', 'error');
+    }
+}
+
+// Remove admin response for entire order
+async function removeOrderAdminResponse(orderId) {
+    if (!confirm('Bạn có chắc chắn muốn xóa phản hồi cho tất cả đánh giá trong đơn hàng này?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/api/reviews/orders/${orderId}/response`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast('Phản hồi đã được xóa thành công', 'success');
+            loadReviews();
+        } else {
+            showToast(data.message || 'Có lỗi xảy ra khi xóa phản hồi', 'error');
+        }
+    } catch (error) {
+        console.error('Error removing order admin response:', error);
+        showToast('Có lỗi xảy ra khi xóa phản hồi', 'error');
+    }
+}
+
+// Update saveAdminResponse to handle order responses
+async function saveAdminResponse() {
+    const adminResponse = document.getElementById('adminResponseText').value.trim();
+    
+    if (!adminResponse) {
+        showToast('Vui lòng nhập nội dung phản hồi', 'warning');
+        return;
+    }
+    
+    if (adminResponse.length > 1000) {
+        showToast('Nội dung phản hồi không được vượt quá 1000 ký tự', 'warning');
+        return;
+    }
+    
+    try {
+        let url, method;
+        
+        if (currentOrderId) {
+            // Handle order response
+            if (isEditingAdminResponse) {
+                url = `/admin/api/reviews/orders/${currentOrderId}/response`;
+                method = 'PUT';
+            } else {
+                url = `/admin/api/reviews/orders/${currentOrderId}/respond`;
+                method = 'POST';
+            }
+        } else {
+            // Handle individual review response (fallback)
+            if (isEditingAdminResponse) {
+                url = `/admin/api/reviews/${currentAdminResponseReviewId}/response`;
+                method = 'PUT';
+            } else {
+                url = `/admin/api/reviews/${currentAdminResponseReviewId}/respond`;
+                method = 'POST';
+            }
+        }
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                adminResponse: adminResponse
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast(data.message || 'Phản hồi đã được lưu thành công', 'success');
+            closeAdminResponseModal();
+            loadReviews();
+        } else {
+            showToast(data.message || 'Có lỗi xảy ra khi lưu phản hồi', 'error');
+        }
+    } catch (error) {
+        console.error('Error saving admin response:', error);
+        showToast('Có lỗi xảy ra khi lưu phản hồi', 'error');
+    }
+}
+
+// Update closeAdminResponseModal to reset currentOrderId
+function closeAdminResponseModal() {
+    document.getElementById('adminResponseModal').style.display = 'none';
+    document.getElementById('adminResponseText').value = '';
+    currentAdminResponseReviewId = null;
+    currentOrderId = null;
+    isEditingAdminResponse = false;
+    currentAiAnalysis = null;
+    
+    // Hide AI assist box
+    document.getElementById('aiAssistBox').style.display = 'none';
+}
 </script>
+
+</div>

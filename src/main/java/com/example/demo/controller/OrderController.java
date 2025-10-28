@@ -12,6 +12,7 @@ import com.example.demo.entity.enums.PaymentMethod;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.OrderService;
 import com.example.demo.service.PaymentService;
+import com.example.demo.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -54,6 +55,9 @@ public class OrderController extends BaseController {
     
     @Autowired
     private PaymentService paymentService;
+    
+    @Autowired
+    private ReviewService reviewService;
     
     /**
      * Display user's orders page
@@ -814,5 +818,55 @@ public class OrderController extends BaseController {
         }
         
         return null; // All validations passed
+    }
+    
+    /**
+     * Get reviews for a specific order
+     */
+    @GetMapping("/api/orders/{orderId}/reviews")
+    @ResponseBody
+    @Operation(
+        summary = "Lấy đánh giá của đơn hàng",
+        description = "Lấy tất cả đánh giá của các sản phẩm trong đơn hàng"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lấy đánh giá thành công"),
+        @ApiResponse(responseCode = "404", description = "Đơn hàng không tồn tại"),
+        @ApiResponse(responseCode = "403", description = "Không có quyền truy cập đơn hàng này")
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<ResponseWrapper<List<com.example.demo.dto.ReviewResponse>>> getOrderReviews(
+            @PathVariable String orderId,
+            Authentication authentication) {
+        
+        try {
+            logger.info("User {} getting reviews for order: {}", authentication.getName(), orderId);
+            
+            // Get user
+            User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            // Get order and verify ownership
+            OrderDTO orderDTO = orderService.getOrderById(orderId);
+            if (orderDTO == null) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            // Check if user owns this order
+            if (!orderDTO.getUserId().equals(user.getId())) {
+                return ResponseEntity.status(403)
+                    .body(ResponseWrapper.error("Bạn không có quyền xem đánh giá của đơn hàng này"));
+            }
+            
+            // Get reviews for this order - use ReviewService instead
+            List<com.example.demo.dto.ReviewResponse> reviews = reviewService.getReviewsByOrderId(orderId);
+            
+            return ResponseEntity.ok(ResponseWrapper.success(reviews));
+            
+        } catch (Exception e) {
+            logger.error("Error getting reviews for order {}: {}", orderId, e.getMessage(), e);
+            return ResponseEntity.badRequest()
+                .body(ResponseWrapper.error("Không thể lấy đánh giá đơn hàng: " + e.getMessage()));
+        }
     }
 }
