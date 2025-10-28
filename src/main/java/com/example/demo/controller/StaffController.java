@@ -69,6 +69,7 @@ public class StaffController extends BaseController {
                 return "redirect:/login";
             }
             log.info("Loading chat interface for staff ID: {}", staffId);
+            log.info("📤 Passing staffId to template: {}", staffId);
             
             model.addAttribute("pageTitle", "Hỗ trợ khách hàng - Staff Portal");
             model.addAttribute("currentPath", "/staff/chat");

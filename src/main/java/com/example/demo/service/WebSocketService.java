@@ -241,6 +241,42 @@ public class WebSocketService {
     }
 
     /**
+     * Send personal chat update to specific user
+     * @param userId User ID to send to
+     * @param updateType Type of update
+     * @param data Update data
+     */
+    public void sendPersonalChatUpdate(Long userId, String updateType, Object data) {
+        if (userId == null || updateType == null) {
+            log.warn("Cannot send personal chat update: userId or updateType is null");
+            return;
+        }
+        
+        try {
+            ChatUpdatePayload payload = new ChatUpdatePayload(
+                updateType,
+                data,
+                LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            );
+            
+            String destination = "/user/" + userId.toString() + "/queue/chat-updates";
+            log.info("📤 Sending personal chat update to destination: {}", destination);
+            log.info("📤 Update type: {}, Data: {}", updateType, data);
+            
+            messagingTemplate.convertAndSendToUser(
+                userId.toString(),
+                "/queue/chat-updates",
+                payload
+            );
+            
+            log.info("✅ Personal chat update sent to user {}: {}", userId, updateType);
+            
+        } catch (Exception e) {
+            log.error("❌ Error sending personal chat update to user {}: {}", userId, e.getMessage(), e);
+        }
+    }
+
+    /**
      * Send chat message to conversation participants
      * SIMPLIFIED ROUTING: Only send to conversation topic to ensure all participants receive messages
      * @param chatMessage Chat message DTO
@@ -260,11 +296,12 @@ public class WebSocketService {
             String conversationTopic = "/topic/chat/" + conversationId;
             messagingTemplate.convertAndSend(conversationTopic, chatMessage);
             
-            log.info("📤 Chat message sent to conversation topic {}: {} (AI: {}, Sender: {}, Receiver: {})", 
+            log.info("📤 Chat message sent to conversation topic {}: {} (AI: {}, Sender: {} [{}], Receiver: {})", 
                 conversationTopic,
                 chatMessage.getContent().substring(0, Math.min(50, chatMessage.getContent().length())), 
                 chatMessage.getIsAiGenerated(),
                 chatMessage.getSenderId(),
+                chatMessage.getSenderName(),
                 chatMessage.getReceiverId());
             
             // OPTIONAL: Broadcast to chat-updates for additional notification purposes

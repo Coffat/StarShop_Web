@@ -294,6 +294,6 @@ const preloadResource = (href, as, type = null) => {
     document.head.appendChild(link);
 };
 
-// Preload fonts
-preloadResource('https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxK.woff2', 'font', 'font/woff2');
+// Note: Font preloading is already handled in HTML head (line 99)
+// No need to preload again via JavaScript
 </script>

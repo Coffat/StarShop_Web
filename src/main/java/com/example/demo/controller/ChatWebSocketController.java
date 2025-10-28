@@ -82,10 +82,14 @@ public class ChatWebSocketController {
             }
             
             // Send message through chat service
+            log.info("🚀 Calling chatService.sendMessage() at {}", System.currentTimeMillis());
             ChatMessageDTO sentMessage = chatService.sendMessage(message);
             
             // WebSocket service will broadcast to conversation participants
-            log.info("Chat message processed successfully, ID: {}", sentMessage.getId());
+            log.info("✅ Chat message processed successfully, ID: {}, SenderName: {}, broadcasted at {}", 
+                sentMessage.getId(), 
+                sentMessage.getSenderName(),
+                System.currentTimeMillis());
             
         } catch (Exception e) {
             log.error("Error processing chat message via WebSocket", e);

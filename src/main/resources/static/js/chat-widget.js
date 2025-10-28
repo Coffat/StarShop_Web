@@ -36,6 +36,7 @@ function getCsrfToken() {
  * Initialize chat widget on page load
  */
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Chat widget DOMContentLoaded - initializing...');
     // Check if user is logged in
     fetch('/api/auth/me')
         .then(response => {
@@ -48,10 +49,20 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.data) {
                 chatWidgetUserId = data.data.id;
                 chatWidgetUserName = data.data.firstname + ' ' + data.data.lastname;
-                initializeChatWidget();
+                console.log('✅ User authenticated, userId:', chatWidgetUserId);
+                
+                // Initialize in try-catch to prevent errors from hiding widget
+                try {
+                    initializeChatWidget();
+                } catch (e) {
+                    console.error('Error initializing chat widget:', e);
+                }
+            } else {
+                throw new Error('No user data');
             }
         })
         .catch(error => {
+            console.log('❌ User not authenticated, hiding chat widget:', error.message);
             // Hide chat widget if not logged in
             const chatWidget = document.getElementById('chatWidget');
             if (chatWidget) {
@@ -75,6 +86,14 @@ function initializeChatWidget() {
  * Connect to WebSocket
  */
 function connectChatWidget() {
+    // Check if SockJS and Stomp are loaded
+    if (typeof SockJS === 'undefined' || typeof Stomp === 'undefined') {
+        console.log('⏳ WebSocket libraries not loaded yet, retrying in 100ms...');
+        setTimeout(connectChatWidget, 100);
+        return;
+    }
+    
+    console.log('✅ SockJS and Stomp loaded, connecting...');
     const socket = new SockJS('/ws');
     chatWidgetStompClient = Stomp.over(socket);
     
@@ -84,9 +103,10 @@ function connectChatWidget() {
     chatWidgetStompClient.connect({}, function(frame) {
         chatWidgetIsConnected = true;
         updateChatWidgetStatus('online');
+        console.log('🔌 WebSocket connected for chat widget');
+        console.log('📋 Current conversationId:', chatWidgetConversationId);
         
-        // OPTIONAL: Subscribe to personal queue for notifications (not for displaying messages)
-        // Primary message display happens via conversation topic subscription
+        // Subscribe to personal queue for messages (backup channel)
         chatWidgetStompClient.subscribe('/user/queue/chat', function(message) {
             const chatMessage = JSON.parse(message.body);
             console.log('📨 Customer received notification via personal queue:', chatMessage);
@@ -94,10 +114,37 @@ function connectChatWidget() {
             displayChatWidgetMessage(chatMessage);
         });
         
+        // CRITICAL: Subscribe to personal chat updates for conversation_assigned events
+        chatWidgetStompClient.subscribe('/user/queue/chat-updates', function(message) {
+            try {
+                const update = JSON.parse(message.body);
+                console.log('📨 Customer received personal update:', update);
+                
+                // Handle conversation_assigned event
+                if (update && update.type === 'conversation_assigned' && update.data) {
+                    if (chatWidgetConversationId && update.data.conversationId == chatWidgetConversationId) {
+                        chatWidgetConversationStatus = 'ASSIGNED';
+                        console.log('📋 Conversation assigned to staff, status updated to ASSIGNED');
+                        
+                        // CRITICAL: Ensure we're subscribed to conversation topic
+                        if (chatWidgetSubscribedConversationId !== chatWidgetConversationId) {
+                            console.log('🔄 Not subscribed yet, subscribing now to conversation:', chatWidgetConversationId);
+                            subscribeToChatWidgetConversation(chatWidgetConversationId);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Error processing personal update:', e);
+            }
+        });
+        
         // PRIMARY: Subscribe to conversation topic when conversation is loaded
         // This is the main channel for receiving all messages in the conversation
         if (chatWidgetConversationId) {
+            console.log('🔄 Auto-subscribing to conversation on connect:', chatWidgetConversationId);
             subscribeToChatWidgetConversation(chatWidgetConversationId);
+        } else {
+            console.log('⚠️ No conversationId yet, will subscribe when conversation loads');
         }
     }, function(error) {
         chatWidgetIsConnected = false;
@@ -127,7 +174,14 @@ function subscribeToChatWidgetConversation(conversationId) {
         // PRIMARY SUBSCRIPTION: This is where ALL messages arrive
         chatWidgetConversationSubscription = chatWidgetStompClient.subscribe('/topic/chat/' + conversationId, function(message) {
             const chatMessage = JSON.parse(message.body);
-            console.log('📨 Customer received message via conversation topic:', chatMessage);
+            console.log('📨 Customer received message via conversation topic:', {
+                id: chatMessage.id,
+                senderId: chatMessage.senderId,
+                senderName: chatMessage.senderName,
+                isAiGenerated: chatMessage.isAiGenerated,
+                content: chatMessage.content?.substring(0, 50),
+                timestamp: new Date().toISOString()
+            });
             
             // CRITICAL FIX: If message is from staff (not AI), update status to ASSIGNED
             // This prevents AI typing indicator from showing after staff takes over
@@ -156,6 +210,7 @@ if (!window.chatWidgetSubscribedChatUpdates) {
     try {
         const ensureConnection = () => {
             if (chatWidgetStompClient && chatWidgetIsConnected) {
+                // Subscribe to broadcast updates
                 chatWidgetStompClient.subscribe('/topic/chat-updates', function(message) {
                     try {
                         const update = JSON.parse(message.body);
@@ -198,6 +253,13 @@ if (!window.chatWidgetSubscribedChatUpdates) {
                             if (chatWidgetConversationId && update.data.conversationId == chatWidgetConversationId) {
                                 chatWidgetConversationStatus = 'ASSIGNED';
                                 console.log('📋 Conversation assigned to staff, status updated to ASSIGNED');
+                                
+                                // CRITICAL: Ensure we're subscribed to conversation topic
+                                // This handles the case where AI creates conversation and hands off to staff
+                                if (chatWidgetSubscribedConversationId !== chatWidgetConversationId) {
+                                    console.log('🔄 Not subscribed yet, subscribing now to conversation:', chatWidgetConversationId);
+                                    subscribeToChatWidgetConversation(chatWidgetConversationId);
+                                }
                             }
                         }
                     } catch (e) { /* noop */ }
@@ -733,6 +795,14 @@ function displayChatWidgetMessage(message, skipDuplicateCheck = false) {
     }
     
     console.log('✅ Displaying message:', message.id);
+    console.log('📍 Message details:', {
+        id: message.id,
+        senderId: message.senderId,
+        senderName: message.senderName,
+        isOwn: isOwn,
+        isAiGenerated: message.isAiGenerated,
+        content: message.content?.substring(0, 30)
+    });
     
     // If AI/system message arrives, ensure typing indicator is hidden
     if (!isOwn) {

@@ -24,6 +24,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -149,6 +150,19 @@ public class ChatService {
             "Bạn đã được giao cuộc hội thoại với " + conversation.getCustomer().getFullName(), 
             "conversation_assigned");
         
+        // CRITICAL: Notify customer so they can subscribe to conversation topic
+        // This ensures customer receives real-time messages from staff
+        Long customerId = conversation.getCustomer().getId();
+        Map<String, Object> customerNotificationData = new HashMap<>();
+        customerNotificationData.put("conversationId", conversation.getId());
+        customerNotificationData.put("staffId", staffId);
+        customerNotificationData.put("staffName", staff.getFullName());
+        
+        // Send to customer's personal queue
+        webSocketService.sendPersonalChatUpdate(customerId, "conversation_assigned", customerNotificationData);
+        log.info("📢 Sent conversation_assigned notification to customer {} for conversation {}", 
+            customerId, conversation.getId());
+        
         return convertToDTO(conversation);
     }
 
@@ -206,6 +220,13 @@ public class ChatService {
         
         User sender = userRepository.findById(messageDTO.getSenderId())
             .orElseThrow(() -> new RuntimeException("Sender not found"));
+        
+        log.info("🔍 DEBUG: Sender loaded from DB - ID: {}, Email: {}, FirstName: {}, LastName: {}, FullName: {}", 
+            sender.getId(), 
+            sender.getEmail(), 
+            sender.getFirstname(), 
+            sender.getLastname(), 
+            sender.getFullName());
         
         Conversation conversation = conversationRepository.findById(messageDTO.getConversationId())
             .orElseThrow(() -> new RuntimeException("Conversation not found"));
@@ -887,6 +908,11 @@ public class ChatService {
         dto.setSenderId(message.getSender().getId());
         dto.setSenderName(message.getSender().getFullName());
         dto.setSenderAvatar(message.getSender().getAvatar());
+        
+        log.debug("🔄 Converting message to DTO - MessageID: {}, SenderID: {}, SenderName: {}", 
+            message.getId(), 
+            message.getSender().getId(), 
+            message.getSender().getFullName());
         
         // FIXED: Set receiverId correctly - receiver is different from sender
         if (message.getReceiver() != null) {

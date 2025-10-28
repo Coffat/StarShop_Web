@@ -367,9 +367,11 @@
 </div>
 
 <script th:inline="none">
+// Use STAFF_ID constant already defined in layouts/staff.html
+
 function staffChat() {
     return {
-        staffId: Number(/*[[${staffId}]]*/ 10), // Force number type
+        staffId: STAFF_ID, // Use the global constant from layout
         conversations: [],
         selectedConversation: null,
         messages: [],
@@ -385,6 +387,10 @@ function staffChat() {
         currentSubscription: null,
         
         async init() {
+            console.log('🔧 Staff Chat Initialized');
+            console.log('👤 Staff ID from Thymeleaf:', this.staffId);
+            console.log('📧 Staff ID type:', typeof this.staffId);
+            
             await this.loadConversations();
             this.connectWebSocket();
             
@@ -657,6 +663,14 @@ function staffChat() {
                     content: messageContent,
                     messageType: 'TEXT'
                 };
+                
+                console.log('🚀 SENDING MESSAGE:', {
+                    staffId: this.staffId,
+                    senderId: messageDTO.senderId,
+                    conversationId: messageDTO.conversationId,
+                    receiverId: messageDTO.receiverId,
+                    content: messageDTO.content.substring(0, 50)
+                });
                 
                 let sentMessage = null;
                 
