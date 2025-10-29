@@ -8,10 +8,14 @@ let currentPage = 0;
 let currentStatus = 'all';
 const pageSize = 10;
 
-// Helper to get translation
+// Helper to get translation (falls back when missing)
 function t(key, fallback) {
     if (typeof window.languageSwitcher !== 'undefined' && window.languageSwitcher && typeof window.languageSwitcher.translate === 'function') {
-        return window.languageSwitcher.translate(key);
+        const translated = window.languageSwitcher.translate(key);
+        // If translation system returns the key (missing), use fallback
+        if (translated && translated !== key) {
+            return translated;
+        }
     }
     return fallback || key;
 }
@@ -73,7 +77,7 @@ function getStatusBadge(status) {
     };
     
     const statusInfo = statusMap[status] || statusMap['PENDING'];
-    const text = t(statusInfo.textKey, statusInfo.textKey);
+    const text = t(statusInfo.textKey, statusInfo.textKey === 'received' ? 'Đã nhận hàng' : statusInfo.textKey);
     return `
         <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border ${statusInfo.class}">
             <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -129,15 +133,38 @@ function getActionButtons(order) {
     if (order.status === 'COMPLETED') {
         buttons.push(`
             <button onclick="confirmOrderReceived('${order.id}')" 
-                    class="group relative px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-green-200">
-                <div class="flex items-center justify-center gap-2">
+                    class="group relative px-8 py-4 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-600 text-white rounded-3xl font-bold text-sm shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-110 hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-emerald-200 focus:ring-opacity-50 overflow-hidden">
+                <!-- Animated background -->
+                <div class="absolute inset-0 bg-gradient-to-r from-emerald-400 via-green-400 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                <!-- Shimmer effect -->
+                <div class="absolute inset-0 -top-2 -left-2 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 group-hover:animate-pulse"></div>
+                
+                <!-- Content -->
+                <div class="relative z-10 flex items-center justify-center gap-3">
+                    <!-- Icon with animation -->
                     <div class="relative">
-                        <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM3.857 9.809a.75.75 0 00-1.214-.882l-3.483-4.79 1.88-1.88a.75.75 0 10-1.06-1.061l-2.5-2.5a.75.75 0 00-1.137.089l-4 5.5a.75.75 0 001.137.89l4 5.5a.75.75 0 001.06 0 .75.75 0 00.882-1.214l1.88-1.88 3.483-4.79a.75.75 0 011.06 0 .75.75 0 00.882 1.214z" clip-rule="evenodd"/>
+                        <div class="absolute inset-0 bg-white rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-md scale-150"></div>
+                        <svg class="w-6 h-6 transition-all duration-500 group-hover:scale-125 group-hover:rotate-12" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
-                        <div class="absolute inset-0 bg-white rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
                     </div>
-                    <span class="relative z-10">Đã nhận được hàng</span>
+                    
+                    <!-- Text with subtle animation -->
+                    <span class="relative font-bold tracking-wide">
+                        <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">Đã nhận</span>
+                        <span class="inline-block transition-transform duration-300 group-hover:-translate-x-1">hàng</span>
+                    </span>
+                    
+                    <!-- Arrow icon -->
+                    <svg class="w-4 h-4 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-110" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                
+                <!-- Ripple effect on click -->
+                <div class="absolute inset-0 rounded-3xl overflow-hidden">
+                    <div class="absolute inset-0 bg-white opacity-0 group-active:opacity-20 group-active:animate-ping"></div>
                 </div>
             </button>
         `);
