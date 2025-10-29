@@ -541,6 +541,27 @@
 		// Include CSRF header for Spring Security to avoid 403
 		const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
 		const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+		// Compute current subtotal based on selected items (same logic as order summary)
+		let orderAmountForVoucher = 0;
+		try {
+			const selectedCartItems = sessionStorage.getItem('selectedCartItems');
+			const selectedProductIds = selectedCartItems ? JSON.parse(selectedCartItems) : null;
+			const itemsToCalculate = (cartData && cartData.items) ? (
+				(selectedProductIds && selectedProductIds.length > 0)
+					? cartData.items.filter(function(item){
+						const productId = item.productId || (item.product && item.product.id);
+						return selectedProductIds.includes(productId);
+					})
+					: cartData.items
+			) : [];
+			orderAmountForVoucher = (itemsToCalculate || []).reduce(function(acc, it){
+				const unitPrice = getFirstNumber(it.unitPrice, it.price, it.productPrice, it.salePrice, it.finalPrice, it?.product?.price, it?.product?.salePrice);
+				const quantity = getFirstNumber(it.quantity, it.qty, it.count, 1);
+				const lineTotal = getFirstNumber(it.totalPrice, it.lineTotal, it.amount, it.totalAmount, unitPrice * quantity);
+				return acc + lineTotal;
+			}, 0);
+		} catch(_) { orderAmountForVoucher = cartData && cartData.totalAmount ? cartData.totalAmount : 0; }
+
 		fetch('/api/vouchers/apply', {
 			method: 'POST',
 			headers: (function(){
@@ -549,7 +570,7 @@
 				return h;
 			})(),
 			credentials: 'same-origin',
-			body: JSON.stringify({ code, orderAmount: cartData.totalAmount })
+			body: JSON.stringify({ code, orderAmount: orderAmountForVoucher })
 		})
 		.then(r => r.json())
 		.then(res => {
