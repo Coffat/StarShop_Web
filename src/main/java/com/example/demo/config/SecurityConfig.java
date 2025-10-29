@@ -81,7 +81,7 @@ public class SecurityConfig {
                 .requestMatchers("/oauth2/authorization/**").permitAll()
                 
                 // Static resources
-                .requestMatchers("/static/**", "/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/static/**", "/css/**", "/js/**", "/images/**", "/uploads/**").permitAll()
                 .requestMatchers("/login", "/register", "/forgot-password", "/reset-password", "/logout").permitAll()
                 
                 // Swagger UI and API Docs
@@ -205,8 +205,10 @@ public class SecurityConfig {
             .exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint((request, response, authException) -> {
                     try {
-                        // Check if this is an API request
-                        if (request.getRequestURI().startsWith("/api/")) {
+                        // Check if this is an API request (including admin API endpoints)
+                        if (request.getRequestURI().startsWith("/api/") || 
+                            request.getRequestURI().startsWith("/admin/") && request.getRequestURI().contains("/api/") ||
+                            request.getRequestURI().startsWith("/staff/") && request.getRequestURI().contains("/api/")) {
                             response.setStatus(401);
                             response.setContentType("application/json;charset=UTF-8");
                             response.getWriter().write("{\"success\":false,\"message\":\"Vui lòng đăng nhập để sử dụng tính năng này\"}");

@@ -581,6 +581,13 @@ public class ProductService {
      * Save uploaded image file
      */
     private String saveImage(MultipartFile image) throws IOException {
+        // Validate file size (50MB = 50 * 1024 * 1024 bytes)
+        long maxFileSize = 50L * 1024 * 1024; // 50MB in bytes
+        if (image.getSize() > maxFileSize) {
+            throw new IllegalArgumentException("Kích thước file không được vượt quá 50MB. Kích thước hiện tại: " + 
+                String.format("%.2f MB", image.getSize() / (1024.0 * 1024.0)));
+        }
+        
         // Create upload directory if not exists
         Path uploadPath = Paths.get(uploadDir);
         if (!Files.exists(uploadPath)) {

@@ -685,7 +685,7 @@
                             </label>
                             <input type="file" id="productImage" name="image" accept="image/*"
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <p class="mt-1 text-xs text-gray-500">Định dạng: JPG, PNG, GIF. Tối đa 5MB.</p>
+                            <p class="mt-1 text-xs text-gray-500">Định dạng: JPG, PNG, GIF. Tối đa 50MB.</p>
                             <div id="imagePreview" class="mt-3 hidden">
                                 <img id="previewImg" class="h-32 w-32 object-cover rounded-lg border border-gray-300" alt="Preview">
                             </div>
@@ -1184,13 +1184,26 @@
                 body: formData
                 // Note: Don't set Content-Type header for FormData, browser will set it with boundary
             })
-            .then(response => response.json())
+            .then(response => {
+                if (response.status === 401) {
+                    // Handle authentication error
+                    if (typeof showError === 'function') {
+                        showError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                    }
+                    // Redirect to login after a short delay
+                    setTimeout(() => {
+                        window.location.href = '/login?error=session_expired';
+                    }, 2000);
+                    return;
+                }
+                return response.json();
+            })
             .then(data => {
-                if (data.error) {
+                if (data && data.error) {
                     if (typeof showError === 'function') {
                         showError('Lỗi: ' + data.error);
                     }
-                } else {
+                } else if (data && data.success) {
                     if (typeof showSuccess === 'function') {
                         showSuccess(isEditMode ? 'Cập nhật sản phẩm thành công!' : 'Thêm sản phẩm thành công!');
                     }
