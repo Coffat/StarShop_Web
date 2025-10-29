@@ -186,49 +186,6 @@ public class ReviewService {
         return savedReview;
     }
 
-    /**
-     * Tạo đánh giá cho tất cả sản phẩm trong một đơn hàng (theo danh sách OrderItem)
-     */
-    @Transactional
-    public List<Review> createReviewsForOrder(Long userId, String orderId, Integer rating, String comment) {
-        if (userId == null || orderId == null || rating == null || rating < 1 || rating > 5) {
-            throw new IllegalArgumentException("Thông tin đánh giá không hợp lệ");
-        }
-
-        // Lấy toàn bộ order items của orderId
-        List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
-        if (items == null || items.isEmpty()) {
-            return List.of();
-        }
-
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
-
-        List<Review> created = new java.util.ArrayList<>();
-        for (OrderItem item : items) {
-            // Kiểm tra quyền review theo từng orderItem
-            String errorReason = canUserReviewOrderItemWithReason(userId, item.getId());
-            if (errorReason != null) {
-                // Bỏ qua item không đủ điều kiện hoặc đã review
-                continue;
-            }
-
-            // Tạo review cho từng item
-            Product product = item.getProduct();
-            product.getName(); // ensure loaded
-
-            Review review = new Review();
-            review.setUser(user);
-            review.setProduct(product);
-            review.setRating(rating);
-            review.setComment(comment != null ? comment.trim() : null);
-            review.setOrderItem(item);
-
-            created.add(reviewRepository.save(review));
-        }
-
-        return created;
-    }
 
     /**
      * Delete a review (user can delete their own, admin can delete any)

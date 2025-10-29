@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.OrderDTO;
+import com.example.demo.dto.OrderItemDTO;
 import com.example.demo.dto.OrderRequest;
 import com.example.demo.dto.OrderResponse;
 import com.example.demo.dto.shipping.ShippingFeeResponse;
@@ -66,6 +67,9 @@ public class OrderService {
     
     @Autowired
     private com.example.demo.repository.ReviewRepository reviewRepository;
+    
+    @Autowired
+    private ReviewService reviewService;
     
     /**
      * Create order from user's cart
@@ -406,8 +410,25 @@ public class OrderService {
                 return OrderResponse.error("Bạn không có quyền xem đơn hàng này");
             }
             
-            logger.info("Successfully retrieved order {} for user {}", orderId, userId);
-            return OrderResponse.success("Lấy thông tin đơn hàng thành công", OrderDTO.fromOrder(order));
+            // Convert to DTO and add review information for each order item
+            OrderDTO orderDTO = OrderDTO.fromOrder(order);
+            
+            // Add review information for each order item
+            if (orderDTO.getOrderItems() != null) {
+                for (OrderItemDTO item : orderDTO.getOrderItems()) {
+                    // Check if this order item can be reviewed
+                    String reviewReason = reviewService.canUserReviewOrderItemWithReason(userId, item.getId());
+                    item.setCanReview(reviewReason == null);
+                    item.setReviewReason(reviewReason);
+                    
+                    // Check if this order item has been reviewed
+                    boolean reviewed = reviewRepository.existsByOrderItemId(item.getId());
+                    item.setReviewed(reviewed);
+                }
+            }
+            
+            logger.info("Successfully retrieved order {} for user {} with review info", orderId, userId);
+            return OrderResponse.success("Lấy thông tin đơn hàng thành công", orderDTO);
             
         } catch (Exception e) {
             logger.error("Error getting order {} for user {}: {}", orderId, userId, e.getMessage());

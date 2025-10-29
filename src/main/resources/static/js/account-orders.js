@@ -16,15 +16,6 @@ function t(key, fallback) {
     return fallback || key;
 }
 
-// Review modal variables
-let currentReviewData = {
-	orderId: null,
-	productId: null,
-	orderItemId: null,
-	productName: '',
-	productImage: ''
-};
-let selectedRating = 0;
 
 // Format currency VND
 function formatCurrency(amount) {
@@ -174,22 +165,6 @@ function getActionButtons(order) {
                     </div>
                 </button>
             `);
-        } else {
-            // Show "Review" button
-            buttons.push(`
-                <button onclick="openReviewModal(${order.id}, ${order.orderItems[0].productId}, ${order.orderItems[0].id}, '${order.orderItems[0].productName}', '${order.orderItems[0].productImage}')" 
-                        class="group relative px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-2xl font-semibold hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-amber-100">
-                    <div class="flex items-center justify-center gap-2">
-                        <div class="relative">
-                            <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"/>
-                            </svg>
-                            <div class="absolute inset-0 bg-amber-400 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
-                        </div>
-                        <span class="relative z-10">${t('review', 'Đánh giá')}</span>
-                    </div>
-                </button>
-            `);
         }
     }
     
@@ -247,12 +222,11 @@ function renderOrderCard(order) {
                                 </svg> Xem đánh giá
                             </button>
                         ` : `
-                            <button onclick="openReviewModal(${order.id}, ${item.productId}, ${item.id}, '${item.productName}', '${item.productImage || '/images/placeholder.jpg'}')" 
-                                    class="mt-2 px-3 py-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-medium rounded-lg hover:shadow-md transition-all">
-                                <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <span class="mt-2 px-3 py-1.5 bg-gray-100 text-gray-500 text-xs font-medium rounded-lg">
+                                <svg class="w-4 h-4 mr-1 inline" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"/>
-                                </svg> ${t('review', 'Đánh giá')}
-                            </button>
+                                </svg> Đánh giá từng sản phẩm
+                            </span>
                         `}
                     ` : ''}
                 </div>
@@ -610,7 +584,8 @@ function reviewOrder(orderId) {
                 return;
             }
 
-            openReviewModal(productId, orderItemId, productName, productImage);
+            // Redirect to order detail page for individual product review
+            window.location.href = `/orders/${orderId}`;
         })
         .catch((err) => {
             console.error('reviewOrder error:', err);
@@ -702,192 +677,6 @@ function showToast(message, type = 'info') {
     }, 3000);
 }
 
-// ==================== REVIEW MODAL FUNCTIONS ====================
-
-// Open review modal
-async function openReviewModal(orderId, productId, orderItemId, productName, productImage) {
-    currentReviewData = {
-        orderId: orderId,
-        productId: productId,
-        orderItemId: orderItemId,
-        productName: productName,
-        productImage: productImage
-    };
-    
-    // Reset form
-    selectedRating = 0;
-    // Load up to 4 product thumbnails for this order
-    try {
-        const res = await fetch(`/api/orders/${orderId}`);
-        const payload = await res.json();
-        // API shape: ResponseWrapper<OrderResponse>
-        // payload.data -> OrderResponse; OrderResponse.order -> OrderDTO; OrderDTO.orderItems -> list
-        const orderResponse = payload && payload.data ? payload.data : null;
-        const orderDTO = orderResponse && orderResponse.order ? orderResponse.order : null;
-        const items = (orderDTO && (orderDTO.orderItems || orderDTO.items)) || [];
-
-        const preview = document.getElementById('reviewProductsPreview');
-        const grid = document.getElementById('reviewProductsGrid');
-        const count = document.getElementById('reviewProductsCount');
-
-        if (Array.isArray(items) && items.length > 0) {
-            const top4 = items.slice(0, 4);
-            grid.innerHTML = top4.map(it => {
-                const img = it.productImage || (it.product && it.product.image) || '/images/placeholder.jpg';
-                const name = it.productName || (it.product && it.product.name) || '';
-                return `
-                    <div class="flex flex-col items-center text-center">
-                        <img src="${img}" alt="${name}" class="w-20 h-20 object-cover rounded-lg mb-2" onerror="this.src='/images/placeholder.jpg'">
-                        <span class="text-xs text-gray-700 line-clamp-2">${name}</span>
-                    </div>
-                `;
-            }).join('');
-            count.textContent = items.length > 4 ? `+${items.length - 4} sản phẩm nữa` : '';
-            preview.classList.remove('hidden');
-        } else {
-            preview.classList.add('hidden');
-        }
-    } catch (e) {
-        const preview = document.getElementById('reviewProductsPreview');
-        if (preview) preview.classList.add('hidden');
-    }
-    document.getElementById('reviewComment').value = '';
-    document.getElementById('commentCount').textContent = '0/1000';
-    
-    // Reset stars
-    const starButtons = document.querySelectorAll('.star-btn');
-    starButtons.forEach(btn => {
-        btn.classList.remove('text-yellow-400');
-        btn.classList.add('text-gray-300');
-        // Keep the SVG structure, just change color
-    });
-    
-    document.getElementById('ratingText').textContent = t('choose-rating', 'Chọn số sao để đánh giá');
-    document.getElementById('submitReviewBtn').disabled = true;
-    
-    // Show modal with Tailwind classes
-    const modal = document.getElementById('reviewModal');
-    const modalDialog = document.getElementById('modalDialog');
-    const modalBackdrop = document.getElementById('modalBackdrop');
-    
-    modal.classList.remove('hidden');
-    
-    // Trigger animation after a small delay
-    setTimeout(() => {
-        modalDialog.classList.remove('scale-95', 'opacity-0');
-        modalDialog.classList.add('scale-100', 'opacity-100');
-        modalBackdrop.classList.add('opacity-100');
-    }, 10);
-    
-    // Add event listeners for close buttons
-    document.getElementById('closeModalBtn').onclick = closeReviewModal;
-    document.getElementById('cancelReviewBtn').onclick = closeReviewModal;
-    document.getElementById('modalBackdrop').onclick = closeReviewModal;
-    
-    // Add event listeners for star buttons
-    const starButtonsForModal = document.querySelectorAll('.star-btn');
-    starButtonsForModal.forEach((btn, index) => {
-        btn.onclick = () => selectRating(index + 1);
-    });
-}
-
-// Close review modal
-function closeReviewModal() {
-    const modal = document.getElementById('reviewModal');
-    const modalDialog = document.getElementById('modalDialog');
-    const modalBackdrop = document.getElementById('modalBackdrop');
-    
-    // Start fade out animation
-    modalDialog.classList.remove('scale-100', 'opacity-100');
-    modalDialog.classList.add('scale-95', 'opacity-0');
-    modalBackdrop.classList.remove('opacity-100');
-    
-    // Hide modal after animation
-    setTimeout(() => {
-        modal.classList.add('hidden');
-    }, 300);
-}
-
-// Handle star rating selection
-function selectRating(rating) {
-    selectedRating = rating;
-    
-    const starButtons = document.querySelectorAll('.star-btn');
-    const ratingTexts = [
-        '', 
-        t('very-poor', 'Rất tệ'), 
-        t('poor', 'Tệ'), 
-        t('average', 'Bình thường'), 
-        t('good', 'Tốt'), 
-        t('excellent', 'Rất tốt')
-    ];
-    
-    starButtons.forEach((btn, index) => {
-        if (index < rating) {
-            btn.classList.remove('text-gray-300');
-            btn.classList.add('text-yellow-400');
-        } else {
-            btn.classList.remove('text-yellow-400');
-            btn.classList.add('text-gray-300');
-        }
-    });
-    
-    document.getElementById('ratingText').textContent = ratingTexts[rating];
-    document.getElementById('submitReviewBtn').disabled = false;
-}
-
-// Submit review
-async function submitReview() {
-    if (selectedRating === 0) {
-        showToast('Vui lòng chọn số sao đánh giá', 'error');
-        return;
-    }
-    
-    const comment = document.getElementById('reviewComment').value.trim();
-    
-    try {
-        // Get CSRF token
-        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
-        
-        const headers = {
-            'Content-Type': 'application/json'
-        };
-        
-        if (csrfToken && csrfHeader) {
-            headers[csrfHeader] = csrfToken;
-        }
-        
-        // Gọi endpoint mới: đánh giá tất cả sản phẩm trong đơn hàng
-        const response = await fetch(`/api/reviews/order/${currentReviewData.orderId}`, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify({
-                rating: selectedRating,
-                comment: comment
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok && data && data.success) {
-            const createdCount = data.data && data.data.created ? data.data.created.length : 0;
-            const msg = createdCount > 0 ? `Đã tạo đánh giá cho ${createdCount} sản phẩm` : (data.message || 'Không có sản phẩm nào được tạo đánh giá');
-            showToast(msg, 'success');
-            
-            // Close modal
-            closeReviewModal();
-            
-            // Reload orders to update UI
-            loadOrders(currentStatus, currentPage);
-        } else {
-            showToast(data.message || 'Có lỗi xảy ra khi gửi đánh giá', 'error');
-        }
-    } catch (error) {
-        console.error('Error submitting review:', error);
-        showToast('Có lỗi xảy ra khi gửi đánh giá', 'error');
-    }
-}
 
 // View existing order review
 async function viewOrderReview(orderId) {

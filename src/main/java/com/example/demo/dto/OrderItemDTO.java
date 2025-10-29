@@ -22,6 +22,9 @@ public class OrderItemDTO {
     private BigDecimal price; // Price at time of order
     private BigDecimal subtotal;
     private Boolean hasReview; // Indicates if this item has been reviewed
+    private Boolean canReview; // Indicates if this item can be reviewed
+    private String reviewReason; // Reason why item cannot be reviewed
+    private Boolean reviewed; // Indicates if this item has been reviewed (alias for hasReview)
     
     // Constructors
     public OrderItemDTO() {
@@ -198,5 +201,29 @@ public class OrderItemDTO {
     
     public void setHasReview(Boolean hasReview) {
         this.hasReview = hasReview;
+    }
+    
+    public Boolean getCanReview() {
+        return canReview;
+    }
+    
+    public void setCanReview(Boolean canReview) {
+        this.canReview = canReview;
+    }
+    
+    public String getReviewReason() {
+        return reviewReason;
+    }
+    
+    public void setReviewReason(String reviewReason) {
+        this.reviewReason = reviewReason;
+    }
+    
+    public Boolean getReviewed() {
+        return reviewed;
+    }
+    
+    public void setReviewed(Boolean reviewed) {
+        this.reviewed = reviewed;
     }
 }
