@@ -1009,7 +1009,7 @@ VALUES (
     ),
     (
         'store.hotline',
-        '1900 xxxx',
+        '1900 1900',
         'STRING',
         'Số hotline'
     ),
