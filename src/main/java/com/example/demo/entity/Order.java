@@ -64,6 +64,9 @@ public class Order {
 
     @Column(name = "shipping_fee", nullable = false, precision = 10, scale = 2)
     private BigDecimal shippingFee = BigDecimal.ZERO;
+    
+    @Column(name = "received_at")
+    private LocalDateTime receivedAt; // Thời điểm user xác nhận đã nhận hàng
 
     // Relationships
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -232,5 +235,13 @@ public class Order {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+    public LocalDateTime getReceivedAt() {
+        return receivedAt;
+    }
+    
+    public void setReceivedAt(LocalDateTime receivedAt) {
+        this.receivedAt = receivedAt;
     }
 }

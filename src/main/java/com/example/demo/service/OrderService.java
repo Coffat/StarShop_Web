@@ -613,6 +613,45 @@ public class OrderService {
     }
     
     /**
+     * Confirm order received by user (Shopee-like logic)
+     * User confirms they have received the order, enabling review functionality
+     */
+    @Transactional
+    public OrderResponse confirmOrderReceived(String orderId, Long userId) {
+        try {
+            Optional<Order> orderOpt = orderRepository.findById(orderId);
+            if (orderOpt.isEmpty()) {
+                return OrderResponse.error("Đơn hàng không tồn tại");
+            }
+            
+            Order order = orderOpt.get();
+            
+            // Check if order belongs to user
+            if (!order.getUser().getId().equals(userId)) {
+                return OrderResponse.error("Bạn không có quyền xác nhận đơn hàng này");
+            }
+            
+            // Check if order is in COMPLETED status
+            if (order.getStatus() != OrderStatus.COMPLETED) {
+                return OrderResponse.error("Chỉ có thể xác nhận đơn hàng ở trạng thái Hoàn thành");
+            }
+            
+            // Update order status to RECEIVED
+            order.setStatus(OrderStatus.RECEIVED);
+            order.setReceivedAt(LocalDateTime.now());
+            
+            orderRepository.save(order);
+            
+            logger.info("User {} confirmed received order {}", userId, orderId);
+            return OrderResponse.success("Xác nhận đã nhận hàng thành công. Bạn có thể đánh giá đơn hàng này.", OrderDTO.fromOrder(order));
+            
+        } catch (Exception e) {
+            logger.error("Error confirming order received {} for user {}: {}", orderId, userId, e.getMessage());
+            return OrderResponse.error("Có lỗi xảy ra khi xác nhận đơn hàng");
+        }
+    }
+    
+    /**
      * Cancel order
      */
     public OrderResponse cancelOrder(String orderId, Long userId) {

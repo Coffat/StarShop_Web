@@ -35,6 +35,7 @@ public class OrderDTO {
     private List<OrderItemDTO> orderItems;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime receivedAt; // Thời điểm user xác nhận đã nhận hàng
     private Boolean hasReview; // Indicates if order has been reviewed
     
     // Constructors
@@ -180,6 +181,7 @@ public class OrderDTO {
             order.getUpdatedAt()
         );
         dto.setHasReview(hasReview);
+        dto.setReceivedAt(order.getReceivedAt());
         return dto;
     }
     
@@ -192,6 +194,7 @@ public class OrderDTO {
             case PROCESSING: return "Đang xử lý";
             case SHIPPED: return "Đang giao hàng";
             case COMPLETED: return "Hoàn thành";
+            case RECEIVED: return "Đã nhận hàng";
             case CANCELLED: return "Đã hủy";
             default: return status.name();
         }
@@ -399,5 +402,13 @@ public class OrderDTO {
     
     public void setHasReview(Boolean hasReview) {
         this.hasReview = hasReview;
+    }
+    
+    public LocalDateTime getReceivedAt() {
+        return receivedAt;
+    }
+    
+    public void setReceivedAt(LocalDateTime receivedAt) {
+        this.receivedAt = receivedAt;
     }
 }

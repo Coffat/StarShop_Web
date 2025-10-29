@@ -84,11 +84,11 @@ public class ReviewService {
             return "Đơn hàng không thuộc về bạn";
         }
         
-        // Check if order is completed
-        if (order.getStatus() != OrderStatus.COMPLETED) {
-            log.warn("canUserReviewOrderItem: Order {} status is {} (not COMPLETED)", 
+        // Check if order is received (Shopee-like flow: user must confirm received before reviewing)
+        if (order.getStatus() != OrderStatus.RECEIVED) {
+            log.warn("canUserReviewOrderItem: Order {} status is {} (not RECEIVED)", 
                     order.getId(), order.getStatus());
-            return "Đơn hàng chưa hoàn thành. Vui lòng đánh giá sau khi nhận được sản phẩm";
+            return "Vui lòng xác nhận đã nhận hàng trước khi đánh giá";
         }
         
         // Check if already reviewed
@@ -306,14 +306,15 @@ public class ReviewService {
 
     /**
      * Get order items that user can review
+     * Only orders with RECEIVED status can be reviewed (Shopee-like logic)
      */
     public List<OrderItem> getReviewableOrderItems(Long userId) {
         if (userId == null) {
             throw new IllegalArgumentException("User ID cannot be null");
         }
 
-        log.debug("Getting reviewable order items for user {}", userId);
-        return orderItemRepository.findCompletedOrderItemsByUser(userId, OrderStatus.COMPLETED);
+        log.debug("Getting reviewable order items for user {} (RECEIVED status only)", userId);
+        return orderItemRepository.findCompletedOrderItemsByUser(userId, OrderStatus.RECEIVED);
     }
 
     /**

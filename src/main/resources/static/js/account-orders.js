@@ -69,6 +69,11 @@ function getStatusBadge(status) {
             icon: 'check-circle-fill', 
             textKey: 'completed'
         },
+        'RECEIVED': { 
+            class: 'bg-emerald-100 text-emerald-700 border-emerald-200', 
+            icon: 'check-circle-fill', 
+            textKey: 'received'
+        },
         'CANCELLED': { 
             class: 'bg-red-100 text-red-700 border-red-200', 
             icon: 'x-circle-fill', 
@@ -129,8 +134,26 @@ function getActionButtons(order) {
         `);
     }
     
-    // Review button - for COMPLETED status
+    // Confirm received button - for COMPLETED status (Shopee-like flow)
     if (order.status === 'COMPLETED') {
+        buttons.push(`
+            <button onclick="confirmOrderReceived('${order.id}')" 
+                    class="group relative px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-green-200">
+                <div class="flex items-center justify-center gap-2">
+                    <div class="relative">
+                        <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM3.857 9.809a.75.75 0 00-1.214-.882l-3.483-4.79 1.88-1.88a.75.75 0 10-1.06-1.061l-2.5-2.5a.75.75 0 00-1.137.089l-4 5.5a.75.75 0 001.137.89l4 5.5a.75.75 0 001.06 0 .75.75 0 00.882-1.214l1.88-1.88 3.483-4.79a.75.75 0 011.06 0 .75.75 0 00.882 1.214z" clip-rule="evenodd"/>
+                        </svg>
+                        <div class="absolute inset-0 bg-white rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
+                    </div>
+                    <span class="relative z-10">Đã nhận được hàng</span>
+                </div>
+            </button>
+        `);
+    }
+    
+    // Review button - for RECEIVED status (after user confirms)
+    if (order.status === 'RECEIVED') {
         // Check if order has been reviewed
         const hasReview = order.hasReview || (order.orderItems && order.orderItems.some(item => item.hasReview));
         
@@ -170,8 +193,8 @@ function getActionButtons(order) {
         }
     }
     
-    // Reorder button - for COMPLETED or CANCELLED
-    if (order.status === 'COMPLETED' || order.status === 'CANCELLED') {
+    // Reorder button - for COMPLETED, RECEIVED or CANCELLED
+    if (order.status === 'COMPLETED' || order.status === 'RECEIVED' || order.status === 'CANCELLED') {
         const reorderText = t('reorder', 'Mua lại');
         buttons.push(`
             <button onclick="reorder(${order.id})" 
@@ -481,6 +504,60 @@ async function cancelOrder(orderId) {
                 
             } catch (error) {
                 showToast('Có lỗi xảy ra khi hủy đơn hàng', 'error');
+            }
+        }
+    });
+}
+
+// Confirm order received (Shopee-like flow)
+async function confirmOrderReceived(orderId) {
+    Swal.fire({
+        title: 'Xác nhận đã nhận hàng?',
+        text: "Sau khi xác nhận, bạn có thể đánh giá đơn hàng này.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Đã nhận hàng',
+        cancelButtonText: 'Hủy'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                console.log('Confirming order received:', orderId);
+                const response = await fetch(`/api/orders/${orderId}/confirm-received`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (!response.ok || !data.success) {
+                    const errorMsg = data.message || data.error || 'Failed to confirm order received';
+                    console.error('Error confirming order:', errorMsg);
+                    throw new Error(errorMsg);
+                }
+                
+                Swal.fire({
+                    title: 'Thành công!',
+                    text: 'Bạn đã xác nhận nhận hàng. Giờ bạn có thể đánh giá đơn hàng này.',
+                    icon: 'success',
+                    confirmButtonColor: '#10b981'
+                });
+                
+                // Reload orders to show updated status
+                loadOrders(currentStatus, currentPage);
+                
+            } catch (error) {
+                Swal.fire({
+                    title: 'Lỗi!',
+                    text: error.message || 'Có lỗi xảy ra khi xác nhận đơn hàng',
+                    icon: 'error',
+                    confirmButtonColor: '#ef4444'
+                });
             }
         }
     });
