@@ -5,6 +5,7 @@ public enum OrderStatus {
     PROCESSING("Đang xử lý", "Processing"),
     SHIPPED("Đang giao hàng", "Shipped"),
     COMPLETED("Hoàn thành", "Completed"),
+    RECEIVED("Đã nhận hàng", "Received"),
     CANCELLED("Đã hủy", "Cancelled");
 
     private final String displayName;

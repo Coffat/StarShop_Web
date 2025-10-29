@@ -514,11 +514,61 @@ public class OrderController extends BaseController {
     }
     
     /**
+     * REST API: Confirm order received by user
+     */
+    @Operation(
+        summary = "Xác nhận đã nhận hàng",
+        description = "User xác nhận đã nhận được hàng. Sau khi xác nhận, user có thể đánh giá đơn hàng.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Xác nhận thành công"),
+        @ApiResponse(responseCode = "400", description = "Không thể xác nhận (sai trạng thái hoặc không có quyền)"),
+        @ApiResponse(responseCode = "401", description = "Chưa xác thực")
+    })
+    @PutMapping("/api/orders/{orderId}/confirm-received")
+    @ResponseBody
+    public ResponseEntity<ResponseWrapper<OrderResponse>> confirmOrderReceived(
+            @Parameter(description = "ID đơn hàng cần xác nhận", required = true)
+            @PathVariable String orderId,
+            @Parameter(hidden = true) Authentication authentication) {
+        
+        try {
+            // Check authentication
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(401)
+                    .body(ResponseWrapper.error("Vui lòng đăng nhập để sử dụng tính năng này"));
+            }
+            
+            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            if (user == null) {
+                return ResponseEntity.status(401)
+                    .body(ResponseWrapper.error("Người dùng không hợp lệ"));
+            }
+            
+            // Confirm order received
+            OrderResponse orderResponse = orderService.confirmOrderReceived(orderId, user.getId());
+            
+            if (orderResponse.isSuccess()) {
+                return ResponseEntity.ok(ResponseWrapper.success(orderResponse));
+            } else {
+                return ResponseEntity.badRequest()
+                    .body(ResponseWrapper.error(orderResponse.getMessage()));
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error confirming order received {}: {}", orderId, e.getMessage());
+            return ResponseEntity.internalServerError()
+                .body(ResponseWrapper.error("Có lỗi xảy ra khi xác nhận đơn hàng"));
+        }
+    }
+    
+    /**
      * REST API: Update order status (Admin/Staff only)
      */
     @Operation(
         summary = "Cập nhật trạng thái đơn hàng (Admin/Staff)",
-        description = "Cập nhật trạng thái đơn hàng. Chỉ Admin và Staff có quyền sử dụng. Trạng thái: PENDING, PROCESSING, SHIPPING, DELIVERED, CANCELLED.",
+        description = "Cập nhật trạng thái đơn hàng. Chỉ Admin và Staff có quyền sử dụng. Trạng thái: PENDING, PROCESSING, SHIPPED, COMPLETED, RECEIVED, CANCELLED.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses(value = {
