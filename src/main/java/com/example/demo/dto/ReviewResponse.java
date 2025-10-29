@@ -19,6 +19,8 @@ public class ReviewResponse {
     private boolean isVerified; // Has orderItem (verified purchase)
     private String productName;
     private Long productId;
+    private String productImage;
+    private Long userId;
     
     // Admin response fields
     private String adminResponse;
@@ -159,5 +161,21 @@ public class ReviewResponse {
     
     public void setAdminResponseByName(String adminResponseByName) {
         this.adminResponseByName = adminResponseByName;
+    }
+    
+    public String getProductImage() {
+        return productImage;
+    }
+    
+    public void setProductImage(String productImage) {
+        this.productImage = productImage;
+    }
+    
+    public Long getUserId() {
+        return userId;
+    }
+    
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }

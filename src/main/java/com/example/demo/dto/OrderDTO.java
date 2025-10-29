@@ -35,6 +35,7 @@ public class OrderDTO {
     private List<OrderItemDTO> orderItems;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Boolean hasReview; // Indicates if order has been reviewed
     
     // Constructors
     public OrderDTO() {
@@ -150,7 +151,12 @@ public class OrderDTO {
             // Ignore lazy loading exceptions
         }
         
-        return new OrderDTO(
+        // Check if order has been reviewed
+        // Note: This will be set by the service layer using ReviewRepository
+        // We cannot check it here due to lazy loading and circular dependencies
+        boolean hasReview = false;
+        
+        OrderDTO dto = new OrderDTO(
             order.getId(),
             userId,
             userFullName,
@@ -173,6 +179,8 @@ public class OrderDTO {
             order.getCreatedAt(),
             order.getUpdatedAt()
         );
+        dto.setHasReview(hasReview);
+        return dto;
     }
     
     // Helper methods
@@ -383,5 +391,13 @@ public class OrderDTO {
     
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+    public Boolean getHasReview() {
+        return hasReview;
+    }
+    
+    public void setHasReview(Boolean hasReview) {
+        this.hasReview = hasReview;
     }
 }

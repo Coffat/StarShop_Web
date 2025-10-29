@@ -139,4 +139,24 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
                                      @Param("sentiment") String sentiment,
                                      @Param("status") String status,
                                      Pageable pageable);
+
+    /**
+     * Find reviews by order ID through order items
+     */
+    @Query("SELECT r FROM Review r " +
+           "LEFT JOIN FETCH r.user " +
+           "LEFT JOIN FETCH r.product " +
+           "LEFT JOIN FETCH r.orderItem oi " +
+           "LEFT JOIN FETCH r.adminResponseBy " +
+           "WHERE oi.order.id = :orderId " +
+           "ORDER BY r.createdAt DESC")
+    List<Review> findByOrderId(@Param("orderId") String orderId);
+    
+    /**
+     * Check if order has any reviews
+     */
+    @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END FROM Review r " +
+           "JOIN r.orderItem oi " +
+           "WHERE oi.order.id = :orderId")
+    boolean existsByOrderItemOrderId(@Param("orderId") String orderId);
 }

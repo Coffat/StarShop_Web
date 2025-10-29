@@ -60,6 +60,9 @@ public class OrderService {
     @Autowired
     private OrderIdGeneratorService orderIdGeneratorService;
     
+    @Autowired
+    private com.example.demo.repository.ReviewRepository reviewRepository;
+    
     /**
      * Create order from user's cart
      */
@@ -344,7 +347,13 @@ public class OrderService {
     public Page<OrderDTO> getUserOrders(Long userId, Pageable pageable) {
         try {
             Page<Order> orders = orderRepository.findByUserId(userId, pageable);
-            return orders.map(OrderDTO::fromOrder);
+            return orders.map(order -> {
+                OrderDTO dto = OrderDTO.fromOrder(order);
+                // Check if order has reviews
+                boolean hasReview = reviewRepository.existsByOrderItemOrderId(order.getId());
+                dto.setHasReview(hasReview);
+                return dto;
+            });
         } catch (Exception e) {
             logger.error("Error getting orders for user {}: {}", userId, e.getMessage());
             throw new RuntimeException("Có lỗi xảy ra khi lấy danh sách đơn hàng");
@@ -358,7 +367,13 @@ public class OrderService {
     public Page<OrderDTO> getUserOrdersByStatus(Long userId, OrderStatus status, Pageable pageable) {
         try {
             Page<Order> orders = orderRepository.findByUserIdAndStatus(userId, status, pageable);
-            return orders.map(OrderDTO::fromOrder);
+            return orders.map(order -> {
+                OrderDTO dto = OrderDTO.fromOrder(order);
+                // Check if order has reviews
+                boolean hasReview = reviewRepository.existsByOrderItemOrderId(order.getId());
+                dto.setHasReview(hasReview);
+                return dto;
+            });
         } catch (Exception e) {
             logger.error("Error getting orders for user {} with status {}: {}", userId, status, e.getMessage());
             throw new RuntimeException("Có lỗi xảy ra khi lấy danh sách đơn hàng");

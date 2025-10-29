@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.AdminReviewResponseRequest;
+import com.example.demo.dto.OrderReviewGroupDTO;
 import com.example.demo.dto.ResponseWrapper;
 import com.example.demo.dto.ReviewAiAnalysisResponse;
 import com.example.demo.dto.ReviewResponse;
@@ -478,6 +479,257 @@ public class StaffReviewController {
         } catch (Exception e) {
             log.error("Error exporting reviews to Excel: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Get reviews grouped by order with pagination (Staff)
+     */
+    @GetMapping("/by-orders")
+    @Operation(
+        summary = "Lấy đánh giá nhóm theo đơn hàng",
+        description = "Lấy danh sách đánh giá được nhóm theo đơn hàng với phân trang (Staff)"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lấy danh sách thành công"),
+        @ApiResponse(responseCode = "403", description = "Không có quyền truy cập")
+    })
+    public ResponseEntity<ResponseWrapper<Page<OrderReviewGroupDTO>>> getReviewsGroupedByOrder(
+            @Parameter(description = "Số trang (bắt đầu từ 0)", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Số đánh giá mỗi trang", example = "20")
+            @RequestParam(defaultValue = "20") int size,
+            @Parameter(description = "Tìm kiếm theo tên khách hàng hoặc mã đơn hàng", example = "Nguyen Van A")
+            @RequestParam(required = false) String search,
+            @Parameter(description = "Sắp xếp", example = "newest")
+            @RequestParam(defaultValue = "newest") String sort,
+            Authentication authentication) {
+        
+        try {
+            log.info("Staff {} getting reviews grouped by order: page={}, size={}, search={}, sort={}", 
+                    authentication.getName(), page, size, search, sort);
+            
+            Pageable pageable = PageRequest.of(page, size);
+            
+            // Get reviews grouped by order
+            Page<OrderReviewGroupDTO> orderReviewsPage = reviewService.getReviewsGroupedByOrder(pageable, search, sort);
+            
+            return ResponseEntity.ok(ResponseWrapper.success(orderReviewsPage));
+            
+        } catch (Exception e) {
+            log.error("Error getting reviews grouped by order: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest()
+                .body(ResponseWrapper.error("Không thể lấy danh sách đánh giá theo đơn hàng: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get order review group by order ID (Staff)
+     */
+    @GetMapping("/orders/{orderId}")
+    @Operation(
+        summary = "Lấy chi tiết đánh giá theo đơn hàng",
+        description = "Lấy chi tiết tất cả đánh giá trong một đơn hàng (Staff)"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lấy chi tiết thành công"),
+        @ApiResponse(responseCode = "403", description = "Không có quyền truy cập"),
+        @ApiResponse(responseCode = "404", description = "Đơn hàng không tồn tại hoặc chưa có đánh giá")
+    })
+    public ResponseEntity<ResponseWrapper<OrderReviewGroupDTO>> getOrderReviewGroup(
+            @PathVariable String orderId,
+            Authentication authentication) {
+        
+        try {
+            log.info("Staff {} getting order review group for order: {}", authentication.getName(), orderId);
+            
+            java.util.Optional<OrderReviewGroupDTO> orderReviewGroup = reviewService.getOrderReviewGroup(orderId);
+            
+            if (orderReviewGroup.isPresent()) {
+                return ResponseEntity.ok(ResponseWrapper.success(orderReviewGroup.get()));
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+            
+        } catch (Exception e) {
+            log.error("Error getting order review group for order {}: {}", orderId, e.getMessage(), e);
+            return ResponseEntity.badRequest()
+                .body(ResponseWrapper.error("Không thể lấy chi tiết đánh giá đơn hàng: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Add bulk admin response to all reviews in an order (Staff)
+     */
+    @PostMapping("/orders/{orderId}/respond")
+    @Operation(
+        summary = "Phản hồi tất cả đánh giá trong đơn hàng",
+        description = "Staff phản hồi cho tất cả đánh giá trong một đơn hàng cùng lúc"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Phản hồi thành công"),
+        @ApiResponse(responseCode = "400", description = "Dữ liệu không hợp lệ"),
+        @ApiResponse(responseCode = "403", description = "Không có quyền truy cập"),
+        @ApiResponse(responseCode = "404", description = "Đơn hàng không tồn tại")
+    })
+    public ResponseEntity<ResponseWrapper<OrderReviewGroupDTO>> addBulkAdminResponse(
+            @PathVariable String orderId,
+            @Valid @RequestBody AdminReviewResponseRequest request,
+            Authentication authentication) {
+        
+        try {
+            log.info("Staff {} adding bulk response to order {}", authentication.getName(), orderId);
+            
+            User staffUser = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("Staff user not found"));
+            
+            // Add bulk admin response
+            java.util.List<Review> updatedReviews = reviewService.addBulkAdminResponse(orderId, staffUser.getId(), request.getAdminResponse());
+            
+            // Get updated order review group
+            java.util.Optional<OrderReviewGroupDTO> orderReviewGroup = reviewService.getOrderReviewGroup(orderId);
+            
+            if (orderReviewGroup.isPresent()) {
+                log.info("Bulk admin response added successfully to {} reviews in order {}", updatedReviews.size(), orderId);
+                return ResponseEntity.ok(ResponseWrapper.success(orderReviewGroup.get(), 
+                    String.format("Phản hồi đã được thêm cho %d đánh giá trong đơn hàng", updatedReviews.size())));
+            } else {
+                return ResponseEntity.badRequest()
+                    .body(ResponseWrapper.error("Không thể lấy thông tin đơn hàng sau khi cập nhật"));
+            }
+            
+        } catch (Exception e) {
+            log.error("Error adding bulk admin response to order {}: {}", orderId, e.getMessage(), e);
+            return ResponseEntity.badRequest()
+                .body(ResponseWrapper.error("Không thể thêm phản hồi: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Update bulk admin response for all reviews in an order (Staff)
+     */
+    @PutMapping("/orders/{orderId}/response")
+    @Operation(
+        summary = "Cập nhật phản hồi tất cả đánh giá trong đơn hàng",
+        description = "Staff cập nhật phản hồi cho tất cả đánh giá trong một đơn hàng"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Cập nhật phản hồi thành công"),
+        @ApiResponse(responseCode = "400", description = "Dữ liệu không hợp lệ"),
+        @ApiResponse(responseCode = "403", description = "Không có quyền truy cập"),
+        @ApiResponse(responseCode = "404", description = "Đơn hàng không tồn tại")
+    })
+    public ResponseEntity<ResponseWrapper<OrderReviewGroupDTO>> updateBulkAdminResponse(
+            @PathVariable String orderId,
+            @Valid @RequestBody AdminReviewResponseRequest request,
+            Authentication authentication) {
+        
+        try {
+            log.info("Staff {} updating bulk response for order {}", authentication.getName(), orderId);
+            
+            User staffUser = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("Staff user not found"));
+            
+            // Update bulk admin response
+            java.util.List<Review> updatedReviews = reviewService.updateBulkAdminResponse(orderId, staffUser.getId(), request.getAdminResponse());
+            
+            // Get updated order review group
+            java.util.Optional<OrderReviewGroupDTO> orderReviewGroup = reviewService.getOrderReviewGroup(orderId);
+            
+            if (orderReviewGroup.isPresent()) {
+                log.info("Bulk admin response updated successfully for {} reviews in order {}", updatedReviews.size(), orderId);
+                return ResponseEntity.ok(ResponseWrapper.success(orderReviewGroup.get(), 
+                    String.format("Phản hồi đã được cập nhật cho %d đánh giá trong đơn hàng", updatedReviews.size())));
+            } else {
+                return ResponseEntity.badRequest()
+                    .body(ResponseWrapper.error("Không thể lấy thông tin đơn hàng sau khi cập nhật"));
+            }
+            
+        } catch (Exception e) {
+            log.error("Error updating bulk admin response for order {}: {}", orderId, e.getMessage(), e);
+            return ResponseEntity.badRequest()
+                .body(ResponseWrapper.error("Không thể cập nhật phản hồi: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Remove bulk admin response from all reviews in an order (Staff)
+     */
+    @DeleteMapping("/orders/{orderId}/response")
+    @Operation(
+        summary = "Xóa phản hồi tất cả đánh giá trong đơn hàng",
+        description = "Staff xóa phản hồi cho tất cả đánh giá trong một đơn hàng"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Xóa phản hồi thành công"),
+        @ApiResponse(responseCode = "403", description = "Không có quyền truy cập"),
+        @ApiResponse(responseCode = "404", description = "Đơn hàng không tồn tại")
+    })
+    public ResponseEntity<ResponseWrapper<OrderReviewGroupDTO>> removeBulkAdminResponse(
+            @PathVariable String orderId,
+            Authentication authentication) {
+        
+        try {
+            log.info("Staff {} removing bulk response from order {}", authentication.getName(), orderId);
+            
+            User staffUser = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("Staff user not found"));
+            
+            // Remove bulk admin response
+            java.util.List<Review> updatedReviews = reviewService.removeBulkAdminResponse(orderId, staffUser.getId());
+            
+            // Get updated order review group
+            java.util.Optional<OrderReviewGroupDTO> orderReviewGroup = reviewService.getOrderReviewGroup(orderId);
+            
+            if (orderReviewGroup.isPresent()) {
+                log.info("Bulk admin response removed successfully from {} reviews in order {}", updatedReviews.size(), orderId);
+                return ResponseEntity.ok(ResponseWrapper.success(orderReviewGroup.get(), 
+                    String.format("Phản hồi đã được xóa khỏi %d đánh giá trong đơn hàng", updatedReviews.size())));
+            } else {
+                return ResponseEntity.badRequest()
+                    .body(ResponseWrapper.error("Không thể lấy thông tin đơn hàng sau khi cập nhật"));
+            }
+            
+        } catch (Exception e) {
+            log.error("Error removing bulk admin response from order {}: {}", orderId, e.getMessage(), e);
+            return ResponseEntity.badRequest()
+                .body(ResponseWrapper.error("Không thể xóa phản hồi: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Analyze order reviews with AI to get sentiment and suggested replies (Staff)
+     */
+    @PostMapping("/orders/{orderId}/analyze")
+    @Operation(
+        summary = "Phân tích đánh giá đơn hàng với AI",
+        description = "Sử dụng AI để phân tích sentiment và gợi ý câu trả lời cho tất cả đánh giá trong đơn hàng"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Phân tích AI thành công"),
+        @ApiResponse(responseCode = "400", description = "Dữ liệu không hợp lệ"),
+        @ApiResponse(responseCode = "403", description = "Không có quyền truy cập"),
+        @ApiResponse(responseCode = "404", description = "Đơn hàng không tồn tại")
+    })
+    public ResponseEntity<ResponseWrapper<ReviewAiAnalysisResponse>> analyzeOrderReviews(
+            @PathVariable String orderId,
+            Authentication authentication) {
+        
+        try {
+            log.info("Staff {} analyzing order reviews for order {} with AI", authentication.getName(), orderId);
+            
+            ReviewAiAnalysisResponse analysis = adminAiInsightsService.analyzeOrderReviews(orderId);
+            
+            log.info("AI analysis completed for order {}", orderId);
+            return ResponseEntity.ok(ResponseWrapper.success(analysis, "Phân tích AI hoàn thành"));
+        } catch (IllegalArgumentException e) {
+            log.warn("Order not found: {}", orderId);
+            return ResponseEntity.status(404)
+                    .body(ResponseWrapper.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error analyzing order reviews for order {}: {}", orderId, e.getMessage(), e);
+            return ResponseEntity.status(500)
+                    .body(ResponseWrapper.error("Có lỗi xảy ra khi phân tích đánh giá: " + e.getMessage()));
         }
     }
 }

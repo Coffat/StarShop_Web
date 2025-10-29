@@ -21,6 +21,7 @@ public class OrderItemDTO {
     private Integer quantity;
     private BigDecimal price; // Price at time of order
     private BigDecimal subtotal;
+    private Boolean hasReview; // Indicates if this item has been reviewed
     
     // Constructors
     public OrderItemDTO() {
@@ -189,5 +190,13 @@ public class OrderItemDTO {
     
     public void setSubtotal(BigDecimal subtotal) {
         this.subtotal = subtotal;
+    }
+    
+    public Boolean getHasReview() {
+        return hasReview;
+    }
+    
+    public void setHasReview(Boolean hasReview) {
+        this.hasReview = hasReview;
     }
 }

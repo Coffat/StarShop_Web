@@ -500,4 +500,323 @@ public class ReviewService {
         
         return savedReview;
     }
+
+    /**
+     * Get reviews grouped by order with pagination (Admin)
+     */
+    public Page<com.example.demo.dto.OrderReviewGroupDTO> getReviewsGroupedByOrder(Pageable pageable, String search, String sort) {
+        log.debug("Getting reviews grouped by order with pagination: {}, search: {}, sort: {}", pageable, search, sort);
+        
+        // Apply sorting to pageable
+        org.springframework.data.domain.Sort sortObj;
+        switch (sort != null ? sort : "newest") {
+            case "oldest":
+                sortObj = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "createdAt");
+                break;
+            case "rating-high":
+                sortObj = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "rating");
+                break;
+            case "rating-low":
+                sortObj = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "rating");
+                break;
+            case "newest":
+            default:
+                sortObj = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt");
+                break;
+        }
+        
+        pageable = org.springframework.data.domain.PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortObj);
+        
+        // Get all reviews with filters
+        Page<Review> reviewsPage = reviewRepository.findAllWithFilters(null, search, null, null, pageable);
+        
+        // Group reviews by order
+        java.util.Map<String, java.util.List<Review>> reviewsByOrder = reviewsPage.getContent().stream()
+            .filter(review -> review.getOrderItem() != null && review.getOrderItem().getOrder() != null)
+            .collect(java.util.stream.Collectors.groupingBy(
+                review -> review.getOrderItem().getOrder().getId()
+            ));
+        
+        // Convert to OrderReviewGroupDTO
+        java.util.List<com.example.demo.dto.OrderReviewGroupDTO> orderGroups = reviewsByOrder.entrySet().stream()
+            .map(entry -> {
+                String orderId = entry.getKey();
+                java.util.List<Review> orderReviews = entry.getValue();
+                
+                if (orderReviews.isEmpty()) {
+                    return null;
+                }
+                
+                // Get order and customer info from first review
+                Review firstReview = orderReviews.get(0);
+                com.example.demo.entity.Order order = firstReview.getOrderItem().getOrder();
+                com.example.demo.entity.User customer = order.getUser();
+                
+                // Convert reviews to DTOs
+                java.util.List<com.example.demo.dto.ReviewResponse> reviewResponses = orderReviews.stream()
+                    .map(review -> new com.example.demo.dto.ReviewResponse(review, false))
+                    .collect(java.util.stream.Collectors.toList());
+                
+                // Create OrderReviewGroupDTO
+                return new com.example.demo.dto.OrderReviewGroupDTO(
+                    orderId,
+                    order.getOrderDate(),
+                    customer.getFirstname() + " " + customer.getLastname(),
+                    customer.getEmail(),
+                    customer.getId(),
+                    firstReview.getComment(), // Common comment
+                    reviewResponses
+                );
+            })
+            .filter(java.util.Objects::nonNull)
+            .sorted((a, b) -> {
+                // Apply sorting
+                switch (sort != null ? sort : "newest") {
+                    case "oldest":
+                        return a.getCreatedAt().compareTo(b.getCreatedAt());
+                    case "rating-high":
+                        return Double.compare(b.getAverageRating(), a.getAverageRating());
+                    case "rating-low":
+                        return Double.compare(a.getAverageRating(), b.getAverageRating());
+                    case "newest":
+                    default:
+                        return b.getCreatedAt().compareTo(a.getCreatedAt());
+                }
+            })
+            .collect(java.util.stream.Collectors.toList());
+        
+        // Create pageable result
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), orderGroups.size());
+        java.util.List<com.example.demo.dto.OrderReviewGroupDTO> pageContent = orderGroups.subList(start, end);
+        
+        return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, orderGroups.size());
+    }
+
+    /**
+     * Add bulk admin response to all reviews in an order
+     */
+    @Transactional
+    public java.util.List<Review> addBulkAdminResponse(String orderId, Long adminUserId, String adminResponse) {
+        if (orderId == null || adminUserId == null || adminResponse == null || adminResponse.trim().isEmpty()) {
+            throw new IllegalArgumentException("Invalid bulk admin response parameters");
+        }
+
+        log.info("Adding bulk admin response to order {} by admin {}", orderId, adminUserId);
+
+        // Get all reviews for this order
+        java.util.List<OrderItem> orderItems = orderItemRepository.findByOrderId(orderId);
+        if (orderItems.isEmpty()) {
+            throw new IllegalArgumentException("Order not found or has no items");
+        }
+
+        // Get admin user
+        User adminUser = userRepository.findById(adminUserId)
+            .orElseThrow(() -> new IllegalArgumentException("Admin user not found"));
+
+        java.util.List<Review> updatedReviews = new java.util.ArrayList<>();
+        
+        for (OrderItem orderItem : orderItems) {
+            Optional<Review> reviewOpt = reviewRepository.findByOrderItemId(orderItem.getId());
+            if (reviewOpt.isPresent()) {
+                Review review = reviewOpt.get();
+                
+                // Update review with admin response
+                review.setAdminResponse(adminResponse.trim());
+                review.setAdminResponseAt(LocalDateTime.now());
+                review.setAdminResponseBy(adminUser);
+                
+                updatedReviews.add(reviewRepository.save(review));
+            }
+        }
+
+        log.info("Bulk admin response added successfully to {} reviews in order {}", updatedReviews.size(), orderId);
+        return updatedReviews;
+    }
+
+    /**
+     * Update bulk admin response for all reviews in an order
+     */
+    @Transactional
+    public java.util.List<Review> updateBulkAdminResponse(String orderId, Long adminUserId, String adminResponse) {
+        if (orderId == null || adminUserId == null || adminResponse == null || adminResponse.trim().isEmpty()) {
+            throw new IllegalArgumentException("Invalid bulk admin response parameters");
+        }
+
+        log.info("Updating bulk admin response for order {} by admin {}", orderId, adminUserId);
+
+        // Get all reviews for this order
+        java.util.List<OrderItem> orderItems = orderItemRepository.findByOrderId(orderId);
+        if (orderItems.isEmpty()) {
+            throw new IllegalArgumentException("Order not found or has no items");
+        }
+
+        // Get admin user
+        User adminUser = userRepository.findById(adminUserId)
+            .orElseThrow(() -> new IllegalArgumentException("Admin user not found"));
+
+        java.util.List<Review> updatedReviews = new java.util.ArrayList<>();
+        
+        for (OrderItem orderItem : orderItems) {
+            Optional<Review> reviewOpt = reviewRepository.findByOrderItemId(orderItem.getId());
+            if (reviewOpt.isPresent()) {
+                Review review = reviewOpt.get();
+                
+                // Check if review has admin response
+                if (review.getAdminResponse() == null) {
+                    continue; // Skip reviews without admin response
+                }
+                
+                // Update admin response
+                review.setAdminResponse(adminResponse.trim());
+                review.setAdminResponseAt(LocalDateTime.now());
+                review.setAdminResponseBy(adminUser);
+                
+                updatedReviews.add(reviewRepository.save(review));
+            }
+        }
+
+        log.info("Bulk admin response updated successfully for {} reviews in order {}", updatedReviews.size(), orderId);
+        return updatedReviews;
+    }
+
+    /**
+     * Remove bulk admin response from all reviews in an order
+     */
+    @Transactional
+    public java.util.List<Review> removeBulkAdminResponse(String orderId, Long adminUserId) {
+        if (orderId == null || adminUserId == null) {
+            throw new IllegalArgumentException("Order ID and admin user ID cannot be null");
+        }
+
+        log.info("Removing bulk admin response from order {} by admin {}", orderId, adminUserId);
+
+        // Get all reviews for this order
+        java.util.List<OrderItem> orderItems = orderItemRepository.findByOrderId(orderId);
+        if (orderItems.isEmpty()) {
+            throw new IllegalArgumentException("Order not found or has no items");
+        }
+
+        java.util.List<Review> updatedReviews = new java.util.ArrayList<>();
+        
+        for (OrderItem orderItem : orderItems) {
+            Optional<Review> reviewOpt = reviewRepository.findByOrderItemId(orderItem.getId());
+            if (reviewOpt.isPresent()) {
+                Review review = reviewOpt.get();
+                
+                // Check if review has admin response
+                if (review.getAdminResponse() == null) {
+                    continue; // Skip reviews without admin response
+                }
+                
+                // Remove admin response
+                review.setAdminResponse(null);
+                review.setAdminResponseAt(null);
+                review.setAdminResponseBy(null);
+                
+                updatedReviews.add(reviewRepository.save(review));
+            }
+        }
+
+        log.info("Bulk admin response removed successfully from {} reviews in order {}", updatedReviews.size(), orderId);
+        return updatedReviews;
+    }
+
+    /**
+     * Get order review group by order ID
+     */
+    public Optional<com.example.demo.dto.OrderReviewGroupDTO> getOrderReviewGroup(String orderId) {
+        if (orderId == null) {
+            return Optional.empty();
+        }
+
+        log.debug("Getting order review group for order {}", orderId);
+
+        // Get all reviews for this order
+        java.util.List<OrderItem> orderItems = orderItemRepository.findByOrderId(orderId);
+        if (orderItems.isEmpty()) {
+            return Optional.empty();
+        }
+
+        java.util.List<Review> orderReviews = new java.util.ArrayList<>();
+        for (OrderItem orderItem : orderItems) {
+            Optional<Review> reviewOpt = reviewRepository.findByOrderItemId(orderItem.getId());
+            reviewOpt.ifPresent(orderReviews::add);
+        }
+
+        if (orderReviews.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // Get order and customer info from first review
+        Review firstReview = orderReviews.get(0);
+        com.example.demo.entity.Order order = firstReview.getOrderItem().getOrder();
+        com.example.demo.entity.User customer = order.getUser();
+
+        // Convert reviews to DTOs
+        java.util.List<com.example.demo.dto.ReviewResponse> reviewResponses = orderReviews.stream()
+            .map(review -> new com.example.demo.dto.ReviewResponse(review, false))
+            .collect(java.util.stream.Collectors.toList());
+
+        // Create OrderReviewGroupDTO
+        com.example.demo.dto.OrderReviewGroupDTO orderGroup = new com.example.demo.dto.OrderReviewGroupDTO(
+            orderId,
+            order.getOrderDate(),
+            customer.getFirstname() + " " + customer.getLastname(),
+            customer.getEmail(),
+            customer.getId(),
+            firstReview.getComment(), // Common comment
+            reviewResponses
+        );
+
+        return Optional.of(orderGroup);
+    }
+    
+    /**
+     * Get reviews by order ID
+     * Returns list of ReviewResponse for all reviews in the order
+     */
+    public List<com.example.demo.dto.ReviewResponse> getReviewsByOrderId(String orderId) {
+        log.debug("Getting reviews for order: {}", orderId);
+        
+        try {
+            List<Review> reviews = reviewRepository.findByOrderId(orderId);
+            
+            return reviews.stream()
+                .map(review -> {
+                    com.example.demo.dto.ReviewResponse response = new com.example.demo.dto.ReviewResponse();
+                    response.setId(review.getId());
+                    response.setRating(review.getRating());
+                    response.setComment(review.getComment());
+                    response.setCreatedAt(review.getCreatedAt());
+                    
+                    // Product info
+                    if (review.getProduct() != null) {
+                        response.setProductId(review.getProduct().getId());
+                        response.setProductName(review.getProduct().getName());
+                        response.setProductImage(review.getProduct().getImage());
+                    }
+                    
+                    // User info
+                    if (review.getUser() != null) {
+                        response.setUserId(review.getUser().getId());
+                        response.setUserName(review.getUser().getFullName());
+                    }
+                    
+                    // Admin response
+                    response.setAdminResponse(review.getAdminResponse());
+                    response.setAdminResponseAt(review.getAdminResponseAt());
+                    if (review.getAdminResponseBy() != null) {
+                        response.setAdminResponseByName(review.getAdminResponseBy().getFullName());
+                    }
+                    
+                    return response;
+                })
+                .toList();
+                
+        } catch (Exception e) {
+            log.error("Error getting reviews for order {}: {}", orderId, e.getMessage(), e);
+            throw new RuntimeException("Không thể lấy đánh giá đơn hàng: " + e.getMessage());
+        }
+    }
 }
