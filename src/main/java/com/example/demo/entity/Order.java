@@ -67,6 +67,9 @@ public class Order {
     
     @Column(name = "received_at")
     private LocalDateTime receivedAt; // Thời điểm user xác nhận đã nhận hàng
+    
+    @Column(name = "momo_trans_id")
+    private String momoTransId; // Mã giao dịch MoMo khi thanh toán thành công
 
     // Relationships
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -243,5 +246,13 @@ public class Order {
     
     public void setReceivedAt(LocalDateTime receivedAt) {
         this.receivedAt = receivedAt;
+    }
+    
+    public String getMomoTransId() {
+        return momoTransId;
+    }
+
+    public void setMomoTransId(String momoTransId) {
+        this.momoTransId = momoTransId;
     }
 }

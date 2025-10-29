@@ -295,7 +295,16 @@ async function loadAddresses() {
 // Delete Address
 async function deleteAddress(addressId) {
     const confirmText = t('confirm-delete-address', 'Bạn có chắc chắn muốn xóa địa chỉ này?');
-    if (!confirm(confirmText)) {
+    const confirmed = await showConfirm({
+        title: 'Xóa địa chỉ',
+        text: confirmText,
+        icon: 'warning',
+        confirmButtonText: 'Xóa',
+        cancelButtonText: 'Hủy',
+        isDanger: true
+    });
+    
+    if (!confirmed) {
         return;
     }
     

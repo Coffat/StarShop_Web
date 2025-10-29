@@ -110,6 +110,11 @@ public class PaymentController {
 								restoreAuthenticationFromOrder(request, order);
 							}
 							
+							// Lưu momoTransId trước khi cập nhật status
+							order.setMomoTransId(transId);
+							orderRepository.save(order);
+							log.info("Order {} momoTransId saved: {}", orderIdString, transId);
+							
 							orderService.updateOrderStatus(orderIdString, OrderStatus.PROCESSING);
 							log.info("Order {} status updated to PROCESSING via service", orderIdString);
 							// Reload order to get updated status
@@ -127,9 +132,11 @@ public class PaymentController {
 								restoreAuthenticationFromOrder(request, order);
 							}
 							
+							// Lưu momoTransId trong fallback
+							order.setMomoTransId(transId);
 							order.setStatus(OrderStatus.PROCESSING);
 							orderRepository.save(order);
-							log.info("Order {} status updated to PROCESSING via fallback", orderIdString);
+							log.info("Order {} momoTransId saved and status updated to PROCESSING via fallback", orderIdString);
 						}
 					}
 				}
@@ -238,6 +245,14 @@ public class PaymentController {
 				if (orderId != null && orderId.startsWith("ORDER-")) {
 					String orderIdString = parseOrderId(orderId);
 					try {
+						// Lưu momoTransId trước khi cập nhật status
+						Order order = orderRepository.findOrderWithAllDetails(orderIdString);
+						if (order != null) {
+							order.setMomoTransId(transId);
+							orderRepository.save(order);
+							log.info("Order {} momoTransId saved via notify: {}", orderIdString, transId);
+						}
+						
 						orderService.updateOrderStatus(orderIdString, OrderStatus.PROCESSING);
 						log.info("Order {} status updated to PROCESSING via notify", orderIdString);
 						

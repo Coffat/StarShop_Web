@@ -659,8 +659,17 @@
   };
 
   // Delete review
-  window.deleteReview = function (reviewId) {
-    if (!confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) {
+  window.deleteReview = async function (reviewId) {
+    const confirmed = await showConfirm({
+      title: 'Xóa đánh giá',
+      text: 'Bạn có chắc chắn muốn xóa đánh giá này?',
+      icon: 'warning',
+      confirmButtonText: 'Xóa',
+      cancelButtonText: 'Hủy',
+      isDanger: true
+    });
+    
+    if (!confirmed) {
       return;
     }
 

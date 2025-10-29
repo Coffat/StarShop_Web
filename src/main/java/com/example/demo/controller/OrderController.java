@@ -618,6 +618,56 @@ public class OrderController extends BaseController {
     }
     
     /**
+     * REST API: Reorder from previous order
+     */
+    @Operation(
+        summary = "Mua lại đơn hàng",
+        description = "Tạo đơn hàng mới dựa trên đơn hàng cũ. Sản phẩm sẽ được thêm vào giỏ hàng và chuyển đến trang checkout.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Mua lại thành công"),
+        @ApiResponse(responseCode = "400", description = "Không thể mua lại đơn hàng này"),
+        @ApiResponse(responseCode = "401", description = "Chưa xác thực")
+    })
+    @PostMapping("/api/orders/{orderId}/reorder")
+    @ResponseBody
+    public ResponseEntity<ResponseWrapper<Map<String, Object>>> reorder(
+            @Parameter(description = "ID đơn hàng cũ", required = true)
+            @PathVariable String orderId,
+            @Parameter(hidden = true) Authentication authentication) {
+        
+        try {
+            // Check authentication
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(401)
+                    .body(ResponseWrapper.error("Vui lòng đăng nhập để sử dụng tính năng này"));
+            }
+            
+            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            if (user == null) {
+                return ResponseEntity.status(401)
+                    .body(ResponseWrapper.error("Người dùng không hợp lệ"));
+            }
+            
+            // Process reorder
+            Map<String, Object> result = orderService.reorderFromPreviousOrder(orderId, user.getId());
+            
+            if ((Boolean) result.get("success")) {
+                return ResponseEntity.ok(ResponseWrapper.success(result, "Mua lại thành công! Sản phẩm đã được thêm vào giỏ hàng."));
+            } else {
+                return ResponseEntity.badRequest()
+                    .body(ResponseWrapper.error((String) result.get("message")));
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error reordering from order {}: {}", orderId, e.getMessage());
+            return ResponseEntity.internalServerError()
+                .body(ResponseWrapper.error("Có lỗi xảy ra khi mua lại đơn hàng"));
+        }
+    }
+    
+    /**
      * REST API: Get orders by status (Admin/Staff only)
      */
     @Operation(

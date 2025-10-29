@@ -6,6 +6,7 @@ import com.example.demo.dto.OrderResponse;
 import com.example.demo.dto.shipping.ShippingFeeResponse;
 import com.example.demo.entity.*;
 import com.example.demo.entity.enums.OrderStatus;
+import com.example.demo.entity.enums.PaymentMethod;
 import com.example.demo.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,9 @@ public class OrderService {
     
     @Autowired
     private DeliveryUnitRepository deliveryUnitRepository;
+    
+    @Autowired
+    private MoMoRefundService moMoRefundService;
     
     @Autowired
     private VoucherRepository voucherRepository;
@@ -673,6 +677,25 @@ public class OrderService {
                 return OrderResponse.error("Chỉ có thể hủy đơn hàng ở trạng thái Chờ xử lý hoặc Đang xử lý");
             }
             
+            // Check if order has been paid and needs refund
+            boolean needsRefund = order.getStatus() == OrderStatus.PROCESSING && 
+                                order.getPaymentMethod() == PaymentMethod.MOMO;
+            
+            String cancelReason = "Khách hàng hủy đơn hàng";
+            
+            // Process refund if needed
+            if (needsRefund) {
+                try {
+                    logger.info("Processing refund for cancelled order: {}", orderId);
+                    moMoRefundService.processRefund(order, cancelReason);
+                    logger.info("Refund processed successfully for order: {}", orderId);
+                } catch (Exception e) {
+                    logger.error("Error processing refund for order {}: {}", orderId, e.getMessage(), e);
+                    // Continue with cancellation even if refund fails
+                    // Admin can handle refund manually later
+                }
+            }
+            
             // Update order status
             order.setStatus(OrderStatus.CANCELLED);
             
@@ -685,8 +708,12 @@ public class OrderService {
             
             orderRepository.save(order);
             
+            String successMessage = needsRefund ? 
+                "Hủy đơn hàng thành công. Hoàn tiền đang được xử lý." : 
+                "Hủy đơn hàng thành công";
+            
             logger.info("Successfully cancelled order {} for user {}", orderId, userId);
-            return OrderResponse.success("Hủy đơn hàng thành công", OrderDTO.fromOrder(order));
+            return OrderResponse.success(successMessage, OrderDTO.fromOrder(order));
             
         } catch (Exception e) {
             logger.error("Error cancelling order {} for user {}: {}", orderId, userId, e.getMessage());
@@ -793,6 +820,20 @@ public class OrderService {
         } catch (Exception e) {
             logger.error("Error getting order by ID {}: {}", orderId, e.getMessage(), e);
             throw new RuntimeException("Failed to get order", e);
+        }
+    }
+    
+    /**
+     * Get order entity by ID
+     */
+    @Transactional(readOnly = true)
+    public Order getOrderEntityById(String orderId) {
+        logger.debug("Getting order entity by ID: {}", orderId);
+        try {
+            return orderRepository.findOrderWithAllDetails(orderId);
+        } catch (Exception e) {
+            logger.error("Error getting order entity by ID {}: {}", orderId, e.getMessage(), e);
+            throw new RuntimeException("Failed to get order entity", e);
         }
     }
 
@@ -943,6 +984,25 @@ public class OrderService {
             // Check if order can be cancelled
             if (order.getStatus() == OrderStatus.COMPLETED || order.getStatus() == OrderStatus.CANCELLED) {
                 throw new RuntimeException("Cannot cancel order with status: " + order.getStatus());
+            }
+
+            // Check if order has been paid and needs refund
+            boolean needsRefund = (order.getStatus() == OrderStatus.PROCESSING || order.getStatus() == OrderStatus.SHIPPED) && 
+                                order.getPaymentMethod() == PaymentMethod.MOMO;
+            
+            String adminReason = "Admin hủy đơn hàng: " + reason;
+            
+            // Process refund if needed
+            if (needsRefund) {
+                try {
+                    logger.info("Processing refund for admin cancelled order: {}", orderId);
+                    moMoRefundService.processRefund(order, adminReason);
+                    logger.info("Refund processed successfully for admin cancelled order: {}", orderId);
+                } catch (Exception e) {
+                    logger.error("Error processing refund for admin cancelled order {}: {}", orderId, e.getMessage(), e);
+                    // Continue with cancellation even if refund fails
+                    // Admin can handle refund manually later
+                }
             }
 
             order.setStatus(OrderStatus.CANCELLED);
@@ -1115,6 +1175,126 @@ public class OrderService {
         } catch (Exception e) {
             logger.error("Error creating direct order: {}", e.getMessage(), e);
             throw e;
+        }
+    }
+
+    /**
+     * Reorder from previous order - add items to cart
+     */
+    @Transactional
+    public Map<String, Object> reorderFromPreviousOrder(String orderId, Long userId) {
+        logger.info("Processing reorder for order {} by user {}", orderId, userId);
+        
+        try {
+            // Get the original order
+            Order originalOrder = orderRepository.findOrderWithAllDetails(orderId);
+            if (originalOrder == null) {
+                return Map.of("success", false, "message", "Không tìm thấy đơn hàng");
+            }
+            
+            // Check if order belongs to user
+            if (!originalOrder.getUser().getId().equals(userId)) {
+                return Map.of("success", false, "message", "Bạn không có quyền mua lại đơn hàng này");
+            }
+            
+            // Check if order can be reordered (only COMPLETED, RECEIVED, or CANCELLED orders)
+            if (originalOrder.getStatus() != OrderStatus.COMPLETED && 
+                originalOrder.getStatus() != OrderStatus.RECEIVED && 
+                originalOrder.getStatus() != OrderStatus.CANCELLED) {
+                return Map.of("success", false, "message", "Chỉ có thể mua lại đơn hàng đã hoàn thành, đã nhận hoặc đã hủy");
+            }
+            
+            // Get user's cart
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return Map.of("success", false, "message", "Người dùng không tồn tại");
+            }
+            
+            // Get user's cart to check existing items
+            var cartResponse = cartService.getCart(userId);
+            Map<Long, Integer> existingCartItems = new HashMap<>();
+            if (cartResponse.isSuccess() && cartResponse.getCart() != null && cartResponse.getCart().getItems() != null) {
+                for (var item : cartResponse.getCart().getItems()) {
+                    existingCartItems.put(item.getProductId(), item.getQuantity());
+                }
+            }
+            
+            java.util.List<String> addedProducts = new java.util.ArrayList<>();
+            java.util.List<String> unavailableProducts = new java.util.ArrayList<>();
+            java.util.List<String> outOfStockProducts = new java.util.ArrayList<>();
+            
+            // Process each order item
+            for (OrderItem orderItem : originalOrder.getOrderItems()) {
+                Product product = orderItem.getProduct();
+                
+                // Check if product is still active
+                if (product.getStatus() != com.example.demo.entity.enums.ProductStatus.ACTIVE) {
+                    unavailableProducts.add(product.getName());
+                    continue;
+                }
+                
+                // Check stock availability
+                if (product.getStockQuantity() < orderItem.getQuantity()) {
+                    outOfStockProducts.add(product.getName() + " (còn " + product.getStockQuantity() + " sản phẩm)");
+                    continue;
+                }
+                
+                // Add to cart or update existing quantity
+                if (existingCartItems.containsKey(product.getId())) {
+                    // Update existing cart item quantity
+                    int existingQuantity = existingCartItems.get(product.getId());
+                    int newQuantity = existingQuantity + orderItem.getQuantity();
+                    
+                    // Check if new quantity exceeds stock
+                    if (newQuantity > product.getStockQuantity()) {
+                        outOfStockProducts.add(product.getName() + " (tổng số lượng vượt quá kho)");
+                        continue;
+                    }
+                    
+                    // Update cart item using CartService
+                    var updateResponse = cartService.updateCartItem(userId, product.getId(), newQuantity);
+                    if (updateResponse.isSuccess()) {
+                        addedProducts.add(product.getName() + " (cập nhật số lượng)");
+                    } else {
+                        outOfStockProducts.add(product.getName() + " (lỗi cập nhật)");
+                    }
+                } else {
+                    // Add new item to cart using CartService
+                    var addResponse = cartService.addToCart(userId, product.getId(), orderItem.getQuantity());
+                    if (addResponse.isSuccess()) {
+                        addedProducts.add(product.getName());
+                    } else {
+                        outOfStockProducts.add(product.getName() + " (lỗi thêm vào giỏ)");
+                    }
+                }
+            }
+            
+            // Prepare result message - only show success message
+            String message = "";
+            if (!addedProducts.isEmpty()) {
+                message = "Đã thêm vào giỏ hàng: " + String.join(", ", addedProducts);
+            }
+            
+            boolean success = !addedProducts.isEmpty();
+            if (success) {
+                logger.info("Successfully reordered {} products for user {} from order {}", 
+                           addedProducts.size(), userId, orderId);
+            } else {
+                logger.warn("No products could be reordered for user {} from order {}", userId, orderId);
+            }
+            
+            return Map.of(
+                "success", success,
+                "message", message.toString(),
+                "addedProducts", addedProducts,
+                "unavailableProducts", unavailableProducts,
+                "outOfStockProducts", outOfStockProducts,
+                "redirectUrl", "/checkout"
+            );
+            
+        } catch (Exception e) {
+            logger.error("Error processing reorder for order {}: {}", orderId, e.getMessage(), e);
+            return Map.of("success", false, "message", "Có lỗi xảy ra khi mua lại đơn hàng: " + e.getMessage());
         }
     }
 }

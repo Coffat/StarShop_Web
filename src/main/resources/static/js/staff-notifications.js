@@ -150,8 +150,17 @@ function staffNotificationComponent() {
         /**
          * Clear all notifications
          */
-        clearAllNotifications() {
-            if (confirm('Bạn có chắc muốn xóa tất cả thông báo?')) {
+        async clearAllNotifications() {
+            const confirmed = await showConfirm({
+                title: 'Xóa tất cả thông báo',
+                text: 'Bạn có chắc muốn xóa tất cả thông báo?',
+                icon: 'warning',
+                confirmButtonText: 'Xóa tất cả',
+                cancelButtonText: 'Hủy',
+                isDanger: true
+            });
+            
+            if (confirmed) {
                 this.notifications = [];
                 this.updateUnreadCount();
                 this.saveNotifications();

@@ -16,6 +16,7 @@ public class MoMoProperties {
 	private String requestType;
 	private String endpointCreate;
 	private String endpointQuery;
+	private String endpointRefund;
 
 	public String getBaseUrl() { return baseUrl; }
 	public void setBaseUrl(String baseUrl) { this.baseUrl = baseUrl; }
@@ -43,4 +44,7 @@ public class MoMoProperties {
 
 	public String getEndpointQuery() { return endpointQuery; }
 	public void setEndpointQuery(String endpointQuery) { this.endpointQuery = endpointQuery; }
+
+	public String getEndpointRefund() { return endpointRefund; }
+	public void setEndpointRefund(String endpointRefund) { this.endpointRefund = endpointRefund; }
 }

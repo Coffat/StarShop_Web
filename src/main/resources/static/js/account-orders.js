@@ -620,8 +620,67 @@ function reviewOrder(orderId) {
 
 // Reorder
 function reorder(orderId) {
-    // TODO: Implement reorder
-    showToast('Tính năng mua lại đang được phát triển', 'info');
+    // Call reorder API
+    fetch(`/api/orders/${orderId}/reorder`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const result = data.data;
+            
+            if (result.addedProducts && result.addedProducts.length > 0) {
+                // Show success message for added products
+                showToast(result.message, 'success');
+                
+                // Show warning for unavailable products
+                if (result.unavailableProducts && result.unavailableProducts.length > 0) {
+                    setTimeout(() => {
+                        showToast('Sản phẩm không còn bán: ' + result.unavailableProducts.join(', '), 'warning');
+                    }, 1500);
+                }
+                
+                // Show warning for out of stock products
+                if (result.outOfStockProducts && result.outOfStockProducts.length > 0) {
+                    setTimeout(() => {
+                        showToast('Sản phẩm hết hàng: ' + result.outOfStockProducts.join(', '), 'warning');
+                    }, 3000);
+                }
+                
+                // Reload cart count
+                if (typeof loadCartCount === 'function') {
+                    loadCartCount();
+                }
+                
+                // Ask user if they want to go to checkout
+                setTimeout(async () => {
+                    const confirmed = await showConfirm({
+                        title: 'Mua lại thành công!',
+                        text: 'Sản phẩm đã được thêm vào giỏ hàng. Bạn có muốn chuyển đến trang thanh toán không?',
+                        icon: 'success',
+                        confirmButtonText: 'Đi thanh toán',
+                        cancelButtonText: 'Ở lại trang này'
+                    });
+                    
+                    if (confirmed) {
+                        window.location.href = '/checkout';
+                    }
+                }, 1000);
+            } else {
+                showToast('Không có sản phẩm nào có thể mua lại từ đơn hàng này', 'warning');
+            }
+        } else {
+            showToast(data.message || 'Có lỗi xảy ra khi mua lại đơn hàng', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error reordering:', error);
+        showToast('Có lỗi xảy ra khi mua lại đơn hàng', 'error');
+    });
 }
 
 // Show toast notification

@@ -32,6 +32,7 @@ public class OrderDTO {
     private String addressDetails;
     private PaymentMethod paymentMethod;
     private String notes;
+    private String momoTransId; // MoMo transaction ID for refund processing
     private List<OrderItemDTO> orderItems;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -182,6 +183,7 @@ public class OrderDTO {
         );
         dto.setHasReview(hasReview);
         dto.setReceivedAt(order.getReceivedAt());
+        dto.setMomoTransId(order.getMomoTransId());
         return dto;
     }
     
@@ -410,5 +412,13 @@ public class OrderDTO {
     
     public void setReceivedAt(LocalDateTime receivedAt) {
         this.receivedAt = receivedAt;
+    }
+    
+    public String getMomoTransId() {
+        return momoTransId;
+    }
+    
+    public void setMomoTransId(String momoTransId) {
+        this.momoTransId = momoTransId;
     }
 }

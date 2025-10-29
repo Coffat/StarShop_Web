@@ -174,6 +174,8 @@ CREATE TABLE Orders (
     notes TEXT DEFAULT NULL,
     -- GHN Shipping Fee (tracked separately for transparency)
     shipping_fee NUMERIC(10,2) NOT NULL DEFAULT 0.00 CHECK (shipping_fee >= 0),
+    -- MoMo transaction ID for refund processing
+    momo_trans_id VARCHAR(255) DEFAULT NULL,
     -- JPA Auditing columns (BaseEntity) - Required for Voucher.orders relationship
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
@@ -184,11 +186,13 @@ CREATE TABLE Orders (
     CHECK (total_amount >= 0)
 );
 COMMENT ON TABLE Orders IS 'Customer orders with status, payment info, and GHN shipping fee';
+COMMENT ON COLUMN Orders.momo_trans_id IS 'MoMo transaction ID for refund processing';
 CREATE INDEX idx_orders_user_id ON Orders(user_id);
 CREATE INDEX idx_orders_status ON Orders(status);
 CREATE INDEX idx_orders_user_status ON Orders(user_id, status);
 CREATE INDEX idx_orders_total_amount ON Orders(total_amount);
 CREATE INDEX idx_orders_shipping_fee ON Orders(shipping_fee);
+CREATE INDEX idx_orders_momo_trans_id ON Orders(momo_trans_id);
 
 -- Table: OrderItems
 CREATE TABLE OrderItems (
