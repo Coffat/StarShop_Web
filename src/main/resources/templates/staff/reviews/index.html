@@ -185,7 +185,7 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Đơn hàng & Khách hàng</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sản phẩm & Khách hàng</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sản phẩm & Đánh giá</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bình luận</th>
                                 <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Media</th>
@@ -498,7 +498,7 @@ async function loadStatistics() {
     }
 }
 
-// Load reviews grouped by order from API
+// Load reviews by product from API
 async function loadReviews() {
     const loadingState = document.getElementById('loadingState');
     const emptyState = document.getElementById('emptyState');
@@ -509,17 +509,20 @@ async function loadReviews() {
     reviewsTable.style.display = 'none';
     
     try {
-        let url = `/staff/api/reviews/by-orders?page=${currentPage}&size=${pageSize}`;
+        let url = `/staff/api/reviews?page=${currentPage}&size=${pageSize}`;
         if (currentSearch) url += `&search=${encodeURIComponent(currentSearch)}`;
         if (currentSort) url += `&sort=${currentSort}`;
+        if (currentRating) url += `&rating=${currentRating}`;
+        if (currentSentiment) url += `&sentiment=${currentSentiment}`;
+        if (currentStatus) url += `&status=${currentStatus}`;
         
-        console.log('Loading order reviews with URL:', url);
+        console.log('Loading product-based reviews with URL:', url);
         
         const response = await fetch(url);
         const data = await response.json();
         
         if (data.success && data.data.content && data.data.content.length > 0) {
-            renderOrderReviewsTable(data.data);
+            renderReviewsTable(data.data);
             renderPagination(data.data);
             reviewsTable.style.display = 'block';
         } else {
@@ -533,12 +536,12 @@ async function loadReviews() {
     }
 }
 
-// Render order-grouped reviews table
-function renderOrderReviewsTable(orderReviewsPage) {
+// Render product-based reviews table
+function renderReviewsTable(reviewsPage) {
     const tbody = document.getElementById('reviewsTableBody');
     tbody.innerHTML = '';
     
-    orderReviewsPage.content.forEach(orderGroup => {
+    reviewsPage.content.forEach(review => {
         const row = document.createElement('tr');
         row.className = 'hover:bg-gray-50 transition-colors duration-150';
         row.innerHTML = `
@@ -546,77 +549,52 @@ function renderOrderReviewsTable(orderReviewsPage) {
                 <div class="flex items-center space-x-3">
                     <div class="flex-shrink-0">
                         <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-shopping-bag text-white text-sm"></i>
+                            <i class="fas fa-box-open text-white text-sm"></i>
                         </div>
                     </div>
                     <div>
-                        <div class="text-sm font-medium text-gray-900">#${orderGroup.orderId}</div>
-                        <div class="text-sm text-gray-500">${orderGroup.customerName}</div>
-                        <div class="text-xs text-gray-400">${formatDate(orderGroup.orderDate)}</div>
+                        <div class="text-sm font-medium text-gray-900">${review.productName || 'Sản phẩm'}</div>
+                        <div class="text-sm text-gray-500">${review.userName || ''}</div>
+                        <div class="text-xs text-gray-400">ID SP: ${review.productId || ''}</div>
                     </div>
                 </div>
             </td>
             <td class="px-6 py-4">
-                <div class="space-y-2">
-                    <div class="text-sm font-medium text-gray-900">${orderGroup.productNames}</div>
-                    <div class="flex items-center space-x-2">
-                        <div class="flex items-center">
-                            ${generateStars(Math.round(orderGroup.averageRating))}
-                        </div>
-                        <span class="text-sm font-medium text-gray-900">${orderGroup.formattedAverageRating}/5</span>
-                        <span class="text-xs text-gray-500">(${orderGroup.totalProducts} sản phẩm)</span>
-                    </div>
+                <div class="flex items-center space-x-2">
+                    <div class="flex items-center">${generateStars(review.rating)}</div>
+                    <span class="text-sm font-medium text-gray-900">${review.rating}/5</span>
+                    ${review.verified ? '<span class="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded">Đã mua</span>' : ''}
                 </div>
             </td>
             <td class="px-6 py-4">
-                <div class="text-sm text-gray-900 max-w-xs">
-                    ${orderGroup.commonComment ? 
-                        `<div class="truncate" title="${orderGroup.commonComment}">${orderGroup.commonComment}</div>` : 
-                        '<span class="text-gray-400 italic">Không có bình luận chung</span>'
-                    }
-                </div>
+                <div class="text-sm text-gray-900 max-w-xs">${review.comment ? `<div class=\"truncate\" title=\"${review.comment}\">${review.comment}</div>` : '<span class=\"text-gray-400 italic\">Không có bình luận</span>'}</div>
             </td>
             <td class="px-4 py-4 text-center">
-                ${orderGroup.hasMedia ? 
-                    `<div class="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full" title="Có media đính kèm">
-                        <i class="fas fa-images text-sm"></i>
-                    </div>` : 
-                    `<div class="inline-flex items-center justify-center w-8 h-8 bg-gray-100 text-gray-400 rounded-full" title="Không có media">
-                        <i class="fas fa-image text-sm"></i>
-                    </div>`
+                ${(review.mediaUrls && review.mediaUrls.trim() !== '') ? 
+                    `<div class=\"inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full\" title=\"Có media đính kèm\">\n<i class=\"fas fa-images text-sm\"></i>\n</div>` : 
+                    `<div class=\"inline-flex items-center justify-center w-8 h-8 bg-gray-100 text-gray-400 rounded-full\" title=\"Không có media\">\n<i class=\"fas fa-image text-sm\"></i>\n</div>`
                 }
             </td>
             <td class="px-4 py-4 text-center">
-                ${orderGroup.hasAdminResponse ? 
-                    `<button onclick="viewOrderReviewDetail('${orderGroup.orderId}')" class="inline-flex items-center justify-center w-8 h-8 bg-green-100 hover:bg-green-200 text-green-600 rounded-full transition-all duration-200" title="Đã phản hồi - Click để xem chi tiết">
-                        <i class="fas fa-check text-sm"></i>
-                    </button>` : 
-                    `<button onclick="viewOrderReviewDetail('${orderGroup.orderId}')" class="inline-flex items-center justify-center w-8 h-8 bg-orange-100 hover:bg-orange-200 text-orange-600 rounded-full transition-all duration-200 animate-pulse" title="Chưa có phản hồi - Click để xem chi tiết">
-                        <i class="fas fa-reply text-sm"></i>
-                    </button>`
+                ${review.adminResponse ? 
+                    `<div class=\"inline-flex items-center justify-center w-8 h-8 bg-green-100 text-green-600 rounded-full\" title=\"Đã phản hồi\">\n<i class=\"fas fa-check text-sm\"></i>\n</div>` : 
+                    `<div class=\"inline-flex items-center justify-center w-8 h-8 bg-orange-100 text-orange-600 rounded-full animate-pulse\" title=\"Chưa có phản hồi\">\n<i class=\"fas fa-clock text-sm\"></i>\n</div>`
                 }
             </td>
             <td class="px-3 py-4 whitespace-nowrap text-center">
                 <div class="flex items-center justify-center space-x-1">
-                    <button onclick="viewOrderReviewDetail('${orderGroup.orderId}')" class="p-1.5 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded-md transition-all duration-150" title="Xem chi tiết">
+                    <button onclick="viewReviewDetail('${review.id}')" class="p-1.5 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded-md transition-all duration-150" title="Xem chi tiết">
                         <i class="fas fa-eye text-xs"></i>
                     </button>
-                    ${!orderGroup.hasAdminResponse ? 
-                        `<button onclick="addOrderAdminResponse('${orderGroup.orderId}')" class="p-1.5 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-md transition-all duration-150" title="Thêm phản hồi">
-                            <i class="fas fa-reply text-xs"></i>
-                        </button>` : 
-                        `<button onclick="editOrderAdminResponse('${orderGroup.orderId}')" class="p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md transition-all duration-150" title="Sửa phản hồi">
-                            <i class="fas fa-edit text-xs"></i>
-                        </button>
-                        <button onclick="removeOrderAdminResponse('${orderGroup.orderId}')" class="p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md transition-all duration-150" title="Xóa phản hồi">
-                            <i class="fas fa-trash text-xs"></i>
-                        </button>`
+                    ${!review.adminResponse ? 
+                        `<button onclick=\"addAdminResponse('${review.id}')\" class=\"p-1.5 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-md transition-all duration-150\" title=\"Thêm phản hồi\">\n<i class=\"fas fa-reply text-xs\"></i>\n</button>` : 
+                        `<button onclick=\"editAdminResponse('${review.id}','${(review.adminResponse || '').replace(/"/g,'\\\"').replace(/'/g,\\' )}')\" class=\"p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md transition-all duration-150\" title=\"Sửa phản hồi\">\n<i class=\"fas fa-edit text-xs\"></i>\n</button>\n<button onclick=\"removeAdminResponse('${review.id}')\" class=\"p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md transition-all duration-150\" title=\"Xóa phản hồi\">\n<i class=\"fas fa-trash text-xs\"></i>\n</button>`
                     }
                 </div>
             </td>
             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                <div>${formatDate(orderGroup.orderDate)}</div>
-                <div class="text-xs">${formatTime(orderGroup.orderDate)}</div>
+                <div>${formatDate(review.createdAt)}</div>
+                <div class="text-xs">${formatTime(review.createdAt)}</div>
             </td>
         `;
         tbody.appendChild(row);
