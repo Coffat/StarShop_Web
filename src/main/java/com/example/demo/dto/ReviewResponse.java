@@ -27,6 +27,9 @@ public class ReviewResponse {
     private LocalDateTime adminResponseAt;
     private String adminResponseByName;
     
+    // Media files
+    private String mediaUrls;
+    
     // Constructors
     public ReviewResponse() {}
     
@@ -48,6 +51,9 @@ public class ReviewResponse {
         this.adminResponseAt = review.getAdminResponseAt();
         this.adminResponseByName = review.getAdminResponseBy() != null ? 
             review.getAdminResponseBy().getFirstname() + " " + review.getAdminResponseBy().getLastname() : null;
+        
+        // Media files
+        this.mediaUrls = review.getMediaUrls();
     }
     
     // Getters and Setters
@@ -177,5 +183,13 @@ public class ReviewResponse {
     
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+    
+    public String getMediaUrls() {
+        return mediaUrls;
+    }
+    
+    public void setMediaUrls(String mediaUrls) {
+        this.mediaUrls = mediaUrls;
     }
 }

@@ -318,6 +318,51 @@
                                   placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."></textarea>
                     </div>
 
+                    <!-- Media Upload Section -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span data-translate="upload-media">Đính kèm ảnh/video (tùy chọn)</span>
+                        </label>
+                        
+                        <!-- Upload Area -->
+                        <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-pink-400 transition-colors duration-200" 
+                             id="uploadArea">
+                            <input type="file" id="mediaUpload" 
+                                   class="hidden" 
+                                   accept="image/*,video/*" 
+                                   multiple>
+                            
+                            <div class="space-y-2">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <div class="text-sm text-gray-600">
+                                    <label for="mediaUpload" class="relative cursor-pointer bg-white rounded-md font-medium text-pink-600 hover:text-pink-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-pink-500">
+                                        <span data-translate="click-to-upload">Nhấn để tải lên</span>
+                                        <input type="file" class="sr-only" multiple accept="image/*,video/*">
+                                    </label>
+                                    <span class="pl-1" data-translate="or-drag-drop">hoặc kéo thả</span>
+                                </div>
+                                <p class="text-xs text-gray-500" data-translate="upload-hint">
+                                    PNG, JPG, GIF, MP4, MOV lên đến 10MB mỗi file. Tối đa 5 file.
+                                </p>
+                                <p class="text-xs text-gray-400 mt-1 italic">
+                                    Bạn có thể bỏ qua phần này và chỉ đánh giá bằng văn bản
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- File Counter -->
+                        <div id="fileCounter" class="mt-2 text-sm text-gray-600 hidden">
+                            <span id="fileCount">0</span>/5 file đã chọn
+                        </div>
+
+                        <!-- Preview Area -->
+                        <div id="mediaPreview" class="mt-4 grid grid-cols-2 gap-2 hidden">
+                            <!-- Media previews will be inserted here -->
+                        </div>
+                    </div>
+
                     <!-- Submit Button -->
                     <button type="button" id="submitProductReviewBtn" 
                             class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-pink-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"

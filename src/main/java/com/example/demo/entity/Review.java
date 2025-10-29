@@ -21,6 +21,9 @@ public class Review extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String comment;
 
+    @Column(name = "media_urls", columnDefinition = "TEXT")
+    private String mediaUrls;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_item_id", unique = true)
     private OrderItem orderItem;
@@ -82,6 +85,14 @@ public class Review extends BaseEntity {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public String getMediaUrls() {
+        return mediaUrls;
+    }
+
+    public void setMediaUrls(String mediaUrls) {
+        this.mediaUrls = mediaUrls;
     }
 
     public OrderItem getOrderItem() {

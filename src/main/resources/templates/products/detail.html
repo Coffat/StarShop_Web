@@ -480,6 +480,31 @@
                                                 <p th:text="${review.comment}">Nội dung đánh giá...</p>
                                             </div>
                                             
+                                            <!-- Media Files -->
+                                            <div th:if="${review.mediaUrls ne null and review.mediaUrls != ''}" class="review-media mt-3">
+                                                <div class="flex flex-wrap gap-2">
+                                                    <div th:each="mediaUrl : ${#strings.arraySplit(review.mediaUrls, ',')}" class="media-item">
+                                                        <div th:if="${#strings.startsWith(mediaUrl.trim(), '/upload/')}">
+                                                            <!-- Image -->
+                                                            <img th:if="${#strings.contains(mediaUrl, '.jpg') or #strings.contains(mediaUrl, '.jpeg') or #strings.contains(mediaUrl, '.png') or #strings.contains(mediaUrl, '.gif')}"
+                                                                 th:src="${mediaUrl.trim()}" 
+                                                                 th:alt="'Review media'"
+                                                                 th:data-media-url="${mediaUrl.trim()}"
+                                                                 class="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                                                                 onclick="openMediaModal(this.dataset.mediaUrl)">
+                                                            <!-- Video -->
+                                                            <video th:if="${#strings.contains(mediaUrl, '.mp4') or #strings.contains(mediaUrl, '.mov')}"
+                                                                   th:src="${mediaUrl.trim()}"
+                                                                   th:data-media-url="${mediaUrl.trim()}"
+                                                                   class="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                                                                   onclick="openMediaModal(this.dataset.mediaUrl)"
+                                                                   controls>
+                                                            </video>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
                                             <!-- Admin Response -->
                                             <div th:if="${review.adminResponse != null}" class="admin-response mt-3 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500">
                                                 <div class="flex items-center gap-2 mb-2">
@@ -683,6 +708,50 @@
         .image-modal-close:hover {
             background: rgba(255, 255, 255, 0.3);
         }
+
+        /* Media Modal Styles */
+        .media-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+
+        .media-modal-content {
+            position: relative;
+            margin: auto;
+            padding: 20px;
+            width: 90%;
+            height: 90%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .media-modal img,
+        .media-modal video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .media-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .media-modal-close:hover {
+            color: #bbb;
+        }
     </style>
 
     <!-- Tab Switching JavaScript -->
@@ -724,7 +793,57 @@
                 });
             });
         });
+
+        // Media Modal Functions
+        function openMediaModal(mediaUrl) {
+            const modal = document.getElementById('mediaModal');
+            const modalContent = document.getElementById('mediaModalContent');
+            
+            // Clear previous content
+            modalContent.innerHTML = '';
+            
+            // Create media element
+            if (mediaUrl.includes('.mp4') || mediaUrl.includes('.mov')) {
+                const video = document.createElement('video');
+                video.src = mediaUrl;
+                video.controls = true;
+                video.style.maxWidth = '100%';
+                video.style.maxHeight = '100%';
+                video.style.objectFit = 'contain';
+                modalContent.appendChild(video);
+            } else {
+                const img = document.createElement('img');
+                img.src = mediaUrl;
+                img.alt = 'Review media';
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = '100%';
+                img.style.objectFit = 'contain';
+                modalContent.appendChild(img);
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        function closeMediaModal() {
+            document.getElementById('mediaModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('mediaModal');
+            if (event.target === modal) {
+                closeMediaModal();
+            }
+        }
     </script>
+
+    <!-- Media Modal -->
+    <div id="mediaModal" class="media-modal">
+        <div class="media-modal-content">
+            <span class="media-modal-close" onclick="closeMediaModal()">&times;</span>
+            <div id="mediaModalContent"></div>
+        </div>
+    </div>
 
 </body>
 

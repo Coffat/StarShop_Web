@@ -47,6 +47,7 @@ public class OrderReviewGroupDTO {
     private LocalDateTime createdAt; // When the first review was created
     private String sentiment; // Overall sentiment (derived from individual reviews)
     private boolean verified; // If all reviews are verified (have orderItem)
+    private boolean hasMedia; // If any review has media files
     
     /**
      * Constructor for easy creation from review data
@@ -79,10 +80,13 @@ public class OrderReviewGroupDTO {
             this.createdAt = firstReview.getCreatedAt();
             this.sentiment = "POSITIVE"; // Default sentiment, will be calculated later
             this.verified = reviews.stream().allMatch(ReviewResponse::isVerified);
+            this.hasMedia = reviews.stream().anyMatch(review -> 
+                review.getMediaUrls() != null && !review.getMediaUrls().trim().isEmpty());
         } else {
             this.averageRating = 0.0;
             this.hasAdminResponse = false;
             this.verified = false;
+            this.hasMedia = false;
         }
     }
     

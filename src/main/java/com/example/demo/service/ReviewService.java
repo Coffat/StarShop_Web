@@ -15,11 +15,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
-
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service for managing product reviews
@@ -155,6 +160,123 @@ public class ReviewService {
         log.info("Review created successfully with ID: {}", savedReview.getId());
         
         return savedReview;
+    }
+
+    /**
+     * Create a new review with media files
+     */
+    @Transactional
+    public Review createReviewWithMedia(Long userId, Long orderItemId, Integer rating, String comment, List<MultipartFile> files) {
+        if (userId == null || orderItemId == null || rating == null || rating < 1 || rating > 5) {
+            throw new IllegalArgumentException("Invalid review parameters");
+        }
+
+        log.info("Creating review with media for user {} and order item {}", userId, orderItemId);
+
+        // Validate user can review this order item
+        String errorReason = canUserReviewOrderItemWithReason(userId, orderItemId);
+        if (errorReason != null) {
+            throw new IllegalStateException(errorReason);
+        }
+
+        // Get order item and related entities
+        OrderItem orderItem = orderItemRepository.findById(orderItemId)
+            .orElseThrow(() -> new IllegalArgumentException("Order item not found"));
+        
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // Force initialize lazy-loaded entities to prevent LazyInitializationException
+        Product product = orderItem.getProduct();
+        product.getName(); // Force load
+        user.getFirstname(); // Force load
+
+        // Create review
+        Review review = new Review();
+        review.setUser(user);
+        review.setProduct(product);
+        review.setRating(rating);
+        review.setComment(comment != null ? comment.trim() : null);
+        review.setOrderItem(orderItem);
+
+        // Handle file uploads
+        if (files != null && !files.isEmpty()) {
+            String mediaUrls = uploadMediaFiles(files, userId, orderItemId);
+            review.setMediaUrls(mediaUrls);
+        }
+
+        Review savedReview = reviewRepository.save(review);
+        
+        // Force initialize the saved review's lazy-loaded fields
+        savedReview.getProduct().getName();
+        savedReview.getUser().getFirstname();
+        
+        log.info("Review with media created successfully with ID: {}", savedReview.getId());
+        
+        return savedReview;
+    }
+
+    /**
+     * Upload media files and return comma-separated URLs
+     */
+    private String uploadMediaFiles(List<MultipartFile> files, Long userId, Long orderItemId) {
+        if (files == null || files.isEmpty()) {
+            return null;
+        }
+
+        try {
+            // Create upload directory if not exists
+            Path uploadDir = Paths.get("src/main/resources/static/upload");
+            if (!Files.exists(uploadDir)) {
+                Files.createDirectories(uploadDir);
+            }
+
+            StringBuilder mediaUrls = new StringBuilder();
+            
+            for (MultipartFile file : files) {
+                if (file.isEmpty()) {
+                    continue;
+                }
+
+                // Validate file type
+                String contentType = file.getContentType();
+                if (contentType == null || (!contentType.startsWith("image/") && !contentType.startsWith("video/"))) {
+                    log.warn("Skipping file with unsupported content type: {}", contentType);
+                    continue;
+                }
+
+                // Validate file size (10MB max)
+                if (file.getSize() > 10 * 1024 * 1024) {
+                    log.warn("Skipping file {} - too large: {} bytes", file.getOriginalFilename(), file.getSize());
+                    continue;
+                }
+
+                // Generate unique filename
+                String originalFilename = file.getOriginalFilename();
+                String extension = originalFilename != null && originalFilename.contains(".") 
+                    ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                    : "";
+                String filename = "review_" + userId + "_" + orderItemId + "_" + UUID.randomUUID().toString() + extension;
+
+                // Save file
+                Path filePath = uploadDir.resolve(filename);
+                Files.copy(file.getInputStream(), filePath);
+
+                // Add to URLs
+                if (mediaUrls.length() > 0) {
+                    mediaUrls.append(",");
+                }
+                mediaUrls.append("/upload/").append(filename);
+
+                log.info("File uploaded successfully: {}", filename);
+            }
+
+            return mediaUrls.length() > 0 ? mediaUrls.toString() : null;
+
+        } catch (IOException e) {
+            log.error("Error uploading media files: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to upload media files: " + e.getMessage());
+        }
     }
 
     /**

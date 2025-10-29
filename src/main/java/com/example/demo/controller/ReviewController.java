@@ -1,7 +1,6 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.ResponseWrapper;
-import com.example.demo.dto.BulkReviewRequest;
 import com.example.demo.dto.ReviewRequest;
 import com.example.demo.dto.ReviewResponse;
 import com.example.demo.dto.ReviewableItemDTO;
@@ -25,6 +24,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -327,19 +328,21 @@ public class ReviewController {
     /**
      * Tạo đánh giá cho một sản phẩm cụ thể trong đơn hàng
      */
-    @PostMapping("/order-item/{orderItemId}")
+    @PostMapping(value = "/order-item/{orderItemId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('CUSTOMER')")
     @Operation(summary = "Tạo đánh giá cho một sản phẩm cụ thể")
     public ResponseEntity<ResponseWrapper<ReviewResponse>> createOrderItemReview(
             @PathVariable Long orderItemId,
-            @Valid @RequestBody BulkReviewRequest request,
+            @RequestParam("rating") Integer rating,
+            @RequestParam("comment") String comment,
+            @RequestParam(value = "files", required = false) List<MultipartFile> files,
             Authentication authentication) {
         try {
             User user = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-            com.example.demo.entity.Review review = reviewService.createReview(
-                user.getId(), orderItemId, request.getRating(), request.getComment());
+            com.example.demo.entity.Review review = reviewService.createReviewWithMedia(
+                user.getId(), orderItemId, rating, comment, files);
 
             ReviewResponse reviewResponse = new ReviewResponse(review, true);
             return ResponseEntity.ok(ResponseWrapper.success(reviewResponse, "Đánh giá sản phẩm thành công!"));
