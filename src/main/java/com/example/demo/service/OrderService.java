@@ -1218,11 +1218,9 @@ public class OrderService {
                 return Map.of("success", false, "message", "Bạn không có quyền mua lại đơn hàng này");
             }
             
-            // Check if order can be reordered (only COMPLETED, RECEIVED, or CANCELLED orders)
-            if (originalOrder.getStatus() != OrderStatus.COMPLETED && 
-                originalOrder.getStatus() != OrderStatus.RECEIVED && 
-                originalOrder.getStatus() != OrderStatus.CANCELLED) {
-                return Map.of("success", false, "message", "Chỉ có thể mua lại đơn hàng đã hoàn thành, đã nhận hoặc đã hủy");
+            // Check if order can be reordered (ONLY RECEIVED orders)
+            if (originalOrder.getStatus() != OrderStatus.RECEIVED) {
+                return Map.of("success", false, "message", "Chỉ có thể mua lại đơn hàng đã nhận hàng");
             }
             
             // Get user's cart
@@ -1231,16 +1229,17 @@ public class OrderService {
                 return Map.of("success", false, "message", "Người dùng không tồn tại");
             }
             
-            // Get user's cart to check existing items
+            // Build map of existing cart items to merge quantities (do NOT clear cart)
             var cartResponse = cartService.getCart(userId);
-            Map<Long, Integer> existingCartItems = new HashMap<>();
+            java.util.Map<Long, Integer> existingCartItems = new java.util.HashMap<>();
             if (cartResponse.isSuccess() && cartResponse.getCart() != null && cartResponse.getCart().getItems() != null) {
                 for (var item : cartResponse.getCart().getItems()) {
                     existingCartItems.put(item.getProductId(), item.getQuantity());
                 }
             }
-            
+
             java.util.List<String> addedProducts = new java.util.ArrayList<>();
+            java.util.List<Long> addedProductIds = new java.util.ArrayList<>();
             java.util.List<String> unavailableProducts = new java.util.ArrayList<>();
             java.util.List<String> outOfStockProducts = new java.util.ArrayList<>();
             
@@ -1260,30 +1259,27 @@ public class OrderService {
                     continue;
                 }
                 
-                // Add to cart or update existing quantity
+                // Merge with existing cart quantity if present
                 if (existingCartItems.containsKey(product.getId())) {
-                    // Update existing cart item quantity
                     int existingQuantity = existingCartItems.get(product.getId());
                     int newQuantity = existingQuantity + orderItem.getQuantity();
-                    
-                    // Check if new quantity exceeds stock
                     if (newQuantity > product.getStockQuantity()) {
                         outOfStockProducts.add(product.getName() + " (tổng số lượng vượt quá kho)");
                         continue;
                     }
-                    
-                    // Update cart item using CartService
                     var updateResponse = cartService.updateCartItem(userId, product.getId(), newQuantity);
                     if (updateResponse.isSuccess()) {
                         addedProducts.add(product.getName() + " (cập nhật số lượng)");
+                        addedProductIds.add(product.getId());
                     } else {
                         outOfStockProducts.add(product.getName() + " (lỗi cập nhật)");
                     }
                 } else {
-                    // Add new item to cart using CartService
+                    // Add as new item
                     var addResponse = cartService.addToCart(userId, product.getId(), orderItem.getQuantity());
                     if (addResponse.isSuccess()) {
                         addedProducts.add(product.getName());
+                        addedProductIds.add(product.getId());
                     } else {
                         outOfStockProducts.add(product.getName() + " (lỗi thêm vào giỏ)");
                     }
@@ -1310,6 +1306,7 @@ public class OrderService {
                 "addedProducts", addedProducts,
                 "unavailableProducts", unavailableProducts,
                 "outOfStockProducts", outOfStockProducts,
+                "addedProductIds", addedProductIds,
                 "redirectUrl", "/checkout"
             );
             

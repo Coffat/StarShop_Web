@@ -195,8 +195,8 @@ function getActionButtons(order) {
         }
     }
     
-    // Reorder button - for COMPLETED, RECEIVED or CANCELLED
-    if (order.status === 'COMPLETED' || order.status === 'RECEIVED' || order.status === 'CANCELLED') {
+    // Reorder button - ONLY for RECEIVED
+    if (order.status === 'RECEIVED') {
         const reorderText = t('reorder', 'Mua lại');
         buttons.push(`
             <button onclick="reorder(${order.id})" 
@@ -658,8 +658,16 @@ function reorder(orderId) {
                     loadCartCount();
                 }
                 
-                // Ask user if they want to go to checkout
+                // Ask user if they want to go to checkout with just reordered items selected
                 setTimeout(async () => {
+                    try {
+                        if (result.addedProductIds && result.addedProductIds.length > 0) {
+                            // Store selected product IDs for checkout page to preselect
+                            sessionStorage.setItem('selectedCartItems', JSON.stringify(result.addedProductIds));
+                        }
+                    } catch (e) {
+                        console.warn('Unable to persist selectedCartItems:', e);
+                    }
                     const confirmed = await showConfirm({
                         title: 'Mua lại thành công!',
                         text: 'Sản phẩm đã được thêm vào giỏ hàng. Bạn có muốn chuyển đến trang thanh toán không?',
